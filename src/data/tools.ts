@@ -20,7 +20,7 @@ export const tools: Tool[] = [
     id: "tax-calculator",
     name: "Tax Calculator",
     description: "Estimate Australian income tax and take-home pay.",
-    status: "comingSoon",
+    status: "available",
   },
   {
     id: "super-calculator",
