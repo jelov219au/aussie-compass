@@ -16,7 +16,7 @@ export const en: SiteContent = {
     heading: "Navigate life and work in Australia with confidence.",
     description:
       "Simple calculators, practical guides, and useful resources for people building their lives in Australia.",
-    primaryCta: "Try the Pay Calculator",
+    primaryCta: "Try the Salary Calculator",
     secondaryCta: "Browse Guides",
     trust: "Clear, practical and easy to use.",
   },

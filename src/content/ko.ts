@@ -15,7 +15,7 @@ export const ko: SiteContent = {
     label: "호주 생활을 위한 실용 정보",
     heading: "호주 생활과 직장 생활, 더 이상 혼자 헤매지 마세요.",
     description:
-      "급여·세금·Super 계산기와 이해하기 쉬운 한국어 가이드로 호주 생활에 필요한 정보를 한곳에서 확인하세요.",
+      "한 번의 입력으로 세전·세후 급여와 Super를 확인하고, 이해하기 쉬운 한국어 가이드로 호주 생활 정보를 알아보세요.",
     primaryCta: "계산기 둘러보기",
     secondaryCta: "가이드 보기",
     trust: "쉽고 명확하며 실제 생활에 도움이 되는 정보를 제공합니다.",
@@ -23,7 +23,7 @@ export const ko: SiteContent = {
   tools: {
     heading: "호주 생활에 필요한 실용 도구",
     description:
-      "급여, 세금, Super를 간편하게 계산해 보세요. 필요한 도구를 계속 추가하고 있습니다.",
+      "통합 급여 계산기에서 세전·세후 급여와 Super를 한 번에 확인하고, 최신 최저임금 정보도 알아보세요.",
   },
   howItWorks: {
     heading: "이용 방법",

@@ -5,9 +5,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 ## Current Features
 
 - Landing Page
-- Pay Calculator (Basic)
-- Super Calculator (Basic)
-- Tax Calculator (Basic, 2025–26 resident rates)
+- Integrated Salary Calculator (2026–27 resident rates and 12% Super)
 - Korean-first landing page
 - Minimum Wage and Casual Loading Guide (2026 rates)
 

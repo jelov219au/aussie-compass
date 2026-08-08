@@ -10,23 +10,11 @@ export type Tool = {
 
 export const tools: Tool[] = [
   {
-    id: "pay-calculator",
-    name: "급여 계산기",
-    description: "시급을 기준으로 예상 주급, 월급, 연봉을 계산합니다.",
+    id: "salary-calculator",
+    name: "통합 급여 계산기",
+    description: "시급과 근무시간 한 번 입력으로 세전·세후 급여, Super와 총 패키지를 확인합니다.",
     status: "available",
     featured: true,
-  },
-  {
-    id: "tax-calculator",
-    name: "소득세 계산기",
-    description: "호주 예상 소득세와 세후 소득을 계산합니다.",
-    status: "available",
-  },
-  {
-    id: "super-calculator",
-    name: "Super 계산기",
-    description: "고용주가 납부하는 예상 Super 금액을 계산합니다.",
-    status: "available",
   },
   {
     id: "minimum-wage-guide",
