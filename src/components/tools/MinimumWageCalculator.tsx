@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-const PERMANENT_HOURLY_RATE = 24.95;
-const CASUAL_HOURLY_RATE = 31.19;
+const PERMANENT_HOURLY_RATE = 26.44;
+const CASUAL_HOURLY_RATE = 33.05;
 const DEFAULT_WEEKLY_HOURS = "38";
 
 type EmploymentType = "permanent" | "casual";
@@ -44,7 +44,7 @@ export function MinimumWageCalculator() {
   return (
     <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
       <section className="rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-sm font-semibold text-gold">2025년 7월 1일부터 적용</p>
+        <p className="text-sm font-semibold text-gold">2026년 7월 1일부터 적용</p>
         <h2 className="mt-2 text-xl font-semibold text-navy">근무 조건</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">
           고용 형태와 평소 주당 근무 시간을 선택해 주세요.

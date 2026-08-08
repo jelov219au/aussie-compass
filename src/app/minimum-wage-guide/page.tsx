@@ -7,7 +7,7 @@ import { Container } from "@/components/ui/Container";
 
 export const metadata: Metadata = {
   title: "호주 최저임금·캐주얼 로딩 가이드 | Aussie Compass",
-  description: "2025년 7월부터 적용되는 호주 National Minimum Wage와 캐주얼 로딩을 기준으로 예상 급여를 계산해 보세요.",
+  description: "2026년 7월부터 적용되는 호주 National Minimum Wage와 캐주얼 로딩을 기준으로 예상 급여를 계산해 보세요.",
 };
 
 export default function MinimumWageGuidePage() {
@@ -34,8 +34,9 @@ export default function MinimumWageGuidePage() {
             <h2 className="text-xl font-semibold text-navy">꼭 확인하세요</h2>
             <div className="mt-3 max-w-3xl space-y-3 text-sm leading-7 text-muted sm:text-base">
               <p>
-                이 도구는 2025년 7월 1일부터 적용되는 일반 성인 National Minimum Wage를 기준으로 합니다.
-                풀타임·파트타임은 시간당 A$24.95, 캐주얼은 25% 로딩이 포함된 시간당 A$31.19를 사용합니다.
+                이 도구는 2026년 7월 1일부터 적용되는 일반 성인 National Minimum Wage를 기준으로 합니다.
+                풀타임·파트타임은 시간당 A$26.44, 캐주얼은 25% 로딩이 포함된 시간당 A$33.05를 사용합니다.
+                공식 풀타임 주급은 38시간 기준 A$1,004.90입니다.
               </p>
               <p>
                 실제 최저임금은 적용되는 Modern Award, Enterprise Agreement, 직종·등급, 나이, 수습 여부,
@@ -43,7 +44,7 @@ export default function MinimumWageGuidePage() {
               </p>
             </div>
             <a
-              href="https://www.fairwork.gov.au/newsroom/media-releases/2025-media-releases/july-2025/20250701-awr-2025-media-release"
+              href="https://www.fairwork.gov.au/about-us/workplace-laws/annual-wage-review/annual-wage-review-2026"
               target="_blank"
               rel="noreferrer"
               className="mt-4 inline-flex text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4"

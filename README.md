@@ -9,7 +9,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Super Calculator (Basic)
 - Tax Calculator (Basic, 2025–26 resident rates)
 - Korean-first landing page
-- Minimum Wage and Casual Loading Guide (2025 rates)
+- Minimum Wage and Casual Loading Guide (2026 rates)
 
 ## Coming Soon
 
