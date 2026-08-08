@@ -29,7 +29,7 @@ export function Header() {
 
         <nav
           className="hidden items-center gap-8 md:flex"
-          aria-label="Main navigation"
+          aria-label="주요 메뉴"
         >
           {navLinks.map((link) => (
             <Link
@@ -54,7 +54,7 @@ export function Header() {
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border text-navy transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 md:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-label={menuOpen ? "메뉴 닫기" : "메뉴 열기"}
             onClick={() => setMenuOpen((open) => !open)}
           >
             <svg
@@ -87,7 +87,7 @@ export function Header() {
         <nav
           id="mobile-menu"
           className="border-t border-border bg-background md:hidden"
-          aria-label="Mobile navigation"
+          aria-label="모바일 메뉴"
         >
           <Container className="flex flex-col gap-1 py-3">
             {navLinks.map((link) => (

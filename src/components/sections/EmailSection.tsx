@@ -46,7 +46,7 @@ export function EmailSection() {
           <form className="mt-8 space-y-4" onSubmit={handleSubmit} noValidate>
             <div>
               <label htmlFor="email" className="sr-only">
-                Email address
+                {content.email.addressLabel}
               </label>
               <input
                 id="email"

@@ -38,10 +38,16 @@ export type SiteContent = {
     button: string;
     successMessage: string;
     invalidMessage: string;
+    addressLabel: string;
+  };
+  about: {
+    heading: string;
+    description: string;
   };
   footer: {
     privacy: string;
     disclaimer: string;
     legalDisclaimer: string;
+    privacyDescription: string;
   };
 };

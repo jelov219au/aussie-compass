@@ -45,7 +45,7 @@ export function Footer() {
           <p id="privacy">
             <span className="font-medium text-navy">{content.footer.privacy}</span>
             {" — "}
-            A privacy policy will be published before personal data is collected.
+            {content.footer.privacyDescription}
           </p>
           <p id="disclaimer">{content.footer.legalDisclaimer}</p>
           <p>© {year} {content.brand.name}</p>

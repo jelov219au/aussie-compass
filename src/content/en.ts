@@ -54,11 +54,19 @@ export const en: SiteContent = {
     button: "Subscribe",
     successMessage: "Thanks — email subscriptions will open soon.",
     invalidMessage: "Please enter a valid email address.",
+    addressLabel: "Email address",
+  },
+  about: {
+    heading: "About Aussie Compass",
+    description:
+      "Practical tools for life and work in Australia. We are building simple tools to help people understand pay, work, and everyday life in Australia.",
   },
   footer: {
     privacy: "Privacy",
     disclaimer: "Disclaimer",
     legalDisclaimer:
       "Information provided by Aussie Compass is general in nature and is not financial, tax, migration or legal advice.",
+    privacyDescription:
+      "A privacy policy will be published before personal data is collected.",
   },
 };

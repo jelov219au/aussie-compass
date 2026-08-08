@@ -8,6 +8,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Pay Calculator (Basic)
 - Super Calculator (Basic)
 - Tax Calculator (Basic, 2025–26 resident rates)
+- Korean-first landing page
 
 ## Coming Soon
 

@@ -17,11 +17,10 @@ export function AboutSection() {
             id="about-heading"
             className="text-2xl font-semibold tracking-tight text-navy sm:text-3xl"
           >
-            About {content.brand.name}
+            {content.about.heading}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-muted">
-            {content.brand.tagline}. We are building simple, practical tools to
-            help people understand pay, work, and everyday life in Australia.
+            {content.about.description}
           </p>
         </div>
       </Container>

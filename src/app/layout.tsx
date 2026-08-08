@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 const siteUrl = "https://aussiecompass.com.au";
-const title = "Aussie Compass | Practical Tools for Life in Australia";
+const title = "Aussie Compass | 호주 생활을 위한 실용 도구";
 const description =
-  "Simple calculators, practical guides and useful resources for living and working in Australia.";
+  "호주 급여, 세금, Super 계산기와 한국어 생활 가이드를 한곳에서 확인하세요.";
 
 export const metadata: Metadata = {
   title,
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     description,
     url: siteUrl,
     siteName: "Aussie Compass",
-    locale: "en_AU",
+    locale: "ko_KR",
     type: "website",
   },
   twitter: {
@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <body className="min-h-screen antialiased">{children}</body>
     </html>
   );

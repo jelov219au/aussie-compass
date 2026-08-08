@@ -1,13 +1,13 @@
 import { en } from "./en";
+import { ko } from "./ko";
 import type { Locale, SiteContent } from "./types";
 
 const contentByLocale: Record<Locale, SiteContent> = {
   en,
-  // Korean content can be added here later, e.g. ko: { ... }
-  ko: en,
+  ko,
 };
 
-export const defaultLocale: Locale = "en";
+export const defaultLocale: Locale = "ko";
 
 export function getContent(locale: Locale = defaultLocale): SiteContent {
   return contentByLocale[locale] ?? en;

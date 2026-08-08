@@ -6,14 +6,14 @@ export type Article = {
 export const articles: Article[] = [
   {
     id: "casual-vs-fulltime",
-    title: "Casual vs full-time work in Australia",
+    title: "호주 캐주얼과 풀타임 근무의 차이",
   },
   {
     id: "pay-and-super",
-    title: "How Australian pay and super work",
+    title: "호주 급여와 Super의 기본 구조",
   },
   {
     id: "take-home-pay",
-    title: "Understanding your take-home pay",
+    title: "세후 실수령액 이해하기",
   },
 ];
