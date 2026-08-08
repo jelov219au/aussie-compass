@@ -44,7 +44,7 @@ export function ToolsSection() {
                     href={`/${tool.id}`}
                     className="mt-5 inline-flex w-fit rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
                   >
-                    계산기 열기
+                    도구 열기
                   </Link>
                 ) : (
                   <p className="mt-5 inline-flex w-fit rounded-full bg-surface px-3 py-1 text-xs font-medium text-muted">

@@ -32,7 +32,7 @@ export const tools: Tool[] = [
     id: "minimum-wage-guide",
     name: "최저임금 가이드",
     description: "호주 최저임금과 캐주얼 로딩을 쉽게 알아봅니다.",
-    status: "comingSoon",
+    status: "available",
   },
   {
     id: "cost-of-living-calculator",
