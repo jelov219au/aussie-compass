@@ -39,9 +39,9 @@ export function ToolsSection() {
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">
                   {tool.description}
                 </p>
-                {tool.id === "pay-calculator" ? (
+                {tool.status === "available" ? (
                   <Link
-                    href="/pay-calculator"
+                    href={`/${tool.id}`}
                     className="mt-5 inline-flex w-fit rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
                   >
                     Open calculator

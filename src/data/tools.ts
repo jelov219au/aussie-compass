@@ -26,7 +26,7 @@ export const tools: Tool[] = [
     id: "super-calculator",
     name: "Super Calculator",
     description: "Estimate employer superannuation contributions.",
-    status: "comingSoon",
+    status: "available",
   },
   {
     id: "minimum-wage-guide",

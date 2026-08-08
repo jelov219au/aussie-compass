@@ -6,6 +6,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 
 - Landing Page
 - Pay Calculator (Basic)
+- Super Calculator (Basic)
 
 ## Coming Soon
 
