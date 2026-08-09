@@ -93,11 +93,12 @@ export default function SalaryCalculatorPage() {
                 <span className="mt-5 text-sm font-semibold text-navy group-hover:text-navy-light">가이드 읽기 &rarr;</span>
               </Link>
 
-              <article className="flex min-h-48 flex-col rounded-2xl border border-border bg-white p-6 shadow-sm">
-                <span className="w-fit rounded-full bg-surface px-3 py-1 text-xs font-semibold text-muted">준비 중</span>
+              <Link href="/super-guide" className="group flex min-h-48 flex-col rounded-2xl border border-gold/40 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+                <span className="w-fit rounded-full bg-gold/10 px-3 py-1 text-xs font-semibold text-navy">사용 가능</span>
                 <h3 className="mt-4 text-lg font-semibold text-navy">Super 이해하기</h3>
-                <p className="mt-2 flex-1 text-sm leading-6 text-muted">Super가 언제, 어떻게 납부되고 무엇을 확인해야 하는지 안내할 예정입니다.</p>
-              </article>
+                <p className="mt-2 flex-1 text-sm leading-6 text-muted">Super가 언제, 어떻게 납부되고 무엇을 확인해야 하는지 쉽게 알아보세요.</p>
+                <span className="mt-5 text-sm font-semibold text-navy group-hover:text-navy-light">가이드 읽기 &rarr;</span>
+              </Link>
             </div>
           </section>
 
