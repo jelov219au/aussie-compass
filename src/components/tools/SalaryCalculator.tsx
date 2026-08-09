@@ -11,6 +11,7 @@ const DEFAULT_ANNUAL_SALARY = "70000";
 
 type EmploymentType = "permanent" | "casual";
 type PayInputMode = "hourly" | "annual";
+type AnnualAmountType = "plusSuper" | "includesSuper";
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
   style: "currency",
@@ -58,6 +59,7 @@ export function SalaryCalculator() {
   const [hourlyRate, setHourlyRate] = useState(DEFAULT_HOURLY_RATE);
   const [weeklyHours, setWeeklyHours] = useState(DEFAULT_WEEKLY_HOURS);
   const [annualSalary, setAnnualSalary] = useState(DEFAULT_ANNUAL_SALARY);
+  const [annualAmountType, setAnnualAmountType] = useState<AnnualAmountType>("plusSuper");
   const [employmentType, setEmploymentType] = useState<EmploymentType>("permanent");
   const [touched, setTouched] = useState({ rate: false, hours: false, annual: false });
 
@@ -78,7 +80,13 @@ export function SalaryCalculator() {
       : "";
   const hasErrors = payInputMode === "hourly" ? Boolean(rateError || hoursError) : Boolean(annualError);
 
-  const grossAnnual = hasErrors ? 0 : payInputMode === "hourly" ? rate * hours * 52 : annual;
+  const grossAnnual = hasErrors
+    ? 0
+    : payInputMode === "hourly"
+      ? rate * hours * 52
+      : annualAmountType === "includesSuper"
+        ? annual / (1 + SUPER_RATE)
+        : annual;
   const grossWeekly = grossAnnual / 52;
   const grossMonthly = grossAnnual / 12;
   const estimatedTax = calculateResidentIncomeTax(grossAnnual);
@@ -97,6 +105,7 @@ export function SalaryCalculator() {
     setHourlyRate(DEFAULT_HOURLY_RATE);
     setWeeklyHours(DEFAULT_WEEKLY_HOURS);
     setAnnualSalary(DEFAULT_ANNUAL_SALARY);
+    setAnnualAmountType("plusSuper");
     setEmploymentType("permanent");
     setTouched({ rate: false, hours: false, annual: false });
   }
@@ -170,17 +179,35 @@ export function SalaryCalculator() {
             )}
           </div>
         ) : null}
-        </> : (
-          <label className="mt-7 block">
-            <span className="text-sm font-medium text-navy">나의 세전 연봉 (Super 제외)</span>
+        </> : (<>
+          <fieldset className="mt-7">
+            <legend className="text-sm font-medium text-navy">연봉 표기 방식</legend>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+              <label className={`cursor-pointer rounded-xl border p-4 transition ${annualAmountType === "plusSuper" ? "border-navy bg-navy/5" : "border-border"}`}>
+                <input type="radio" name="annual-amount-type" checked={annualAmountType === "plusSuper"} onChange={() => setAnnualAmountType("plusSuper")} className="mr-2 accent-navy" />
+                <span className="font-medium text-navy">연봉 + Super 별도</span>
+              </label>
+              <label className={`cursor-pointer rounded-xl border p-4 transition ${annualAmountType === "includesSuper" ? "border-navy bg-navy/5" : "border-border"}`}>
+                <input type="radio" name="annual-amount-type" checked={annualAmountType === "includesSuper"} onChange={() => setAnnualAmountType("includesSuper")} className="mr-2 accent-navy" />
+                <span className="font-medium text-navy">Super 포함 총 패키지</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <label className="mt-6 block">
+            <span className="text-sm font-medium text-navy">{annualAmountType === "includesSuper" ? "Super 포함 총 패키지" : "나의 세전 연봉 (Super 제외)"}</span>
             <div className="relative mt-2">
               <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-muted">$</span>
               <input type="number" min="1" step="100" inputMode="decimal" value={annualSalary} onChange={(event) => setAnnualSalary(event.target.value)} onBlur={() => setTouched((current) => ({ ...current, annual: true }))} aria-invalid={touched.annual && Boolean(annualError)} className={`w-full rounded-lg border bg-background py-3 pl-8 pr-4 text-navy outline-none transition focus:ring-2 focus:ring-navy/15 ${touched.annual && annualError ? "border-red-500" : "border-border focus:border-navy"}`} />
             </div>
             {touched.annual && annualError ? <span role="alert" className="mt-2 block text-sm text-red-600">{annualError}</span> : null}
-            <span className="mt-2 block text-sm leading-6 text-muted">채용 공고의 연봉이 “plus super” 또는 “super 제외”로 표시된 경우 입력하세요.</span>
+            <span className="mt-2 block text-sm leading-6 text-muted">
+              {annualAmountType === "includesSuper"
+                ? "입력한 총 패키지에서 12% Super와 세전 연봉을 역산합니다."
+                : "채용 공고의 연봉이 “plus super” 또는 “super 제외”로 표시된 경우 입력하세요."}
+            </span>
           </label>
-        )}
+        </>)}
       </section>
 
       <section className="rounded-2xl bg-navy p-6 text-white shadow-sm sm:p-8" aria-live="polite">
