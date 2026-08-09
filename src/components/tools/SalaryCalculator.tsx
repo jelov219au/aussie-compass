@@ -3,6 +3,9 @@
 import { useState } from "react";
 
 const SUPER_RATE = 0.12;
+const MEDICARE_LEVY_RATE = 0.02;
+const MEDICARE_LEVY_LOWER_THRESHOLD = 27_222;
+const MEDICARE_LEVY_UPPER_THRESHOLD = 34_027;
 const PERMANENT_MINIMUM_RATE = 26.44;
 const CASUAL_MINIMUM_RATE = 33.05;
 const DEFAULT_HOURLY_RATE = "30";
@@ -37,6 +40,14 @@ function calculateResidentIncomeTax(income: number) {
   return 51_370 + (income - 190_000) * 0.45;
 }
 
+function calculateMedicareLevy(income: number) {
+  if (income <= MEDICARE_LEVY_LOWER_THRESHOLD) return 0;
+  if (income <= MEDICARE_LEVY_UPPER_THRESHOLD) {
+    return Math.min(income * MEDICARE_LEVY_RATE, (income - MEDICARE_LEVY_LOWER_THRESHOLD) * 0.1);
+  }
+  return income * MEDICARE_LEVY_RATE;
+}
+
 type ResultCardProps = {
   label: string;
   value: number;
@@ -60,6 +71,7 @@ export function SalaryCalculator() {
   const [weeklyHours, setWeeklyHours] = useState(DEFAULT_WEEKLY_HOURS);
   const [annualSalary, setAnnualSalary] = useState(DEFAULT_ANNUAL_SALARY);
   const [annualAmountType, setAnnualAmountType] = useState<AnnualAmountType>("plusSuper");
+  const [includeMedicareLevy, setIncludeMedicareLevy] = useState(true);
   const [employmentType, setEmploymentType] = useState<EmploymentType>("permanent");
   const [touched, setTouched] = useState({ rate: false, hours: false, annual: false });
 
@@ -89,14 +101,16 @@ export function SalaryCalculator() {
         : annual;
   const grossWeekly = grossAnnual / 52;
   const grossMonthly = grossAnnual / 12;
-  const estimatedTax = calculateResidentIncomeTax(grossAnnual);
-  const netAnnual = grossAnnual - estimatedTax;
+  const estimatedIncomeTax = calculateResidentIncomeTax(grossAnnual);
+  const estimatedMedicareLevy = includeMedicareLevy ? calculateMedicareLevy(grossAnnual) : 0;
+  const estimatedTotalTax = estimatedIncomeTax + estimatedMedicareLevy;
+  const netAnnual = grossAnnual - estimatedTotalTax;
   const netMonthly = netAnnual / 12;
   const netWeekly = netAnnual / 52;
   const superWeekly = grossWeekly * SUPER_RATE;
   const superAnnual = grossAnnual * SUPER_RATE;
   const totalPackage = grossAnnual + superAnnual;
-  const effectiveTaxRate = grossAnnual > 0 ? estimatedTax / grossAnnual : 0;
+  const effectiveTaxRate = grossAnnual > 0 ? estimatedTotalTax / grossAnnual : 0;
   const applicableMinimum = employmentType === "casual" ? CASUAL_MINIMUM_RATE : PERMANENT_MINIMUM_RATE;
   const belowMinimum = !rateError && rate < applicableMinimum;
 
@@ -106,6 +120,7 @@ export function SalaryCalculator() {
     setWeeklyHours(DEFAULT_WEEKLY_HOURS);
     setAnnualSalary(DEFAULT_ANNUAL_SALARY);
     setAnnualAmountType("plusSuper");
+    setIncludeMedicareLevy(true);
     setEmploymentType("permanent");
     setTouched({ rate: false, hours: false, annual: false });
   }
@@ -208,6 +223,14 @@ export function SalaryCalculator() {
             </span>
           </label>
         </>)}
+
+        <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface p-4">
+          <input type="checkbox" checked={includeMedicareLevy} onChange={(event) => setIncludeMedicareLevy(event.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
+          <span>
+            <span className="block text-sm font-medium text-navy">Medicare Levy 예상액 포함</span>
+            <span className="mt-1 block text-sm leading-6 text-muted">일반 개인 기준 2%와 저소득 감면 구간을 적용합니다. 면제 대상이면 선택을 해제하세요.</span>
+          </span>
+        </label>
       </section>
 
       <section className="rounded-2xl bg-navy p-6 text-white shadow-sm sm:p-8" aria-live="polite">
@@ -241,7 +264,11 @@ export function SalaryCalculator() {
                 <ResultCard label="세후 월급" value={netMonthly} />
                 <ResultCard label="세후 연 소득" value={netAnnual} emphasis />
               </dl>
-              <p className="mt-3 text-sm text-white/65">예상 연 소득세: {formatCurrency(estimatedTax)}</p>
+              <dl className="mt-3 grid gap-2 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-3">
+                <div><dt className="text-white/60">예상 소득세</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedIncomeTax)}</dd></div>
+                <div><dt className="text-white/60">예상 Medicare Levy</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedMedicareLevy)}</dd></div>
+                <div><dt className="text-white/60">총 예상 세금</dt><dd className="mt-1 font-semibold text-gold">{formatCurrency(estimatedTotalTax)}</dd></div>
+              </dl>
             </div>
 
             <div>
