@@ -6,10 +6,10 @@ export const en: SiteContent = {
     tagline: "Practical tools for life and work in Australia",
   },
   nav: {
-    tools: "Tools",
-    guides: "Guides",
+    tools: "Pay Calculator",
+    guides: "Pay Guides",
     about: "About",
-    exploreTools: "Explore tools",
+    exploreTools: "Check your pay",
   },
   hero: {
     label: "Built for life in Australia",
