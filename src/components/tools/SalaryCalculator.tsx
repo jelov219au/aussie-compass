@@ -7,8 +7,10 @@ const PERMANENT_MINIMUM_RATE = 26.44;
 const CASUAL_MINIMUM_RATE = 33.05;
 const DEFAULT_HOURLY_RATE = "30";
 const DEFAULT_WEEKLY_HOURS = "38";
+const DEFAULT_ANNUAL_SALARY = "70000";
 
 type EmploymentType = "permanent" | "casual";
+type PayInputMode = "hourly" | "annual";
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
   style: "currency",
@@ -52,13 +54,16 @@ function ResultCard({ label, value, emphasis = false }: ResultCardProps) {
 }
 
 export function SalaryCalculator() {
+  const [payInputMode, setPayInputMode] = useState<PayInputMode>("hourly");
   const [hourlyRate, setHourlyRate] = useState(DEFAULT_HOURLY_RATE);
   const [weeklyHours, setWeeklyHours] = useState(DEFAULT_WEEKLY_HOURS);
+  const [annualSalary, setAnnualSalary] = useState(DEFAULT_ANNUAL_SALARY);
   const [employmentType, setEmploymentType] = useState<EmploymentType>("permanent");
-  const [touched, setTouched] = useState({ rate: false, hours: false });
+  const [touched, setTouched] = useState({ rate: false, hours: false, annual: false });
 
   const rate = Number(hourlyRate);
   const hours = Number(weeklyHours);
+  const annual = Number(annualSalary);
   const rateError =
     hourlyRate.trim() === "" || !Number.isFinite(rate) || rate <= 0
       ? "0보다 큰 시급을 입력해 주세요."
@@ -67,10 +72,14 @@ export function SalaryCalculator() {
     weeklyHours.trim() === "" || !Number.isFinite(hours) || hours <= 0 || hours > 168
       ? "0보다 크고 168 이하인 시간을 입력해 주세요."
       : "";
-  const hasErrors = Boolean(rateError || hoursError);
+  const annualError =
+    annualSalary.trim() === "" || !Number.isFinite(annual) || annual <= 0
+      ? "0보다 큰 연봉을 입력해 주세요."
+      : "";
+  const hasErrors = payInputMode === "hourly" ? Boolean(rateError || hoursError) : Boolean(annualError);
 
-  const grossWeekly = hasErrors ? 0 : rate * hours;
-  const grossAnnual = grossWeekly * 52;
+  const grossAnnual = hasErrors ? 0 : payInputMode === "hourly" ? rate * hours * 52 : annual;
+  const grossWeekly = grossAnnual / 52;
   const grossMonthly = grossAnnual / 12;
   const estimatedTax = calculateResidentIncomeTax(grossAnnual);
   const netAnnual = grossAnnual - estimatedTax;
@@ -84,10 +93,12 @@ export function SalaryCalculator() {
   const belowMinimum = !rateError && rate < applicableMinimum;
 
   function resetCalculator() {
+    setPayInputMode("hourly");
     setHourlyRate(DEFAULT_HOURLY_RATE);
     setWeeklyHours(DEFAULT_WEEKLY_HOURS);
+    setAnnualSalary(DEFAULT_ANNUAL_SALARY);
     setEmploymentType("permanent");
-    setTouched({ rate: false, hours: false });
+    setTouched({ rate: false, hours: false, annual: false });
   }
 
   return (
@@ -104,6 +115,21 @@ export function SalaryCalculator() {
           </button>
         </div>
 
+        <fieldset className="mt-7">
+          <legend className="text-sm font-medium text-navy">급여 입력 방식</legend>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <label className={`cursor-pointer rounded-xl border p-4 transition ${payInputMode === "hourly" ? "border-navy bg-navy/5" : "border-border"}`}>
+              <input type="radio" name="pay-input-mode" checked={payInputMode === "hourly"} onChange={() => setPayInputMode("hourly")} className="mr-2 accent-navy" />
+              <span className="font-medium text-navy">시급으로 계산</span>
+            </label>
+            <label className={`cursor-pointer rounded-xl border p-4 transition ${payInputMode === "annual" ? "border-navy bg-navy/5" : "border-border"}`}>
+              <input type="radio" name="pay-input-mode" checked={payInputMode === "annual"} onChange={() => setPayInputMode("annual")} className="mr-2 accent-navy" />
+              <span className="font-medium text-navy">연봉으로 계산</span>
+            </label>
+          </div>
+        </fieldset>
+
+        {payInputMode === "hourly" ? <>
         <fieldset className="mt-7">
           <legend className="text-sm font-medium text-navy">고용 형태</legend>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
@@ -144,6 +170,17 @@ export function SalaryCalculator() {
             )}
           </div>
         ) : null}
+        </> : (
+          <label className="mt-7 block">
+            <span className="text-sm font-medium text-navy">나의 세전 연봉 (Super 제외)</span>
+            <div className="relative mt-2">
+              <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-muted">$</span>
+              <input type="number" min="1" step="100" inputMode="decimal" value={annualSalary} onChange={(event) => setAnnualSalary(event.target.value)} onBlur={() => setTouched((current) => ({ ...current, annual: true }))} aria-invalid={touched.annual && Boolean(annualError)} className={`w-full rounded-lg border bg-background py-3 pl-8 pr-4 text-navy outline-none transition focus:ring-2 focus:ring-navy/15 ${touched.annual && annualError ? "border-red-500" : "border-border focus:border-navy"}`} />
+            </div>
+            {touched.annual && annualError ? <span role="alert" className="mt-2 block text-sm text-red-600">{annualError}</span> : null}
+            <span className="mt-2 block text-sm leading-6 text-muted">채용 공고의 연봉이 “plus super” 또는 “super 제외”로 표시된 경우 입력하세요.</span>
+          </label>
+        )}
       </section>
 
       <section className="rounded-2xl bg-navy p-6 text-white shadow-sm sm:p-8" aria-live="polite">
