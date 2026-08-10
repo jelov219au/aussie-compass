@@ -59,7 +59,7 @@ export default function UnderpaymentGuidePage() {
       <main className="py-12 sm:py-16">
         <Container>
           <Link
-            href="/#guides"
+            href="/guides"
             className="inline-flex text-sm font-medium text-muted transition-colors hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
           >
             &larr; 급여 가이드 목록으로 돌아가기

@@ -1,5 +1,4 @@
 import { getContent } from "@/content";
-import { sectionIds } from "@/lib/utils";
 import { CheckIcon } from "@/components/icons/Icons";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -22,10 +21,10 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Button href={`#${sectionIds.tools}`}>
+            <Button href="/salary-calculator">
               {content.hero.primaryCta}
             </Button>
-            <Button href={`#${sectionIds.guides}`} variant="secondary">
+            <Button href="/guides" variant="secondary">
               {content.hero.secondaryCta}
             </Button>
           </div>

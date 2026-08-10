@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getContent } from "@/content";
-import { sectionIds } from "@/lib/utils";
 import { Container } from "@/components/ui/Container";
 
 export function Footer() {
@@ -8,8 +7,8 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   const footerLinks = [
-    { label: content.nav.tools, href: `#${sectionIds.tools}` },
-    { label: content.nav.guides, href: `#${sectionIds.guides}` },
+    { label: content.nav.tools, href: "/salary-calculator" },
+    { label: content.nav.guides, href: "/guides" },
     { label: content.footer.privacy, href: "#privacy" },
     { label: content.footer.disclaimer, href: "#disclaimer" },
   ];

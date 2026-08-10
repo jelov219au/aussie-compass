@@ -12,8 +12,8 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
-    { label: content.nav.tools, href: `/#${sectionIds.tools}` },
-    { label: content.nav.guides, href: `/#${sectionIds.guides}` },
+    { label: content.nav.tools, href: "/salary-calculator" },
+    { label: content.nav.guides, href: "/guides" },
     { label: content.nav.about, href: `/#${sectionIds.about}` },
   ];
 
@@ -40,13 +40,13 @@ export function Header() {
               {link.label}
             </Link>
           ))}
-          <Button href={`/#${sectionIds.tools}`} className="ml-2">
+          <Button href="/salary-calculator" className="ml-2">
             {content.nav.exploreTools}
           </Button>
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
-          <Button href={`/#${sectionIds.tools}`} className="hidden min-[420px]:inline-flex">
+          <Button href="/salary-calculator" className="hidden min-[420px]:inline-flex">
             {content.nav.exploreTools}
           </Button>
           <button
@@ -101,7 +101,7 @@ export function Header() {
               </Link>
             ))}
             <Button
-              href={`/#${sectionIds.tools}`}
+              href="/salary-calculator"
               className="mt-2 w-full min-[420px]:hidden"
             >
               {content.nav.exploreTools}

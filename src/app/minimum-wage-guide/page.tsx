@@ -16,7 +16,7 @@ export default function MinimumWageGuidePage() {
       <Header />
       <main className="py-12 sm:py-16">
         <Container>
-          <Link href="/#tools" className="inline-flex text-sm font-medium text-muted transition-colors hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+          <Link href="/guides" className="inline-flex text-sm font-medium text-muted transition-colors hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
             &larr; 도구 목록으로 돌아가기
           </Link>
 
