@@ -14,6 +14,7 @@ const DEFAULT_HOURLY_RATE = "30";
 const DEFAULT_WEEKLY_HOURS = "38";
 const DEFAULT_WORKING_WEEKS = "52";
 const DEFAULT_ANNUAL_SALARY = "70000";
+const DEFAULT_COMPARISON_SALARY = "80000";
 
 type EmploymentType = "permanent" | "casual";
 type PayInputMode = "hourly" | "annual";
@@ -52,6 +53,10 @@ const percentFormatter = new Intl.NumberFormat("en-AU", {
 
 function formatCurrency(amount: number) {
   return currencyFormatter.format(amount);
+}
+
+function formatSignedCurrency(amount: number) {
+  return `${amount > 0 ? "+" : ""}${formatCurrency(amount)}`;
 }
 
 function calculateResidentIncomeTax(income: number) {
@@ -118,6 +123,7 @@ export function SalaryCalculator() {
   const [weeklyHours, setWeeklyHours] = useState(DEFAULT_WEEKLY_HOURS);
   const [workingWeeks, setWorkingWeeks] = useState(DEFAULT_WORKING_WEEKS);
   const [annualSalary, setAnnualSalary] = useState(DEFAULT_ANNUAL_SALARY);
+  const [comparisonSalary, setComparisonSalary] = useState(DEFAULT_COMPARISON_SALARY);
   const [annualAmountType, setAnnualAmountType] = useState<AnnualAmountType>("plusSuper");
   const [includeMedicareLevy, setIncludeMedicareLevy] = useState(true);
   const [includeHelpRepayment, setIncludeHelpRepayment] = useState(false);
@@ -203,6 +209,29 @@ export function SalaryCalculator() {
   const superFortnightly = grossFortnightly * SUPER_RATE;
   const superAnnual = grossAnnual * SUPER_RATE;
   const totalPackage = grossAnnual + superAnnual;
+  const comparisonAnnual = Number(comparisonSalary);
+  const comparisonSalaryIsValid = comparisonSalary.trim() !== "" && Number.isFinite(comparisonAnnual) && comparisonAnnual > 0;
+  const comparisonTaxBeforeOffsets = comparisonSalaryIsValid
+    ? isWorkingHolidayMaker
+      ? calculateWorkingHolidayMakerTax(comparisonAnnual)
+      : calculateResidentIncomeTax(comparisonAnnual)
+    : 0;
+  const comparisonLito = isWorkingHolidayMaker
+    ? 0
+    : Math.min(comparisonTaxBeforeOffsets, calculateLowIncomeTaxOffset(comparisonAnnual));
+  const comparisonIncomeTax = comparisonTaxBeforeOffsets - comparisonLito;
+  const comparisonMedicareLevy = !isWorkingHolidayMaker && includeMedicareLevy
+    ? calculateMedicareLevy(comparisonAnnual)
+    : 0;
+  const comparisonHelpRepayment = !isWorkingHolidayMaker && includeHelpRepayment
+    ? calculateHelpRepayment(comparisonAnnual)
+    : 0;
+  const comparisonNetAnnual = comparisonSalaryIsValid
+    ? comparisonAnnual - comparisonIncomeTax - comparisonMedicareLevy - comparisonHelpRepayment
+    : 0;
+  const grossAnnualDifference = comparisonAnnual - grossAnnual;
+  const netAnnualDifference = comparisonNetAnnual - netAnnual;
+  const netMonthlyDifference = netAnnualDifference / 12;
   const incomeTaxRate = grossAnnual > 0 ? estimatedIncomeTax / grossAnnual : 0;
   const medicareLevyRate = grossAnnual > 0 ? estimatedMedicareLevy / grossAnnual : 0;
   const helpRepaymentRate = grossAnnual > 0 ? estimatedHelpRepayment / grossAnnual : 0;
@@ -217,6 +246,7 @@ export function SalaryCalculator() {
     setWeeklyHours(DEFAULT_WEEKLY_HOURS);
     setWorkingWeeks(DEFAULT_WORKING_WEEKS);
     setAnnualSalary(DEFAULT_ANNUAL_SALARY);
+    setComparisonSalary(DEFAULT_COMPARISON_SALARY);
     setAnnualAmountType("plusSuper");
     setIncludeMedicareLevy(true);
     setIncludeHelpRepayment(false);
@@ -610,6 +640,39 @@ export function SalaryCalculator() {
                 <ResultCard label="연 Super (Annual)" value={superAnnual} />
                 <ResultCard label="연봉 + Super" value={totalPackage} emphasis />
               </dl>
+            </div>
+
+            <div className="salary-print-hide rounded-xl border border-white/15 bg-white/5 p-5 sm:p-6">
+              <div>
+                <h3 className="text-base font-semibold text-white">다른 연봉과 비교</h3>
+                <p className="mt-2 text-sm leading-6 text-white/65">현재와 같은 세금 조건으로 새 연봉의 실수령액 차이를 확인하세요.</p>
+              </div>
+              <label className="mt-4 block max-w-sm">
+                <span className="text-sm font-medium text-white/85">비교할 세전 연봉 (Super 제외)</span>
+                <div className="relative mt-2">
+                  <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-white/55">$</span>
+                  <input type="number" min="1" step="1000" inputMode="decimal" value={comparisonSalary} onChange={(event) => setComparisonSalary(event.target.value)} className="w-full rounded-lg border border-white/20 bg-white/10 py-3 pl-8 pr-4 text-white outline-none transition placeholder:text-white/40 focus:border-gold focus:ring-2 focus:ring-gold/20" />
+                </div>
+              </label>
+
+              {!comparisonSalaryIsValid ? (
+                <p role="alert" className="mt-3 text-sm text-red-200">0보다 큰 연봉을 입력해 주세요.</p>
+              ) : (
+                <dl className="mt-5 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border border-white/10 bg-white/10 p-4">
+                    <dt className="text-xs text-white/60">세전 연봉 차이</dt>
+                    <dd className={`mt-2 text-lg font-semibold ${grossAnnualDifference >= 0 ? "text-emerald-300" : "text-red-200"}`}>{formatSignedCurrency(grossAnnualDifference)}</dd>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-white/10 p-4">
+                    <dt className="text-xs text-white/60">예상 세후 월급 차이</dt>
+                    <dd className={`mt-2 text-lg font-semibold ${netMonthlyDifference >= 0 ? "text-emerald-300" : "text-red-200"}`}>{formatSignedCurrency(netMonthlyDifference)}</dd>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-white/10 p-4">
+                    <dt className="text-xs text-white/60">예상 세후 연 소득 차이</dt>
+                    <dd className={`mt-2 text-lg font-semibold ${netAnnualDifference >= 0 ? "text-emerald-300" : "text-red-200"}`}>{formatSignedCurrency(netAnnualDifference)}</dd>
+                  </div>
+                </dl>
+              )}
             </div>
           </div>
         )}
