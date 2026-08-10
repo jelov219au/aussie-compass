@@ -106,7 +106,8 @@ export default function SalaryCalculatorPage() {
             <h2 className="text-xl font-semibold text-navy">계산 기준 및 주의사항</h2>
             <div className="mt-3 max-w-4xl space-y-3 text-sm leading-7 text-muted sm:text-base">
               <p>시급 입력 방식의 세전 연봉은 시급, 주당 근무시간, 연간 근무 주 수를 곱해 계산합니다. 주급과 격주급은 실제 근무 주 기준이며, 월급은 연간 급여를 12개월로 나눈 평균입니다. 연봉 입력 방식은 입력한 연봉을 각 지급 주기로 환산합니다. Super는 2026–27 일반 SG 비율 12%를 적용합니다.</p>
-              <p>예상 세후 소득은 2026–27 호주 세법상 거주자 기본 개인소득세율을 사용합니다. 입력 급여를 과세소득으로 가정해 LITO(저소득 세액공제)를 자동 적용하며, Medicare Levy 선택 시 일반 개인 2%와 저소득 감면 구간을 적용합니다. HELP/HECS 선택 시 입력 급여만 상환소득으로 가정해 2026–27 한계상환 기준을 적용합니다.</p>
+              <p>호주 세법상 거주자 유형은 2026–27 기본 개인소득세율을 사용합니다. 입력 급여를 과세소득으로 가정해 LITO(저소득 세액공제)를 자동 적용하며, Medicare Levy 선택 시 일반 개인 2%와 저소득 감면 구간을 적용합니다. HELP/HECS 선택 시 입력 급여만 상환소득으로 가정해 2026–27 한계상환 기준을 적용합니다.</p>
+              <p>Working Holiday Maker 유형은 일반적인 세법상 비거주자 WHM을 가정해 첫 A$45,000에 15%를 적용하고 이후 WHM 구간별 세율을 적용합니다. 이 유형에서는 LITO, Medicare Levy와 HELP/HECS 예상액을 포함하지 않습니다. 고용주 등록 여부에 따라 실제 급여 원천징수액은 달라질 수 있습니다.</p>
               <p>LITO는 환급형 공제가 아니므로 예상 소득세를 A$0 아래로 낮추지 않습니다. 실제 과세소득과 거주자 자격에 따라 적용 여부가 달라질 수 있습니다. 가족소득 감면, Medicare 면제·Surcharge, 급여 외 HELP 상환소득, 실제 대출 잔액, LITO 이외의 세액공제와 소득공제는 포함하지 않습니다.</p>
               <p>실제 세금과 Super는 개인 상황과 Ordinary Time Earnings에 따라 달라질 수 있으므로 ATO, Fair Work 또는 등록 전문가의 공식 자료를 확인하세요.</p>
             </div>
@@ -115,6 +116,7 @@ export default function SalaryCalculatorPage() {
               <a href="https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO Super 비율 확인</a>
               <a href="https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO Medicare Levy 안내</a>
               <a href="https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO LITO 안내</a>
+              <a href="https://www.ato.gov.au/tax-rates-and-codes/tax-rates-working-holiday-makers" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO WHM 세율 안내</a>
               <a href="https://www.studyassist.gov.au/managing-and-repaying-your-loan/loan-repayments" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">2026–27 HELP 상환 기준</a>
             </div>
           </section>

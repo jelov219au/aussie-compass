@@ -19,6 +19,7 @@ type EmploymentType = "permanent" | "casual";
 type PayInputMode = "hourly" | "annual";
 type AnnualAmountType = "plusSuper" | "includesSuper";
 type CopyStatus = "idle" | "success" | "error";
+type TaxProfile = "resident" | "workingHolidayMaker";
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
   style: "currency",
@@ -42,6 +43,13 @@ function calculateResidentIncomeTax(income: number) {
   if (income <= 135_000) return 4_020 + (income - 45_000) * 0.3;
   if (income <= 190_000) return 31_020 + (income - 135_000) * 0.37;
   return 51_370 + (income - 190_000) * 0.45;
+}
+
+function calculateWorkingHolidayMakerTax(income: number) {
+  if (income <= 45_000) return income * 0.15;
+  if (income <= 135_000) return 6_750 + (income - 45_000) * 0.3;
+  if (income <= 190_000) return 33_750 + (income - 135_000) * 0.37;
+  return 54_100 + (income - 190_000) * 0.45;
 }
 
 function calculateLowIncomeTaxOffset(income: number) {
@@ -87,6 +95,7 @@ function ResultCard({ label, value, emphasis = false }: ResultCardProps) {
 }
 
 export function SalaryCalculator() {
+  const [taxProfile, setTaxProfile] = useState<TaxProfile>("resident");
   const [payInputMode, setPayInputMode] = useState<PayInputMode>("hourly");
   const [hourlyRate, setHourlyRate] = useState(DEFAULT_HOURLY_RATE);
   const [weeklyHours, setWeeklyHours] = useState(DEFAULT_WEEKLY_HOURS);
@@ -132,11 +141,16 @@ export function SalaryCalculator() {
   const grossFortnightly = grossWeekly * 2;
   const grossMonthly = grossAnnual / 12;
   const workingPayPeriods = payInputMode === "hourly" && !weeksError ? weeks : 52;
-  const incomeTaxBeforeOffsets = calculateResidentIncomeTax(grossAnnual);
-  const estimatedLito = Math.min(incomeTaxBeforeOffsets, calculateLowIncomeTaxOffset(grossAnnual));
+  const isWorkingHolidayMaker = taxProfile === "workingHolidayMaker";
+  const incomeTaxBeforeOffsets = isWorkingHolidayMaker
+    ? calculateWorkingHolidayMakerTax(grossAnnual)
+    : calculateResidentIncomeTax(grossAnnual);
+  const estimatedLito = isWorkingHolidayMaker
+    ? 0
+    : Math.min(incomeTaxBeforeOffsets, calculateLowIncomeTaxOffset(grossAnnual));
   const estimatedIncomeTax = incomeTaxBeforeOffsets - estimatedLito;
-  const estimatedMedicareLevy = includeMedicareLevy ? calculateMedicareLevy(grossAnnual) : 0;
-  const estimatedHelpRepayment = includeHelpRepayment ? calculateHelpRepayment(grossAnnual) : 0;
+  const estimatedMedicareLevy = !isWorkingHolidayMaker && includeMedicareLevy ? calculateMedicareLevy(grossAnnual) : 0;
+  const estimatedHelpRepayment = !isWorkingHolidayMaker && includeHelpRepayment ? calculateHelpRepayment(grossAnnual) : 0;
   const estimatedTotalDeductions = estimatedIncomeTax + estimatedMedicareLevy + estimatedHelpRepayment;
   const netAnnual = grossAnnual - estimatedTotalDeductions;
   const netMonthly = netAnnual / 12;
@@ -151,6 +165,7 @@ export function SalaryCalculator() {
   const belowMinimum = !rateError && rate < applicableMinimum;
 
   function resetCalculator() {
+    setTaxProfile("resident");
     setPayInputMode("hourly");
     setHourlyRate(DEFAULT_HOURLY_RATE);
     setWeeklyHours(DEFAULT_WEEKLY_HOURS);
@@ -164,9 +179,17 @@ export function SalaryCalculator() {
     setCopyStatus("idle");
   }
 
+  function selectTaxProfile(profile: TaxProfile) {
+    setTaxProfile(profile);
+    setIncludeMedicareLevy(profile === "resident");
+    setIncludeHelpRepayment(false);
+    setCopyStatus("idle");
+  }
+
   async function copyResults() {
     const summary = [
       "Aussie Compass 급여 계산 결과",
+      `세금 유형: ${isWorkingHolidayMaker ? "Working Holiday Maker (세법상 비거주자 가정)" : "호주 세법상 거주자"}`,
       payInputMode === "hourly" ? `계산 기준: 연 ${workingWeeks}주 근무` : "계산 기준: 입력 연봉",
       "",
       `[세전 급여]`,
@@ -211,6 +234,25 @@ export function SalaryCalculator() {
             초기화
           </button>
         </div>
+
+        <fieldset className="mt-7">
+          <legend className="text-sm font-medium text-navy">세금 유형</legend>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <label className={`cursor-pointer rounded-xl border p-4 transition ${taxProfile === "resident" ? "border-navy bg-navy/5" : "border-border"}`}>
+              <input type="radio" name="tax-profile" checked={taxProfile === "resident"} onChange={() => selectTaxProfile("resident")} className="mr-2 accent-navy" />
+              <span className="font-medium text-navy">호주 세법상 거주자</span>
+            </label>
+            <label className={`cursor-pointer rounded-xl border p-4 transition ${taxProfile === "workingHolidayMaker" ? "border-navy bg-navy/5" : "border-border"}`}>
+              <input type="radio" name="tax-profile" checked={taxProfile === "workingHolidayMaker"} onChange={() => selectTaxProfile("workingHolidayMaker")} className="mr-2 accent-navy" />
+              <span className="font-medium text-navy">Working Holiday Maker</span>
+            </label>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-muted">
+            {isWorkingHolidayMaker
+              ? "일반적인 세법상 비거주자 WHM을 가정합니다. LITO, Medicare Levy와 HELP/HECS는 포함하지 않습니다."
+              : "2026–27 호주 세법상 거주자 세율과 해당 공제 기준을 적용합니다."}
+          </p>
+        </fieldset>
 
         <fieldset className="mt-7">
           <legend className="text-sm font-medium text-navy">급여 입력 방식</legend>
@@ -303,16 +345,16 @@ export function SalaryCalculator() {
           </label>
         </>)}
 
-        <label className="mt-6 flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface p-4">
-          <input type="checkbox" checked={includeMedicareLevy} onChange={(event) => setIncludeMedicareLevy(event.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
+        <label className={`mt-6 flex items-start gap-3 rounded-xl border border-border bg-surface p-4 ${isWorkingHolidayMaker ? "cursor-not-allowed opacity-55" : "cursor-pointer"}`}>
+          <input type="checkbox" checked={includeMedicareLevy} disabled={isWorkingHolidayMaker} onChange={(event) => setIncludeMedicareLevy(event.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
           <span>
             <span className="block text-sm font-medium text-navy">Medicare Levy 예상액 포함</span>
             <span className="mt-1 block text-sm leading-6 text-muted">일반 개인 기준 2%와 저소득 감면 구간을 적용합니다. 면제 대상이면 선택을 해제하세요.</span>
           </span>
         </label>
 
-        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface p-4">
-          <input type="checkbox" checked={includeHelpRepayment} onChange={(event) => setIncludeHelpRepayment(event.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
+        <label className={`mt-3 flex items-start gap-3 rounded-xl border border-border bg-surface p-4 ${isWorkingHolidayMaker ? "cursor-not-allowed opacity-55" : "cursor-pointer"}`}>
+          <input type="checkbox" checked={includeHelpRepayment} disabled={isWorkingHolidayMaker} onChange={(event) => setIncludeHelpRepayment(event.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
           <span>
             <span className="block text-sm font-medium text-navy">HELP/HECS 상환 예상액 포함</span>
             <span className="mt-1 block text-sm leading-6 text-muted">2026–27 한계상환 기준을 급여에 적용합니다. HELP 등 학자금 대출이 있는 경우 선택하세요.</span>
