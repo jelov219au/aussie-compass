@@ -226,7 +226,7 @@ export function SalaryCalculator() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[0.8fr_1.3fr]">
-      <section className="rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
+      <section id="salary-inputs" className="scroll-mt-24 rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-gold">2026–27 기준</p>
@@ -237,6 +237,10 @@ export function SalaryCalculator() {
             초기화
           </button>
         </div>
+
+        <a href="#salary-results" className="mt-5 flex w-full items-center justify-center rounded-lg bg-navy px-4 py-3 text-sm font-semibold text-white transition hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 lg:hidden">
+          계산 결과 바로 보기 ↓
+        </a>
 
         <fieldset className="mt-7">
           <legend className="text-sm font-medium text-navy">세금 유형</legend>
@@ -365,7 +369,7 @@ export function SalaryCalculator() {
         </label>
       </section>
 
-      <section className="rounded-2xl bg-navy p-6 text-white shadow-sm sm:p-8" aria-live="polite">
+      <section id="salary-results" className="scroll-mt-24 rounded-2xl bg-navy p-6 text-white shadow-sm sm:p-8" aria-live="polite">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold">통합 급여 결과</h2>
@@ -377,6 +381,9 @@ export function SalaryCalculator() {
               <button type="button" onClick={copyResults} className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
                 {copyStatus === "success" ? "복사 완료" : "결과 복사"}
               </button>
+              <a href="#salary-inputs" className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy lg:hidden">
+                입력 수정 ↑
+              </a>
             </div>
           ) : null}
         </div>
