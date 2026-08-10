@@ -5,7 +5,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 ## Current Features
 
 - Landing Page
-- Integrated Salary Calculator with hourly, annual salary and super-inclusive package inputs, copyable weekly, fortnightly, monthly and annual results (2026–27 resident rates, LITO, Medicare Levy, HELP estimate and 12% Super)
+- Integrated Salary Calculator with hourly, annual salary and super-inclusive package inputs, adjustable working weeks, and copyable weekly, fortnightly, monthly and annual results (2026–27 resident rates, LITO, Medicare Levy, HELP estimate and 12% Super)
 - Korean-first landing page
 - Minimum Wage and Casual Loading Guide (2026 rates)
 

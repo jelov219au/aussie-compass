@@ -12,6 +12,7 @@ const PERMANENT_MINIMUM_RATE = 26.44;
 const CASUAL_MINIMUM_RATE = 33.05;
 const DEFAULT_HOURLY_RATE = "30";
 const DEFAULT_WEEKLY_HOURS = "38";
+const DEFAULT_WORKING_WEEKS = "52";
 const DEFAULT_ANNUAL_SALARY = "70000";
 
 type EmploymentType = "permanent" | "casual";
@@ -89,16 +90,18 @@ export function SalaryCalculator() {
   const [payInputMode, setPayInputMode] = useState<PayInputMode>("hourly");
   const [hourlyRate, setHourlyRate] = useState(DEFAULT_HOURLY_RATE);
   const [weeklyHours, setWeeklyHours] = useState(DEFAULT_WEEKLY_HOURS);
+  const [workingWeeks, setWorkingWeeks] = useState(DEFAULT_WORKING_WEEKS);
   const [annualSalary, setAnnualSalary] = useState(DEFAULT_ANNUAL_SALARY);
   const [annualAmountType, setAnnualAmountType] = useState<AnnualAmountType>("plusSuper");
   const [includeMedicareLevy, setIncludeMedicareLevy] = useState(true);
   const [includeHelpRepayment, setIncludeHelpRepayment] = useState(false);
   const [employmentType, setEmploymentType] = useState<EmploymentType>("permanent");
-  const [touched, setTouched] = useState({ rate: false, hours: false, annual: false });
+  const [touched, setTouched] = useState({ rate: false, hours: false, weeks: false, annual: false });
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
 
   const rate = Number(hourlyRate);
   const hours = Number(weeklyHours);
+  const weeks = Number(workingWeeks);
   const annual = Number(annualSalary);
   const rateError =
     hourlyRate.trim() === "" || !Number.isFinite(rate) || rate <= 0
@@ -108,22 +111,27 @@ export function SalaryCalculator() {
     weeklyHours.trim() === "" || !Number.isFinite(hours) || hours <= 0 || hours > 168
       ? "0보다 크고 168 이하인 시간을 입력해 주세요."
       : "";
+  const weeksError =
+    workingWeeks.trim() === "" || !Number.isFinite(weeks) || !Number.isInteger(weeks) || weeks < 1 || weeks > 52
+      ? "1 이상 52 이하의 정수로 근무 주 수를 입력해 주세요."
+      : "";
   const annualError =
     annualSalary.trim() === "" || !Number.isFinite(annual) || annual <= 0
       ? "0보다 큰 연봉을 입력해 주세요."
       : "";
-  const hasErrors = payInputMode === "hourly" ? Boolean(rateError || hoursError) : Boolean(annualError);
+  const hasErrors = payInputMode === "hourly" ? Boolean(rateError || hoursError || weeksError) : Boolean(annualError);
 
   const grossAnnual = hasErrors
     ? 0
     : payInputMode === "hourly"
-      ? rate * hours * 52
+      ? rate * hours * weeks
       : annualAmountType === "includesSuper"
         ? annual / (1 + SUPER_RATE)
         : annual;
-  const grossWeekly = grossAnnual / 52;
-  const grossFortnightly = grossAnnual / 26;
+  const grossWeekly = payInputMode === "hourly" ? rate * hours : grossAnnual / 52;
+  const grossFortnightly = grossWeekly * 2;
   const grossMonthly = grossAnnual / 12;
+  const workingPayPeriods = payInputMode === "hourly" && !weeksError ? weeks : 52;
   const incomeTaxBeforeOffsets = calculateResidentIncomeTax(grossAnnual);
   const estimatedLito = Math.min(incomeTaxBeforeOffsets, calculateLowIncomeTaxOffset(grossAnnual));
   const estimatedIncomeTax = incomeTaxBeforeOffsets - estimatedLito;
@@ -132,8 +140,8 @@ export function SalaryCalculator() {
   const estimatedTotalDeductions = estimatedIncomeTax + estimatedMedicareLevy + estimatedHelpRepayment;
   const netAnnual = grossAnnual - estimatedTotalDeductions;
   const netMonthly = netAnnual / 12;
-  const netWeekly = netAnnual / 52;
-  const netFortnightly = netAnnual / 26;
+  const netWeekly = netAnnual / workingPayPeriods;
+  const netFortnightly = netWeekly * 2;
   const superWeekly = grossWeekly * SUPER_RATE;
   const superFortnightly = grossFortnightly * SUPER_RATE;
   const superAnnual = grossAnnual * SUPER_RATE;
@@ -146,18 +154,20 @@ export function SalaryCalculator() {
     setPayInputMode("hourly");
     setHourlyRate(DEFAULT_HOURLY_RATE);
     setWeeklyHours(DEFAULT_WEEKLY_HOURS);
+    setWorkingWeeks(DEFAULT_WORKING_WEEKS);
     setAnnualSalary(DEFAULT_ANNUAL_SALARY);
     setAnnualAmountType("plusSuper");
     setIncludeMedicareLevy(true);
     setIncludeHelpRepayment(false);
     setEmploymentType("permanent");
-    setTouched({ rate: false, hours: false, annual: false });
+    setTouched({ rate: false, hours: false, weeks: false, annual: false });
     setCopyStatus("idle");
   }
 
   async function copyResults() {
     const summary = [
       "Aussie Compass 급여 계산 결과",
+      payInputMode === "hourly" ? `계산 기준: 연 ${workingWeeks}주 근무` : "계산 기준: 입력 연봉",
       "",
       `[세전 급여]`,
       `주급 (Weekly): ${formatCurrency(grossWeekly)}`,
@@ -231,7 +241,7 @@ export function SalaryCalculator() {
           </div>
         </fieldset>
 
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
           <label className="block">
             <span className="text-sm font-medium text-navy">나의 시급 (호주 달러)</span>
             <div className="relative mt-2">
@@ -245,6 +255,12 @@ export function SalaryCalculator() {
             <span className="text-sm font-medium text-navy">주당 근무 시간</span>
             <input type="number" min="0.5" max="168" step="0.5" inputMode="decimal" value={weeklyHours} onChange={(event) => setWeeklyHours(event.target.value)} onBlur={() => setTouched((current) => ({ ...current, hours: true }))} aria-invalid={touched.hours && Boolean(hoursError)} className={`mt-2 w-full rounded-lg border bg-background px-4 py-3 text-navy outline-none transition focus:ring-2 focus:ring-navy/15 ${touched.hours && hoursError ? "border-red-500" : "border-border focus:border-navy"}`} />
             {touched.hours && hoursError ? <span role="alert" className="mt-2 block text-sm text-red-600">{hoursError}</span> : null}
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-navy">연간 근무 주 수</span>
+            <input type="number" min="1" max="52" step="1" inputMode="numeric" value={workingWeeks} onChange={(event) => setWorkingWeeks(event.target.value)} onBlur={() => setTouched((current) => ({ ...current, weeks: true }))} aria-invalid={touched.weeks && Boolean(weeksError)} className={`mt-2 w-full rounded-lg border bg-background px-4 py-3 text-navy outline-none transition focus:ring-2 focus:ring-navy/15 ${touched.weeks && weeksError ? "border-red-500" : "border-border focus:border-navy"}`} />
+            {touched.weeks && weeksError ? <span role="alert" className="mt-2 block text-sm text-red-600">{weeksError}</span> : <span className="mt-2 block text-sm leading-6 text-muted">기본값은 52주입니다. 무급휴가나 계절근무가 있다면 실제 근무 주 수로 조정하세요.</span>}
           </label>
         </div>
 
