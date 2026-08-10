@@ -75,7 +75,7 @@ export default function SalaryCalculatorPage() {
               </p>
             </div>
 
-            <div className="mt-7 grid gap-5 md:grid-cols-3">
+            <div className="mt-7 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               <Link
                 href="/minimum-wage-guide"
                 className="group flex min-h-48 flex-col rounded-2xl border border-gold/40 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
@@ -97,6 +97,13 @@ export default function SalaryCalculatorPage() {
                 <span className="w-fit rounded-full bg-gold/10 px-3 py-1 text-xs font-semibold text-navy">사용 가능</span>
                 <h3 className="mt-4 text-lg font-semibold text-navy">Super 이해하기</h3>
                 <p className="mt-2 flex-1 text-sm leading-6 text-muted">Super가 언제, 어떻게 납부되고 무엇을 확인해야 하는지 쉽게 알아보세요.</p>
+                <span className="mt-5 text-sm font-semibold text-navy group-hover:text-navy-light">가이드 읽기 &rarr;</span>
+              </Link>
+
+              <Link href="/payslip-guide" className="group flex min-h-48 flex-col rounded-2xl border border-gold/40 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+                <span className="w-fit rounded-full bg-gold/10 px-3 py-1 text-xs font-semibold text-navy">사용 가능</span>
+                <h3 className="mt-4 text-lg font-semibold text-navy">Payslip 항목 확인하기</h3>
+                <p className="mt-2 flex-1 text-sm leading-6 text-muted">Gross, Net, PAYG, Super와 YTD가 무엇인지 쉽게 확인하세요.</p>
                 <span className="mt-5 text-sm font-semibold text-navy group-hover:text-navy-light">가이드 읽기 &rarr;</span>
               </Link>
             </div>
