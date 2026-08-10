@@ -46,7 +46,7 @@ export default function SalaryCalculatorPage() {
               <div className="rounded-xl bg-surface p-5">
                 <dt className="font-semibold text-navy">세후 급여</dt>
                 <dd className="mt-2 text-sm leading-6 text-muted">
-                  예상 소득세와 선택한 Medicare Levy 및 HELP/HECS 상환액을 제외한 뒤 실제로 사용할 수 있는 금액의 예상치입니다.
+                  예상 소득세와 선택한 Medicare Levy 및 HELP/HECS 상환액을 제외한 뒤 실제로 사용할 수 있는 금액의 예상치입니다. 각 공제액 옆의 비율은 세전 연봉에서 해당 항목이 차지하는 비중입니다.
                 </dd>
               </div>
               <div className="rounded-xl bg-surface p-5">

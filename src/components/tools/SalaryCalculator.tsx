@@ -160,7 +160,10 @@ export function SalaryCalculator() {
   const superFortnightly = grossFortnightly * SUPER_RATE;
   const superAnnual = grossAnnual * SUPER_RATE;
   const totalPackage = grossAnnual + superAnnual;
-  const effectiveTaxRate = grossAnnual > 0 ? estimatedTotalDeductions / grossAnnual : 0;
+  const incomeTaxRate = grossAnnual > 0 ? estimatedIncomeTax / grossAnnual : 0;
+  const medicareLevyRate = grossAnnual > 0 ? estimatedMedicareLevy / grossAnnual : 0;
+  const helpRepaymentRate = grossAnnual > 0 ? estimatedHelpRepayment / grossAnnual : 0;
+  const totalDeductionRate = grossAnnual > 0 ? estimatedTotalDeductions / grossAnnual : 0;
   const applicableMinimum = employmentType === "casual" ? CASUAL_MINIMUM_RATE : PERMANENT_MINIMUM_RATE;
   const belowMinimum = !rateError && rate < applicableMinimum;
 
@@ -203,7 +206,7 @@ export function SalaryCalculator() {
       `세후 격주급 (Fortnightly): ${formatCurrency(netFortnightly)}`,
       `세후 월급 (Monthly): ${formatCurrency(netMonthly)}`,
       `세후 연 소득 (Annual): ${formatCurrency(netAnnual)}`,
-      `총 예상 공제: ${formatCurrency(estimatedTotalDeductions)}`,
+      `총 예상 공제: ${formatCurrency(estimatedTotalDeductions)} (${percentFormatter.format(totalDeductionRate)})`,
       "",
       `[Super]`,
       `연 Super: ${formatCurrency(superAnnual)}`,
@@ -370,7 +373,7 @@ export function SalaryCalculator() {
           </div>
           {!hasErrors ? (
             <div className="flex flex-wrap items-center gap-2">
-              <div className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/75">실효 소득세율 {percentFormatter.format(effectiveTaxRate)}</div>
+              <div className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/75">총 예상 공제율 {percentFormatter.format(totalDeductionRate)}</div>
               <button type="button" onClick={copyResults} className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
                 {copyStatus === "success" ? "복사 완료" : "결과 복사"}
               </button>
@@ -407,10 +410,10 @@ export function SalaryCalculator() {
               <dl className="mt-3 grid gap-4 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2 xl:grid-cols-3">
                 <div><dt className="text-white/60">LITO 적용 전 소득세</dt><dd className="mt-1 font-semibold">{formatCurrency(incomeTaxBeforeOffsets)}</dd></div>
                 <div><dt className="text-white/60">LITO 세액공제</dt><dd className="mt-1 font-semibold text-emerald-300">{estimatedLito > 0 ? `-${formatCurrency(estimatedLito)}` : formatCurrency(0)}</dd></div>
-                <div><dt className="text-white/60">예상 소득세</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedIncomeTax)}</dd></div>
-                <div><dt className="text-white/60">예상 Medicare Levy</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedMedicareLevy)}</dd></div>
-                <div><dt className="text-white/60">예상 HELP/HECS 상환</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedHelpRepayment)}</dd></div>
-                <div><dt className="text-white/60">총 예상 공제</dt><dd className="mt-1 font-semibold text-gold">{formatCurrency(estimatedTotalDeductions)}</dd></div>
+                <div><dt className="text-white/60">예상 소득세</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedIncomeTax)} <span className="text-xs font-normal text-white/50">({percentFormatter.format(incomeTaxRate)})</span></dd></div>
+                <div><dt className="text-white/60">예상 Medicare Levy</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedMedicareLevy)} <span className="text-xs font-normal text-white/50">({percentFormatter.format(medicareLevyRate)})</span></dd></div>
+                <div><dt className="text-white/60">예상 HELP/HECS 상환</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedHelpRepayment)} <span className="text-xs font-normal text-white/50">({percentFormatter.format(helpRepaymentRate)})</span></dd></div>
+                <div><dt className="text-white/60">총 예상 공제</dt><dd className="mt-1 font-semibold text-gold">{formatCurrency(estimatedTotalDeductions)} <span className="text-xs font-normal text-white/60">({percentFormatter.format(totalDeductionRate)})</span></dd></div>
               </dl>
             </div>
 
