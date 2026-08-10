@@ -6,6 +6,8 @@ const SUPER_RATE = 0.12;
 const MEDICARE_LEVY_RATE = 0.02;
 const MEDICARE_LEVY_LOWER_THRESHOLD = 27_222;
 const MEDICARE_LEVY_UPPER_THRESHOLD = 34_027;
+const HELP_MINIMUM_REPAYMENT_INCOME = 69_528;
+const HELP_SECOND_THRESHOLD = 129_717;
 const PERMANENT_MINIMUM_RATE = 26.44;
 const CASUAL_MINIMUM_RATE = 33.05;
 const DEFAULT_HOURLY_RATE = "30";
@@ -48,6 +50,16 @@ function calculateMedicareLevy(income: number) {
   return income * MEDICARE_LEVY_RATE;
 }
 
+function calculateHelpRepayment(income: number) {
+  if (income <= HELP_MINIMUM_REPAYMENT_INCOME) return 0;
+
+  const firstBandIncome = Math.min(income, HELP_SECOND_THRESHOLD) - HELP_MINIMUM_REPAYMENT_INCOME;
+  const secondBandIncome = Math.max(0, income - HELP_SECOND_THRESHOLD);
+  const marginalRepayment = firstBandIncome * 0.15 + secondBandIncome * 0.17;
+
+  return Math.min(marginalRepayment, income * 0.1);
+}
+
 type ResultCardProps = {
   label: string;
   value: number;
@@ -72,6 +84,7 @@ export function SalaryCalculator() {
   const [annualSalary, setAnnualSalary] = useState(DEFAULT_ANNUAL_SALARY);
   const [annualAmountType, setAnnualAmountType] = useState<AnnualAmountType>("plusSuper");
   const [includeMedicareLevy, setIncludeMedicareLevy] = useState(true);
+  const [includeHelpRepayment, setIncludeHelpRepayment] = useState(false);
   const [employmentType, setEmploymentType] = useState<EmploymentType>("permanent");
   const [touched, setTouched] = useState({ rate: false, hours: false, annual: false });
 
@@ -103,14 +116,15 @@ export function SalaryCalculator() {
   const grossMonthly = grossAnnual / 12;
   const estimatedIncomeTax = calculateResidentIncomeTax(grossAnnual);
   const estimatedMedicareLevy = includeMedicareLevy ? calculateMedicareLevy(grossAnnual) : 0;
-  const estimatedTotalTax = estimatedIncomeTax + estimatedMedicareLevy;
-  const netAnnual = grossAnnual - estimatedTotalTax;
+  const estimatedHelpRepayment = includeHelpRepayment ? calculateHelpRepayment(grossAnnual) : 0;
+  const estimatedTotalDeductions = estimatedIncomeTax + estimatedMedicareLevy + estimatedHelpRepayment;
+  const netAnnual = grossAnnual - estimatedTotalDeductions;
   const netMonthly = netAnnual / 12;
   const netWeekly = netAnnual / 52;
   const superWeekly = grossWeekly * SUPER_RATE;
   const superAnnual = grossAnnual * SUPER_RATE;
   const totalPackage = grossAnnual + superAnnual;
-  const effectiveTaxRate = grossAnnual > 0 ? estimatedTotalTax / grossAnnual : 0;
+  const effectiveTaxRate = grossAnnual > 0 ? estimatedTotalDeductions / grossAnnual : 0;
   const applicableMinimum = employmentType === "casual" ? CASUAL_MINIMUM_RATE : PERMANENT_MINIMUM_RATE;
   const belowMinimum = !rateError && rate < applicableMinimum;
 
@@ -121,6 +135,7 @@ export function SalaryCalculator() {
     setAnnualSalary(DEFAULT_ANNUAL_SALARY);
     setAnnualAmountType("plusSuper");
     setIncludeMedicareLevy(true);
+    setIncludeHelpRepayment(false);
     setEmploymentType("permanent");
     setTouched({ rate: false, hours: false, annual: false });
   }
@@ -231,6 +246,14 @@ export function SalaryCalculator() {
             <span className="mt-1 block text-sm leading-6 text-muted">일반 개인 기준 2%와 저소득 감면 구간을 적용합니다. 면제 대상이면 선택을 해제하세요.</span>
           </span>
         </label>
+
+        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface p-4">
+          <input type="checkbox" checked={includeHelpRepayment} onChange={(event) => setIncludeHelpRepayment(event.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
+          <span>
+            <span className="block text-sm font-medium text-navy">HELP/HECS 상환 예상액 포함</span>
+            <span className="mt-1 block text-sm leading-6 text-muted">2026–27 한계상환 기준을 급여에 적용합니다. HELP 등 학자금 대출이 있는 경우 선택하세요.</span>
+          </span>
+        </label>
       </section>
 
       <section className="rounded-2xl bg-navy p-6 text-white shadow-sm sm:p-8" aria-live="polite">
@@ -264,10 +287,11 @@ export function SalaryCalculator() {
                 <ResultCard label="세후 월급" value={netMonthly} />
                 <ResultCard label="세후 연 소득" value={netAnnual} emphasis />
               </dl>
-              <dl className="mt-3 grid gap-2 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-3">
+              <dl className="mt-3 grid gap-2 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
                 <div><dt className="text-white/60">예상 소득세</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedIncomeTax)}</dd></div>
                 <div><dt className="text-white/60">예상 Medicare Levy</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedMedicareLevy)}</dd></div>
-                <div><dt className="text-white/60">총 예상 세금</dt><dd className="mt-1 font-semibold text-gold">{formatCurrency(estimatedTotalTax)}</dd></div>
+                <div><dt className="text-white/60">예상 HELP/HECS 상환</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedHelpRepayment)}</dd></div>
+                <div><dt className="text-white/60">총 예상 공제</dt><dd className="mt-1 font-semibold text-gold">{formatCurrency(estimatedTotalDeductions)}</dd></div>
               </dl>
             </div>
 
