@@ -434,7 +434,9 @@ export function SalaryCalculator() {
           계산 결과 바로 보기 ↓
         </a>
 
-        <div className="mt-5 rounded-xl border border-border bg-surface p-4">
+        <details className="mt-5 rounded-xl border border-border bg-surface p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-navy">저장한 계산 관리</summary>
+          <div className="mt-4">
           <p className="text-sm font-medium text-navy">내 계산 조건</p>
           <p className="mt-1 text-sm leading-6 text-muted">현재 입력값을 이 기기에 저장하고 다음 방문 때 다시 불러오거나 삭제할 수 있습니다.</p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -449,7 +451,8 @@ export function SalaryCalculator() {
             </button>
           </div>
           {saveStatus === "error" ? <p role="alert" className="mt-2 text-sm text-red-600">브라우저 저장 공간을 사용할 수 없습니다.</p> : null}
-        </div>
+          </div>
+        </details>
 
         <fieldset className="mt-7">
           <legend className="text-sm font-medium text-navy">회계연도</legend>
@@ -577,21 +580,25 @@ export function SalaryCalculator() {
           </label>
         </>)}
 
-        <label className={`mt-6 flex items-start gap-3 rounded-xl border border-border bg-surface p-4 ${isWorkingHolidayMaker ? "cursor-not-allowed opacity-55" : "cursor-pointer"}`}>
-          <input type="checkbox" checked={includeMedicareLevy} disabled={isWorkingHolidayMaker} onChange={(event) => setIncludeMedicareLevy(event.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
-          <span>
-            <span className="block text-sm font-medium text-navy">Medicare Levy 예상액 포함</span>
-            <span className="mt-1 block text-sm leading-6 text-muted">일반 개인 기준 2%와 저소득 감면 구간을 적용합니다. 면제 대상이면 선택을 해제하세요.</span>
-          </span>
-        </label>
+        <details className="mt-6 rounded-xl border border-border bg-surface p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-navy">세금 상세 설정</summary>
+          <p className="mt-2 text-sm leading-6 text-muted">Medicare Levy 또는 HELP/HECS가 본인에게 해당할 때 조정하세요.</p>
+          <label className={`mt-4 flex items-start gap-3 rounded-xl border border-border bg-white p-4 ${isWorkingHolidayMaker ? "cursor-not-allowed opacity-55" : "cursor-pointer"}`}>
+            <input type="checkbox" checked={includeMedicareLevy} disabled={isWorkingHolidayMaker} onChange={(event) => setIncludeMedicareLevy(event.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
+            <span>
+              <span className="block text-sm font-medium text-navy">Medicare Levy 예상액 포함</span>
+              <span className="mt-1 block text-sm leading-6 text-muted">일반 개인 기준 2%와 저소득 감면 구간을 적용합니다. 면제 대상이면 선택을 해제하세요.</span>
+            </span>
+          </label>
 
-        <label className={`mt-3 flex items-start gap-3 rounded-xl border border-border bg-surface p-4 ${isWorkingHolidayMaker ? "cursor-not-allowed opacity-55" : "cursor-pointer"}`}>
-          <input type="checkbox" checked={includeHelpRepayment} disabled={isWorkingHolidayMaker} onChange={(event) => setIncludeHelpRepayment(event.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
-          <span>
-            <span className="block text-sm font-medium text-navy">HELP/HECS 상환 예상액 포함</span>
-            <span className="mt-1 block text-sm leading-6 text-muted">{taxYear.replace("-", "–")} 한계상환 기준을 급여에 적용합니다. HELP 등 학자금 대출이 있는 경우 선택하세요.</span>
-          </span>
-        </label>
+          <label className={`mt-3 flex items-start gap-3 rounded-xl border border-border bg-white p-4 ${isWorkingHolidayMaker ? "cursor-not-allowed opacity-55" : "cursor-pointer"}`}>
+            <input type="checkbox" checked={includeHelpRepayment} disabled={isWorkingHolidayMaker} onChange={(event) => setIncludeHelpRepayment(event.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
+            <span>
+              <span className="block text-sm font-medium text-navy">HELP/HECS 상환 예상액 포함</span>
+              <span className="mt-1 block text-sm leading-6 text-muted">{taxYear.replace("-", "–")} 한계상환 기준을 급여에 적용합니다. HELP 등 학자금 대출이 있는 경우 선택하세요.</span>
+            </span>
+          </label>
+        </details>
       </section>
 
       <section id="salary-results" className="scroll-mt-24 rounded-2xl bg-navy p-6 text-white shadow-sm sm:p-8" aria-live="polite">
@@ -652,7 +659,19 @@ export function SalaryCalculator() {
         {hasErrors ? (
           <div className="mt-7 rounded-xl bg-white/10 p-5 text-sm leading-relaxed">정확한 결과를 계산하려면 입력값을 확인해 주세요.</div>
         ) : (
-          <div className="mt-7 space-y-7">
+          <div className="mt-7">
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gold">핵심 결과</h3>
+              <dl className="mt-3 grid gap-3 sm:grid-cols-3">
+                <ResultCard label="예상 세후 월급" value={netMonthly} emphasis />
+                <ResultCard label="예상 세후 연 소득" value={netAnnual} emphasis />
+                <ResultCard label="Super 포함 총 패키지" value={totalPackage} emphasis />
+              </dl>
+            </div>
+
+            <details className="mt-5 rounded-xl border border-white/15 bg-white/5 p-5">
+              <summary className="cursor-pointer text-sm font-semibold text-white">상세 급여 및 공제 내역 보기</summary>
+              <div className="mt-5 space-y-7">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gold">세전 급여</h3>
               <dl className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -690,10 +709,13 @@ export function SalaryCalculator() {
                 <ResultCard label="연봉 + Super" value={totalPackage} emphasis />
               </dl>
             </div>
+              </div>
+            </details>
 
-            <div className="salary-print-hide rounded-xl border border-white/15 bg-white/5 p-5 sm:p-6">
+            <details className="salary-print-hide mt-5 rounded-xl border border-white/15 bg-white/5 p-5 sm:p-6">
+              <summary className="cursor-pointer text-sm font-semibold text-white">다른 연봉과 비교</summary>
+              <div className="mt-5">
               <div>
-                <h3 className="text-base font-semibold text-white">다른 연봉과 비교</h3>
                 <p className="mt-2 text-sm leading-6 text-white/65">현재와 같은 세금 조건으로 새 연봉의 실수령액 차이를 확인하세요.</p>
               </div>
               <label className="mt-4 block max-w-sm">
@@ -722,7 +744,8 @@ export function SalaryCalculator() {
                   </div>
                 </dl>
               )}
-            </div>
+              </div>
+            </details>
           </div>
         )}
       </section>
