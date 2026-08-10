@@ -17,6 +17,7 @@ const DEFAULT_ANNUAL_SALARY = "70000";
 type EmploymentType = "permanent" | "casual";
 type PayInputMode = "hourly" | "annual";
 type AnnualAmountType = "plusSuper" | "includesSuper";
+type CopyStatus = "idle" | "success" | "error";
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
   style: "currency",
@@ -94,6 +95,7 @@ export function SalaryCalculator() {
   const [includeHelpRepayment, setIncludeHelpRepayment] = useState(false);
   const [employmentType, setEmploymentType] = useState<EmploymentType>("permanent");
   const [touched, setTouched] = useState({ rate: false, hours: false, annual: false });
+  const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
 
   const rate = Number(hourlyRate);
   const hours = Number(weeklyHours);
@@ -150,6 +152,40 @@ export function SalaryCalculator() {
     setIncludeHelpRepayment(false);
     setEmploymentType("permanent");
     setTouched({ rate: false, hours: false, annual: false });
+    setCopyStatus("idle");
+  }
+
+  async function copyResults() {
+    const summary = [
+      "Aussie Compass 급여 계산 결과",
+      "",
+      `[세전 급여]`,
+      `주급 (Weekly): ${formatCurrency(grossWeekly)}`,
+      `격주급 (Fortnightly): ${formatCurrency(grossFortnightly)}`,
+      `월급 (Monthly): ${formatCurrency(grossMonthly)}`,
+      `연봉 (Annual): ${formatCurrency(grossAnnual)}`,
+      "",
+      `[예상 세후 소득]`,
+      `세후 주급 (Weekly): ${formatCurrency(netWeekly)}`,
+      `세후 격주급 (Fortnightly): ${formatCurrency(netFortnightly)}`,
+      `세후 월급 (Monthly): ${formatCurrency(netMonthly)}`,
+      `세후 연 소득 (Annual): ${formatCurrency(netAnnual)}`,
+      `총 예상 공제: ${formatCurrency(estimatedTotalDeductions)}`,
+      "",
+      `[Super]`,
+      `연 Super: ${formatCurrency(superAnnual)}`,
+      `연봉 + Super: ${formatCurrency(totalPackage)}`,
+      "",
+      "참고용 예상치이며 실제 세금과 Super는 개인 상황에 따라 달라질 수 있습니다.",
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(summary);
+      setCopyStatus("success");
+      window.setTimeout(() => setCopyStatus("idle"), 2_000);
+    } catch {
+      setCopyStatus("error");
+    }
   }
 
   return (
@@ -275,9 +311,18 @@ export function SalaryCalculator() {
             <p className="mt-2 text-sm leading-relaxed text-white/70">세전 급여, 예상 세후 소득, Super를 한눈에 확인하세요.</p>
           </div>
           {!hasErrors ? (
-            <div className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/75">실효 소득세율 {percentFormatter.format(effectiveTaxRate)}</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/75">실효 소득세율 {percentFormatter.format(effectiveTaxRate)}</div>
+              <button type="button" onClick={copyResults} className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
+                {copyStatus === "success" ? "복사 완료" : "결과 복사"}
+              </button>
+            </div>
           ) : null}
         </div>
+
+        {copyStatus === "error" ? (
+          <p role="alert" className="mt-3 text-sm text-red-200">결과를 복사하지 못했습니다. 브라우저의 클립보드 권한을 확인해 주세요.</p>
+        ) : null}
 
         {hasErrors ? (
           <div className="mt-7 rounded-xl bg-white/10 p-5 text-sm leading-relaxed">정확한 결과를 계산하려면 입력값을 확인해 주세요.</div>
