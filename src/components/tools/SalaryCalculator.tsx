@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const SUPER_RATE = 0.12;
 const MEDICARE_LEVY_RATE = 0.02;
@@ -20,6 +20,22 @@ type PayInputMode = "hourly" | "annual";
 type AnnualAmountType = "plusSuper" | "includesSuper";
 type CopyStatus = "idle" | "success" | "error";
 type TaxProfile = "resident" | "workingHolidayMaker";
+type SaveStatus = "idle" | "saved" | "loaded" | "error";
+
+const SAVED_CALCULATION_KEY = "aussie-compass-salary-calculation";
+
+type SavedCalculation = {
+  taxProfile: TaxProfile;
+  payInputMode: PayInputMode;
+  hourlyRate: string;
+  weeklyHours: string;
+  workingWeeks: string;
+  annualSalary: string;
+  annualAmountType: AnnualAmountType;
+  includeMedicareLevy: boolean;
+  includeHelpRepayment: boolean;
+  employmentType: EmploymentType;
+};
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
   style: "currency",
@@ -107,6 +123,12 @@ export function SalaryCalculator() {
   const [employmentType, setEmploymentType] = useState<EmploymentType>("permanent");
   const [touched, setTouched] = useState({ rate: false, hours: false, weeks: false, annual: false });
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [hasSavedCalculation, setHasSavedCalculation] = useState(false);
+
+  useEffect(() => {
+    setHasSavedCalculation(Boolean(window.localStorage.getItem(SAVED_CALCULATION_KEY)));
+  }, []);
 
   const rate = Number(hourlyRate);
   const hours = Number(weeklyHours);
@@ -180,6 +202,56 @@ export function SalaryCalculator() {
     setEmploymentType("permanent");
     setTouched({ rate: false, hours: false, weeks: false, annual: false });
     setCopyStatus("idle");
+    setSaveStatus("idle");
+  }
+
+  function saveCalculation() {
+    const calculation: SavedCalculation = {
+      taxProfile,
+      payInputMode,
+      hourlyRate,
+      weeklyHours,
+      workingWeeks,
+      annualSalary,
+      annualAmountType,
+      includeMedicareLevy,
+      includeHelpRepayment,
+      employmentType,
+    };
+
+    try {
+      window.localStorage.setItem(SAVED_CALCULATION_KEY, JSON.stringify(calculation));
+      setHasSavedCalculation(true);
+      setSaveStatus("saved");
+      window.setTimeout(() => setSaveStatus("idle"), 2_000);
+    } catch {
+      setSaveStatus("error");
+    }
+  }
+
+  function loadCalculation() {
+    try {
+      const savedValue = window.localStorage.getItem(SAVED_CALCULATION_KEY);
+      if (!savedValue) return;
+
+      const calculation = JSON.parse(savedValue) as SavedCalculation;
+      setTaxProfile(calculation.taxProfile);
+      setPayInputMode(calculation.payInputMode);
+      setHourlyRate(calculation.hourlyRate);
+      setWeeklyHours(calculation.weeklyHours);
+      setWorkingWeeks(calculation.workingWeeks);
+      setAnnualSalary(calculation.annualSalary);
+      setAnnualAmountType(calculation.annualAmountType);
+      setIncludeMedicareLevy(calculation.includeMedicareLevy);
+      setIncludeHelpRepayment(calculation.includeHelpRepayment);
+      setEmploymentType(calculation.employmentType);
+      setTouched({ rate: false, hours: false, weeks: false, annual: false });
+      setCopyStatus("idle");
+      setSaveStatus("loaded");
+      window.setTimeout(() => setSaveStatus("idle"), 2_000);
+    } catch {
+      setSaveStatus("error");
+    }
   }
 
   function selectTaxProfile(profile: TaxProfile) {
@@ -241,6 +313,20 @@ export function SalaryCalculator() {
         <a href="#salary-results" className="mt-5 flex w-full items-center justify-center rounded-lg bg-navy px-4 py-3 text-sm font-semibold text-white transition hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 lg:hidden">
           계산 결과 바로 보기 ↓
         </a>
+
+        <div className="mt-5 rounded-xl border border-border bg-surface p-4">
+          <p className="text-sm font-medium text-navy">내 계산 조건</p>
+          <p className="mt-1 text-sm leading-6 text-muted">현재 입력값을 이 기기에 저장하고 다음 방문 때 다시 불러올 수 있습니다.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" onClick={saveCalculation} disabled={hasErrors} className="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+              {saveStatus === "saved" ? "저장 완료" : "현재 조건 저장"}
+            </button>
+            <button type="button" onClick={loadCalculation} disabled={!hasSavedCalculation} className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold text-navy transition hover:bg-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+              {saveStatus === "loaded" ? "불러오기 완료" : "저장 조건 불러오기"}
+            </button>
+          </div>
+          {saveStatus === "error" ? <p role="alert" className="mt-2 text-sm text-red-600">브라우저 저장 공간을 사용할 수 없습니다.</p> : null}
+        </div>
 
         <fieldset className="mt-7">
           <legend className="text-sm font-medium text-navy">세금 유형</legend>
