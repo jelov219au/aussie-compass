@@ -120,6 +120,7 @@ export function SalaryCalculator() {
         ? annual / (1 + SUPER_RATE)
         : annual;
   const grossWeekly = grossAnnual / 52;
+  const grossFortnightly = grossAnnual / 26;
   const grossMonthly = grossAnnual / 12;
   const incomeTaxBeforeOffsets = calculateResidentIncomeTax(grossAnnual);
   const estimatedLito = Math.min(incomeTaxBeforeOffsets, calculateLowIncomeTaxOffset(grossAnnual));
@@ -130,7 +131,9 @@ export function SalaryCalculator() {
   const netAnnual = grossAnnual - estimatedTotalDeductions;
   const netMonthly = netAnnual / 12;
   const netWeekly = netAnnual / 52;
+  const netFortnightly = netAnnual / 26;
   const superWeekly = grossWeekly * SUPER_RATE;
+  const superFortnightly = grossFortnightly * SUPER_RATE;
   const superAnnual = grossAnnual * SUPER_RATE;
   const totalPackage = grossAnnual + superAnnual;
   const effectiveTaxRate = grossAnnual > 0 ? estimatedTotalDeductions / grossAnnual : 0;
@@ -282,8 +285,9 @@ export function SalaryCalculator() {
           <div className="mt-7 space-y-7">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gold">세전 급여</h3>
-              <dl className="mt-3 grid gap-3 sm:grid-cols-3">
+              <dl className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <ResultCard label="주급" value={grossWeekly} />
+                <ResultCard label="격주급" value={grossFortnightly} />
                 <ResultCard label="월급" value={grossMonthly} />
                 <ResultCard label="연봉" value={grossAnnual} emphasis />
               </dl>
@@ -291,8 +295,9 @@ export function SalaryCalculator() {
 
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gold">예상 세후 소득</h3>
-              <dl className="mt-3 grid gap-3 sm:grid-cols-3">
+              <dl className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <ResultCard label="세후 주급" value={netWeekly} />
+                <ResultCard label="세후 격주급" value={netFortnightly} />
                 <ResultCard label="세후 월급" value={netMonthly} />
                 <ResultCard label="세후 연 소득" value={netAnnual} emphasis />
               </dl>
@@ -308,8 +313,9 @@ export function SalaryCalculator() {
 
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gold">Super 및 총 패키지</h3>
-              <dl className="mt-3 grid gap-3 sm:grid-cols-3">
+              <dl className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <ResultCard label="주 Super" value={superWeekly} />
+                <ResultCard label="격주 Super" value={superFortnightly} />
                 <ResultCard label="연 Super" value={superAnnual} />
                 <ResultCard label="연봉 + Super" value={totalPackage} emphasis />
               </dl>

@@ -40,7 +40,7 @@ export default function SalaryCalculatorPage() {
               <div className="rounded-xl bg-surface p-5">
                 <dt className="font-semibold text-navy">세전 급여</dt>
                 <dd className="mt-2 text-sm leading-6 text-muted">
-                  세금이 빠지기 전 회사에서 받기로 한 급여입니다. 입력한 시급과 근무시간 또는 연봉을 기준으로 주급·월급·연봉을 계산합니다.
+                  세금이 빠지기 전 회사에서 받기로 한 급여입니다. 입력한 시급과 근무시간 또는 연봉을 기준으로 주급·격주급·월급·연봉을 계산합니다.
                 </dd>
               </div>
               <div className="rounded-xl bg-surface p-5">
@@ -105,7 +105,7 @@ export default function SalaryCalculatorPage() {
           <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8">
             <h2 className="text-xl font-semibold text-navy">계산 기준 및 주의사항</h2>
             <div className="mt-3 max-w-4xl space-y-3 text-sm leading-7 text-muted sm:text-base">
-              <p>세전 급여는 입력한 시급과 주당 근무시간을 연간 52주로 환산하거나, 입력한 연봉을 주급·월급으로 나누어 표시합니다. Super는 2026–27 일반 SG 비율 12%를 적용합니다.</p>
+              <p>세전 급여는 입력한 시급과 주당 근무시간을 연간 52주로 환산하거나, 입력한 연봉을 주급·격주급·월급으로 나누어 표시합니다. Super는 2026–27 일반 SG 비율 12%를 적용합니다.</p>
               <p>예상 세후 소득은 2026–27 호주 세법상 거주자 기본 개인소득세율을 사용합니다. 입력 급여를 과세소득으로 가정해 LITO(저소득 세액공제)를 자동 적용하며, Medicare Levy 선택 시 일반 개인 2%와 저소득 감면 구간을 적용합니다. HELP/HECS 선택 시 입력 급여만 상환소득으로 가정해 2026–27 한계상환 기준을 적용합니다.</p>
               <p>LITO는 환급형 공제가 아니므로 예상 소득세를 A$0 아래로 낮추지 않습니다. 실제 과세소득과 거주자 자격에 따라 적용 여부가 달라질 수 있습니다. 가족소득 감면, Medicare 면제·Surcharge, 급여 외 HELP 상환소득, 실제 대출 잔액, LITO 이외의 세액공제와 소득공제는 포함하지 않습니다.</p>
               <p>실제 세금과 Super는 개인 상황과 Ordinary Time Earnings에 따라 달라질 수 있으므로 ATO, Fair Work 또는 등록 전문가의 공식 자료를 확인하세요.</p>
