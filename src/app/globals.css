@@ -36,3 +36,40 @@ body {
   white-space: nowrap;
   border-width: 0;
 }
+
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #salary-results,
+  #salary-results * {
+    visibility: visible !important;
+  }
+
+  #salary-results {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 0 !important;
+    background: white !important;
+    color: var(--color-navy) !important;
+    box-shadow: none !important;
+    print-color-adjust: exact;
+  }
+
+  #salary-results * {
+    border-color: #d8dbe2 !important;
+    background-color: transparent !important;
+    color: var(--color-navy) !important;
+  }
+
+  #salary-results .salary-print-hide {
+    display: none !important;
+  }
+}

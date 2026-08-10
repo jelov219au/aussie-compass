@@ -378,10 +378,13 @@ export function SalaryCalculator() {
           {!hasErrors ? (
             <div className="flex flex-wrap items-center gap-2">
               <div className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/75">총 예상 공제율 {percentFormatter.format(totalDeductionRate)}</div>
-              <button type="button" onClick={copyResults} className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
+              <button type="button" onClick={copyResults} className="salary-print-hide rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
                 {copyStatus === "success" ? "복사 완료" : "결과 복사"}
               </button>
-              <a href="#salary-inputs" className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy lg:hidden">
+              <button type="button" onClick={() => window.print()} className="salary-print-hide rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
+                인쇄 / PDF 저장
+              </button>
+              <a href="#salary-inputs" className="salary-print-hide rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy lg:hidden">
                 입력 수정 ↑
               </a>
             </div>
