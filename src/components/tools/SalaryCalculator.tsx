@@ -20,7 +20,7 @@ type PayInputMode = "hourly" | "annual";
 type AnnualAmountType = "plusSuper" | "includesSuper";
 type CopyStatus = "idle" | "success" | "error";
 type TaxProfile = "resident" | "workingHolidayMaker";
-type SaveStatus = "idle" | "saved" | "loaded" | "error";
+type SaveStatus = "idle" | "saved" | "loaded" | "deleted" | "error";
 
 const SAVED_CALCULATION_KEY = "aussie-compass-salary-calculation";
 
@@ -254,6 +254,17 @@ export function SalaryCalculator() {
     }
   }
 
+  function deleteSavedCalculation() {
+    try {
+      window.localStorage.removeItem(SAVED_CALCULATION_KEY);
+      setHasSavedCalculation(false);
+      setSaveStatus("deleted");
+      window.setTimeout(() => setSaveStatus("idle"), 2_000);
+    } catch {
+      setSaveStatus("error");
+    }
+  }
+
   function selectTaxProfile(profile: TaxProfile) {
     setTaxProfile(profile);
     setIncludeMedicareLevy(profile === "resident");
@@ -316,13 +327,16 @@ export function SalaryCalculator() {
 
         <div className="mt-5 rounded-xl border border-border bg-surface p-4">
           <p className="text-sm font-medium text-navy">내 계산 조건</p>
-          <p className="mt-1 text-sm leading-6 text-muted">현재 입력값을 이 기기에 저장하고 다음 방문 때 다시 불러올 수 있습니다.</p>
+          <p className="mt-1 text-sm leading-6 text-muted">현재 입력값을 이 기기에 저장하고 다음 방문 때 다시 불러오거나 삭제할 수 있습니다.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" onClick={saveCalculation} disabled={hasErrors} className="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
               {saveStatus === "saved" ? "저장 완료" : "현재 조건 저장"}
             </button>
             <button type="button" onClick={loadCalculation} disabled={!hasSavedCalculation} className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold text-navy transition hover:bg-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
               {saveStatus === "loaded" ? "불러오기 완료" : "저장 조건 불러오기"}
+            </button>
+            <button type="button" onClick={deleteSavedCalculation} disabled={!hasSavedCalculation} className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
+              {saveStatus === "deleted" ? "삭제 완료" : "저장 조건 삭제"}
             </button>
           </div>
           {saveStatus === "error" ? <p role="alert" className="mt-2 text-sm text-red-600">브라우저 저장 공간을 사용할 수 없습니다.</p> : null}
