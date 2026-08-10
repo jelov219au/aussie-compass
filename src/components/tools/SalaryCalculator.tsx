@@ -42,6 +42,13 @@ function calculateResidentIncomeTax(income: number) {
   return 51_370 + (income - 190_000) * 0.45;
 }
 
+function calculateLowIncomeTaxOffset(income: number) {
+  if (income <= 37_500) return 700;
+  if (income <= 45_000) return 700 - (income - 37_500) * 0.05;
+  if (income <= 66_667) return Math.max(0, 325 - (income - 45_000) * 0.015);
+  return 0;
+}
+
 function calculateMedicareLevy(income: number) {
   if (income <= MEDICARE_LEVY_LOWER_THRESHOLD) return 0;
   if (income <= MEDICARE_LEVY_UPPER_THRESHOLD) {
@@ -114,7 +121,9 @@ export function SalaryCalculator() {
         : annual;
   const grossWeekly = grossAnnual / 52;
   const grossMonthly = grossAnnual / 12;
-  const estimatedIncomeTax = calculateResidentIncomeTax(grossAnnual);
+  const incomeTaxBeforeOffsets = calculateResidentIncomeTax(grossAnnual);
+  const estimatedLito = Math.min(incomeTaxBeforeOffsets, calculateLowIncomeTaxOffset(grossAnnual));
+  const estimatedIncomeTax = incomeTaxBeforeOffsets - estimatedLito;
   const estimatedMedicareLevy = includeMedicareLevy ? calculateMedicareLevy(grossAnnual) : 0;
   const estimatedHelpRepayment = includeHelpRepayment ? calculateHelpRepayment(grossAnnual) : 0;
   const estimatedTotalDeductions = estimatedIncomeTax + estimatedMedicareLevy + estimatedHelpRepayment;
@@ -287,7 +296,9 @@ export function SalaryCalculator() {
                 <ResultCard label="세후 월급" value={netMonthly} />
                 <ResultCard label="세후 연 소득" value={netAnnual} emphasis />
               </dl>
-              <dl className="mt-3 grid gap-2 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2 xl:grid-cols-4">
+              <dl className="mt-3 grid gap-4 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2 xl:grid-cols-3">
+                <div><dt className="text-white/60">LITO 적용 전 소득세</dt><dd className="mt-1 font-semibold">{formatCurrency(incomeTaxBeforeOffsets)}</dd></div>
+                <div><dt className="text-white/60">LITO 세액공제</dt><dd className="mt-1 font-semibold text-emerald-300">{estimatedLito > 0 ? `-${formatCurrency(estimatedLito)}` : formatCurrency(0)}</dd></div>
                 <div><dt className="text-white/60">예상 소득세</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedIncomeTax)}</dd></div>
                 <div><dt className="text-white/60">예상 Medicare Levy</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedMedicareLevy)}</dd></div>
                 <div><dt className="text-white/60">예상 HELP/HECS 상환</dt><dd className="mt-1 font-semibold">{formatCurrency(estimatedHelpRepayment)}</dd></div>
