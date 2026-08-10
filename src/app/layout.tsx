@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import { siteName, siteUrl } from "@/lib/site";
 import "./globals.css";
 
-const siteUrl = "https://aussiecompass.com.au";
 const title = "Aussie Compass | 호주 생활을 위한 실용 도구";
 const description =
   "호주 급여, 세금, Super 계산기와 한국어 생활 가이드를 한곳에서 확인하세요.";
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     title,
     description,
     url: siteUrl,
-    siteName: "Aussie Compass",
+    siteName,
     locale: "ko_KR",
     type: "website",
   },
@@ -22,9 +22,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title,
     description,
-  },
-  alternates: {
-    canonical: "/",
   },
 };
 

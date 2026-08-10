@@ -30,6 +30,8 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+For production SEO URLs, set `NEXT_PUBLIC_SITE_URL` to the deployed site origin. It defaults to `https://aussie-compass.vercel.app`.
+
 ## Scripts
 
 - `npm run dev` — start the development server
