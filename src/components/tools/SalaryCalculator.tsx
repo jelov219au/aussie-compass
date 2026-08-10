@@ -4,10 +4,6 @@ import { useEffect, useState } from "react";
 
 const SUPER_RATE = 0.12;
 const MEDICARE_LEVY_RATE = 0.02;
-const MEDICARE_LEVY_LOWER_THRESHOLD = 27_222;
-const MEDICARE_LEVY_UPPER_THRESHOLD = 34_027;
-const HELP_MINIMUM_REPAYMENT_INCOME = 69_528;
-const HELP_SECOND_THRESHOLD = 129_717;
 const PERMANENT_MINIMUM_RATE = 26.44;
 const CASUAL_MINIMUM_RATE = 33.05;
 const DEFAULT_HOURLY_RATE = "30";
@@ -22,11 +18,13 @@ type AnnualAmountType = "plusSuper" | "includesSuper";
 type CopyStatus = "idle" | "success" | "error";
 type ShareStatus = "idle" | "success" | "error";
 type TaxProfile = "resident" | "workingHolidayMaker";
+type TaxYear = "2025-26" | "2026-27";
 type SaveStatus = "idle" | "saved" | "loaded" | "deleted" | "error";
 
 const SAVED_CALCULATION_KEY = "aussie-compass-salary-calculation";
 
 type SavedCalculation = {
+  taxYear?: TaxYear;
   taxProfile: TaxProfile;
   payInputMode: PayInputMode;
   hourlyRate: string;
@@ -37,6 +35,29 @@ type SavedCalculation = {
   includeMedicareLevy: boolean;
   includeHelpRepayment: boolean;
   employmentType: EmploymentType;
+};
+
+const TAX_YEAR_CONFIG: Record<TaxYear, {
+  residentFirstRate: number;
+  medicareLowerThreshold: number;
+  medicareUpperThreshold: number;
+  helpMinimumIncome: number;
+  helpSecondThreshold: number;
+}> = {
+  "2025-26": {
+    residentFirstRate: 0.16,
+    medicareLowerThreshold: 27_222,
+    medicareUpperThreshold: 34_027,
+    helpMinimumIncome: 67_000,
+    helpSecondThreshold: 125_000,
+  },
+  "2026-27": {
+    residentFirstRate: 0.15,
+    medicareLowerThreshold: 28_011,
+    medicareUpperThreshold: 35_013,
+    helpMinimumIncome: 69_528,
+    helpSecondThreshold: 129_717,
+  },
 };
 
 const currencyFormatter = new Intl.NumberFormat("en-AU", {
@@ -59,12 +80,14 @@ function formatSignedCurrency(amount: number) {
   return `${amount > 0 ? "+" : ""}${formatCurrency(amount)}`;
 }
 
-function calculateResidentIncomeTax(income: number) {
+function calculateResidentIncomeTax(income: number, taxYear: TaxYear) {
+  const firstRate = TAX_YEAR_CONFIG[taxYear].residentFirstRate;
+  const firstBandTax = (45_000 - 18_200) * firstRate;
   if (income <= 18_200) return 0;
-  if (income <= 45_000) return (income - 18_200) * 0.15;
-  if (income <= 135_000) return 4_020 + (income - 45_000) * 0.3;
-  if (income <= 190_000) return 31_020 + (income - 135_000) * 0.37;
-  return 51_370 + (income - 190_000) * 0.45;
+  if (income <= 45_000) return (income - 18_200) * firstRate;
+  if (income <= 135_000) return firstBandTax + (income - 45_000) * 0.3;
+  if (income <= 190_000) return firstBandTax + 27_000 + (income - 135_000) * 0.37;
+  return firstBandTax + 47_350 + (income - 190_000) * 0.45;
 }
 
 function calculateWorkingHolidayMakerTax(income: number) {
@@ -81,19 +104,21 @@ function calculateLowIncomeTaxOffset(income: number) {
   return 0;
 }
 
-function calculateMedicareLevy(income: number) {
-  if (income <= MEDICARE_LEVY_LOWER_THRESHOLD) return 0;
-  if (income <= MEDICARE_LEVY_UPPER_THRESHOLD) {
-    return Math.min(income * MEDICARE_LEVY_RATE, (income - MEDICARE_LEVY_LOWER_THRESHOLD) * 0.1);
+function calculateMedicareLevy(income: number, taxYear: TaxYear) {
+  const { medicareLowerThreshold, medicareUpperThreshold } = TAX_YEAR_CONFIG[taxYear];
+  if (income <= medicareLowerThreshold) return 0;
+  if (income <= medicareUpperThreshold) {
+    return Math.min(income * MEDICARE_LEVY_RATE, (income - medicareLowerThreshold) * 0.1);
   }
   return income * MEDICARE_LEVY_RATE;
 }
 
-function calculateHelpRepayment(income: number) {
-  if (income <= HELP_MINIMUM_REPAYMENT_INCOME) return 0;
+function calculateHelpRepayment(income: number, taxYear: TaxYear) {
+  const { helpMinimumIncome, helpSecondThreshold } = TAX_YEAR_CONFIG[taxYear];
+  if (income <= helpMinimumIncome) return 0;
 
-  const firstBandIncome = Math.min(income, HELP_SECOND_THRESHOLD) - HELP_MINIMUM_REPAYMENT_INCOME;
-  const secondBandIncome = Math.max(0, income - HELP_SECOND_THRESHOLD);
+  const firstBandIncome = Math.min(income, helpSecondThreshold) - helpMinimumIncome;
+  const secondBandIncome = Math.max(0, income - helpSecondThreshold);
   const marginalRepayment = firstBandIncome * 0.15 + secondBandIncome * 0.17;
 
   return Math.min(marginalRepayment, income * 0.1);
@@ -117,6 +142,7 @@ function ResultCard({ label, value, emphasis = false }: ResultCardProps) {
 }
 
 export function SalaryCalculator() {
+  const [taxYear, setTaxYear] = useState<TaxYear>("2026-27");
   const [taxProfile, setTaxProfile] = useState<TaxProfile>("resident");
   const [payInputMode, setPayInputMode] = useState<PayInputMode>("hourly");
   const [hourlyRate, setHourlyRate] = useState(DEFAULT_HOURLY_RATE);
@@ -140,6 +166,7 @@ export function SalaryCalculator() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("shared") !== "1") return;
 
+    setTaxYear(params.get("year") === "2025-26" ? "2025-26" : "2026-27");
     setTaxProfile(params.get("tax") === "whm" ? "workingHolidayMaker" : "resident");
     setPayInputMode(params.get("mode") === "annual" ? "annual" : "hourly");
     setAnnualAmountType(params.get("amountType") === "includesSuper" ? "includesSuper" : "plusSuper");
@@ -193,13 +220,13 @@ export function SalaryCalculator() {
   const isWorkingHolidayMaker = taxProfile === "workingHolidayMaker";
   const incomeTaxBeforeOffsets = isWorkingHolidayMaker
     ? calculateWorkingHolidayMakerTax(grossAnnual)
-    : calculateResidentIncomeTax(grossAnnual);
+    : calculateResidentIncomeTax(grossAnnual, taxYear);
   const estimatedLito = isWorkingHolidayMaker
     ? 0
     : Math.min(incomeTaxBeforeOffsets, calculateLowIncomeTaxOffset(grossAnnual));
   const estimatedIncomeTax = incomeTaxBeforeOffsets - estimatedLito;
-  const estimatedMedicareLevy = !isWorkingHolidayMaker && includeMedicareLevy ? calculateMedicareLevy(grossAnnual) : 0;
-  const estimatedHelpRepayment = !isWorkingHolidayMaker && includeHelpRepayment ? calculateHelpRepayment(grossAnnual) : 0;
+  const estimatedMedicareLevy = !isWorkingHolidayMaker && includeMedicareLevy ? calculateMedicareLevy(grossAnnual, taxYear) : 0;
+  const estimatedHelpRepayment = !isWorkingHolidayMaker && includeHelpRepayment ? calculateHelpRepayment(grossAnnual, taxYear) : 0;
   const estimatedTotalDeductions = estimatedIncomeTax + estimatedMedicareLevy + estimatedHelpRepayment;
   const netAnnual = grossAnnual - estimatedTotalDeductions;
   const netMonthly = netAnnual / 12;
@@ -214,17 +241,17 @@ export function SalaryCalculator() {
   const comparisonTaxBeforeOffsets = comparisonSalaryIsValid
     ? isWorkingHolidayMaker
       ? calculateWorkingHolidayMakerTax(comparisonAnnual)
-      : calculateResidentIncomeTax(comparisonAnnual)
+      : calculateResidentIncomeTax(comparisonAnnual, taxYear)
     : 0;
   const comparisonLito = isWorkingHolidayMaker
     ? 0
     : Math.min(comparisonTaxBeforeOffsets, calculateLowIncomeTaxOffset(comparisonAnnual));
   const comparisonIncomeTax = comparisonTaxBeforeOffsets - comparisonLito;
   const comparisonMedicareLevy = !isWorkingHolidayMaker && includeMedicareLevy
-    ? calculateMedicareLevy(comparisonAnnual)
+    ? calculateMedicareLevy(comparisonAnnual, taxYear)
     : 0;
   const comparisonHelpRepayment = !isWorkingHolidayMaker && includeHelpRepayment
-    ? calculateHelpRepayment(comparisonAnnual)
+    ? calculateHelpRepayment(comparisonAnnual, taxYear)
     : 0;
   const comparisonNetAnnual = comparisonSalaryIsValid
     ? comparisonAnnual - comparisonIncomeTax - comparisonMedicareLevy - comparisonHelpRepayment
@@ -240,6 +267,7 @@ export function SalaryCalculator() {
   const belowMinimum = !rateError && rate < applicableMinimum;
 
   function resetCalculator() {
+    setTaxYear("2026-27");
     setTaxProfile("resident");
     setPayInputMode("hourly");
     setHourlyRate(DEFAULT_HOURLY_RATE);
@@ -259,6 +287,7 @@ export function SalaryCalculator() {
 
   function saveCalculation() {
     const calculation: SavedCalculation = {
+      taxYear,
       taxProfile,
       payInputMode,
       hourlyRate,
@@ -287,6 +316,7 @@ export function SalaryCalculator() {
       if (!savedValue) return;
 
       const calculation = JSON.parse(savedValue) as SavedCalculation;
+      setTaxYear(calculation.taxYear === "2025-26" ? "2025-26" : "2026-27");
       setTaxProfile(calculation.taxProfile);
       setPayInputMode(calculation.payInputMode);
       setHourlyRate(calculation.hourlyRate);
@@ -327,6 +357,7 @@ export function SalaryCalculator() {
   async function copyResults() {
     const summary = [
       "Aussie Compass 급여 계산 결과",
+      `회계연도: ${taxYear}`,
       `세금 유형: ${isWorkingHolidayMaker ? "Working Holiday Maker (세법상 비거주자 가정)" : "호주 세법상 거주자"}`,
       payInputMode === "hourly" ? `계산 기준: 연 ${workingWeeks}주 근무` : "계산 기준: 입력 연봉",
       "",
@@ -364,6 +395,7 @@ export function SalaryCalculator() {
     url.search = "";
     url.hash = "";
     url.searchParams.set("shared", "1");
+    url.searchParams.set("year", taxYear);
     url.searchParams.set("tax", taxProfile === "workingHolidayMaker" ? "whm" : "resident");
     url.searchParams.set("mode", payInputMode);
     url.searchParams.set("rate", hourlyRate);
@@ -389,7 +421,7 @@ export function SalaryCalculator() {
       <section id="salary-inputs" className="scroll-mt-24 rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-gold">2026–27 기준</p>
+            <p className="text-sm font-semibold text-gold">{taxYear.replace("-", "–")} 기준</p>
             <h2 className="mt-2 text-xl font-semibold text-navy">급여 정보 입력</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">한 번 입력하면 세전·세후·Super를 모두 계산합니다.</p>
           </div>
@@ -420,6 +452,22 @@ export function SalaryCalculator() {
         </div>
 
         <fieldset className="mt-7">
+          <legend className="text-sm font-medium text-navy">회계연도</legend>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <label className={`cursor-pointer rounded-xl border p-4 transition ${taxYear === "2026-27" ? "border-navy bg-navy/5" : "border-border"}`}>
+              <input type="radio" name="tax-year" checked={taxYear === "2026-27"} onChange={() => setTaxYear("2026-27")} className="mr-2 accent-navy" />
+              <span className="font-medium text-navy">2026–27</span>
+              <span className="mt-1 block text-xs text-muted">현재 회계연도</span>
+            </label>
+            <label className={`cursor-pointer rounded-xl border p-4 transition ${taxYear === "2025-26" ? "border-navy bg-navy/5" : "border-border"}`}>
+              <input type="radio" name="tax-year" checked={taxYear === "2025-26"} onChange={() => setTaxYear("2025-26")} className="mr-2 accent-navy" />
+              <span className="font-medium text-navy">2025–26</span>
+              <span className="mt-1 block text-xs text-muted">이전 회계연도</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset className="mt-7">
           <legend className="text-sm font-medium text-navy">세금 유형</legend>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             <label className={`cursor-pointer rounded-xl border p-4 transition ${taxProfile === "resident" ? "border-navy bg-navy/5" : "border-border"}`}>
@@ -434,7 +482,7 @@ export function SalaryCalculator() {
           <p className="mt-3 text-sm leading-6 text-muted">
             {isWorkingHolidayMaker
               ? "일반적인 세법상 비거주자 WHM을 가정합니다. LITO, Medicare Levy와 HELP/HECS는 포함하지 않습니다."
-              : "2026–27 호주 세법상 거주자 세율과 해당 공제 기준을 적용합니다."}
+              : `${taxYear.replace("-", "–")} 호주 세법상 거주자 세율과 해당 공제 기준을 적용합니다.`}
           </p>
         </fieldset>
 
@@ -541,7 +589,7 @@ export function SalaryCalculator() {
           <input type="checkbox" checked={includeHelpRepayment} disabled={isWorkingHolidayMaker} onChange={(event) => setIncludeHelpRepayment(event.target.checked)} className="mt-1 h-4 w-4 accent-navy" />
           <span>
             <span className="block text-sm font-medium text-navy">HELP/HECS 상환 예상액 포함</span>
-            <span className="mt-1 block text-sm leading-6 text-muted">2026–27 한계상환 기준을 급여에 적용합니다. HELP 등 학자금 대출이 있는 경우 선택하세요.</span>
+            <span className="mt-1 block text-sm leading-6 text-muted">{taxYear.replace("-", "–")} 한계상환 기준을 급여에 적용합니다. HELP 등 학자금 대출이 있는 경우 선택하세요.</span>
           </span>
         </label>
       </section>
@@ -582,6 +630,7 @@ export function SalaryCalculator() {
           <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/55">적용 기준</p>
             <ul className="mt-3 flex flex-wrap gap-2 text-xs text-white/80" aria-label="계산 적용 기준">
+              <li className="rounded-full bg-white/10 px-3 py-1.5">{taxYear.replace("-", "–")}</li>
               <li className="rounded-full bg-white/10 px-3 py-1.5">{isWorkingHolidayMaker ? "Working Holiday Maker" : "호주 세법상 거주자"}</li>
               <li className="rounded-full bg-white/10 px-3 py-1.5">
                 {payInputMode === "hourly"
