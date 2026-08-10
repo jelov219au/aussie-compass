@@ -385,6 +385,28 @@ export function SalaryCalculator() {
           <p role="alert" className="mt-3 text-sm text-red-200">결과를 복사하지 못했습니다. 브라우저의 클립보드 권한을 확인해 주세요.</p>
         ) : null}
 
+        {!hasErrors ? (
+          <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/55">적용 기준</p>
+            <ul className="mt-3 flex flex-wrap gap-2 text-xs text-white/80" aria-label="계산 적용 기준">
+              <li className="rounded-full bg-white/10 px-3 py-1.5">{isWorkingHolidayMaker ? "Working Holiday Maker" : "호주 세법상 거주자"}</li>
+              <li className="rounded-full bg-white/10 px-3 py-1.5">
+                {payInputMode === "hourly"
+                  ? `시급 · 연 ${workingWeeks}주`
+                  : annualAmountType === "includesSuper"
+                    ? "연봉 · Super 포함"
+                    : "연봉 · Super 별도"}
+              </li>
+              {payInputMode === "hourly" ? (
+                <li className="rounded-full bg-white/10 px-3 py-1.5">{employmentType === "casual" ? "Casual" : "Permanent / Part-time"}</li>
+              ) : null}
+              <li className="rounded-full bg-white/10 px-3 py-1.5">Medicare {includeMedicareLevy && !isWorkingHolidayMaker ? "적용" : "제외"}</li>
+              <li className="rounded-full bg-white/10 px-3 py-1.5">HELP/HECS {includeHelpRepayment && !isWorkingHolidayMaker ? "적용" : "제외"}</li>
+              <li className="rounded-full bg-white/10 px-3 py-1.5">Super 12%</li>
+            </ul>
+          </div>
+        ) : null}
+
         {hasErrors ? (
           <div className="mt-7 rounded-xl bg-white/10 p-5 text-sm leading-relaxed">정확한 결과를 계산하려면 입력값을 확인해 주세요.</div>
         ) : (
