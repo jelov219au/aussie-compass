@@ -11,6 +11,8 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Korean Payslip Guide covering Gross Pay, Net Pay, PAYG, Super and YTD
 - Korean Award and Classification Guide for checking minimum pay rates
 - Korean Underpayment Guide for checking records, pay rates and next steps
+- Korean Leave Guide covering annual leave, sick and carer's leave, and public holidays
+- Dedicated Pay Guides hub
 
 ## Coming Soon
 

@@ -40,7 +40,16 @@ const payGuides = [
     description: "근무 기록과 Payslip을 비교하고 미지급 급여를 확인하는 순서를 알아봅니다.",
     cta: "급여 확인 순서 보기",
   },
+  {
+    href: "/leave-guide",
+    title: "휴가·병가·공휴일",
+    description: "Annual Leave, Personal Leave와 Public Holiday의 기본 권리를 비교합니다.",
+    cta: "휴가 권리 알아보기",
+  },
 ];
+
+const featuredGuideHrefs = ["/minimum-wage-guide", "/payslip-guide", "/award-guide"];
+const featuredGuides = payGuides.filter((guide) => featuredGuideHrefs.includes(guide.href));
 
 const upcomingTools = [
   { title: "생활비 계산기", description: "현실적인 호주 생활 예산을 계획합니다." },
@@ -81,7 +90,7 @@ export function ToolsSection() {
             <p className="mt-3 leading-relaxed text-muted">궁금한 주제를 선택하면 계산기를 거치지 않고 바로 가이드를 읽을 수 있습니다.</p>
           </div>
           <ul className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {payGuides.map((guide) => (
+            {featuredGuides.map((guide) => (
               <li key={guide.href}>
                 <Link href={guide.href} className="group flex h-full min-h-56 flex-col rounded-2xl border border-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
                   <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gold/10 text-navy"><GuideIcon /></div>
@@ -92,6 +101,11 @@ export function ToolsSection() {
               </li>
             ))}
           </ul>
+          <div className="mt-7">
+            <Link href="/guides" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-navy bg-white px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+              전체 급여 가이드 보기 &rarr;
+            </Link>
+          </div>
         </div>
 
         <div className="mt-16 border-t border-border pt-10" aria-labelledby="upcoming-tools-heading">
