@@ -28,6 +28,12 @@ const payGuides = [
     description: "Gross, Net, PAYG, Super와 YTD 항목을 쉽게 확인합니다.",
     cta: "Payslip 가이드 읽기",
   },
+  {
+    href: "/award-guide",
+    title: "내 Award 찾기",
+    description: "적용 Award와 Classification을 찾아 정확한 시급을 확인합니다.",
+    cta: "Award 확인 순서 보기",
+  },
 ];
 
 const upcomingTools = [
@@ -68,7 +74,7 @@ export function ToolsSection() {
             <h2 id="pay-guides-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy sm:text-3xl">계산 없이 필요한 정보만 확인하세요</h2>
             <p className="mt-3 leading-relaxed text-muted">궁금한 주제를 선택하면 계산기를 거치지 않고 바로 가이드를 읽을 수 있습니다.</p>
           </div>
-          <ul className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <ul className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {payGuides.map((guide) => (
               <li key={guide.href}>
                 <Link href={guide.href} className="group flex h-full min-h-56 flex-col rounded-2xl border border-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
