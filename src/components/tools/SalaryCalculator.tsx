@@ -19,6 +19,7 @@ type EmploymentType = "permanent" | "casual";
 type PayInputMode = "hourly" | "annual";
 type AnnualAmountType = "plusSuper" | "includesSuper";
 type CopyStatus = "idle" | "success" | "error";
+type ShareStatus = "idle" | "success" | "error";
 type TaxProfile = "resident" | "workingHolidayMaker";
 type SaveStatus = "idle" | "saved" | "loaded" | "deleted" | "error";
 
@@ -123,11 +124,31 @@ export function SalaryCalculator() {
   const [employmentType, setEmploymentType] = useState<EmploymentType>("permanent");
   const [touched, setTouched] = useState({ rate: false, hours: false, weeks: false, annual: false });
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
+  const [shareStatus, setShareStatus] = useState<ShareStatus>("idle");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [hasSavedCalculation, setHasSavedCalculation] = useState(false);
 
   useEffect(() => {
     setHasSavedCalculation(Boolean(window.localStorage.getItem(SAVED_CALCULATION_KEY)));
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("shared") !== "1") return;
+
+    setTaxProfile(params.get("tax") === "whm" ? "workingHolidayMaker" : "resident");
+    setPayInputMode(params.get("mode") === "annual" ? "annual" : "hourly");
+    setAnnualAmountType(params.get("amountType") === "includesSuper" ? "includesSuper" : "plusSuper");
+    setEmploymentType(params.get("employment") === "casual" ? "casual" : "permanent");
+    setIncludeMedicareLevy(params.get("medicare") !== "0");
+    setIncludeHelpRepayment(params.get("help") === "1");
+
+    const sharedHourlyRate = params.get("rate");
+    const sharedWeeklyHours = params.get("hours");
+    const sharedWorkingWeeks = params.get("weeks");
+    const sharedAnnualSalary = params.get("annual");
+    if (sharedHourlyRate) setHourlyRate(sharedHourlyRate);
+    if (sharedWeeklyHours) setWeeklyHours(sharedWeeklyHours);
+    if (sharedWorkingWeeks) setWorkingWeeks(sharedWorkingWeeks);
+    if (sharedAnnualSalary) setAnnualSalary(sharedAnnualSalary);
   }, []);
 
   const rate = Number(hourlyRate);
@@ -202,6 +223,7 @@ export function SalaryCalculator() {
     setEmploymentType("permanent");
     setTouched({ rate: false, hours: false, weeks: false, annual: false });
     setCopyStatus("idle");
+    setShareStatus("idle");
     setSaveStatus("idle");
   }
 
@@ -304,6 +326,31 @@ export function SalaryCalculator() {
       window.setTimeout(() => setCopyStatus("idle"), 2_000);
     } catch {
       setCopyStatus("error");
+    }
+  }
+
+  async function copyShareLink() {
+    const url = new URL(window.location.href);
+    url.search = "";
+    url.hash = "";
+    url.searchParams.set("shared", "1");
+    url.searchParams.set("tax", taxProfile === "workingHolidayMaker" ? "whm" : "resident");
+    url.searchParams.set("mode", payInputMode);
+    url.searchParams.set("rate", hourlyRate);
+    url.searchParams.set("hours", weeklyHours);
+    url.searchParams.set("weeks", workingWeeks);
+    url.searchParams.set("annual", annualSalary);
+    url.searchParams.set("amountType", annualAmountType);
+    url.searchParams.set("medicare", includeMedicareLevy ? "1" : "0");
+    url.searchParams.set("help", includeHelpRepayment ? "1" : "0");
+    url.searchParams.set("employment", employmentType);
+
+    try {
+      await navigator.clipboard.writeText(url.toString());
+      setShareStatus("success");
+      window.setTimeout(() => setShareStatus("idle"), 2_000);
+    } catch {
+      setShareStatus("error");
     }
   }
 
@@ -481,6 +528,9 @@ export function SalaryCalculator() {
               <button type="button" onClick={copyResults} className="salary-print-hide rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
                 {copyStatus === "success" ? "복사 완료" : "결과 복사"}
               </button>
+              <button type="button" onClick={copyShareLink} className="salary-print-hide rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
+                {shareStatus === "success" ? "링크 복사 완료" : "계산 링크 공유"}
+              </button>
               <button type="button" onClick={() => window.print()} className="salary-print-hide rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
                 인쇄 / PDF 저장
               </button>
@@ -493,6 +543,9 @@ export function SalaryCalculator() {
 
         {copyStatus === "error" ? (
           <p role="alert" className="mt-3 text-sm text-red-200">결과를 복사하지 못했습니다. 브라우저의 클립보드 권한을 확인해 주세요.</p>
+        ) : null}
+        {shareStatus === "error" ? (
+          <p role="alert" className="mt-3 text-sm text-red-200">공유 링크를 복사하지 못했습니다. 브라우저의 클립보드 권한을 확인해 주세요.</p>
         ) : null}
 
         {!hasErrors ? (
