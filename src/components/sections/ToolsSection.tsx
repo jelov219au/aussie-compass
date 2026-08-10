@@ -34,6 +34,12 @@ const payGuides = [
     description: "적용 Award와 Classification을 찾아 정확한 시급을 확인합니다.",
     cta: "Award 확인 순서 보기",
   },
+  {
+    href: "/underpayment-guide",
+    title: "급여가 적게 들어왔다면",
+    description: "근무 기록과 Payslip을 비교하고 미지급 급여를 확인하는 순서를 알아봅니다.",
+    cta: "급여 확인 순서 보기",
+  },
 ];
 
 const upcomingTools = [

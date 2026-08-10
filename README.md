@@ -10,6 +10,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Minimum Wage and Casual Loading Guide (2026 rates)
 - Korean Payslip Guide covering Gross Pay, Net Pay, PAYG, Super and YTD
 - Korean Award and Classification Guide for checking minimum pay rates
+- Korean Underpayment Guide for checking records, pay rates and next steps
 
 ## Coming Soon
 
