@@ -286,20 +286,20 @@ export function SalaryCalculator() {
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gold">세전 급여</h3>
               <dl className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <ResultCard label="주급" value={grossWeekly} />
-                <ResultCard label="격주급" value={grossFortnightly} />
-                <ResultCard label="월급" value={grossMonthly} />
-                <ResultCard label="연봉" value={grossAnnual} emphasis />
+                <ResultCard label="주급 (Weekly)" value={grossWeekly} />
+                <ResultCard label="격주급 (Fortnightly)" value={grossFortnightly} />
+                <ResultCard label="월급 (Monthly)" value={grossMonthly} />
+                <ResultCard label="연봉 (Annual)" value={grossAnnual} emphasis />
               </dl>
             </div>
 
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gold">예상 세후 소득</h3>
               <dl className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <ResultCard label="세후 주급" value={netWeekly} />
-                <ResultCard label="세후 격주급" value={netFortnightly} />
-                <ResultCard label="세후 월급" value={netMonthly} />
-                <ResultCard label="세후 연 소득" value={netAnnual} emphasis />
+                <ResultCard label="세후 주급 (Weekly)" value={netWeekly} />
+                <ResultCard label="세후 격주급 (Fortnightly)" value={netFortnightly} />
+                <ResultCard label="세후 월급 (Monthly)" value={netMonthly} />
+                <ResultCard label="세후 연 소득 (Annual)" value={netAnnual} emphasis />
               </dl>
               <dl className="mt-3 grid gap-4 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2 xl:grid-cols-3">
                 <div><dt className="text-white/60">LITO 적용 전 소득세</dt><dd className="mt-1 font-semibold">{formatCurrency(incomeTaxBeforeOffsets)}</dd></div>
@@ -314,9 +314,9 @@ export function SalaryCalculator() {
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gold">Super 및 총 패키지</h3>
               <dl className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <ResultCard label="주 Super" value={superWeekly} />
-                <ResultCard label="격주 Super" value={superFortnightly} />
-                <ResultCard label="연 Super" value={superAnnual} />
+                <ResultCard label="주 Super (Weekly)" value={superWeekly} />
+                <ResultCard label="격주 Super (Fortnightly)" value={superFortnightly} />
+                <ResultCard label="연 Super (Annual)" value={superAnnual} />
                 <ResultCard label="연봉 + Super" value={totalPackage} emphasis />
               </dl>
             </div>
