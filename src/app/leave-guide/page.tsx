@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
+import { createPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "호주 휴가·병가·공휴일 가이드 | Aussie Compass",
   description: "호주의 Annual Leave, Sick and Carer's Leave, Public Holiday 기본 권리를 고용 형태별로 확인하세요.",
-};
+  path: "/leave-guide",
+});
 
 const leaveTypes = [
   {

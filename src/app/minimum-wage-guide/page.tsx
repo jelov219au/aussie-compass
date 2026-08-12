@@ -1,14 +1,15 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MinimumWageCalculator } from "@/components/tools/MinimumWageCalculator";
 import { Container } from "@/components/ui/Container";
+import { createPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "호주 최저임금·캐주얼 로딩 가이드 | Aussie Compass",
   description: "2026년 7월부터 적용되는 호주 National Minimum Wage와 캐주얼 로딩을 기준으로 예상 급여를 계산해 보세요.",
-};
+  path: "/minimum-wage-guide",
+});
 
 export default function MinimumWageGuidePage() {
   return (

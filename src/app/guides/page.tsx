@@ -1,14 +1,15 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { GuideIcon } from "@/components/icons/Icons";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
+import { createPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "호주 급여 가이드 | Aussie Compass",
   description: "호주 최저 시급, Award, Payslip, Super, 미지급 급여와 휴가 권리를 한국어로 확인하세요.",
-};
+  path: "/guides",
+});
 
 const guides = [
   { href: "/minimum-wage-guide", title: "최저 시급 가이드", description: "최신 호주 최저 시급과 적용 기준을 확인합니다.", tag: "시급" },

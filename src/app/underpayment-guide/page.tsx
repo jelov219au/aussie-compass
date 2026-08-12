@@ -1,14 +1,15 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
+import { createPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "급여가 적게 들어왔을 때 확인하는 방법 | Aussie Compass",
   description:
     "호주에서 급여가 맞지 않을 때 근무 기록, Award 시급, Payslip을 비교하고 차액을 요청하는 순서를 한국어로 확인하세요.",
-};
+  path: "/underpayment-guide",
+});
 
 const steps = [
   {

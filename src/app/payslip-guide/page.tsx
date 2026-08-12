@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
+import { createPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "호주 Payslip 읽는 법 | Aussie Compass",
   description: "호주 급여명세서의 Gross Pay, Net Pay, PAYG, Super, YTD와 근무시간을 한국어로 쉽게 확인하세요.",
-};
+  path: "/payslip-guide",
+});
 
 const payslipTerms = [
   {

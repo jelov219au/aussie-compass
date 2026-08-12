@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
+import { createPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "내 Award와 정확한 시급 확인하기 | Aussie Compass",
   description: "호주에서 내 직업에 적용되는 Award, Classification, Penalty Rate와 정확한 최저 시급을 찾는 순서를 한국어로 알아보세요.",
-};
+  path: "/award-guide",
+});
 
 const steps = [
   {

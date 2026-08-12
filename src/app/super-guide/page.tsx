@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
+import { createPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "호주 Super 쉽게 이해하기 | Aussie Compass",
   description: "호주 Superannuation 12%의 의미, 납부 시기, 급여 패키지와의 차이, 확인 방법을 쉬운 한국어로 알아보세요.",
-};
+  path: "/super-guide",
+});
 
 const checkItems = [
   "급여명세서(payslip)에 표시된 Super 금액 확인",

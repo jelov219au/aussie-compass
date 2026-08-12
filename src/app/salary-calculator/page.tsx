@@ -1,14 +1,15 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SalaryCalculator } from "@/components/tools/SalaryCalculator";
 import { Container } from "@/components/ui/Container";
+import { createPageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "호주 통합 급여 계산기 | Aussie Compass",
   description: "시급 또는 연봉 입력으로 세전 급여, 예상 세후 소득, Super와 총 보상 패키지를 확인하세요.",
-};
+  path: "/salary-calculator",
+});
 
 export default function SalaryCalculatorPage() {
   return (
