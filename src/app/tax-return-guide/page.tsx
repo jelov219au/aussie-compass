@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { TaxReturnChecklist } from "@/components/tools/TaxReturnChecklist";
+import { TaxTimeReminder } from "@/components/tools/TaxTimeReminder";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
@@ -39,6 +40,8 @@ export default function TaxReturnGuidePage() {
         </section>
 
         <TaxReturnChecklist />
+
+        <div className="mt-8"><TaxTimeReminder /></div>
 
         <section className="mt-10 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
           <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8">

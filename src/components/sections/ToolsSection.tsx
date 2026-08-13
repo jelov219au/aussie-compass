@@ -157,6 +157,11 @@ export function ToolsSection() {
           </div>
         </article>
 
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <article className="rounded-3xl border border-border bg-white p-7 shadow-sm sm:p-9"><div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gold/10 text-navy"><ToolIcon /></div><p className="mt-5 text-sm font-semibold text-gold">호주 첫 차 프로젝트</p><h3 className="mt-2 text-2xl font-semibold text-navy">중고차 구매 비교표</h3><p className="mt-3 leading-7 text-muted">구매가부터 Rego, 보험, 정비와 연료비까지 첫 1년 비용을 비교하고 PPSR·사전검사를 챙기세요.</p><Link href="/used-car-comparison" className="mt-5 inline-flex min-h-11 items-center font-semibold text-navy">차량 비교하기 &rarr;</Link></article>
+          <article className="rounded-3xl border border-border bg-white p-7 shadow-sm sm:p-9"><div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gold/10 text-navy"><ToolIcon /></div><p className="mt-5 text-sm font-semibold text-gold">이사 프로젝트</p><h3 className="mt-2 text-2xl font-semibold text-navy">이사 체크리스트와 리마인더</h3><p className="mt-3 leading-7 text-muted">퇴거 통지, 공과금, 주소 변경과 보증금까지 시기별로 관리하고 이사일을 캘린더에 추가하세요.</p><Link href="/moving-checklist" className="mt-5 inline-flex min-h-11 items-center font-semibold text-navy">이사 준비 시작하기 &rarr;</Link></article>
+        </div>
+
         <div id={sectionIds.guides} className="scroll-mt-24 pt-16" aria-labelledby="pay-guides-heading">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">급여 정보 바로가기</p>

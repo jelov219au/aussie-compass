@@ -86,6 +86,30 @@ const availableTools = [
     features: ["쉐어·렌트·구매 모드", "우려 항목 모아보기", "주별 공식 정보"],
     cta: "집 점검 시작하기",
   },
+  {
+    href: "/used-car-comparison",
+    eyebrow: "차량 구매",
+    title: "중고차 구매 비교표",
+    description: "구매가, Rego, 보험, 정비와 연료비를 합산하고 PPSR·VIN·사전검사 여부를 비교하세요.",
+    features: ["첫 1년 비용", "PPSR 확인", "최대 3대 비교"],
+    cta: "차량 비교하기",
+  },
+  {
+    href: "/moving-checklist",
+    eyebrow: "이사 준비",
+    title: "이사 체크리스트와 리마인더",
+    description: "퇴거 통지, 공과금, 주소 변경, Condition report와 보증금까지 시기별로 관리하세요.",
+    features: ["23개 준비 항목", "이사일 리마인더", "주소 변경 목록"],
+    cta: "이사 준비 시작하기",
+  },
+  {
+    href: "/service-price-log",
+    eyebrow: "서비스 가격 데이터",
+    title: "내 서비스 가격 기록",
+    description: "생활 서비스의 견적·결제 금액을 항목별로 기록하고 서비스별 개인 중앙값과 범위를 확인하세요.",
+    features: ["업체명 수집 없음", "개인 가격 범위", "기기 내 저장"],
+    cta: "가격 기록하기",
+  },
 ];
 
 export default function ToolsPage() {

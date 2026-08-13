@@ -25,8 +25,12 @@ Practical tools and trusted guides for Koreans living in Australia.
 - SEO-focused Korean resources hub with actionable job search, resume, savings guides, and contextual tool links
 - Career pathway explorer that clearly separates labour shortages from skilled migration eligibility and links to official sources
 - Tax return preparation hub with an annual local checklist and official ATO links
+- Downloadable EOFY calendar reminders for pre-fill review and the self-lodgment deadline check
 - Local-first service quote comparator for itemised costs, business checks, licensing prompts, timelines, and warranties
 - Property inspection checklist with tailored share-house, rental, and purchase modes, concern tracking, and state-specific official links
+- Used-car comparison with first-year ownership costs and PPSR, VIN, registration, history, inspection, and test-drive checks
+- Moving project with staged preparation, address-change tasks, local progress, and downloadable calendar reminders
+- Private service-price log with itemised costs and personal median/range summaries, designed as a safe precursor to verified public data
 
 ## Coming Soon
 
