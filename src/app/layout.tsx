@@ -41,8 +41,16 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="min-h-screen antialiased">
+        <a
+          href="#main-content"
+          className="fixed left-4 top-3 z-[100] -translate-y-20 rounded-lg bg-navy px-4 py-3 text-sm font-semibold text-white shadow-lg transition-transform focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2"
+        >
+          본문으로 바로가기
+        </a>
         <SiteJsonLd />
-        {children}
+        <div id="main-content" tabIndex={-1} className="focus:outline-none">
+          {children}
+        </div>
       </body>
     </html>
   );

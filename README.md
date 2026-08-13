@@ -15,6 +15,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Dedicated Pay Guides hub
 - Branded browser icons and web app manifest
 - Mobile-friendly touch targets for calculator actions and navigation
+- Keyboard-friendly skip navigation for faster access to page content
 
 ## Coming Soon
 
