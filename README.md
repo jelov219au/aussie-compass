@@ -16,6 +16,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Branded browser icons and web app manifest
 - Mobile-friendly touch targets for calculator actions and navigation
 - Keyboard-friendly skip navigation for faster access to page content
+- Reduced-motion support that follows the visitor's device accessibility setting
 
 ## Coming Soon
 
