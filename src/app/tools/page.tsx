@@ -156,7 +156,7 @@ const availableTools: DirectoryTool[] = [
     description: "퇴사, 렌트, 공과금과 계정 접근을 정리하고 출국 후 DASP와 마지막 세금 업무를 준비하세요.",
     features: ["출국 전후 20개 항목", "DASP 조건 안내", "공식 신청 연결"],
     cta: "귀국 준비 시작하기",
-    categories: ["departure", "annual", "money"],
+    categories: ["departure", "money"],
   },
 ];
 
