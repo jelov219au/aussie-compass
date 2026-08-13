@@ -1,38 +1,8 @@
-import { getContent } from "@/content";
+import Link from "next/link";
 import { articles } from "@/data/articles";
 import { GuideIcon } from "@/components/icons/Icons";
 import { Container } from "@/components/ui/Container";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { sectionIds } from "@/lib/utils";
 
 export function ArticlesSection() {
-  const content = getContent();
-
-  return (
-    <section
-      id={sectionIds.guides}
-      className="scroll-mt-20 bg-background py-16 sm:py-20"
-      aria-labelledby="guides-heading"
-    >
-      <Container>
-        <SectionHeading id="guides-heading" heading={content.articles.heading} />
-
-        <ul className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {articles.map((article) => (
-            <li key={article.id}>
-              <article className="flex h-full flex-col rounded-2xl border border-border bg-white p-6 shadow-sm">
-                <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-navy/5 text-navy">
-                  <GuideIcon />
-                </div>
-                <h3 className="text-lg font-semibold text-navy">{article.title}</h3>
-                <p className="mt-5 inline-flex w-fit rounded-full bg-surface px-3 py-1 text-xs font-medium text-muted">
-                  {content.articles.comingSoonLabel}
-                </p>
-              </article>
-            </li>
-          ))}
-        </ul>
-      </Container>
-    </section>
-  );
+  return <section className="bg-surface py-16 sm:py-20" aria-labelledby="resources-heading"><Container><div className="max-w-3xl"><p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">실용 자료</p><h2 id="resources-heading" className="mt-2 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">도구와 함께 읽으면 좋은 가이드</h2><p className="mt-4 leading-7 text-muted">호주 생활과 구직에서 바로 적용할 수 있는 내용을 한국어로 정리했습니다.</p></div><ul className="mt-9 grid gap-5 lg:grid-cols-3">{articles.map((article) => <li key={article.slug}><Link href={`/resources/${article.slug}`} className="group flex h-full min-h-72 flex-col rounded-2xl border border-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"><div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gold/10 text-navy"><GuideIcon /></div><p className="mt-5 text-xs font-semibold text-gold">{article.category} · {article.readingTime}</p><h3 className="mt-2 text-lg font-semibold leading-7 text-navy">{article.title}</h3><p className="mt-3 flex-1 text-sm leading-6 text-muted">{article.description}</p><span className="mt-5 text-sm font-semibold text-navy">가이드 읽기 &rarr;</span></Link></li>)}</ul><Link href="/resources" className="mt-7 inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">전체 실용 자료 보기 &rarr;</Link></Container></section>;
 }
