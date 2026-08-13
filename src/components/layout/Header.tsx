@@ -12,6 +12,7 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = [
+    { label: "시작 경로", href: `/#${sectionIds.journey}` },
     { label: content.nav.tools, href: "/tools" },
     { label: content.nav.guides, href: "/guides" },
     { label: content.nav.about, href: `/#${sectionIds.about}` },

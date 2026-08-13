@@ -1,4 +1,5 @@
 export const sectionIds = {
+  journey: "journey",
   tools: "tools",
   guides: "guides",
   about: "about",

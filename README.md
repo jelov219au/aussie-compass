@@ -7,6 +7,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Landing Page
 - Integrated Salary Calculator with 2025–26 and 2026–27 tax years, resident and Working Holiday Maker tax profiles, hourly, annual salary and super-inclusive package inputs, adjustable working weeks, salary comparison, locally saved calculation settings, shareable calculation links, and copyable or printable pay results (12% Super)
 - Korean-first landing page
+- Stage-based working-holiday journey navigation from arrival preparation through annual tasks, plus situation filters in the tools directory
 - Minimum Wage and Casual Loading Guide (2026 rates)
 - Korean Payslip Guide covering Gross Pay, Net Pay, PAYG, Super and YTD
 - Korean Award and Classification Guide for checking minimum pay rates
