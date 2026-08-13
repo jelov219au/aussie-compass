@@ -121,6 +121,18 @@ export function ToolsSection() {
           </div>
         </article>
 
+        <article className="mt-6 rounded-3xl border border-gold/40 bg-gold/5 p-7 shadow-sm sm:p-9">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="max-w-3xl">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white text-navy"><GuideIcon /></div>
+              <p className="mt-5 text-sm font-semibold text-gold">매년 돌아오는 EOFY 준비</p>
+              <h3 className="mt-2 text-2xl font-semibold text-navy">택스 리턴 준비 허브</h3>
+              <p className="mt-3 leading-7 text-muted">ATO 일정, 소득 자료와 공제 증빙 준비 순서를 확인하고 내 기기에 저장되는 체크리스트로 빠짐없이 준비하세요.</p>
+            </div>
+            <Link href="/tax-return-guide" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-navy px-6 py-3 font-semibold text-white transition hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 lg:min-w-48">택스 리턴 준비하기</Link>
+          </div>
+        </article>
+
         <div id={sectionIds.guides} className="scroll-mt-24 pt-16" aria-labelledby="pay-guides-heading">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">급여 정보 바로가기</p>

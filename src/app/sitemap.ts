@@ -12,6 +12,7 @@ const routes = [
   "/job-application-tracker",
   "/resources",
   "/career-pathways",
+  "/tax-return-guide",
   "/guides",
   "/minimum-wage-guide",
   "/casual-loading-guide",

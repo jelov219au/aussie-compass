@@ -62,6 +62,14 @@ const availableTools = [
     features: ["공식 출처 연결", "분야별 직업 검색", "자격·면허 준비 항목"],
     cta: "직업 분야 살펴보기",
   },
+  {
+    href: "/tax-return-guide",
+    eyebrow: "EOFY 준비",
+    title: "택스 리턴 준비 허브",
+    description: "소득 자료와 공제 증빙을 빠짐없이 준비하고, 공식 신고 일정과 다음 행동을 체크하세요.",
+    features: ["개인 준비 체크리스트", "ATO 공식 링크", "민감정보 입력 없음"],
+    cta: "택스 리턴 준비하기",
+  },
 ];
 
 export default function ToolsPage() {
