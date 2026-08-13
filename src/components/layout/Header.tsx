@@ -36,13 +36,13 @@ export function Header() {
               {link.label}
             </Link>
           ))}
-          <Button href="/tools" className="ml-2">
+          <Button href="/search" className="ml-2">
             {content.nav.exploreTools}
           </Button>
         </nav>
 
         <div className="flex items-center gap-2 md:hidden">
-          <Button href="/tools" className="hidden min-[420px]:inline-flex">
+          <Button href="/search" className="hidden min-[420px]:inline-flex">
             {content.nav.exploreTools}
           </Button>
           <button
@@ -97,7 +97,7 @@ export function Header() {
               </Link>
             ))}
             <Button
-              href="/tools"
+              href="/search"
               className="mt-2 w-full min-[420px]:hidden"
             >
               {content.nav.exploreTools}
