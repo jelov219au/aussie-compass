@@ -1,5 +1,4 @@
 import { getContent } from "@/content";
-import { StepIcon } from "@/components/icons/Icons";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 
@@ -18,13 +17,13 @@ export function HowItWorksSection() {
           align="center"
         />
 
-        <ol className="mt-10 grid gap-6 sm:grid-cols-3">
+        <ol className="mt-10 grid border-y border-navy/20 sm:grid-cols-3">
           {content.howItWorks.steps.map((step, index) => (
             <li
               key={step.title}
-              className="rounded-2xl border border-border bg-white p-6 shadow-sm"
+              className="border-b border-border p-6 last:border-b-0 sm:border-b-0 sm:border-r sm:p-8 sm:last:border-r-0"
             >
-              <StepIcon step={index + 1} className="h-8 w-8 text-sm" />
+              <span className="font-mono text-sm text-gold">0{index + 1}</span>
               <h3 className="mt-4 text-base font-semibold text-navy">
                 {step.title}
               </h3>
