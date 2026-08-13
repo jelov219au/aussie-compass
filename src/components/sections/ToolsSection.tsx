@@ -95,6 +95,18 @@ export function ToolsSection() {
             <div className="max-w-3xl">
               <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gold/10 text-navy"><ToolIcon /></div>
               <p className="mt-5 text-sm font-semibold text-gold">새로운 무료 도구</p>
+              <h3 className="mt-2 text-2xl font-semibold text-navy">저축 목표·비상금 계산기</h3>
+              <p className="mt-3 leading-7 text-muted">정기 저축액으로 목표 달성 시기를 확인하거나 원하는 기한에 맞춰 얼마씩 모아야 하는지 계산하세요.</p>
+            </div>
+            <Link href="/savings-goal-calculator" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-navy px-6 py-3 font-semibold text-white transition hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 lg:min-w-48">저축 계획 세우기</Link>
+          </div>
+        </article>
+
+        <article className="mt-6 rounded-3xl border border-border bg-white p-7 shadow-sm sm:p-9">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="max-w-3xl">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gold/10 text-navy"><ToolIcon /></div>
+              <p className="mt-5 text-sm font-semibold text-gold">새로운 무료 도구</p>
               <h3 className="mt-2 text-2xl font-semibold text-navy">호주 생활비 계산기</h3>
               <p className="mt-3 leading-7 text-muted">주거비부터 연간 보험료까지 서로 다른 결제 주기를 한 번에 환산하고, 세후 수입에서 남는 예산을 확인하세요.</p>
             </div>
