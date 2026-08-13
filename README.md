@@ -10,6 +10,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Stage-based working-holiday journey navigation from arrival preparation through annual tasks, plus situation filters in the tools directory
 - Visa preparation hub covering official discovery, ImmiAccount workflow, health examination pathways, approved clinic finders, and a local cost planner
 - First-30-days arrival project covering VEVO, phone, transport, banking, TFN, student USI, health-cover checks, housing, first-job records, and a calendar reminder
+- Official help directory separating Triple Zero emergencies from health, crisis, interpreting, workplace, and scam-reporting support
 - Leaving-Australia project covering employment, rental, accounts, tax, and a carefully separated post-departure DASP readiness and application guide
 - Minimum Wage and Casual Loading Guide (2026 rates)
 - Korean Payslip Guide covering Gross Pay, Net Pay, PAYG, Super and YTD

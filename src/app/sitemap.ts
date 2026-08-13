@@ -7,6 +7,7 @@ const routes = [
   "/tools",
   "/privacy",
   "/disclaimer",
+  "/help-directory",
   "/salary-calculator",
   "/resume-builder",
   "/cost-of-living-calculator",

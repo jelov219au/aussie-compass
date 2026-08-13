@@ -14,6 +14,15 @@ export const metadata = createPageMetadata({
 
 const availableTools: DirectoryTool[] = [
   {
+    href: "/help-directory",
+    eyebrow: "긴급·생활 도움",
+    title: "호주 생활 도움 연락처",
+    description: "000 긴급전화부터 의료상담, 통역, 위기지원, 직장 문제와 사기 신고까지 공식 연락처를 상황별로 찾으세요.",
+    features: ["긴급·비긴급 구분", "전화 바로 연결", "공식 출처 확인"],
+    cta: "도움 연락처 확인하기",
+    categories: ["arrival", "work", "home"],
+  },
+  {
     href: "/arrival-checklist",
     eyebrow: "호주 도착 직후",
     title: "첫 30일 정착 체크리스트",
