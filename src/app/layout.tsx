@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { SiteJsonLd } from "@/components/seo/JsonLd";
 import { siteName, siteUrl } from "@/lib/site";
 import "./globals.css";
@@ -27,6 +27,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1a2744",
 };
 
 export default function RootLayout({
