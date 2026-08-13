@@ -51,6 +51,10 @@ body {
   border-width: 0;
 }
 
+#resume-preview section > h2 {
+  color: var(--resume-accent, #1a2744);
+}
+
 @media print {
   @page {
     margin: 12mm;

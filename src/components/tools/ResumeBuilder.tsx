@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 type Experience = { id: string; role: string; company: string; period: string; details: string };
 type Education = { id: string; course: string; school: string; period: string };
+type Accent = "navy" | "forest" | "burgundy" | "charcoal";
+type LayoutStyle = "classic" | "compact";
 type ResumeData = {
   name: string;
   title: string;
@@ -16,6 +18,8 @@ type ResumeData = {
   licences: string;
   languages: string;
   showReferences: boolean;
+  accent: Accent;
+  layoutStyle: LayoutStyle;
   experiences: Experience[];
   education: Education[];
 };
@@ -33,12 +37,27 @@ const emptyResume: ResumeData = {
   licences: "",
   languages: "",
   showReferences: false,
+  accent: "navy",
+  layoutStyle: "classic",
   experiences: [{ id: "experience-1", role: "", company: "", period: "", details: "" }],
   education: [{ id: "education-1", course: "", school: "", period: "" }],
 };
 
 const inputClass = "mt-1.5 min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy outline-none transition placeholder:text-muted/60 focus:border-navy focus:ring-2 focus:ring-navy/15";
 const labelClass = "block text-sm font-medium text-navy";
+const accentOptions: Array<{ id: Accent; name: string; colour: string; secondary: string }> = [
+  { id: "navy", name: "네이비", colour: "#1a2744", secondary: "#8a7126" },
+  { id: "forest", name: "포레스트", colour: "#245143", secondary: "#8b6b27" },
+  { id: "burgundy", name: "버건디", colour: "#702f3b", secondary: "#8a6825" },
+  { id: "charcoal", name: "차콜", colour: "#30343b", secondary: "#5f6875" },
+];
+const writingExamples = [
+  { ko: "바쁜 환경에서도 친절하고 정확하게 고객을 응대합니다.", en: "Deliver friendly and accurate customer service in fast-paced environments.", target: "experience" as const },
+  { ko: "팀원들과 원활하게 소통하며 맡은 업무를 책임감 있게 수행합니다.", en: "Communicate effectively with team members and take ownership of assigned tasks.", target: "summary" as const },
+  { ko: "신입 직원 교육과 업무 적응을 지원했습니다.", en: "Trained and supported new team members during onboarding.", target: "experience" as const },
+  { ko: "새로운 업무를 빠르게 배우고 변화에 유연하게 대응합니다.", en: "Learn new processes quickly and adapt confidently to changing priorities.", target: "summary" as const },
+  { ko: "고객 요청을 신속하게 해결해 긍정적인 경험을 만들었습니다.", en: "Resolved customer requests promptly to create a positive customer experience.", target: "experience" as const },
+];
 
 function makeId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -57,6 +76,8 @@ export function ResumeBuilder() {
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
+  const [koreanDraft, setKoreanDraft] = useState("");
+  const [englishSuggestion, setEnglishSuggestion] = useState("");
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -86,6 +107,7 @@ export function ResumeBuilder() {
   const skills = useMemo(() => resume.skills.split(",").map((skill) => skill.trim()).filter(Boolean), [resume.skills]);
   const licences = useMemo(() => resume.licences.split("\n").map((item) => item.trim()).filter(Boolean), [resume.licences]);
   const languages = useMemo(() => resume.languages.split(",").map((item) => item.trim()).filter(Boolean), [resume.languages]);
+  const activeAccent = accentOptions.find((option) => option.id === resume.accent) ?? accentOptions[0];
   const completedEssentials = [resume.name, resume.title, resume.phone, resume.email, resume.summary, resume.experiences[0]?.role, resume.skills].filter(Boolean).length;
   const setField = (field: keyof Omit<ResumeData, "experiences" | "education">, value: string) =>
     setResume((current) => ({ ...current, [field]: value }));
@@ -106,7 +128,7 @@ export function ResumeBuilder() {
     setResume({
       name: "Jiwon Kim", title: "Barista", phone: "0412 345 678", email: "jiwon.kim@email.com", location: "Sydney, NSW", link: "linkedin.com/in/jiwon-kim",
       summary: "Friendly and reliable barista with two years of experience in busy cafes. Skilled in espresso preparation, customer service and maintaining a clean, efficient workspace.",
-      skills: "Espresso preparation, Customer service, POS, Teamwork", licences: "NSW Responsible Service of Alcohol (RSA)\nFood Safety Certificate", languages: "Korean (Native), English (Professional)", showReferences: true,
+      skills: "Espresso preparation, Customer service, POS, Teamwork", licences: "NSW Responsible Service of Alcohol (RSA)\nFood Safety Certificate", languages: "Korean (Native), English (Professional)", showReferences: true, accent: resume.accent, layoutStyle: resume.layoutStyle,
       experiences: [{ id: makeId("experience"), role: "Barista", company: "Compass Cafe", period: "Mar 2024 – Present", details: "Prepare up to 150 coffee orders per shift while maintaining quality\nTrain new team members in POS and closing procedures\nBuild positive relationships with regular customers" }],
       education: [{ id: makeId("education"), course: "Certificate III in Hospitality", school: "TAFE NSW", period: "2023 – 2024" }],
     });
@@ -164,6 +186,38 @@ export function ResumeBuilder() {
     }
   };
 
+  const createEnglishSuggestion = () => {
+    const text = koreanDraft.trim();
+    if (!text) return;
+    const years = text.match(/(\d+)\s*년/)?.[1];
+    const roleMap = [
+      ["바리스타", "barista"], ["카페", "hospitality professional"], ["주방", "kitchen team member"], ["요리", "cook"],
+      ["판매", "retail team member"], ["고객", "customer service professional"], ["청소", "cleaner"], ["개발", "software developer"],
+      ["회계", "accounting professional"], ["간호", "nursing professional"], ["사무", "administration professional"],
+    ] as const;
+    const role = roleMap.find(([keyword]) => text.includes(keyword))?.[1] ?? "motivated professional";
+    const strengths = [
+      text.includes("친절") && "friendly customer service",
+      (text.includes("책임") || text.includes("성실")) && "a reliable and responsible approach",
+      text.includes("팀") && "strong teamwork",
+      (text.includes("소통") || text.includes("의사소통")) && "clear communication",
+      (text.includes("빠르") || text.includes("신속")) && "the ability to work efficiently in fast-paced environments",
+      (text.includes("꼼꼼") || text.includes("정확")) && "strong attention to detail",
+    ].filter(Boolean);
+    const experience = years ? ` with ${years} years of experience` : "";
+    const strengthText = strengths.length ? ` Skilled in ${strengths.slice(0, 3).join(", ")}.` : " Quick to learn, dependable and ready to contribute to a supportive team.";
+    setEnglishSuggestion(`${role.charAt(0).toUpperCase()}${role.slice(1)}${experience}.${strengthText}`);
+  };
+
+  const insertWriting = (text: string, target: "summary" | "experience") => {
+    if (target === "summary") setField("summary", [resume.summary, text].filter(Boolean).join(" "));
+    else {
+      const first = resume.experiences[0];
+      if (first) updateExperience(first.id, "details", [first.details, text].filter(Boolean).join("\n"));
+    }
+    setActionMessage(target === "summary" ? "Professional summary에 추가했습니다." : "첫 번째 경력의 주요 성과에 추가했습니다.");
+  };
+
   return (
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(620px,1.1fr)]">
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-form-heading">
@@ -175,6 +229,27 @@ export function ResumeBuilder() {
           <div className="flex items-center justify-between gap-4 text-sm"><span className="font-medium text-navy">필수 내용 {completedEssentials}/7</span><button type="button" onClick={loadExample} className="min-h-11 font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">예시 불러오기</button></div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white" role="progressbar" aria-label="이력서 필수 내용 완성도" aria-valuemin={0} aria-valuemax={7} aria-valuenow={completedEssentials}><div className="h-full rounded-full bg-gold transition-[width]" style={{ width: `${(completedEssentials / 7) * 100}%` }} /></div>
         </div>
+
+        <fieldset className="mt-7 rounded-xl border border-border p-4">
+          <legend className="px-1 text-base font-semibold text-navy">디자인</legend>
+          <div className="mt-2"><span className="text-sm font-medium text-navy">포인트 색상</span><div className="mt-2 flex flex-wrap gap-2">{accentOptions.map((option) => <button key={option.id} type="button" onClick={() => setResume((current) => ({ ...current, accent: option.id }))} className={`flex min-h-11 items-center gap-2 rounded-lg border px-3 py-2 text-sm ${resume.accent === option.id ? "border-navy bg-surface font-semibold" : "border-border"}`} aria-pressed={resume.accent === option.id}><span className="h-4 w-4 rounded-full" style={{ backgroundColor: option.colour }} aria-hidden="true" />{option.name}</button>)}</div></div>
+          <div className="mt-4"><span className="text-sm font-medium text-navy">레이아웃</span><div className="mt-2 grid grid-cols-2 gap-2">{([['classic', '기본형', '여유 있는 간격'], ['compact', '간결형', '내용이 많을 때']] as const).map(([id, name, description]) => <button key={id} type="button" onClick={() => setResume((current) => ({ ...current, layoutStyle: id }))} className={`min-h-16 rounded-lg border p-3 text-left ${resume.layoutStyle === id ? "border-navy bg-surface" : "border-border"}`} aria-pressed={resume.layoutStyle === id}><strong className="block text-sm text-navy">{name}</strong><span className="mt-1 block text-xs text-muted">{description}</span></button>)}</div></div>
+        </fieldset>
+
+        <section className="mt-8 rounded-2xl border border-gold/40 bg-gold/5 p-5" aria-labelledby="writing-helper-heading">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">영문 작성 도우미</p>
+          <h2 id="writing-helper-heading" className="mt-2 text-lg font-semibold text-navy">한국어 강점을 영문 초안으로</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">직무, 경력 연수, 강점 키워드를 한국어로 적으면 이력서용 영문 초안을 만듭니다. 내용은 외부로 전송되지 않습니다.</p>
+          <label className="mt-4 block text-sm font-medium text-navy">한국어 메모<textarea className={`${inputClass} mt-1.5 min-h-24 resize-y`} value={koreanDraft} onChange={(e) => setKoreanDraft(e.target.value)} placeholder="예: 카페에서 2년 일했고 친절하며 바쁜 시간에도 빠르고 정확하게 일합니다." /></label>
+          <button type="button" onClick={createEnglishSuggestion} className="mt-3 min-h-11 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-light">영문 초안 만들기</button>
+          {englishSuggestion && <div className="mt-4 rounded-xl bg-white p-4"><p className="text-sm leading-6 text-navy">{englishSuggestion}</p><div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => insertWriting(englishSuggestion, "summary")} className="min-h-11 rounded-lg border border-navy px-3 py-2 text-sm font-semibold text-navy">Summary에 추가</button><button type="button" onClick={() => insertWriting(englishSuggestion, "experience")} className="min-h-11 rounded-lg border border-border px-3 py-2 text-sm font-medium text-navy">경력에 추가</button></div></div>}
+          <p className="mt-3 text-xs leading-5 text-muted">직역 도구가 아닌 이력서 문장 제안 기능입니다. 사실과 경력 연수는 반드시 직접 확인하세요.</p>
+        </section>
+
+        <section className="mt-6" aria-labelledby="example-sentences-heading">
+          <h2 id="example-sentences-heading" className="text-base font-semibold text-navy">바로 쓰는 예시 문장</h2>
+          <div className="mt-3 space-y-3">{writingExamples.map((example) => <article key={example.en} className="rounded-xl border border-border p-4"><p className="text-xs leading-5 text-muted">{example.ko}</p><p className="mt-1 text-sm leading-6 text-navy">{example.en}</p><button type="button" onClick={() => insertWriting(example.en, example.target)} className="mt-2 min-h-11 text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">{example.target === "summary" ? "Summary에 추가" : "경력에 추가"}</button></article>)}</div>
+        </section>
 
         <fieldset className="mt-7 space-y-4">
           <legend className="text-base font-semibold text-navy">기본 정보</legend>
@@ -242,13 +317,13 @@ export function ResumeBuilder() {
 
       <div className="xl:sticky xl:top-24">
         <div className="mb-3 flex items-center justify-between gap-3"><h2 className="text-lg font-semibold text-navy">미리보기</h2><p className="text-xs text-muted">A4 형식</p></div>
-        <article id="resume-preview" className="min-h-[877px] bg-white px-8 py-10 text-[#202636] shadow-lg ring-1 ring-black/5 sm:px-12 sm:py-12" aria-label="이력서 미리보기">
-          <header className="border-b-2 border-[#1a2744] pb-5">
-            <h1 className="text-3xl font-bold tracking-tight text-[#1a2744]">{resume.name || "Your Name"}</h1>
-            <p className="mt-1 text-base font-semibold text-[#8a7126]">{resume.title || "Target Role"}</p>
+        <article id="resume-preview" className={`min-h-[877px] bg-white text-[#202636] shadow-lg ring-1 ring-black/5 ${resume.layoutStyle === "compact" ? "px-7 py-8 sm:px-10 sm:py-9" : "px-8 py-10 sm:px-12 sm:py-12"}`} aria-label="이력서 미리보기">
+          <header className={`${resume.layoutStyle === "compact" ? "border-b pb-3" : "border-b-2 pb-5"}`} style={{ borderColor: activeAccent.colour }}>
+            <h1 className={`${resume.layoutStyle === "compact" ? "text-2xl" : "text-3xl"} font-bold tracking-tight`} style={{ color: activeAccent.colour }}>{resume.name || "Your Name"}</h1>
+            <p className="mt-1 text-base font-semibold" style={{ color: activeAccent.secondary }}>{resume.title || "Target Role"}</p>
             <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#50586b]">{[resume.phone || "Phone", resume.email || "Email", resume.location || "City, State", resume.link].filter(Boolean).map((value, index) => <span key={index}>{value}</span>)}</p>
           </header>
-          <div className="mt-6 space-y-6">
+          <div className={resume.layoutStyle === "compact" ? "mt-4 space-y-4" : "mt-6 space-y-6"} style={{ "--resume-accent": activeAccent.colour } as React.CSSProperties}>
             {(resume.summary || !resume.name) && <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Professional Summary</h2><p className="mt-2 whitespace-pre-line text-sm leading-6 text-[#3f4655]">{resume.summary || "Write a concise summary of your experience, strengths and the value you bring to the role."}</p></section>}
             <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Experience</h2><div className="mt-3 space-y-5">{resume.experiences.map((item) => <div key={item.id}><div className="flex items-start justify-between gap-5"><div><h3 className="text-sm font-bold">{item.role || "Role"}</h3><p className="text-sm text-[#50586b]">{item.company || "Company"}</p></div><p className="shrink-0 text-xs text-[#50586b]">{item.period || "Dates"}</p></div>{item.details && <ul className="mt-2 space-y-1 text-sm leading-5 text-[#3f4655]">{item.details.split("\n").filter(Boolean).map((line, i) => <li key={i} className="flex gap-2"><span aria-hidden="true">•</span><span>{line}</span></li>)}</ul>}</div>)}</div></section>
             <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Education & Training</h2><div className="mt-3 space-y-4">{resume.education.map((item) => <div key={item.id} className="flex items-start justify-between gap-5"><div><h3 className="text-sm font-bold">{item.course || "Course or qualification"}</h3><p className="text-sm text-[#50586b]">{item.school || "Institution"}</p></div><p className="shrink-0 text-xs text-[#50586b]">{item.period || "Dates"}</p></div>)}</div></section>

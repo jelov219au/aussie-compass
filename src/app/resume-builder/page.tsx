@@ -23,7 +23,7 @@ export default function ResumeBuilderPage() {
           <div className="mb-10 mt-5 max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">무료 작성 도구</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 영문 이력서 빌더</h1>
-            <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">필요한 내용만 입력해 간결한 호주식 이력서를 만드세요. 입력 내용은 이 브라우저에만 자동 저장되며 서버로 전송되지 않습니다.</p>
+            <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">한국어 강점을 영문 초안으로 바꾸고 예시 문장을 활용해 호주식 이력서를 만드세요. 색상과 레이아웃을 고를 수 있으며 입력 내용은 이 브라우저에만 저장됩니다.</p>
           </div>
           <ResumeBuilder />
           <section className="mt-10 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="resume-tips-heading">
