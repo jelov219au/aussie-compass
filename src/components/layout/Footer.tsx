@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getContent } from "@/content";
 import { Container } from "@/components/ui/Container";
+import { PageShareButton } from "@/components/pwa/PageShareButton";
 
 export function Footer() {
   const content = getContent();
@@ -8,7 +9,10 @@ export function Footer() {
 
   const footerLinks = [
     { label: content.nav.tools, href: "/tools" },
+    { label: "나의 진행", href: "/my-compass" },
     { label: "통합 검색", href: "/search" },
+    { label: "생활 용어집", href: "/glossary" },
+    { label: "앱으로 사용하기", href: "/install" },
     { label: content.nav.guides, href: "/resources" },
     { label: "호주 생활 단계", href: "/#journey" },
     { label: "도움 연락처", href: "/help-directory" },
@@ -43,7 +47,8 @@ export function Footer() {
           </nav>
         </div>
 
-        <div className="mt-10 space-y-4 border-t border-border pt-6 text-sm leading-relaxed text-muted">
+        <div className="mt-10 border-t border-border pt-6"><PageShareButton /></div>
+        <div className="mt-5 space-y-4 text-sm leading-relaxed text-muted">
           <p>도구 입력값은 별도 안내가 없는 한 현재 브라우저에만 저장됩니다. 이메일·광고 추적은 현재 운영하지 않습니다.</p>
           <p>© {year} {content.brand.name}</p>
         </div>

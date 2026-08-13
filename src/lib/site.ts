@@ -32,7 +32,7 @@ export function createPageMetadata({ title, description, path }: PageMetadata): 
       type: "website",
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description,
     },

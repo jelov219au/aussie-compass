@@ -19,6 +19,10 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Korean Leave Guide covering annual leave, sick and carer's leave, and public holidays
 - Dedicated Pay Guides hub
 - Branded browser icons and web app manifest
+- Installable web app experience with dedicated Android/iPhone instructions, native page sharing, app icons, and a network-first offline fallback
+- Site-wide editorial link previews for social sharing, plus a local bookmark action on every page
+- Private "My Compass" dashboard that gathers locally saved checklist, project, calculator, resume, job-tracker, and bookmark progress without exposing sensitive values
+- Local life-admin reminder planner for visa, passport, lease, Rego, insurance, and qualification renewal dates with calendar-file export
 - Mobile-friendly touch targets for calculator actions and navigation
 - Keyboard-friendly skip navigation for faster access to page content
 - Reduced-motion support that follows the visitor's device accessibility setting
@@ -28,6 +32,8 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Savings goal project with target timelines, contribution check-ins, progress milestones, recurring calendar reminders, and emergency fund planning
 - Local-first job application tracker for vacancies, interviews, offers, next actions, filtering, and JSON backups
 - SEO-focused Korean resources hub with actionable job search, resume, savings guides, and contextual tool links
+- Searchable Korean glossary for 23 common Australian work, tax, visa, housing, and transport terms with official-source links
+- Local-only social card maker with Instagram post, portrait, and story sizes, editable editorial themes, PNG export, and copyable captions
 - Career pathway explorer that clearly separates labour shortages from skilled migration eligibility and links to official sources
 - Tax return preparation hub with an annual local checklist and official ATO links
 - Downloadable EOFY calendar reminders for pre-fill review and the self-lodgment deadline check

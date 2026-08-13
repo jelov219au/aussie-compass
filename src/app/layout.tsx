@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { SiteJsonLd } from "@/components/seo/JsonLd";
 import { siteName, siteUrl } from "@/lib/site";
+import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import "./globals.css";
 
 const title = "Aussie Compass | 호주 생활을 위한 실용 도구";
@@ -41,6 +42,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="min-h-screen antialiased">
+        <ServiceWorkerRegistration />
         <a
           href="#main-content"
           className="fixed left-4 top-3 z-[100] -translate-y-20 rounded-lg bg-navy px-4 py-3 text-sm font-semibold text-white shadow-lg transition-transform focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2"
