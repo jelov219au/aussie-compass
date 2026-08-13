@@ -23,6 +23,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Savings goal project with target timelines, contribution check-ins, progress milestones, recurring calendar reminders, and emergency fund planning
 - Local-first job application tracker for vacancies, interviews, offers, next actions, filtering, and JSON backups
 - SEO-focused Korean resources hub with actionable job search, resume, savings guides, and contextual tool links
+- Career pathway explorer that clearly separates labour shortages from skilled migration eligibility and links to official sources
 
 ## Coming Soon
 

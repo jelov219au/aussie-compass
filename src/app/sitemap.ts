@@ -11,6 +11,7 @@ const routes = [
   "/savings-goal-calculator",
   "/job-application-tracker",
   "/resources",
+  "/career-pathways",
   "/guides",
   "/minimum-wage-guide",
   "/casual-loading-guide",

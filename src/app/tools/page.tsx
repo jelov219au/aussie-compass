@@ -54,6 +54,14 @@ const availableTools = [
     features: ["진행 상태 관리", "면접 일정 확인", "로컬 저장·백업"],
     cta: "지원 현황 관리하기",
   },
+  {
+    href: "/career-pathways",
+    eyebrow: "직업과 진로",
+    title: "호주 직업·부족 분야 탐색기",
+    description: "주요 직업의 하는 일과 준비 항목을 살펴보고 공식 부족·비자 목록을 구분해 확인하세요.",
+    features: ["공식 출처 연결", "분야별 직업 검색", "자격·면허 준비 항목"],
+    cta: "직업 분야 살펴보기",
+  },
 ];
 
 export default function ToolsPage() {
