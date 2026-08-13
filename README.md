@@ -31,6 +31,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Downloadable EOFY calendar reminders for pre-fill review and the self-lodgment deadline check
 - Local-first service quote comparator for itemised costs, business checks, licensing prompts, timelines, and warranties
 - Property inspection checklist with tailored share-house, rental, and purchase modes, concern tracking, and state-specific official links
+- Public transport and student housing-area planner with three-candidate rent/commute comparison, Google Maps transit and nearby-amenity links, official state transport resources, and safety-data links
 - Used-car comparison with first-year ownership costs and PPSR, VIN, registration, history, inspection, and test-drive checks
 - Moving project with staged preparation, address-change tasks, local progress, and downloadable calendar reminders
 - Private service-price log with itemised costs and personal median/range summaries, designed as a safe precursor to verified public data

@@ -15,6 +15,7 @@ const routes = [
   "/tax-return-guide",
   "/service-quote-comparator",
   "/property-inspection-checklist",
+  "/public-transport-guide",
   "/used-car-comparison",
   "/moving-checklist",
   "/service-price-log",

@@ -14,6 +14,15 @@ export const metadata = createPageMetadata({
 
 const availableTools: DirectoryTool[] = [
   {
+    href: "/public-transport-guide",
+    eyebrow: "차 없이 시작하기",
+    title: "대중교통·통학 생활권 비교",
+    description: "집 후보별 주거비와 통학시간을 비교하고 Google Maps 대중교통 경로, 주변 생활시설과 주별 교통정보를 확인하세요.",
+    features: ["최대 3곳 비교", "Google Maps 연결", "학생·치안 공식 정보"],
+    cta: "생활권 비교하기",
+    categories: ["arrival", "home", "money"],
+  },
+  {
     href: "/visa-preparation-guide",
     eyebrow: "호주 첫 단계",
     title: "비자 신청·신체검사 준비 허브",
