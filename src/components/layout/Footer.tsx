@@ -7,7 +7,7 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   const footerLinks = [
-    { label: content.nav.tools, href: "/salary-calculator" },
+    { label: content.nav.tools, href: "/tools" },
     { label: content.nav.guides, href: "/guides" },
     { label: content.footer.privacy, href: "#privacy" },
     { label: content.footer.disclaimer, href: "#disclaimer" },

@@ -3,6 +3,7 @@ import { siteUrl } from "@/lib/site";
 
 const routes = [
   "",
+  "/tools",
   "/salary-calculator",
   "/resume-builder",
   "/cost-of-living-calculator",

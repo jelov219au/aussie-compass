@@ -19,6 +19,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Reduced-motion support that follows the visitor's device accessibility setting
 - English resume builder with Korean-to-English resume suggestions, example sentences, colour and density themes, live preview, local autosave, draft backup, ATS-friendly text copy, and print/PDF output
 - Cost of living calculator with mixed payment frequencies, income comparison, local autosave, custom expenses, and printable results
+- Dedicated tools hub linking all available calculators and builders
 
 ## Coming Soon
 

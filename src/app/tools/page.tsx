@@ -1,0 +1,85 @@
+import Link from "next/link";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { ToolIcon } from "@/components/icons/Icons";
+import { Container } from "@/components/ui/Container";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { createPageMetadata } from "@/lib/site";
+
+export const metadata = createPageMetadata({
+  title: "호주 생활 무료 도구 | Aussie Compass",
+  description: "호주 급여, 생활비 계산기와 영문 이력서 빌더를 한곳에서 이용하세요.",
+  path: "/tools",
+});
+
+const availableTools = [
+  {
+    href: "/salary-calculator",
+    eyebrow: "급여와 세금",
+    title: "통합 급여 계산기",
+    description: "시급이나 연봉을 입력해 세전·세후 급여, Super와 전체 보상 패키지를 확인하세요.",
+    features: ["2025–26·2026–27 세율", "Resident·워홀 유형", "급여 비교"],
+    cta: "급여 계산하기",
+    featured: true,
+  },
+  {
+    href: "/cost-of-living-calculator",
+    eyebrow: "생활 예산",
+    title: "생활비 계산기",
+    description: "주·월·연 단위의 지출을 한 번에 환산하고 세후 수입에서 남는 예산을 확인하세요.",
+    features: ["결제 주기 자동 환산", "사용자 항목 추가", "로컬 자동 저장"],
+    cta: "생활비 계산하기",
+  },
+  {
+    href: "/resume-builder",
+    eyebrow: "호주 취업",
+    title: "영문 이력서 빌더",
+    description: "한국어 강점을 영문 초안으로 바꾸고 원하는 색상과 레이아웃의 이력서를 만드세요.",
+    features: ["영문 문장 도우미", "실시간 A4 미리보기", "PDF·백업 저장"],
+    cta: "이력서 만들기",
+  },
+];
+
+export default function ToolsPage() {
+  return (
+    <>
+      <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "무료 도구", path: "/tools" }]} />
+      <Header />
+      <main className="py-12 sm:py-16">
+        <Container>
+          <Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">&larr; 홈으로 돌아가기</Link>
+          <div className="mt-5 max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">무료 도구 모음</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 생활의 복잡한 숫자와 준비를 간단하게</h1>
+            <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">회원가입 없이 바로 사용할 수 있습니다. 입력 내용은 별도 안내가 없는 한 현재 브라우저에만 저장됩니다.</p>
+          </div>
+
+          <ul className="mt-10 grid gap-6 lg:grid-cols-3">
+            {availableTools.map((tool) => (
+              <li key={tool.href} className={tool.featured ? "lg:col-span-3" : ""}>
+                <article className={`h-full overflow-hidden rounded-3xl border shadow-sm ${tool.featured ? "border-gold/40 bg-navy text-white" : "border-border bg-white text-navy"}`}>
+                  <div className={`grid h-full gap-7 p-7 sm:p-9 ${tool.featured ? "lg:grid-cols-[1fr_auto] lg:items-center" : ""}`}>
+                    <div>
+                      <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${tool.featured ? "bg-white/10 text-gold" : "bg-gold/10 text-navy"}`}><ToolIcon /></div>
+                      <p className="mt-5 text-sm font-semibold text-gold">{tool.eyebrow}</p>
+                      <h2 className="mt-2 text-2xl font-semibold">{tool.title}</h2>
+                      <p className={`mt-3 max-w-2xl leading-7 ${tool.featured ? "text-white/70" : "text-muted"}`}>{tool.description}</p>
+                      <ul className={`mt-5 flex flex-wrap gap-2 text-xs ${tool.featured ? "text-white/75" : "text-muted"}`} aria-label={`${tool.title} 주요 기능`}>{tool.features.map((feature) => <li key={feature} className={`rounded-full border px-3 py-1.5 ${tool.featured ? "border-white/15 bg-white/5" : "border-border bg-surface"}`}>{feature}</li>)}</ul>
+                    </div>
+                    <Link href={tool.href} className={`inline-flex min-h-12 items-center justify-center self-end rounded-xl px-5 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${tool.featured ? "bg-gold text-navy hover:bg-gold/90 focus-visible:ring-white focus-visible:ring-offset-navy lg:min-w-48" : "bg-navy text-white hover:bg-navy-light focus-visible:ring-navy"}`}>{tool.cta}</Link>
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+
+          <section className="mt-12 rounded-2xl border border-border bg-surface p-6 sm:p-8" aria-labelledby="tool-privacy-heading">
+            <h2 id="tool-privacy-heading" className="text-xl font-semibold text-navy">내 정보는 어디에 저장되나요?</h2>
+            <p className="mt-3 max-w-4xl text-sm leading-7 text-muted sm:text-base">이력서와 계산기 입력값은 현재 기기의 브라우저 저장 공간을 사용합니다. 계정을 만들거나 개인 내용을 서버로 전송하지 않으며, 브라우저 데이터를 지우면 저장된 작성 내용도 함께 삭제될 수 있습니다.</p>
+          </section>
+        </Container>
+      </main>
+      <Footer />
+    </>
+  );
+}
