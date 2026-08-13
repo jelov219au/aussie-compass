@@ -6,18 +6,18 @@ export const ko: SiteContent = {
     tagline: "호주 생활과 일을 위한 실용적인 도구",
   },
   nav: {
-    tools: "급여 계산기",
-    guides: "급여 가이드",
+    tools: "전체 도구",
+    guides: "실용 자료",
     about: "소개",
-    exploreTools: "급여 확인하기",
+    exploreTools: "도구 찾기",
   },
   hero: {
     label: "호주 생활을 위한 실용 정보",
     heading: "호주 생활과 직장 생활, 더 이상 혼자 헤매지 마세요.",
     description:
-      "한 번의 입력으로 세전·세후 급여와 Super를 확인하고, 이해하기 쉬운 한국어 가이드로 호주 생활 정보를 알아보세요.",
-    primaryCta: "내 급여 계산하기",
-    secondaryCta: "급여 가이드 보기",
+      "비자와 정착, 급여, 집, 세금부터 귀국 준비까지. 호주 생활의 중요한 순간을 한국어 도구와 공식 정보로 이어가세요.",
+    primaryCta: "내 상황에서 시작하기",
+    secondaryCta: "전체 도구 보기",
     trust: "쉽고 명확하며 실제 생활에 도움이 되는 정보를 제공합니다.",
   },
   tools: {

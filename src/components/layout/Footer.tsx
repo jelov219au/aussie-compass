@@ -8,8 +8,8 @@ export function Footer() {
 
   const footerLinks = [
     { label: content.nav.tools, href: "/tools" },
-    { label: content.nav.guides, href: "/guides" },
-    { label: "실용 자료", href: "/resources" },
+    { label: content.nav.guides, href: "/resources" },
+    { label: "호주 생활 단계", href: "/#journey" },
     { label: content.footer.privacy, href: "#privacy" },
     { label: content.footer.disclaimer, href: "#disclaimer" },
   ];

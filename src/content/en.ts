@@ -6,18 +6,18 @@ export const en: SiteContent = {
     tagline: "Practical tools for life and work in Australia",
   },
   nav: {
-    tools: "Pay Calculator",
-    guides: "Pay Guides",
+    tools: "All tools",
+    guides: "Resources",
     about: "About",
-    exploreTools: "Check your pay",
+    exploreTools: "Find a tool",
   },
   hero: {
     label: "Built for life in Australia",
     heading: "Navigate life and work in Australia with confidence.",
     description:
       "Simple calculators, practical guides, and useful resources for people building their lives in Australia.",
-    primaryCta: "Try the Salary Calculator",
-    secondaryCta: "Browse Guides",
+    primaryCta: "Start with your situation",
+    secondaryCta: "Browse all tools",
     trust: "Clear, practical and easy to use.",
   },
   tools: {

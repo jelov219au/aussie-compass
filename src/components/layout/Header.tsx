@@ -14,19 +14,14 @@ export function Header() {
   const navLinks = [
     { label: "시작 경로", href: `/#${sectionIds.journey}` },
     { label: content.nav.tools, href: "/tools" },
-    { label: content.nav.guides, href: "/guides" },
+    { label: content.nav.guides, href: "/resources" },
     { label: content.nav.about, href: `/#${sectionIds.about}` },
   ];
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur-sm">
       <Container className="flex h-16 items-center justify-between gap-4">
-        <Link
-          href="/"
-          className="text-lg font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 rounded-sm"
-        >
-          {content.brand.name}
-        </Link>
+        <Link href="/" className="flex items-center gap-2.5 text-lg font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 rounded-sm"><span className="relative inline-flex h-6 w-6 items-center justify-center rounded-full border border-gold" aria-hidden="true"><span className="h-1.5 w-1.5 rotate-45 border-r border-t border-navy" /></span>{content.brand.name}</Link>
 
         <nav
           className="hidden items-center gap-8 md:flex"
