@@ -14,6 +14,15 @@ export const metadata = createPageMetadata({
 
 const availableTools: DirectoryTool[] = [
   {
+    href: "/visa-preparation-guide",
+    eyebrow: "호주 첫 단계",
+    title: "비자 신청·신체검사 준비 허브",
+    description: "공식 비자 탐색부터 ImmiAccount, 비용, HAP ID와 국내외 지정 신체검사 기관까지 순서대로 확인하세요.",
+    features: ["공식 신청 경로", "지정 병원 찾기", "총비용 계획"],
+    cta: "비자 준비 시작하기",
+    categories: ["arrival"],
+  },
+  {
     href: "/salary-calculator",
     eyebrow: "급여와 세금",
     title: "통합 급여 계산기",

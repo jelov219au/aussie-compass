@@ -18,6 +18,7 @@ const routes = [
   "/used-car-comparison",
   "/moving-checklist",
   "/service-price-log",
+  "/visa-preparation-guide",
   "/guides",
   "/minimum-wage-guide",
   "/casual-loading-guide",
