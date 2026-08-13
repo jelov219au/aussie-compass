@@ -8,6 +8,7 @@ const routes = [
   "/resume-builder",
   "/cost-of-living-calculator",
   "/savings-goal-calculator",
+  "/job-application-tracker",
   "/guides",
   "/minimum-wage-guide",
   "/casual-loading-guide",

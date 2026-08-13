@@ -46,6 +46,14 @@ const availableTools = [
     features: ["주·격주·월 저축", "예상 이자 반영", "두 가지 계산 방식"],
     cta: "저축 계획 세우기",
   },
+  {
+    href: "/job-application-tracker",
+    eyebrow: "구직 프로젝트",
+    title: "구직 지원 트래커",
+    description: "관심 공고, 지원일, 면접과 다음 행동을 기록해 구직 활동을 꾸준히 관리하세요.",
+    features: ["진행 상태 관리", "면접 일정 확인", "로컬 저장·백업"],
+    cta: "지원 현황 관리하기",
+  },
 ];
 
 export default function ToolsPage() {

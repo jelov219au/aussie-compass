@@ -21,6 +21,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Cost of living calculator with mixed payment frequencies, income comparison, local autosave, custom expenses, and printable results
 - Dedicated tools hub linking all available calculators and builders
 - Savings goal project with target timelines, contribution check-ins, progress milestones, recurring calendar reminders, and emergency fund planning
+- Local-first job application tracker for vacancies, interviews, offers, next actions, filtering, and JSON backups
 
 ## Coming Soon
 
