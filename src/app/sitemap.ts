@@ -4,6 +4,8 @@ import { siteUrl } from "@/lib/site";
 const routes = [
   "",
   "/salary-calculator",
+  "/resume-builder",
+  "/cost-of-living-calculator",
   "/guides",
   "/minimum-wage-guide",
   "/casual-loading-guide",

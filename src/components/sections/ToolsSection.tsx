@@ -51,11 +51,6 @@ const payGuides = [
 const featuredGuideHrefs = ["/minimum-wage-guide", "/payslip-guide", "/award-guide"];
 const featuredGuides = payGuides.filter((guide) => featuredGuideHrefs.includes(guide.href));
 
-const upcomingTools = [
-  { title: "생활비 계산기", description: "현실적인 호주 생활 예산을 계획합니다." },
-  { title: "이력서 작성 도구", description: "호주 취업에 맞는 실용적인 이력서를 준비합니다." },
-];
-
 export function ToolsSection() {
   return (
     <section id={sectionIds.tools} className="scroll-mt-20 bg-background py-16 sm:py-20" aria-labelledby="pay-hub-heading">
@@ -80,6 +75,30 @@ export function ToolsSection() {
               </ul>
             </div>
             <Link href="/salary-calculator" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-gold px-6 py-3 font-semibold text-navy transition hover:bg-gold/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-navy lg:min-w-48">내 급여 계산하기</Link>
+          </div>
+        </article>
+
+        <article className="mt-6 rounded-3xl border border-border bg-white p-7 shadow-sm sm:p-9">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="max-w-3xl">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gold/10 text-navy"><ToolIcon /></div>
+              <p className="mt-5 text-sm font-semibold text-gold">새로운 무료 도구</p>
+              <h3 className="mt-2 text-2xl font-semibold text-navy">호주 영문 이력서 빌더</h3>
+              <p className="mt-3 leading-7 text-muted">경력과 학력을 입력하면서 깔끔한 A4 이력서를 바로 확인하고 PDF로 저장하세요. 작성 내용은 현재 브라우저에만 저장됩니다.</p>
+            </div>
+            <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-navy px-6 py-3 font-semibold text-white transition hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 lg:min-w-48">이력서 만들기</Link>
+          </div>
+        </article>
+
+        <article className="mt-6 rounded-3xl border border-border bg-white p-7 shadow-sm sm:p-9">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="max-w-3xl">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gold/10 text-navy"><ToolIcon /></div>
+              <p className="mt-5 text-sm font-semibold text-gold">새로운 무료 도구</p>
+              <h3 className="mt-2 text-2xl font-semibold text-navy">호주 생활비 계산기</h3>
+              <p className="mt-3 leading-7 text-muted">주거비부터 연간 보험료까지 서로 다른 결제 주기를 한 번에 환산하고, 세후 수입에서 남는 예산을 확인하세요.</p>
+            </div>
+            <Link href="/cost-of-living-calculator" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-navy px-6 py-3 font-semibold text-white transition hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 lg:min-w-48">생활비 계산하기</Link>
           </div>
         </article>
 
@@ -108,25 +127,6 @@ export function ToolsSection() {
           </div>
         </div>
 
-        <div className="mt-16 border-t border-border pt-10" aria-labelledby="upcoming-tools-heading">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">Coming Soon</p>
-              <h2 id="upcoming-tools-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">다음으로 준비 중인 도구</h2>
-            </div>
-            <p className="text-sm text-muted">준비가 완료되면 사용할 수 있습니다.</p>
-          </div>
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-            {upcomingTools.map((tool) => (
-              <li key={tool.title} className="rounded-2xl border border-border bg-surface p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div><h3 className="font-semibold text-navy">{tool.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{tool.description}</p></div>
-                  <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-medium text-muted">준비 중</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
       </Container>
     </section>
   );

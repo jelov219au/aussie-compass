@@ -17,10 +17,11 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Mobile-friendly touch targets for calculator actions and navigation
 - Keyboard-friendly skip navigation for faster access to page content
 - Reduced-motion support that follows the visitor's device accessibility setting
+- English resume builder with live preview, local autosave, repeatable and reorderable sections, draft backup, ATS-friendly text copy, and print/PDF output
+- Cost of living calculator with mixed payment frequencies, income comparison, local autosave, custom expenses, and printable results
 
 ## Coming Soon
 
-- Resume Builder
 - Community
 
 ## Getting started

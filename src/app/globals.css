@@ -86,4 +86,44 @@ body {
   #salary-results .salary-print-hide {
     display: none !important;
   }
+
+  #resume-preview,
+  #resume-preview * {
+    visibility: visible !important;
+  }
+
+  #resume-preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-height: 0 !important;
+    padding: 0 !important;
+    color: #202636 !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+
+  #resume-preview section,
+  #resume-preview header {
+    break-inside: avoid;
+  }
+
+  #living-budget-results,
+  #living-budget-results * {
+    visibility: visible !important;
+  }
+
+  #living-budget-results {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 8mm !important;
+    background: var(--color-navy) !important;
+    box-shadow: none !important;
+    print-color-adjust: exact;
+  }
+
+  #living-budget-results .living-budget-print-hide {
+    display: none !important;
+  }
 }

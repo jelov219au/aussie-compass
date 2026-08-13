@@ -26,13 +26,13 @@ export const tools: Tool[] = [
     id: "cost-of-living-calculator",
     name: "생활비 계산기",
     description: "현실적인 호주 생활 예산을 계획합니다.",
-    status: "comingSoon",
+    status: "available",
   },
   {
     id: "resume-builder",
     name: "이력서 작성 도구",
     description: "호주 취업에 맞는 실용적인 이력서를 준비합니다.",
-    status: "comingSoon",
+    status: "available",
   },
 ];
 
