@@ -16,7 +16,7 @@ export function Hero() {
             {content.hero.label}
           </p>
           <h1 className="max-w-4xl text-4xl font-semibold leading-[1.12] tracking-[-0.035em] text-navy sm:text-6xl lg:text-7xl">
-            호주 생활과 직장 생활,<br/><span className="font-normal italic text-navy-light">더 이상 혼자 헤매지 마세요.</span>
+            호주 생활과 직장 생활,<br/>더 이상 혼자 헤매지 마세요<span className="text-gold">.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
             {content.hero.description}
