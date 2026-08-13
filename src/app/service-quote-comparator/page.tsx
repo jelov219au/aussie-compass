@@ -1,0 +1,20 @@
+import Link from "next/link";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { Container } from "@/components/ui/Container";
+import { ServiceQuoteComparator } from "@/components/tools/ServiceQuoteComparator";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { createPageMetadata } from "@/lib/site";
+
+export const metadata = createPageMetadata({ title: "호주 서비스 견적 비교표 | Aussie Compass", description: "플러머, 전기기사, 청소·이사 등 생활 서비스 견적의 가격 구성과 확인 항목을 한눈에 비교하세요.", path: "/service-quote-comparator" });
+
+export default function ServiceQuoteComparatorPage() {
+  return <><BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "서비스 견적 비교", path: "/service-quote-comparator" }]} /><Header /><main className="py-12 sm:py-16"><Container>
+    <Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 도구 목록으로 돌아가기</Link>
+    <div className="mt-5 max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">생활 서비스 투명성 프로젝트</p><h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">플러머·전기기사·생활 서비스 견적, 같은 기준으로 비교하세요</h1><p className="mt-4 text-base leading-7 text-muted sm:text-lg">총액만 비교하면 작업 범위, 자재, 출장비나 사후조치를 놓치기 쉽습니다. 최대 3개 견적을 같은 항목으로 정리하고 계약 전에 확인할 질문을 챙겨보세요.</p></div>
+    <div className="my-8 grid gap-4 md:grid-cols-3"><article className="rounded-2xl border border-gold/40 bg-gold/5 p-5"><h2 className="font-semibold text-navy">1. 같은 작업 범위</h2><p className="mt-2 text-sm leading-6 text-muted">포함·제외 항목과 추가 요금 조건이 동일한지 먼저 맞추세요.</p></article><article className="rounded-2xl border border-border bg-white p-5"><h2 className="font-semibold text-navy">2. 자격 직접 확인</h2><p className="mt-2 text-sm leading-6 text-muted">ABN은 사업체 확인 수단이며, 필요한 면허는 주·준주 기관에서 별도로 확인하세요.</p></article><article className="rounded-2xl border border-border bg-white p-5"><h2 className="font-semibold text-navy">3. 서면 기록 보관</h2><p className="mt-2 text-sm leading-6 text-muted">견적, 변경 승인, 영수증과 작업 전후 사진을 한곳에 보관하세요.</p></article></div>
+    <ServiceQuoteComparator />
+    <section className="mt-10 grid gap-6 lg:grid-cols-2"><div className="rounded-2xl border border-border bg-surface p-6 sm:p-8"><h2 className="text-xl font-semibold text-navy">계약 전에 물어볼 문장</h2><ul className="mt-4 space-y-3 text-sm leading-6 text-muted"><li>• “Can you provide an itemised written quote, including GST?”</li><li>• “What could cause the final price to change?”</li><li>• “Could you confirm your licence and insurance details?”</li><li>• “What warranty or follow-up is included?”</li><li>• “Please get my written approval before any additional work.”</li></ul></div><div className="rounded-2xl bg-navy p-6 text-white sm:p-8"><h2 className="text-xl font-semibold">공식 확인 도구</h2><div className="mt-4 space-y-3"><a href="https://abr.business.gov.au/" target="_blank" rel="noreferrer" className="block rounded-xl border border-white/15 p-4 hover:bg-white/5"><strong>ABN Lookup &rarr;</strong><span className="mt-1 block text-sm text-white/65">ABN 활성 상태와 공개 사업자 정보 확인</span></a><a href="https://ablis.business.gov.au/" target="_blank" rel="noreferrer" className="block rounded-xl border border-white/15 p-4 hover:bg-white/5"><strong>ABLIS &rarr;</strong><span className="mt-1 block text-sm text-white/65">지역과 업무에 필요한 면허·허가 정보 찾기</span></a><a href="https://www.accc.gov.au/consumers/buying-products-and-services/consumer-rights-and-guarantees" target="_blank" rel="noreferrer" className="block rounded-xl border border-white/15 p-4 hover:bg-white/5"><strong>ACCC 소비자 권리 &rarr;</strong><span className="mt-1 block text-sm text-white/65">서비스에 적용되는 기본 소비자 보장 확인</span></a></div></div></section>
+    <section className="mt-10 rounded-2xl border border-amber-300 bg-amber-50 p-6 text-sm leading-7 text-amber-950"><h2 className="font-semibold">중요 안내</h2><p className="mt-1">Aussie Compass는 업체를 인증·추천하거나 견적의 공정성을 판정하지 않습니다. 면허 요건과 계약 규정은 지역·공사 종류·금액에 따라 다릅니다. 긴급한 안전 문제는 적격 전문가에게 맡기고, 계약 전 관할 소비자 보호·면허 기관의 최신 기준을 확인하세요.</p></section>
+  </Container></main><Footer /></>;
+}

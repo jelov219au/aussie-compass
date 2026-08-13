@@ -70,6 +70,14 @@ const availableTools = [
     features: ["개인 준비 체크리스트", "ATO 공식 링크", "민감정보 입력 없음"],
     cta: "택스 리턴 준비하기",
   },
+  {
+    href: "/service-quote-comparator",
+    eyebrow: "생활 서비스",
+    title: "서비스 견적 비교표",
+    description: "플러머·전기기사·청소·이사 등 최대 3개 견적을 가격과 확인 항목으로 나란히 비교하세요.",
+    features: ["항목별 가격 비교", "ABN·면허 확인", "계약 전 질문"],
+    cta: "견적 비교하기",
+  },
 ];
 
 export default function ToolsPage() {

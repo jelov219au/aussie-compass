@@ -133,6 +133,18 @@ export function ToolsSection() {
           </div>
         </article>
 
+        <article className="mt-6 rounded-3xl border border-border bg-white p-7 shadow-sm sm:p-9">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="max-w-3xl">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gold/10 text-navy"><ToolIcon /></div>
+              <p className="mt-5 text-sm font-semibold text-gold">생활 서비스 투명성 프로젝트</p>
+              <h3 className="mt-2 text-2xl font-semibold text-navy">서비스 견적 비교표</h3>
+              <p className="mt-3 leading-7 text-muted">플러머, 전기기사, 청소·이사 등 여러 견적의 출장비·인건비·자재비와 ABN·면허·보증 확인 여부를 같은 기준으로 비교하세요.</p>
+            </div>
+            <Link href="/service-quote-comparator" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-navy px-6 py-3 font-semibold text-white transition hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 lg:min-w-48">견적 비교하기</Link>
+          </div>
+        </article>
+
         <div id={sectionIds.guides} className="scroll-mt-24 pt-16" aria-labelledby="pay-guides-heading">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">급여 정보 바로가기</p>

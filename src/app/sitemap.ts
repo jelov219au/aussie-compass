@@ -13,6 +13,7 @@ const routes = [
   "/resources",
   "/career-pathways",
   "/tax-return-guide",
+  "/service-quote-comparator",
   "/guides",
   "/minimum-wage-guide",
   "/casual-loading-guide",

@@ -24,6 +24,8 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Local-first job application tracker for vacancies, interviews, offers, next actions, filtering, and JSON backups
 - SEO-focused Korean resources hub with actionable job search, resume, savings guides, and contextual tool links
 - Career pathway explorer that clearly separates labour shortages from skilled migration eligibility and links to official sources
+- Tax return preparation hub with an annual local checklist and official ATO links
+- Local-first service quote comparator for itemised costs, business checks, licensing prompts, timelines, and warranties
 
 ## Coming Soon
 
