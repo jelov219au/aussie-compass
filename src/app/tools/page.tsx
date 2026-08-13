@@ -14,6 +14,15 @@ export const metadata = createPageMetadata({
 
 const availableTools: DirectoryTool[] = [
   {
+    href: "/arrival-checklist",
+    eyebrow: "호주 도착 직후",
+    title: "첫 30일 정착 체크리스트",
+    description: "VEVO, 전화·교통, 은행, TFN, 의료·학생 절차부터 첫 Payslip과 생활비 점검까지 시기별로 진행하세요.",
+    features: ["도착 시기별 16개 항목", "공식 기관 연결", "캘린더 리마인더"],
+    cta: "정착 프로젝트 시작하기",
+    categories: ["arrival", "work", "money", "home"],
+  },
+  {
     href: "/public-transport-guide",
     eyebrow: "차 없이 시작하기",
     title: "대중교통·통학 생활권 비교",

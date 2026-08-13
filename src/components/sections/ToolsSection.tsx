@@ -82,6 +82,18 @@ export function ToolsSection() {
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="max-w-3xl">
               <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white text-navy"><ToolIcon /></div>
+              <p className="mt-5 text-sm font-semibold text-gold">비자 승인 다음 단계</p>
+              <h3 className="mt-2 text-2xl font-semibold text-navy">호주 도착 후 첫 30일 체크리스트</h3>
+              <p className="mt-3 leading-7 text-muted">전화·교통부터 VEVO, 은행, TFN, 의료·학생 절차와 첫 직장 기록까지 시기별로 정착 과정을 관리하세요.</p>
+            </div>
+            <Link href="/arrival-checklist" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-navy px-6 py-3 font-semibold text-white transition hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 lg:min-w-48">정착 시작하기</Link>
+          </div>
+        </article>
+
+        <article className="mt-6 rounded-3xl border border-gold/40 bg-gold/5 p-7 shadow-sm sm:p-9">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="max-w-3xl">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white text-navy"><ToolIcon /></div>
               <p className="mt-5 text-sm font-semibold text-gold">차 없이 시작하는 호주 생활</p>
               <h3 className="mt-2 text-2xl font-semibold text-navy">대중교통·통학 생활권 비교</h3>
               <p className="mt-3 leading-7 text-muted">집 후보의 주거비와 학교·직장까지 통학시간을 함께 비교하고, Google Maps 대중교통 경로와 주변 생활시설을 바로 확인하세요.</p>

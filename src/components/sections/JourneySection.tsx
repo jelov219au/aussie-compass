@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 
 const stages = [
-  { id: "prepare", number: "01", tab: "출국·도착 준비", title: "비자부터 생활 예산까지 먼저 준비하기", description: "공식 비자 절차와 신체검사를 확인하고 예상 급여와 생활비 기준을 잡으면 도착 후 선택이 쉬워집니다.", links: [{ href: "/visa-preparation-guide", label: "비자·신체검사 준비" }, { href: "/salary-calculator", label: "예상 급여 계산" }, { href: "/cost-of-living-calculator", label: "생활비 예산" }] },
+  { id: "prepare", number: "01", tab: "출국·도착 준비", title: "비자 승인부터 첫 30일 정착까지", description: "공식 비자 절차를 확인한 뒤 도착 직후 전화·교통, 은행, 세금과 의료 준비를 시기별로 이어가세요.", links: [{ href: "/visa-preparation-guide", label: "비자·신체검사 준비" }, { href: "/arrival-checklist", label: "도착 후 30일" }, { href: "/cost-of-living-calculator", label: "생활비 예산" }] },
   { id: "home", number: "02", tab: "첫 집 구하기", title: "주거비와 통학시간을 함께 비교하기", description: "학교·직장까지의 실제 이동시간을 먼저 확인하고, 집 상태와 계약 상대방, 보증금 절차를 차근차근 점검하세요.", links: [{ href: "/public-transport-guide", label: "통학 생활권 비교" }, { href: "/property-inspection-checklist", label: "집 방문 체크리스트" }, { href: "/moving-checklist", label: "이사 준비" }] },
   { id: "work", number: "03", tab: "일자리 구하기", title: "이력서부터 지원 기록까지 이어가기", description: "호주식 영문 이력서를 만들고 공고, 면접과 다음 행동을 하나의 구직 프로젝트로 관리하세요.", links: [{ href: "/resume-builder", label: "영문 이력서 만들기" }, { href: "/job-application-tracker", label: "지원 현황 관리" }, { href: "/minimum-wage-guide", label: "최저임금 확인" }] },
   { id: "settle", number: "04", tab: "생활 정착", title: "돈과 이동, 생활 서비스를 계획하기", description: "비상금과 차량 비용을 준비하고 생활 서비스 견적을 같은 기준으로 비교하세요.", links: [{ href: "/savings-goal-calculator", label: "저축 프로젝트" }, { href: "/used-car-comparison", label: "중고차 비교" }, { href: "/service-quote-comparator", label: "서비스 견적 비교" }] },
