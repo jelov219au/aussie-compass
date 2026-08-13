@@ -10,8 +10,8 @@ export function Footer() {
     { label: content.nav.tools, href: "/tools" },
     { label: content.nav.guides, href: "/resources" },
     { label: "호주 생활 단계", href: "/#journey" },
-    { label: content.footer.privacy, href: "#privacy" },
-    { label: content.footer.disclaimer, href: "#disclaimer" },
+    { label: content.footer.privacy, href: "/privacy" },
+    { label: content.footer.disclaimer, href: "/disclaimer" },
   ];
 
   return (
@@ -42,12 +42,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 space-y-4 border-t border-border pt-6 text-sm leading-relaxed text-muted">
-          <p id="privacy">
-            <span className="font-medium text-navy">{content.footer.privacy}</span>
-            {" — "}
-            {content.footer.privacyDescription}
-          </p>
-          <p id="disclaimer">{content.footer.legalDisclaimer}</p>
+          <p>도구 입력값은 별도 안내가 없는 한 현재 브라우저에만 저장됩니다. 이메일·광고 추적은 현재 운영하지 않습니다.</p>
           <p>© {year} {content.brand.name}</p>
         </div>
       </Container>

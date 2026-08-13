@@ -5,6 +5,8 @@ import { articles } from "@/data/articles";
 const routes = [
   "",
   "/tools",
+  "/privacy",
+  "/disclaimer",
   "/salary-calculator",
   "/resume-builder",
   "/cost-of-living-calculator",
