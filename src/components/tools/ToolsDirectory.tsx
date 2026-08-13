@@ -21,7 +21,7 @@ const filters = [
   { id: "work", label: "취업·급여" },
   { id: "money", label: "돈 관리" },
   { id: "home", label: "집·이동·생활" },
-  { id: "annual", label: "매년 챙기기" },
+  { id: "annual", label: "세금·정기 점검" },
   { id: "departure", label: "귀국 준비" },
 ];
 
