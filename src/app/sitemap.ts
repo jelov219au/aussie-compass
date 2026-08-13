@@ -19,6 +19,7 @@ const routes = [
   "/moving-checklist",
   "/service-price-log",
   "/visa-preparation-guide",
+  "/leaving-australia-guide",
   "/guides",
   "/minimum-wage-guide",
   "/casual-loading-guide",

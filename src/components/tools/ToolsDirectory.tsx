@@ -22,6 +22,7 @@ const filters = [
   { id: "money", label: "돈 관리" },
   { id: "home", label: "집·이동·생활" },
   { id: "annual", label: "매년 챙기기" },
+  { id: "departure", label: "귀국 준비" },
 ];
 
 export function ToolsDirectory({ tools }: { tools: DirectoryTool[] }) {
