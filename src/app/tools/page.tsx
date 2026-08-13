@@ -78,6 +78,14 @@ const availableTools = [
     features: ["항목별 가격 비교", "ABN·면허 확인", "계약 전 질문"],
     cta: "견적 비교하기",
   },
+  {
+    href: "/property-inspection-checklist",
+    eyebrow: "집 구하기",
+    title: "쉐어하우스·집 방문 체크리스트",
+    description: "쉐어하우스부터 일반 렌트와 구매까지 집 상태, 비용, 계약, 안전과 생활 환경을 현장에서 점검하세요.",
+    features: ["쉐어·렌트·구매 모드", "우려 항목 모아보기", "주별 공식 정보"],
+    cta: "집 점검 시작하기",
+  },
 ];
 
 export default function ToolsPage() {

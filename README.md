@@ -26,6 +26,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Career pathway explorer that clearly separates labour shortages from skilled migration eligibility and links to official sources
 - Tax return preparation hub with an annual local checklist and official ATO links
 - Local-first service quote comparator for itemised costs, business checks, licensing prompts, timelines, and warranties
+- Property inspection checklist with tailored share-house, rental, and purchase modes, concern tracking, and state-specific official links
 
 ## Coming Soon
 

@@ -92,6 +92,18 @@ export function ToolsSection() {
 
         <article className="mt-6 rounded-3xl border border-border bg-white p-7 shadow-sm sm:p-9">
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="max-w-3xl">
+              <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gold/10 text-navy"><ToolIcon /></div>
+              <p className="mt-5 text-sm font-semibold text-gold">호주 집 구하기 프로젝트</p>
+              <h3 className="mt-2 text-2xl font-semibold text-navy">쉐어하우스·집 방문 체크리스트</h3>
+              <p className="mt-3 leading-7 text-muted">Flatmates나 Facebook에서 찾은 방부터 일반 렌트와 구매까지, 방문 현장에서 상태·비용·계약·안전 항목을 빠짐없이 확인하세요.</p>
+            </div>
+            <Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-navy px-6 py-3 font-semibold text-white transition hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 lg:min-w-48">집 점검 시작하기</Link>
+          </div>
+        </article>
+
+        <article className="mt-6 rounded-3xl border border-border bg-white p-7 shadow-sm sm:p-9">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="max-w-3xl"><div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gold/10 text-navy"><ToolIcon /></div><p className="mt-5 text-sm font-semibold text-gold">새로운 무료 도구</p><h3 className="mt-2 text-2xl font-semibold text-navy">호주 구직 지원 트래커</h3><p className="mt-3 leading-7 text-muted">관심 공고부터 지원, 면접, 오퍼와 다음 행동까지 기록해 구직 활동을 프로젝트처럼 관리하세요.</p></div>
             <Link href="/job-application-tracker" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-navy px-6 py-3 font-semibold text-white transition hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 lg:min-w-48">지원 현황 관리하기</Link>
           </div>
