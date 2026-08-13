@@ -38,6 +38,14 @@ const availableTools = [
     features: ["영문 문장 도우미", "실시간 A4 미리보기", "PDF·백업 저장"],
     cta: "이력서 만들기",
   },
+  {
+    href: "/savings-goal-calculator",
+    eyebrow: "저축과 비상금",
+    title: "저축 목표 계산기",
+    description: "목표 달성 기간을 계산하거나 원하는 기한에 맞는 정기 저축액을 확인하세요.",
+    features: ["주·격주·월 저축", "예상 이자 반영", "두 가지 계산 방식"],
+    cta: "저축 계획 세우기",
+  },
 ];
 
 export default function ToolsPage() {
@@ -54,9 +62,9 @@ export default function ToolsPage() {
             <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">회원가입 없이 바로 사용할 수 있습니다. 입력 내용은 별도 안내가 없는 한 현재 브라우저에만 저장됩니다.</p>
           </div>
 
-          <ul className="mt-10 grid gap-6 lg:grid-cols-3">
+          <ul className="mt-10 grid gap-6 lg:grid-cols-2">
             {availableTools.map((tool) => (
-              <li key={tool.href} className={tool.featured ? "lg:col-span-3" : ""}>
+              <li key={tool.href} className={tool.featured ? "lg:col-span-2" : ""}>
                 <article className={`h-full overflow-hidden rounded-3xl border shadow-sm ${tool.featured ? "border-gold/40 bg-navy text-white" : "border-border bg-white text-navy"}`}>
                   <div className={`grid h-full gap-7 p-7 sm:p-9 ${tool.featured ? "lg:grid-cols-[1fr_auto] lg:items-center" : ""}`}>
                     <div>
