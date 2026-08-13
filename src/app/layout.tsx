@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SiteJsonLd } from "@/components/seo/JsonLd";
 import { siteName, siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -35,7 +36,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        <SiteJsonLd />
+        {children}
+      </body>
     </html>
   );
 }

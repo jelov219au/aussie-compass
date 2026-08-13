@@ -3,6 +3,7 @@ import { GuideIcon } from "@/components/icons/Icons";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -24,6 +25,7 @@ const guides = [
 export default function GuidesPage() {
   return (
     <>
+      <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "급여 가이드", path: "/guides" }]} />
       <Header />
       <main className="py-12 sm:py-16">
         <Container>

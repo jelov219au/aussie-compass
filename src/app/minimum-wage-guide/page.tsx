@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MinimumWageCalculator } from "@/components/tools/MinimumWageCalculator";
 import { Container } from "@/components/ui/Container";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -14,6 +15,7 @@ export const metadata = createPageMetadata({
 export default function MinimumWageGuidePage() {
   return (
     <>
+      <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "급여 가이드", path: "/guides" }, { name: "최저 시급 가이드", path: "/minimum-wage-guide" }]} />
       <Header />
       <main className="py-12 sm:py-16">
         <Container>

@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SalaryCalculator } from "@/components/tools/SalaryCalculator";
 import { Container } from "@/components/ui/Container";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -14,6 +15,7 @@ export const metadata = createPageMetadata({
 export default function SalaryCalculatorPage() {
   return (
     <>
+      <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "통합 급여 계산기", path: "/salary-calculator" }]} />
       <Header />
       <main className="py-12 sm:py-16">
         <Container>
