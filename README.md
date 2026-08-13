@@ -14,6 +14,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Korean Leave Guide covering annual leave, sick and carer's leave, and public holidays
 - Dedicated Pay Guides hub
 - Branded browser icons and web app manifest
+- Mobile-friendly touch targets for calculator actions and navigation
 
 ## Coming Soon
 

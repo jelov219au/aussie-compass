@@ -425,7 +425,7 @@ export function SalaryCalculator() {
             <h2 className="mt-2 text-xl font-semibold text-navy">급여 정보 입력</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">한 번 입력하면 세전·세후·Super를 모두 계산합니다.</p>
           </div>
-          <button type="button" onClick={resetCalculator} className="shrink-0 rounded-lg border border-border px-3 py-2 text-sm font-medium text-navy transition hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+          <button type="button" onClick={resetCalculator} className="min-h-11 shrink-0 rounded-lg border border-border px-3 py-2 text-sm font-medium text-navy transition hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
             초기화
           </button>
         </div>
@@ -440,13 +440,13 @@ export function SalaryCalculator() {
           <p className="text-sm font-medium text-navy">내 계산 조건</p>
           <p className="mt-1 text-sm leading-6 text-muted">현재 입력값을 이 기기에 저장하고 다음 방문 때 다시 불러오거나 삭제할 수 있습니다.</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" onClick={saveCalculation} disabled={hasErrors} className="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+            <button type="button" onClick={saveCalculation} disabled={hasErrors} className="min-h-11 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy-light disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
               {saveStatus === "saved" ? "저장 완료" : "현재 조건 저장"}
             </button>
-            <button type="button" onClick={loadCalculation} disabled={!hasSavedCalculation} className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold text-navy transition hover:bg-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+            <button type="button" onClick={loadCalculation} disabled={!hasSavedCalculation} className="min-h-11 rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold text-navy transition hover:bg-background disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
               {saveStatus === "loaded" ? "불러오기 완료" : "저장 조건 불러오기"}
             </button>
-            <button type="button" onClick={deleteSavedCalculation} disabled={!hasSavedCalculation} className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
+            <button type="button" onClick={deleteSavedCalculation} disabled={!hasSavedCalculation} className="min-h-11 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
               {saveStatus === "deleted" ? "삭제 완료" : "저장 조건 삭제"}
             </button>
           </div>
@@ -610,16 +610,16 @@ export function SalaryCalculator() {
           {!hasErrors ? (
             <div className="flex flex-wrap items-center gap-2">
               <div className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/75">총 예상 공제율 {percentFormatter.format(totalDeductionRate)}</div>
-              <button type="button" onClick={copyResults} className="salary-print-hide rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
+              <button type="button" onClick={copyResults} className="salary-print-hide min-h-11 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
                 {copyStatus === "success" ? "복사 완료" : "결과 복사"}
               </button>
-              <button type="button" onClick={copyShareLink} className="salary-print-hide rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
+              <button type="button" onClick={copyShareLink} className="salary-print-hide min-h-11 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
                 {shareStatus === "success" ? "링크 복사 완료" : "계산 링크 공유"}
               </button>
-              <button type="button" onClick={() => window.print()} className="salary-print-hide rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
+              <button type="button" onClick={() => window.print()} className="salary-print-hide min-h-11 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
                 인쇄 / PDF 저장
               </button>
-              <a href="#salary-inputs" className="salary-print-hide rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy lg:hidden">
+              <a href="#salary-inputs" className="salary-print-hide inline-flex min-h-11 items-center rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy lg:hidden">
                 입력 수정 ↑
               </a>
             </div>
