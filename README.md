@@ -32,6 +32,8 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Reduced-motion support that follows the visitor's device accessibility setting
 - English resume builder with Korean-to-English resume suggestions, example sentences, colour and density themes, live preview, local autosave, draft backup, ATS-friendly text copy, and print/PDF output
 - Resume Pro product preview with premium template directions, a free-versus-Pro comparison, and a clearly labelled pre-payment state
+- Resume Pro development workspace with a local-only cover-letter draft, job-ad keyword check, and saved-resume connection
+- Payment readiness contract for an Australian sole trader, with payments disabled until Stripe, webhooks, entitlement storage, seller details and support are configured
 - Cost of living calculator with mixed payment frequencies, income comparison, local autosave, custom expenses, and printable results
 - Dedicated tools hub linking all available calculators and builders
 - Savings goal project with target timelines, contribution check-ins, progress milestones, recurring calendar reminders, and emergency fund planning

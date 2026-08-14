@@ -18,6 +18,7 @@ const routes = [
   "/salary-calculator",
   "/resume-builder",
   "/resume-pro",
+  "/resume-pro/workspace",
   "/cost-of-living-calculator",
   "/savings-goal-calculator",
   "/job-application-tracker",

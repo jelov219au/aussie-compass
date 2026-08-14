@@ -98,6 +98,7 @@ export default function ResumeProPage() {
             </div>
             <div className="mt-10 flex flex-wrap gap-3">
               <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">무료 이력서 먼저 만들기</Link>
+              <Link href="/resume-pro/workspace" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy hover:bg-white">Pro 기능 개발판 체험</Link>
               <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">결제 기능 준비 중</span>
             </div>
             <p className="mt-4 text-xs leading-5 text-muted">현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다.</p>
@@ -130,6 +131,7 @@ export default function ResumeProPage() {
                 </li>
               ))}
             </ol>
+            <div className="mt-8 flex justify-end"><Link href="/resume-pro/workspace" className="inline-flex min-h-12 items-center border-b-2 border-gold text-sm font-semibold text-navy">커버레터·공고 점검 체험하기 <span className="ml-3" aria-hidden="true">→</span></Link></div>
           </Container>
         </section>
 
