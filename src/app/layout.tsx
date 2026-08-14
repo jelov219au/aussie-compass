@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { SiteJsonLd } from "@/components/seo/JsonLd";
 import { siteName, siteUrl } from "@/lib/site";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
+import { DomainMigrationNotice } from "@/components/layout/DomainMigrationNotice";
 import "./globals.css";
 
 const title = "Hoju Compass | 호주 생활을 위한 실용 도구";
@@ -49,6 +50,7 @@ export default function RootLayout({
         >
           본문으로 바로가기
         </a>
+        <DomainMigrationNotice />
         <SiteJsonLd />
         <div id="main-content" tabIndex={-1} className="focus:outline-none">
           {children}
