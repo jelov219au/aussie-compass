@@ -13,6 +13,7 @@ const routes = [
   "/install",
   "/social-card-maker",
   "/my-compass",
+  "/data-transfer",
   "/life-admin-reminder",
   "/salary-calculator",
   "/resume-builder",

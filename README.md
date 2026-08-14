@@ -22,6 +22,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Installable web app experience with dedicated Android/iPhone instructions, native page sharing, app icons, and a network-first offline fallback
 - Site-wide editorial link previews for social sharing, plus a local bookmark action on every page
 - Private "My Compass" dashboard that gathers locally saved checklist, project, calculator, resume, job-tracker, and bookmark progress without exposing sensitive values
+- Allowlisted local-only device backup and migration for moving saved Hoju Compass records between domains, browsers, and devices without uploading the backup file
 - Local life-admin reminder planner for visa, passport, lease, Rego, insurance, and qualification renewal dates with calendar-file export
 - Mobile-friendly touch targets for calculator actions and navigation
 - Keyboard-friendly skip navigation for faster access to page content

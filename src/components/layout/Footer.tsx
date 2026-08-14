@@ -10,6 +10,7 @@ export function Footer() {
   const footerLinks = [
     { label: content.nav.tools, href: "/tools" },
     { label: "나의 진행", href: "/my-compass" },
+    { label: "기록 백업·이전", href: "/data-transfer" },
     { label: "통합 검색", href: "/search" },
     { label: "생활 용어집", href: "/glossary" },
     { label: "앱으로 사용하기", href: "/install" },

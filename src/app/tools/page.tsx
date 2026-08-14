@@ -177,6 +177,15 @@ const availableTools: DirectoryTool[] = [
     categories: ["arrival", "work", "money", "home", "annual", "departure"],
   },
   {
+    href: "/data-transfer",
+    eyebrow: "기록 관리",
+    title: "기기 데이터 백업·이전",
+    description: "체크리스트, 이력서, 계산 기록을 개인 JSON 파일로 백업하고 새 공식 주소나 다른 기기에서 이어가세요.",
+    features: ["서버 전송 없음", "항목별 선택", "기존 기록 우선 보존"],
+    cta: "기록 백업하기",
+    categories: ["arrival", "work", "money", "home", "annual", "departure"],
+  },
+  {
     href: "/leaving-australia-guide",
     eyebrow: "호주 생활 마무리",
     title: "귀국 준비·Super DASP 허브",
