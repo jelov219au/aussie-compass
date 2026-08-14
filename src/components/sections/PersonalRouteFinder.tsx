@@ -28,6 +28,9 @@ type SavedPlan = {
 const storageKey = "hoju-compass-route-finder-v1";
 const planStorageKey = "hoju-compass-personal-plan-v1";
 
+const icsEscape = (value: string) => value.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+const icsDate = (date: Date) => `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+
 const stages: Array<{ id: StageId; label: string; detail: string }> = [
   { id: "prepare", label: "출국 준비 중", detail: "비자 신청부터 출발 전" },
   { id: "arrive", label: "도착한 지 얼마 안 됨", detail: "첫 집·첫 일자리 준비" },
@@ -67,18 +70,29 @@ export function PersonalRouteFinder() {
   const [stage, setStage] = useState<StageId>("prepare");
   const [concern, setConcern] = useState<ConcernId>("admin");
   const [plan, setPlan] = useState<SavedPlan | null>(null);
+  const [actionMessage, setActionMessage] = useState("");
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedStage = params.get("stage") as StageId | null;
+    const sharedConcern = params.get("concern") as ConcernId | null;
+    const hasSharedRoute = stages.some((item) => item.id === sharedStage) && concerns.some((item) => item.id === sharedConcern);
+    if (hasSharedRoute) {
+      setStage(sharedStage as StageId);
+      setConcern(sharedConcern as ConcernId);
+      setActionMessage("공유받은 추천 경로를 열었습니다. 계획으로 저장하기 전에는 기존 계획이 바뀌지 않습니다.");
+    } else {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) ?? "null") as { stage?: StageId; concern?: ConcernId } | null;
+        if (saved && stages.some((item) => item.id === saved.stage)) setStage(saved.stage as StageId);
+        if (saved && concerns.some((item) => item.id === saved.concern)) setConcern(saved.concern as ConcernId);
+      } catch { /* Invalid preferences fall back to the first route. */ }
+    }
     try {
-      const saved = JSON.parse(localStorage.getItem(storageKey) ?? "null") as { stage?: StageId; concern?: ConcernId } | null;
-      if (saved && stages.some((item) => item.id === saved.stage)) setStage(saved.stage as StageId);
-      if (saved && concerns.some((item) => item.id === saved.concern)) setConcern(saved.concern as ConcernId);
       const savedPlan = JSON.parse(localStorage.getItem(planStorageKey) ?? "null") as SavedPlan | null;
       if (savedPlan && Array.isArray(savedPlan.steps) && Array.isArray(savedPlan.completed)) setPlan(savedPlan);
-    } catch {
-      // Invalid local data falls back to the safest first-visit route.
-    }
+    } catch { /* Invalid plan data is ignored. */ }
     setLoaded(true);
   }, []);
 
@@ -117,6 +131,47 @@ export function PersonalRouteFinder() {
     window.dispatchEvent(new Event("storage"));
   };
 
+  const shareRecommendations = async () => {
+    const url = new URL("https://hojucompass.com/");
+    url.searchParams.set("stage", stage);
+    url.searchParams.set("concern", concern);
+    url.hash = "route-finder";
+    const shareData = { title: "Hoju Compass 맞춤 시작 경로", text: `${stageLabel} · ${concernLabel}에 맞는 호주 생활 도구 3가지를 확인해 보세요.`, url: url.toString() };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setActionMessage("공유 메뉴를 열었습니다.");
+      } else {
+        await navigator.clipboard.writeText(url.toString());
+        setActionMessage("추천 링크를 복사했습니다.");
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      try {
+        await navigator.clipboard.writeText(url.toString());
+        setActionMessage("추천 링크를 복사했습니다.");
+      } catch {
+        setActionMessage("브라우저 주소를 복사해 공유해 주세요.");
+      }
+    }
+  };
+
+  const downloadReminder = () => {
+    if (!matchesCurrentPlan || !plan) return;
+    const reminderDate = new Date();
+    reminderDate.setDate(reminderDate.getDate() + 7);
+    const remaining = plan.steps.filter((step) => !plan.completed.includes(step.href)).map((step) => step.title);
+    const description = [`${plan.stageLabel} · ${plan.concernLabel}`, `${completedCount}/3개 완료`, remaining.length ? `남은 단계: ${remaining.join(", ")}` : "모든 단계를 완료했습니다.", "https://hojucompass.com/#route-finder"].join("\n");
+    const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Hoju Compass//Personal Plan//KO", "CALSCALE:GREGORIAN", "BEGIN:VEVENT", `UID:personal-plan-${icsDate(reminderDate)}-${stage}-${concern}@hojucompass.com`, `DTSTART;VALUE=DATE:${icsDate(reminderDate)}`, "SUMMARY:Hoju Compass 3단계 계획 점검", `DESCRIPTION:${icsEscape(description)}`, "URL:https://hojucompass.com/#route-finder", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    const url = URL.createObjectURL(new Blob([body], { type: "text/calendar;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "hoju-compass-7-day-plan-reminder.ics";
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setActionMessage("7일 뒤 점검하는 캘린더 파일을 저장했습니다.");
+  };
+
   return <section id="route-finder" className="scroll-mt-20 border-b border-border bg-surface py-16 sm:py-20" aria-labelledby="route-finder-heading"><Container>
     <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
       <div>
@@ -134,6 +189,8 @@ export function PersonalRouteFinder() {
         <div className="flex items-end justify-between gap-4 border-b border-white/15 pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Your next three</p><h3 className="mt-2 text-2xl font-semibold">{stageLabel} · {concernLabel}</h3></div><span className="shrink-0 font-mono text-xs text-white/45">{matchesCurrentPlan ? `${completedCount}/3 완료` : "03 steps"}</span></div>
         <ol>{recommendations.map((tool, index) => { const done = Boolean(matchesCurrentPlan && plan?.completed.includes(tool.href)); return <li key={tool.href} className="border-b border-white/15"><div className="grid sm:grid-cols-[1fr_auto] sm:items-center"><Link href={tool.href} className="group grid gap-3 py-6 sm:grid-cols-[2rem_1fr_auto] sm:items-center"><span className="font-mono text-xs text-gold">0{index + 1}</span><span><strong className={`block text-lg text-white ${done ? "line-through decoration-gold/70" : ""}`}>{tool.title}</strong><span className="mt-1 block text-sm leading-6 text-white/60">{tool.description}</span></span><span className="text-xl text-gold transition group-hover:translate-x-1" aria-hidden="true">→</span></Link>{matchesCurrentPlan && <button type="button" aria-pressed={done} onClick={() => toggleCompleted(tool.href)} className={`mb-4 ml-8 inline-flex min-h-10 items-center justify-center border px-3 text-xs font-semibold sm:mb-0 sm:ml-4 ${done ? "border-gold bg-gold text-navy" : "border-white/25 text-white hover:border-gold"}`}>{done ? "완료됨" : "완료 표시"}</button>}</div></li>; })}</ol>
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3"><button type="button" disabled={matchesCurrentPlan} onClick={saveCurrentPlan} className="inline-flex min-h-11 items-center bg-gold px-4 text-sm font-semibold text-navy disabled:cursor-default disabled:bg-white/10 disabled:text-white/55">{matchesCurrentPlan ? "나의 계획에 저장됨" : plan ? "현재 추천으로 계획 바꾸기" : "3단계 계획으로 저장"}</button><Link href="/tools" className="inline-flex min-h-11 items-center border-b border-gold text-sm font-semibold text-white">전체 도구 보기 →</Link></div>
+        <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2"><button type="button" onClick={shareRecommendations} className="inline-flex min-h-10 items-center text-sm font-semibold text-white/75 hover:text-white">추천 경로 공유 ↗</button>{matchesCurrentPlan && <button type="button" onClick={downloadReminder} className="inline-flex min-h-10 items-center text-sm font-semibold text-white/75 hover:text-white">7일 뒤 점검 알림 +</button>}</div>
+        {actionMessage && <p className="mt-3 text-xs leading-5 text-white/60" role="status" aria-live="polite">{actionMessage}</p>}
         {matchesCurrentPlan && completedCount === 3 && <p className="mt-5 border-l-2 border-gold pl-3 text-sm leading-6 text-white/75">세 단계를 모두 완료했습니다. 다음 고민을 선택해 새로운 계획을 만들 수 있습니다.</p>}
       </div>
     </div>
