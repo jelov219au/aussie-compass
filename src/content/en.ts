@@ -2,7 +2,7 @@ import type { SiteContent } from "./types";
 
 export const en: SiteContent = {
   brand: {
-    name: "Aussie Compass",
+    name: "Hoju Compass",
     tagline: "Practical tools for life and work in Australia",
   },
   nav: {
@@ -57,7 +57,7 @@ export const en: SiteContent = {
     addressLabel: "Email address",
   },
   about: {
-    heading: "About Aussie Compass",
+    heading: "About Hoju Compass",
     description:
       "Practical tools for life and work in Australia. We are building simple tools to help people understand pay, work, and everyday life in Australia.",
   },
@@ -65,7 +65,7 @@ export const en: SiteContent = {
     privacy: "Privacy",
     disclaimer: "Disclaimer",
     legalDisclaimer:
-      "Information provided by Aussie Compass is general in nature and is not financial, tax, migration or legal advice.",
+      "Information provided by Hoju Compass is general in nature and is not financial, tax, migration or legal advice.",
     privacyDescription:
       "A privacy policy will be published before personal data is collected.",
   },

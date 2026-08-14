@@ -7,7 +7,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 도착 후 첫 30일 정착 체크리스트 | Aussie Compass",
+  title: "호주 도착 후 첫 30일 정착 체크리스트 | Hoju Compass",
   description: "호주 입국 직후 VEVO, TFN, 은행, 통신, 교통, 의료, 학생 USI와 첫 직장 준비를 시기별로 확인하세요.",
   path: "/arrival-checklist",
 });

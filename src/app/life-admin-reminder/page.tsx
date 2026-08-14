@@ -7,7 +7,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 생활 만료일·갱신 일정 리마인더 | Aussie Compass",
+  title: "호주 생활 만료일·갱신 일정 리마인더 | Hoju Compass",
   description: "비자, 여권, 렌트, Rego, 보험과 자격증 갱신 날짜를 현재 기기에 저장하고 캘린더 리마인더로 관리하세요.",
   path: "/life-admin-reminder",
 });

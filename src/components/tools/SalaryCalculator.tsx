@@ -356,7 +356,7 @@ export function SalaryCalculator() {
 
   async function copyResults() {
     const summary = [
-      "Aussie Compass 급여 계산 결과",
+      "Hoju Compass 급여 계산 결과",
       `회계연도: ${taxYear}`,
       `세금 유형: ${isWorkingHolidayMaker ? "Working Holiday Maker (세법상 비거주자 가정)" : "호주 세법상 거주자"}`,
       payInputMode === "hourly" ? `계산 기준: 연 ${workingWeeks}주 근무` : "계산 기준: 입력 연봉",

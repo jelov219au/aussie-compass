@@ -77,9 +77,9 @@ export function SavingsGoalCalculator() {
     const start = nextSavingsDate.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
     const rule = data.frequency === "monthly" ? "FREQ=MONTHLY" : data.frequency === "fortnightly" ? "FREQ=WEEKLY;INTERVAL=2" : "FREQ=WEEKLY";
     const now = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-    const content = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Aussie Compass//Savings Reminder//KO", "BEGIN:VEVENT", `UID:savings-${Date.now()}@aussie-compass`, `DTSTAMP:${now}`, `DTSTART:${start}`, `RRULE:${rule}`, `SUMMARY:${data.goalName || "Savings goal"} 저축하기`, `DESCRIPTION:Aussie Compass에서 저축 진행 상황을 기록하세요. ${window.location.href}`, "DURATION:PT15M", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    const content = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Hoju Compass//Savings Reminder//KO", "BEGIN:VEVENT", `UID:savings-${Date.now()}@hojucompass.com`, `DTSTAMP:${now}`, `DTSTART:${start}`, `RRULE:${rule}`, `SUMMARY:${data.goalName || "Savings goal"} 저축하기`, `DESCRIPTION:Hoju Compass에서 저축 진행 상황을 기록하세요. ${window.location.href}`, "DURATION:PT15M", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
     const url = URL.createObjectURL(new Blob([content], { type: "text/calendar;charset=utf-8" }));
-    const anchor = document.createElement("a"); anchor.href = url; anchor.download = "aussie-compass-savings-reminder.ics"; anchor.click(); URL.revokeObjectURL(url);
+    const anchor = document.createElement("a"); anchor.href = url; anchor.download = "hoju-compass-savings-reminder.ics"; anchor.click(); URL.revokeObjectURL(url);
     setMessage("반복 리마인더 파일을 저장했습니다. 캘린더에서 열어 추가하세요.");
   };
 

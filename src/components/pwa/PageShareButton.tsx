@@ -43,7 +43,7 @@ export function PageShareButton() {
         localStorage.setItem(bookmarkKey, JSON.stringify(bookmarks.filter((item) => item.href !== href)));
         setSaved(false); setStatus("저장한 페이지에서 제거했습니다.");
       } else {
-        const title = document.title.replace(/\s*\|\s*Aussie Compass.*$/i, "");
+        const title = document.title.replace(/\s*\|\s*Hoju Compass.*$/i, "");
         localStorage.setItem(bookmarkKey, JSON.stringify([{ href, title, savedAt: new Date().toISOString() }, ...bookmarks].slice(0, 30)));
         setSaved(true); setStatus("나의 진행 화면에 저장했습니다.");
       }

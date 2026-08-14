@@ -6,7 +6,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 Casual Loading 쉬운 설명 | Aussie Compass",
+  title: "호주 Casual Loading 쉬운 설명 | Hoju Compass",
   description: "호주 캐주얼 로딩 25%의 의미와 풀타임·파트타임 급여와의 차이를 쉬운 한국어로 알아보세요.",
   path: "/casual-loading-guide",
 });

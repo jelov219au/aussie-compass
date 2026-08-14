@@ -6,7 +6,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 Super 쉽게 이해하기 | Aussie Compass",
+  title: "호주 Super 쉽게 이해하기 | Hoju Compass",
   description: "호주 Superannuation 12%의 의미, 납부 시기, 급여 패키지와의 차이, 확인 방법을 쉬운 한국어로 알아보세요.",
   path: "/super-guide",
 });

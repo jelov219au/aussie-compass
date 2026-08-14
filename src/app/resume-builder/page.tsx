@@ -7,7 +7,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 영문 이력서 빌더 | Aussie Compass",
+  title: "호주 영문 이력서 빌더 | Hoju Compass",
   description: "호주 구직에 맞는 깔끔한 영문 이력서를 작성하고 미리보기한 뒤 PDF로 저장하세요.",
   path: "/resume-builder",
 });

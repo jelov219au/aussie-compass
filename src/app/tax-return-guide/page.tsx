@@ -8,7 +8,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 택스 리턴 준비 가이드와 체크리스트 | Aussie Compass",
+  title: "호주 택스 리턴 준비 가이드와 체크리스트 | Hoju Compass",
   description: "EOFY 택스 리턴 전 소득 자료, 공제 증빙, 신고 기한을 한 번에 확인하고 개인 체크리스트로 준비하세요.",
   path: "/tax-return-guide",
 });

@@ -42,7 +42,7 @@ export function SocialCardMaker({ baseUrl }: { baseUrl: string }) {
   const previewRef = useRef<HTMLDivElement>(null);
   const [format, setFormat] = useState<FormatId>("portrait");
   const [theme, setTheme] = useState<ThemeId>("navy");
-  const [brand, setBrand] = useState("AUSSIE COMPASS");
+  const [brand, setBrand] = useState("HOJU COMPASS");
   const [eyebrow, setEyebrow] = useState(presets[0].eyebrow);
   const [title, setTitle] = useState(presets[0].title);
   const [body, setBody] = useState(presets[0].body);
@@ -87,7 +87,7 @@ export function SocialCardMaker({ baseUrl }: { baseUrl: string }) {
     ctx.strokeStyle = activeTheme.accent; ctx.lineWidth = 2 * scale; ctx.beginPath(); ctx.moveTo(pad, footerY - 52 * scale); ctx.lineTo(width - pad, footerY - 52 * scale); ctx.stroke();
     ctx.fillStyle = activeTheme.foreground; ctx.font = `700 ${27 * scale}px system-ui, sans-serif`; ctx.fillText(`${cta.slice(0, 42)}  →`, pad, footerY);
     ctx.fillStyle = activeTheme.muted; ctx.font = `400 ${20 * scale}px Arial, sans-serif`; ctx.fillText(displayUrl.slice(0, 76), pad, footerY + 44 * scale);
-    canvas.toBlob((blob) => { if (!blob) return; const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `aussie-compass-${format}.png`; anchor.click(); URL.revokeObjectURL(url); setStatus("PNG 이미지를 저장했습니다."); }, "image/png");
+    canvas.toBlob((blob) => { if (!blob) return; const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `hoju-compass-${format}.png`; anchor.click(); URL.revokeObjectURL(url); setStatus("PNG 이미지를 저장했습니다."); }, "image/png");
   }
 
   async function copyCaption() {

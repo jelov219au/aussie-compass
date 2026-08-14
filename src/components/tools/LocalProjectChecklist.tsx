@@ -31,7 +31,7 @@ export function LocalProjectChecklist({ storageKey, eyebrow, title, description,
   function downloadReminder() {
     if (!targetDate || !calendarTitle) return;
     const remaining = items.filter((item) => !checked.includes(item.id)).map((item) => `• ${item.label}`).join("\n");
-    const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Aussie Compass//Project Reminder//KO", "CALSCALE:GREGORIAN", "BEGIN:VEVENT", `UID:${storageKey}-${targetDate}@aussiecompass`, `DTSTART;VALUE=DATE:${icsDate(targetDate)}`, `SUMMARY:${icsEscape(calendarTitle)}`, `DESCRIPTION:${icsEscape(remaining ? `남은 준비 항목\n${remaining}` : "모든 준비 항목을 완료했습니다.")}`, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Hoju Compass//Project Reminder//KO", "CALSCALE:GREGORIAN", "BEGIN:VEVENT", `UID:${storageKey}-${targetDate}@hojucompass.com`, `DTSTART;VALUE=DATE:${icsDate(targetDate)}`, `SUMMARY:${icsEscape(calendarTitle)}`, `DESCRIPTION:${icsEscape(remaining ? `남은 준비 항목\n${remaining}` : "모든 준비 항목을 완료했습니다.")}`, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
     const url = URL.createObjectURL(new Blob([body], { type: "text/calendar;charset=utf-8" }));
     const link = document.createElement("a"); link.href = url; link.download = `${storageKey}-reminder.ics`; link.click(); URL.revokeObjectURL(url);
   }

@@ -1,4 +1,4 @@
-const CACHE_NAME = "aussie-compass-offline-v1";
+const CACHE_NAME = "hoju-compass-offline-v2";
 const OFFLINE_URL = "/offline";
 
 self.addEventListener("install", (event) => {

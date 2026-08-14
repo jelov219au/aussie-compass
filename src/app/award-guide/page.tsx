@@ -6,7 +6,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "내 Award와 정확한 시급 확인하기 | Aussie Compass",
+  title: "내 Award와 정확한 시급 확인하기 | Hoju Compass",
   description: "호주에서 내 직업에 적용되는 Award, Classification, Penalty Rate와 정확한 최저 시급을 찾는 순서를 한국어로 알아보세요.",
   path: "/award-guide",
 });

@@ -38,7 +38,7 @@ export function JobApplicationTracker() {
 
   const edit = (item: Application) => { setEditingId(item.id); setForm({ company: item.company, role: item.role, status: item.status, appliedDate: item.appliedDate, nextDate: item.nextDate, link: item.link, notes: item.notes }); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const remove = (item: Application) => { if (window.confirm(`${item.company}의 ${item.role} 기록을 삭제할까요?`)) setApplications((items) => items.filter((entry) => entry.id !== item.id)); };
-  const exportBackup = () => { const url = URL.createObjectURL(new Blob([JSON.stringify(applications, null, 2)], { type: "application/json" })); const anchor = document.createElement("a"); anchor.href = url; anchor.download = "aussie-compass-job-applications.json"; anchor.click(); URL.revokeObjectURL(url); };
+  const exportBackup = () => { const url = URL.createObjectURL(new Blob([JSON.stringify(applications, null, 2)], { type: "application/json" })); const anchor = document.createElement("a"); anchor.href = url; anchor.download = "hoju-compass-job-applications.json"; anchor.click(); URL.revokeObjectURL(url); };
 
   return (
     <div className="space-y-8">

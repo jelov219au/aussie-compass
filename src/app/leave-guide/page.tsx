@@ -6,7 +6,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 휴가·병가·공휴일 가이드 | Aussie Compass",
+  title: "호주 휴가·병가·공휴일 가이드 | Hoju Compass",
   description: "호주의 Annual Leave, Sick and Carer's Leave, Public Holiday 기본 권리를 고용 형태별로 확인하세요.",
   path: "/leave-guide",
 });

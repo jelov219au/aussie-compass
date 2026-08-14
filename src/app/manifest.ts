@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Aussie Compass",
-    short_name: "Aussie Compass",
+    name: "Hoju Compass",
+    short_name: "Hoju Compass",
     description: "호주 급여 계산기와 한국어 직장 생활 가이드",
     id: "/",
     start_url: "/",

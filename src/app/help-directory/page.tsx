@@ -6,7 +6,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 긴급전화·생활 도움 연락처 | Aussie Compass",
+  title: "호주 긴급전화·생활 도움 연락처 | Hoju Compass",
   description: "호주 긴급전화 000, 의료상담, 통역, 위기지원, 직장 문제와 사기 신고 공식 연락처를 상황별로 확인하세요.",
   path: "/help-directory",
 });

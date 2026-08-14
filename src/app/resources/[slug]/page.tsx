@@ -9,7 +9,7 @@ import { articles, getArticle } from "@/data/articles";
 import { createPageMetadata } from "@/lib/site";
 
 export function generateStaticParams() { return articles.map((article) => ({ slug: article.slug })); }
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> { const { slug } = await params; const article = getArticle(slug); return article ? createPageMetadata({ title: `${article.title} | Aussie Compass`, description: article.description, path: `/resources/${article.slug}` }) : {}; }
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> { const { slug } = await params; const article = getArticle(slug); return article ? createPageMetadata({ title: `${article.title} | Hoju Compass`, description: article.description, path: `/resources/${article.slug}` }) : {}; }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params; const article = getArticle(slug); if (!article) notFound();

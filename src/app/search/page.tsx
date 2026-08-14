@@ -6,13 +6,13 @@ import { SiteSearch, type SearchItem } from "@/components/search/SiteSearch";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata=createPageMetadata({title:"호주 생활 정보 검색 | Aussie Compass",description:"비자, TFN, 급여, 이력서, 집, 교통, 세금, Super와 귀국 준비 도구·가이드를 한 번에 검색하세요.",path:"/search"});
+export const metadata=createPageMetadata({title:"호주 생활 정보 검색 | Hoju Compass",description:"비자, TFN, 급여, 이력서, 집, 교통, 세금, Super와 귀국 준비 도구·가이드를 한 번에 검색하세요.",path:"/search"});
 
 const items:SearchItem[]=[
   {href:"/my-compass",type:"도구",title:"나의 진행 상황",description:"이 기기에 저장된 정착·구직·저축·세금 프로젝트 모아보기",keywords:["대시보드","이어하기","저장","진행률","내 프로젝트","my compass"]},
   {href:"/life-admin-reminder",type:"도구",title:"만료일·갱신 일정 리마인더",description:"비자, 여권, 렌트, Rego, 보험과 자격증 날짜 관리",keywords:["리마인더","알림","만료일","갱신","캘린더","일정","rego","보험","여권"]},
   {href:"/social-card-maker",type:"도구",title:"SNS 카드뉴스 만들기",description:"호주 생활 정보를 게시물·스토리 PNG와 설명문으로 제작",keywords:["인스타그램","Instagram","릴스","스토리","카드뉴스","콘텐츠","홍보","이미지"]},
-  {href:"/install",type:"도구",title:"홈 화면에 앱으로 추가",description:"iPhone·Android에서 Aussie Compass를 앱처럼 사용",keywords:["PWA","설치","홈화면","아이폰","안드로이드","바로가기"]},
+  {href:"/install",type:"도구",title:"홈 화면에 앱으로 추가",description:"iPhone·Android에서 Hoju Compass를 앱처럼 사용",keywords:["PWA","설치","홈화면","아이폰","안드로이드","바로가기"]},
   {href:"/glossary",type:"자료",title:"호주 생활 용어집",description:"TFN, ABN, Award, Super, Bond 등 약어 풀이",keywords:["뜻","용어","약어","PAYG","VEVO","Rego","PPSR","HAP ID","OSHC","USI"]},
   {href:"/help-directory",type:"도구",title:"호주 생활 도움 연락처",description:"긴급전화, 의료상담, 통역, 직장 문제와 사기 신고",keywords:["000","응급","lifeline","healthdirect","TIS","한국어","Fair Work","Scamwatch"]},
   {href:"/visa-preparation-guide",type:"도구",title:"비자·신체검사 준비",description:"Visa Finder, ImmiAccount, HAP ID와 지정 병원",keywords:["비자신청","건강검진","Bupa","panel physician","학생비자","워홀비자"]},

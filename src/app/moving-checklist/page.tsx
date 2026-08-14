@@ -6,7 +6,7 @@ import { LocalProjectChecklist, type ProjectGroup } from "@/components/tools/Loc
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata=createPageMetadata({title:"호주 이사 체크리스트와 리마인더 | Aussie Compass",description:"퇴거 통지부터 전기·인터넷 연결, 주소 변경, Condition report와 보증금까지 호주 이사를 단계별로 관리하세요.",path:"/moving-checklist"});
+export const metadata=createPageMetadata({title:"호주 이사 체크리스트와 리마인더 | Hoju Compass",description:"퇴거 통지부터 전기·인터넷 연결, 주소 변경, Condition report와 보증금까지 호주 이사를 단계별로 관리하세요.",path:"/moving-checklist"});
 const movingGroups:ProjectGroup[]=[
  {title:"4주 전",items:[
   {id:"notice",label:"퇴거 통지와 계약 종료일 확인",detail:"계약 형태와 지역 규정에 맞는 서면 통지 방법을 확인하세요."},

@@ -180,7 +180,7 @@ export function ResumeBuilder() {
       setResume({ ...emptyResume, ...parsed } as ResumeData);
       setActionMessage("작성본 백업을 불러왔습니다.");
     } catch {
-      setActionMessage("Aussie Compass 이력서 백업 파일을 확인해 주세요.");
+      setActionMessage("Hoju Compass 이력서 백업 파일을 확인해 주세요.");
     } finally {
       if (importInputRef.current) importInputRef.current.value = "";
     }

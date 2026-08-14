@@ -7,7 +7,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 급여 가이드 | Aussie Compass",
+  title: "호주 급여 가이드 | Hoju Compass",
   description: "호주 최저 시급, Award, Payslip, Super, 미지급 급여와 휴가 권리를 한국어로 확인하세요.",
   path: "/guides",
 });

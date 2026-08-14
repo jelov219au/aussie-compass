@@ -6,7 +6,7 @@ import { CommuteHousingPlanner } from "@/components/tools/CommuteHousingPlanner"
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata = createPageMetadata({ title: "호주 대중교통·통학 생활권 비교 | Aussie Compass", description: "집 후보의 주거비와 통학시간을 비교하고 Google Maps 대중교통 길찾기, 주별 교통기관과 학생 할인 정보를 확인하세요.", path: "/public-transport-guide" });
+export const metadata = createPageMetadata({ title: "호주 대중교통·통학 생활권 비교 | Hoju Compass", description: "집 후보의 주거비와 통학시간을 비교하고 Google Maps 대중교통 길찾기, 주별 교통기관과 학생 할인 정보를 확인하세요.", path: "/public-transport-guide" });
 
 const transportLinks = [
   ["NSW", "Opal · Transport for NSW", "https://transportnsw.info/tickets-opal"],
@@ -42,5 +42,5 @@ export default function PublicTransportGuidePage() { return <><BreadcrumbJsonLd 
 
   <section className="mt-10 rounded-3xl bg-navy p-6 text-white sm:p-8"><h2 className="text-2xl font-semibold">치안은 ‘동네 순위’보다 공식 데이터와 현장 확인</h2><p className="mt-3 max-w-4xl text-sm leading-6 text-white/70">범죄 통계는 신고·집계 방식과 기간에 따라 달라지고 개인의 안전을 보장하지 않습니다. 특정 국적 밀집도나 임의의 안전 순위를 제공하지 않고, 공식 지역 통계와 낮·밤 현장 동선을 함께 확인하도록 안내합니다.</p><ul className="mt-5 flex flex-wrap gap-2">{safetyLinks.map(([state, label, href]) => <li key={state}><a href={href} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center rounded-lg border border-white/20 px-3 text-sm font-semibold hover:bg-white/10" aria-label={`${label} 열기`}>{state} ↗</a></li>)}</ul></section>
 
-  <section className="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-6 text-sm leading-7 text-amber-950"><h2 className="font-semibold">지도·안전 정보 안내</h2><p className="mt-1">Aussie Compass는 Google Maps 결과를 수집하거나 특정 지역·업체를 추천하지 않습니다. 지도 링크를 누르면 입력한 동네와 목적지 검색어가 Google로 전달되며 Google의 개인정보처리방침과 약관이 적용됩니다. 경로, 요금, 운행 정보와 범죄 통계는 계약이나 안전 결정을 대신하지 않으므로 교통기관·학교·정부 공식 자료와 현장을 다시 확인하세요.</p></section>
+  <section className="mt-8 rounded-2xl border border-amber-300 bg-amber-50 p-6 text-sm leading-7 text-amber-950"><h2 className="font-semibold">지도·안전 정보 안내</h2><p className="mt-1">Hoju Compass는 Google Maps 결과를 수집하거나 특정 지역·업체를 추천하지 않습니다. 지도 링크를 누르면 입력한 동네와 목적지 검색어가 Google로 전달되며 Google의 개인정보처리방침과 약관이 적용됩니다. 경로, 요금, 운행 정보와 범죄 통계는 계약이나 안전 결정을 대신하지 않으므로 교통기관·학교·정부 공식 자료와 현장을 다시 확인하세요.</p></section>
 </Container></main><Footer /></>; }

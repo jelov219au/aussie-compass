@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {Header} from "@/components/layout/Header";import {Footer} from "@/components/layout/Footer";import {Container} from "@/components/ui/Container";import {LocalProjectChecklist,type ProjectGroup} from "@/components/tools/LocalProjectChecklist";import {VisaCostPlanner} from "@/components/tools/VisaCostPlanner";import {BreadcrumbJsonLd} from "@/components/seo/JsonLd";import {createPageMetadata} from "@/lib/site";
 
-export const metadata=createPageMetadata({title:"호주 비자 신청 준비와 신체검사 안내 | Aussie Compass",description:"호주 비자 탐색, ImmiAccount, 서류, 비용, HAP ID, 호주 내 Bupa와 해외 Panel Physician 신체검사 절차를 단계별로 확인하세요.",path:"/visa-preparation-guide"});
+export const metadata=createPageMetadata({title:"호주 비자 신청 준비와 신체검사 안내 | Hoju Compass",description:"호주 비자 탐색, ImmiAccount, 서류, 비용, HAP ID, 호주 내 Bupa와 해외 Panel Physician 신체검사 절차를 단계별로 확인하세요.",path:"/visa-preparation-guide"});
 const visaGroups:ProjectGroup[]=[
  {title:"1. 비자 확인",items:[{id:"finder",label:"공식 Visa Finder로 후보 확인",detail:"Visa Finder도 추천이나 승인 가능성을 보장하지 않으므로 각 비자 페이지를 다시 확인하세요."},{id:"subclass",label:"정확한 Subclass·Stream 페이지 읽기",detail:"자격, 체류조건, 신청 위치, 비용과 단계별 안내를 저장하세요."},{id:"passport",label:"여권 정보와 유효기간 확인",detail:"신청서와 증빙의 영문 이름·생년월일이 일치하는지 확인하세요."}]},
  {title:"2. 서류·비용 준비",items:[{id:"documents",label:"해당 비자의 서류 목록 작성",detail:"신원, 재정, 학업·경력 등 실제 비자 페이지에서 요구하는 항목만 준비하세요."},{id:"translations",label:"비영문 문서 번역 기준 확인",detail:"원본과 번역본, 번역자 정보 등 해당 비자 페이지의 최신 기준을 따르세요."},{id:"costs",label:"신청비와 별도 비용 예산",detail:"신체검사, 경찰증명, 생체정보, 번역과 보험은 신청비에 포함되지 않을 수 있습니다."}]},

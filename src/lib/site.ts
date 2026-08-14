@@ -1,11 +1,11 @@
-const fallbackSiteUrl = "https://aussie-compass.vercel.app";
+const fallbackSiteUrl = "https://hojucompass.com";
 
 function normaliseSiteUrl(value: string) {
   const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`;
   return withProtocol.replace(/\/$/, "");
 }
 
-export const siteName = "Aussie Compass";
+export const siteName = "Hoju Compass";
 export const siteUrl = normaliseSiteUrl(
   process.env.NEXT_PUBLIC_SITE_URL?.trim() || fallbackSiteUrl,
 );

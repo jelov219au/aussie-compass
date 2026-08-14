@@ -7,7 +7,7 @@ import { LocalProjectChecklist, type ProjectGroup } from "@/components/tools/Loc
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata = createPageMetadata({ title: "호주 쉐어하우스·렌트 집 방문 체크리스트 | Aussie Compass", description: "Flatmates·Facebook에서 찾은 쉐어하우스부터 일반 렌트와 주택 구매까지, 집 방문 때 확인할 상태·비용·계약·안전 항목을 점검하세요.", path: "/property-inspection-checklist" });
+export const metadata = createPageMetadata({ title: "호주 쉐어하우스·렌트 집 방문 체크리스트 | Hoju Compass", description: "Flatmates·Facebook에서 찾은 쉐어하우스부터 일반 렌트와 주택 구매까지, 집 방문 때 확인할 상태·비용·계약·안전 항목을 점검하세요.", path: "/property-inspection-checklist" });
 
 const stateLinks = [
   ["NSW", "https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live"], ["VIC", "https://www.consumer.vic.gov.au/housing/renting"], ["QLD", "https://www.rta.qld.gov.au/"], ["WA", "https://www.consumerprotection.wa.gov.au/renting-home"], ["SA", "https://www.sa.gov.au/topics/housing/renting-and-letting"], ["TAS", "https://www.cbos.tas.gov.au/topics/housing/renting"], ["ACT", "https://www.justice.act.gov.au/renting-and-occupancy-laws"], ["NT", "https://consumeraffairs.nt.gov.au/for-consumers/residential-tenancies"],

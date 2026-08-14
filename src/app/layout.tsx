@@ -4,7 +4,7 @@ import { siteName, siteUrl } from "@/lib/site";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import "./globals.css";
 
-const title = "Aussie Compass | 호주 생활을 위한 실용 도구";
+const title = "Hoju Compass | 호주 생활을 위한 실용 도구";
 const description =
   "호주 급여, 세금, Super 계산기와 한국어 생활 가이드를 한곳에서 확인하세요.";
 

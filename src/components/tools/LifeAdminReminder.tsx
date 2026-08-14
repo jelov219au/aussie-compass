@@ -49,12 +49,12 @@ function icsEscape(value: string) {
 
 function calendarEvent(item: Reminder) {
   const alertDate = addDays(item.date, -item.leadDays).replaceAll("-", "");
-  const description = [`실제 일정: ${displayDate(item.date)}`, item.note, "Aussie Compass에서 저장한 개인 리마인더입니다."].filter(Boolean).join("\n");
-  return ["BEGIN:VEVENT", `UID:${item.id}@aussie-compass`, `DTSTART;VALUE=DATE:${alertDate}`, `SUMMARY:${icsEscape(item.title)} 준비`, `DESCRIPTION:${icsEscape(description)}`, "END:VEVENT"].join("\r\n");
+  const description = [`실제 일정: ${displayDate(item.date)}`, item.note, "Hoju Compass에서 저장한 개인 리마인더입니다."].filter(Boolean).join("\n");
+  return ["BEGIN:VEVENT", `UID:${item.id}@hojucompass.com`, `DTSTART;VALUE=DATE:${alertDate}`, `SUMMARY:${icsEscape(item.title)} 준비`, `DESCRIPTION:${icsEscape(description)}`, "END:VEVENT"].join("\r\n");
 }
 
 function downloadCalendar(items: Reminder[], filename: string) {
-  const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Aussie Compass//Life Admin Reminder//KO", "CALSCALE:GREGORIAN", ...items.map(calendarEvent), "END:VCALENDAR"].join("\r\n");
+  const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Hoju Compass//Life Admin Reminder//KO", "CALSCALE:GREGORIAN", ...items.map(calendarEvent), "END:VCALENDAR"].join("\r\n");
   const url = URL.createObjectURL(new Blob([body], { type: "text/calendar;charset=utf-8" }));
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -134,7 +134,7 @@ export function LifeAdminReminder() {
     </section>
 
     <section aria-labelledby="saved-reminders-heading" className="border-t-2 border-navy bg-white p-6 sm:p-8">
-      <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-xs text-gold">{String(sorted.length).padStart(2, "0")} SAVED</p><h2 id="saved-reminders-heading" className="mt-2 text-2xl font-semibold text-navy">다가오는 일정</h2></div>{sorted.length > 0 && <button type="button" onClick={() => downloadCalendar(sorted, "aussie-compass-reminders.ics")} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">전체 캘린더 저장</button>}</div>
+      <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-xs text-gold">{String(sorted.length).padStart(2, "0")} SAVED</p><h2 id="saved-reminders-heading" className="mt-2 text-2xl font-semibold text-navy">다가오는 일정</h2></div>{sorted.length > 0 && <button type="button" onClick={() => downloadCalendar(sorted, "hoju-compass-reminders.ics")} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">전체 캘린더 저장</button>}</div>
       {!sorted.length ? <div className="mt-8 border-y border-border py-10 text-center"><p className="font-semibold text-navy">아직 저장한 일정이 없습니다.</p><p className="mt-2 text-sm leading-6 text-muted">왼쪽에서 날짜를 추가하면 가장 가까운 순서로 정리됩니다.</p></div> : <ol className="mt-6">{sorted.map((item, index) => {
         const remaining = daysFromToday(item.date);
         const preparationDate = addDays(item.date, -item.leadDays);

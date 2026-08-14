@@ -2,7 +2,7 @@ import type { SiteContent } from "./types";
 
 export const ko: SiteContent = {
   brand: {
-    name: "Aussie Compass",
+    name: "Hoju Compass",
     tagline: "호주 생활과 일을 위한 실용적인 도구",
   },
   nav: {
@@ -56,15 +56,15 @@ export const ko: SiteContent = {
     addressLabel: "이메일 주소",
   },
   about: {
-    heading: "Aussie Compass 소개",
+    heading: "Hoju Compass 소개",
     description:
-      "Aussie Compass는 호주에 거주하는 한국어 사용자가 급여, 세금, 직장과 일상생활 정보를 더 쉽게 이해하도록 돕는 실용적인 도구와 가이드를 만듭니다.",
+      "Hoju Compass는 호주에 거주하는 한국어 사용자가 급여, 세금, 직장과 일상생활 정보를 더 쉽게 이해하도록 돕는 실용적인 도구와 가이드를 만듭니다.",
   },
   footer: {
     privacy: "개인정보 보호",
     disclaimer: "면책 안내",
     legalDisclaimer:
-      "Aussie Compass가 제공하는 정보는 일반적인 안내이며 재무, 세무, 이민 또는 법률 자문이 아닙니다.",
+      "Hoju Compass가 제공하는 정보는 일반적인 안내이며 재무, 세무, 이민 또는 법률 자문이 아닙니다.",
     privacyDescription: "개인정보를 수집하기 전에 개인정보 처리방침을 공개할 예정입니다.",
   },
 };

@@ -7,7 +7,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 생활 무료 도구 | Aussie Compass",
+  title: "호주 생활 무료 도구 | Hoju Compass",
   description: "호주 급여, 생활비 계산기와 영문 이력서 빌더를 한곳에서 이용하세요.",
   path: "/tools",
 });
@@ -196,7 +196,7 @@ export default function ToolsPage() {
         <Container>
           <Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">&larr; 홈으로 돌아가기</Link>
           <div className="mt-8 grid gap-8 border-b border-navy/20 pb-10 lg:grid-cols-[1fr_15rem] lg:items-end">
-            <div className="max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold">Aussie Compass / Toolkit</p><h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">호주 생활에서<br/><span className="font-normal italic text-navy-light">막막한 순간을 위한 도구.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">급여를 확인하고, 집과 일을 준비하고, 귀국까지. 필요한 순간에 꺼내 쓰는 실용 도구를 한곳에 모았습니다.</p></div>
+            <div className="max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold">Hoju Compass / Toolkit</p><h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">호주 생활에서<br/><span className="font-normal italic text-navy-light">막막한 순간을 위한 도구.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">급여를 확인하고, 집과 일을 준비하고, 귀국까지. 필요한 순간에 꺼내 쓰는 실용 도구를 한곳에 모았습니다.</p></div>
             <div className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted"><strong className="block text-navy">계정도, 제출도 없습니다.</strong>입력 내용은 별도 안내가 없는 한 현재 브라우저에만 저장됩니다.</div>
           </div>
 

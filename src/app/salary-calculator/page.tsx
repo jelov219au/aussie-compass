@@ -7,7 +7,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 통합 급여 계산기 | Aussie Compass",
+  title: "호주 통합 급여 계산기 | Hoju Compass",
   description: "시급 또는 연봉 입력으로 세전 급여, 예상 세후 소득, Super와 총 보상 패키지를 확인하세요.",
   path: "/salary-calculator",
 });

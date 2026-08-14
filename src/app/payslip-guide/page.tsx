@@ -6,7 +6,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 Payslip 읽는 법 | Aussie Compass",
+  title: "호주 Payslip 읽는 법 | Hoju Compass",
   description: "호주 급여명세서의 Gross Pay, Net Pay, PAYG, Super, YTD와 근무시간을 한국어로 쉽게 확인하세요.",
   path: "/payslip-guide",
 });

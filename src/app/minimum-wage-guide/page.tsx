@@ -7,7 +7,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 최저임금·캐주얼 로딩 가이드 | Aussie Compass",
+  title: "호주 최저임금·캐주얼 로딩 가이드 | Hoju Compass",
   description: "2026년 7월부터 적용되는 호주 National Minimum Wage와 캐주얼 로딩을 기준으로 예상 급여를 계산해 보세요.",
   path: "/minimum-wage-guide",
 });
