@@ -15,7 +15,18 @@ type RouteTool = {
   concerns: ConcernId[];
 };
 
+type SavedPlan = {
+  stage: StageId;
+  concern: ConcernId;
+  stageLabel: string;
+  concernLabel: string;
+  steps: Array<{ href: string; title: string }>;
+  completed: string[];
+  savedAt: string;
+};
+
 const storageKey = "hoju-compass-route-finder-v1";
+const planStorageKey = "hoju-compass-personal-plan-v1";
 
 const stages: Array<{ id: StageId; label: string; detail: string }> = [
   { id: "prepare", label: "출국 준비 중", detail: "비자 신청부터 출발 전" },
@@ -55,6 +66,7 @@ const tools: RouteTool[] = [
 export function PersonalRouteFinder() {
   const [stage, setStage] = useState<StageId>("prepare");
   const [concern, setConcern] = useState<ConcernId>("admin");
+  const [plan, setPlan] = useState<SavedPlan | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -62,6 +74,8 @@ export function PersonalRouteFinder() {
       const saved = JSON.parse(localStorage.getItem(storageKey) ?? "null") as { stage?: StageId; concern?: ConcernId } | null;
       if (saved && stages.some((item) => item.id === saved.stage)) setStage(saved.stage as StageId);
       if (saved && concerns.some((item) => item.id === saved.concern)) setConcern(saved.concern as ConcernId);
+      const savedPlan = JSON.parse(localStorage.getItem(planStorageKey) ?? "null") as SavedPlan | null;
+      if (savedPlan && Array.isArray(savedPlan.steps) && Array.isArray(savedPlan.completed)) setPlan(savedPlan);
     } catch {
       // Invalid local data falls back to the safest first-visit route.
     }
@@ -74,6 +88,12 @@ export function PersonalRouteFinder() {
     catch { /* Saving a preference is optional. */ }
   }, [stage, concern, loaded]);
 
+  useEffect(() => {
+    if (!loaded || !plan) return;
+    try { localStorage.setItem(planStorageKey, JSON.stringify(plan)); }
+    catch { /* Saving a plan is optional. */ }
+  }, [plan, loaded]);
+
   const recommendations = useMemo(() => tools.map((tool, index) => ({
     ...tool,
     index,
@@ -82,6 +102,20 @@ export function PersonalRouteFinder() {
 
   const stageLabel = stages.find((item) => item.id === stage)?.label;
   const concernLabel = concerns.find((item) => item.id === concern)?.label;
+  const currentSteps = recommendations.map(({ href, title }) => ({ href, title }));
+  const matchesCurrentPlan = Boolean(plan && plan.stage === stage && plan.concern === concern && plan.steps.map((step) => step.href).join("|") === currentSteps.map((step) => step.href).join("|"));
+  const completedCount = matchesCurrentPlan && plan ? plan.completed.filter((href) => currentSteps.some((step) => step.href === href)).length : 0;
+
+  const saveCurrentPlan = () => {
+    if (!stageLabel || !concernLabel) return;
+    setPlan({ stage, concern, stageLabel, concernLabel, steps: currentSteps, completed: [], savedAt: new Date().toISOString() });
+    window.dispatchEvent(new Event("storage"));
+  };
+
+  const toggleCompleted = (href: string) => {
+    setPlan((current) => current ? { ...current, completed: current.completed.includes(href) ? current.completed.filter((item) => item !== href) : [...current.completed, href] } : current);
+    window.dispatchEvent(new Event("storage"));
+  };
 
   return <section id="route-finder" className="scroll-mt-20 border-b border-border bg-surface py-16 sm:py-20" aria-labelledby="route-finder-heading"><Container>
     <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
@@ -97,9 +131,10 @@ export function PersonalRouteFinder() {
       </div>
 
       <div className="self-start bg-navy p-6 text-white sm:p-8" aria-live="polite">
-        <div className="flex items-end justify-between gap-4 border-b border-white/15 pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Your next three</p><h3 className="mt-2 text-2xl font-semibold">{stageLabel} · {concernLabel}</h3></div><span className="font-mono text-xs text-white/45">03 steps</span></div>
-        <ol>{recommendations.map((tool, index) => <li key={tool.href} className="border-b border-white/15"><Link href={tool.href} className="group grid gap-3 py-6 sm:grid-cols-[2rem_1fr_auto] sm:items-center"><span className="font-mono text-xs text-gold">0{index + 1}</span><span><strong className="block text-lg text-white">{tool.title}</strong><span className="mt-1 block text-sm leading-6 text-white/60">{tool.description}</span></span><span className="text-xl text-gold transition group-hover:translate-x-1" aria-hidden="true">→</span></Link></li>)}</ol>
-        <Link href="/tools" className="mt-6 inline-flex min-h-11 items-center border-b border-gold text-sm font-semibold text-white">추천 외 전체 도구 보기 →</Link>
+        <div className="flex items-end justify-between gap-4 border-b border-white/15 pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Your next three</p><h3 className="mt-2 text-2xl font-semibold">{stageLabel} · {concernLabel}</h3></div><span className="shrink-0 font-mono text-xs text-white/45">{matchesCurrentPlan ? `${completedCount}/3 완료` : "03 steps"}</span></div>
+        <ol>{recommendations.map((tool, index) => { const done = Boolean(matchesCurrentPlan && plan?.completed.includes(tool.href)); return <li key={tool.href} className="border-b border-white/15"><div className="grid sm:grid-cols-[1fr_auto] sm:items-center"><Link href={tool.href} className="group grid gap-3 py-6 sm:grid-cols-[2rem_1fr_auto] sm:items-center"><span className="font-mono text-xs text-gold">0{index + 1}</span><span><strong className={`block text-lg text-white ${done ? "line-through decoration-gold/70" : ""}`}>{tool.title}</strong><span className="mt-1 block text-sm leading-6 text-white/60">{tool.description}</span></span><span className="text-xl text-gold transition group-hover:translate-x-1" aria-hidden="true">→</span></Link>{matchesCurrentPlan && <button type="button" aria-pressed={done} onClick={() => toggleCompleted(tool.href)} className={`mb-4 ml-8 inline-flex min-h-10 items-center justify-center border px-3 text-xs font-semibold sm:mb-0 sm:ml-4 ${done ? "border-gold bg-gold text-navy" : "border-white/25 text-white hover:border-gold"}`}>{done ? "완료됨" : "완료 표시"}</button>}</div></li>; })}</ol>
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3"><button type="button" disabled={matchesCurrentPlan} onClick={saveCurrentPlan} className="inline-flex min-h-11 items-center bg-gold px-4 text-sm font-semibold text-navy disabled:cursor-default disabled:bg-white/10 disabled:text-white/55">{matchesCurrentPlan ? "나의 계획에 저장됨" : plan ? "현재 추천으로 계획 바꾸기" : "3단계 계획으로 저장"}</button><Link href="/tools" className="inline-flex min-h-11 items-center border-b border-gold text-sm font-semibold text-white">전체 도구 보기 →</Link></div>
+        {matchesCurrentPlan && completedCount === 3 && <p className="mt-5 border-l-2 border-gold pl-3 text-sm leading-6 text-white/75">세 단계를 모두 완료했습니다. 다음 고민을 선택해 새로운 계획을 만들 수 있습니다.</p>}
       </div>
     </div>
   </Container></section>;

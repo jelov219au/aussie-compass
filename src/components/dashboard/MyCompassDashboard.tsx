@@ -28,6 +28,14 @@ function buildItems(): DashboardItem[] {
     projectItem("leaving-australia-project", 20, "/leaving-australia-guide", "귀국", "호주 생활 마무리"),
   ];
 
+  const personalPlan = readJson("hoju-compass-personal-plan-v1");
+  if (personalPlan && Array.isArray(personalPlan.steps) && personalPlan.steps.length > 0) {
+    const completedHrefs = Array.isArray(personalPlan.completed) ? personalPlan.completed.filter((href: string) => personalPlan.steps.some((step: { href?: string }) => step.href === href)) : [];
+    const completed = completedHrefs.length;
+    const nextStep = personalPlan.steps.find((step: { href?: string }) => !completedHrefs.includes(step.href));
+    items.unshift({ href: "/#route-finder", eyebrow: "맞춤 경로", title: `${personalPlan.stageLabel || "나의"} 3단계 계획`, detail: completed === personalPlan.steps.length ? "추천 단계를 모두 완료했습니다." : `${completed}/${personalPlan.steps.length}개 완료${nextStep?.title ? ` · 다음: ${nextStep.title}` : ""}`, progress: Math.round(completed / personalPlan.steps.length * 100), active: true, action: completed === personalPlan.steps.length ? "새 계획 만들기" : "계속하기" });
+  }
+
   const tax = readJson("aussie-compass-tax-return-checklist-v1");
   const taxCount = Array.isArray(tax) ? tax.length : 0;
   items.push({ href: "/tax-return-guide", eyebrow: "EOFY", title: "택스 리턴 준비", detail: taxCount ? `${taxCount}/12개 완료` : "아직 시작하지 않았습니다.", progress: Math.round(taxCount / 12 * 100), active: Boolean(tax), action: tax ? "계속하기" : "시작하기" });

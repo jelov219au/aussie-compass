@@ -28,6 +28,7 @@ const storedRecords: StoredRecord[] = [
   { key: "leaving-australia-project", label: "귀국 준비", group: "체크리스트" },
   { key: "aussie-compass-bookmarks-v1", label: "저장한 페이지", group: "내 Compass" },
   { key: "hoju-compass-route-finder-v1", label: "맞춤 시작 경로", group: "내 Compass" },
+  { key: "hoju-compass-personal-plan-v1", label: "나의 3단계 계획", group: "내 Compass" },
   { key: "aussie-compass-life-reminders-v1", label: "만료일·갱신 일정", group: "생활 관리" },
   { key: "aussie-compass-tax-return-checklist-v1", label: "택스 리턴 준비", group: "돈 관리" },
   { key: "aussie-compass-salary-calculation", label: "급여 계산", group: "돈 관리", sensitive: true },

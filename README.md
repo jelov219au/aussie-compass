@@ -8,7 +8,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Integrated Salary Calculator with 2025–26 and 2026–27 tax years, resident and Working Holiday Maker tax profiles, hourly, annual salary and super-inclusive package inputs, adjustable working weeks, salary comparison, locally saved calculation settings, shareable calculation links, and copyable or printable pay results (12% Super)
 - Korean-first landing page
 - Stage-based working-holiday journey navigation from arrival preparation through annual tasks, plus situation filters in the tools directory
-- Two-choice personal route finder that recommends three context-aware next steps and remembers the selection locally
+- Two-choice personal route finder that recommends three context-aware next steps, saves them as a checkable personal plan, and surfaces progress in My Compass
 - Visa preparation hub covering official discovery, ImmiAccount workflow, health examination pathways, approved clinic finders, and a local cost planner
 - First-30-days arrival project covering VEVO, phone, transport, banking, TFN, student USI, health-cover checks, housing, first-job records, and a calendar reminder
 - Official help directory separating Triple Zero emergencies from health, crisis, interpreting, workplace, and scam-reporting support

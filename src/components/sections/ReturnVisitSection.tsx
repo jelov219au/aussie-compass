@@ -17,6 +17,7 @@ const progressKeys = [
   "aussie-compass-salary-calculation",
   "aussie-compass-living-budget-v1",
   "aussie-compass-life-reminders-v1",
+  "hoju-compass-personal-plan-v1",
 ];
 
 function savedCount() {
