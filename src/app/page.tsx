@@ -8,6 +8,7 @@ import { EmailSection } from "@/components/sections/EmailSection";
 import { ArticlesSection } from "@/components/sections/ArticlesSection";
 import { JourneySection } from "@/components/sections/JourneySection";
 import { ReturnVisitSection } from "@/components/sections/ReturnVisitSection";
+import { PersonalRouteFinder } from "@/components/sections/PersonalRouteFinder";
 
 export default function HomePage() {
   return (
@@ -16,6 +17,7 @@ export default function HomePage() {
       <main>
         <Hero />
         <ReturnVisitSection />
+        <PersonalRouteFinder />
         <JourneySection />
         <ToolsSection />
         <ArticlesSection />

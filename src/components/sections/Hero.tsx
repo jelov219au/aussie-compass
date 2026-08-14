@@ -23,7 +23,7 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Button href="#journey">
+            <Button href="#route-finder">
               {content.hero.primaryCta}
             </Button>
             <Button href="/tools" variant="secondary">
