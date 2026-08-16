@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+export const dynamic = "force-dynamic";
+
 type Props = {
   searchParams: Promise<{ session_id?: string }>;
 };

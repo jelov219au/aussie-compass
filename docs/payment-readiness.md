@@ -27,8 +27,10 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 - Enable Managed Payments explicitly for each Checkout Session after confirming product eligibility.
 - Add a unique Checkout `integration_identifier` so Resume Pro sessions can be filtered in Stripe Workbench.
 - Verify signed Stripe webhooks before granting access.
+- Reject oversized webhook payloads and events whose test/live mode does not match the deployment environment.
 - Store only the minimum entitlement record needed to restore access.
 - Never place `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in variables prefixed with `NEXT_PUBLIC_`.
+- Run `npm run security:secrets` before publishing changes to catch accidentally tracked Stripe or Vercel credentials.
 - Test successful payment, cancellation, duplicate webhook, refund, chargeback and failed payment in Stripe test mode.
 - Keep `PAYMENTS_ENABLED=false` until test evidence and legal copy are reviewed.
 - Live webhook events intentionally return an error until the durable entitlement provider is implemented, preventing paid orders from being silently acknowledged without fulfillment.
@@ -54,3 +56,15 @@ The repository includes placeholders in `.env.example`. Production secrets belon
 6. After those gates pass, create the equivalent live restricted key and live webhook endpoint, then enable production payments deliberately.
 
 Do not enable Stripe automatic tax yet. It should only be enabled after the relevant registration is confirmed and recorded as Collecting in Stripe.
+
+## Preview verification record
+
+The protected Preview integration was verified on 17 August 2026 without enabling live payments:
+
+- A Stripe test-mode Checkout completed for Resume Pro at AUD 19.90.
+- The signed `checkout.session.completed` event reached the Preview webhook and returned HTTP 200.
+- A request with an invalid Stripe signature was rejected with HTTP 400.
+- The temporary Vercel automation bypass was revoked immediately after the test.
+- The temporary Stripe test webhook endpoint was disabled and its bypass query value removed.
+
+This record proves the Checkout-to-webhook path works in test mode. It is not approval to accept live payments; durable entitlements, customer restoration, legal seller details and live-mode credentials are still required.
