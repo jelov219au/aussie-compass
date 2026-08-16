@@ -1,6 +1,7 @@
 export type Article = {
   slug: string;
   title: string;
+  socialTitle: string;
   description: string;
   category: string;
   readingTime: string;
@@ -25,6 +26,7 @@ export const articles: Article[] = [
   {
     slug: "australia-job-search-plan",
     title: "호주 구직, 지원서를 꾸준히 관리하는 방법",
+    socialTitle: "A practical Australian job search routine",
     description: "공고 저장부터 지원, 후속 연락과 면접 준비까지 놓치지 않는 간단한 구직 루틴을 소개합니다.",
     category: "호주 취업",
     readingTime: "5분",
@@ -42,6 +44,7 @@ export const articles: Article[] = [
   {
     slug: "english-resume-achievement-examples",
     title: "호주 영문 이력서에서 경력을 성과로 바꾸는 법",
+    socialTitle: "Turn experience into resume achievements",
     description: "단순 업무 나열을 구체적이고 읽기 쉬운 영문 성과 문장으로 바꾸는 기본 공식을 확인하세요.",
     category: "영문 이력서",
     readingTime: "6분",
@@ -59,6 +62,7 @@ export const articles: Article[] = [
   {
     slug: "emergency-fund-australia-guide",
     title: "호주 생활 비상금 목표를 정하는 현실적인 방법",
+    socialTitle: "Set a realistic emergency fund in Australia",
     description: "월 생활비를 기준으로 비상금 목표를 세우고 부담 없는 주기로 꾸준히 모으는 방법을 설명합니다.",
     category: "저축과 생활비",
     readingTime: "5분",
@@ -77,6 +81,7 @@ export const articles: Article[] = [
   {
     slug: "first-payslip-checklist-australia",
     title: "호주 첫 Payslip, 10분 안에 확인할 항목",
+    socialTitle: "Check your first Australian payslip",
     description: "첫 급여가 들어왔을 때 근무시간, 시급, Casual Loading, 세금과 Super를 차근차근 대조하는 방법입니다.",
     category: "급여 확인",
     readingTime: "6분",
@@ -94,6 +99,7 @@ export const articles: Article[] = [
   {
     slug: "australia-rental-scam-red-flags",
     title: "호주 렌트·쉐어하우스 계약 전 사기 신호 9가지",
+    socialTitle: "Rental scam red flags before paying",
     description: "집을 직접 확인하기 전에 보증금이나 개인정보를 요구받았을 때 점검할 위험 신호와 안전한 확인 순서를 정리합니다.",
     category: "집 구하기",
     readingTime: "7분",
@@ -111,6 +117,7 @@ export const articles: Article[] = [
   {
     slug: "used-car-ppsr-purchase-day-checklist",
     title: "호주 중고차 구매 당일, PPSR부터 송금까지",
+    socialTitle: "Used-car purchase day checklist",
     description: "개인 판매자에게 중고차를 살 때 VIN, PPSR, 등록 상태와 영수증을 어떤 순서로 확인할지 정리합니다.",
     category: "차량 구매",
     readingTime: "7분",
@@ -128,6 +135,7 @@ export const articles: Article[] = [
   {
     slug: "unpaid-trial-shift-australia-guide",
     title: "호주 무급 Trial Shift, 어디까지 괜찮을까?",
+    socialTitle: "When is an unpaid trial shift legal?",
     description: "카페·레스토랑·매장에서 요청받은 무급 트라이얼이 단순한 기술 확인인지 실제 근무인지 구분할 질문을 정리합니다.",
     category: "직장 권리",
     readingTime: "6분",
@@ -145,6 +153,7 @@ export const articles: Article[] = [
   {
     slug: "abn-employee-or-contractor-australia",
     title: "‘ABN으로 일하세요’라고 들었을 때 확인할 것",
+    socialTitle: "Employee or contractor? Check before using an ABN",
     description: "ABN과 Invoice가 있다는 이유만으로 Contractor가 되는 것은 아닙니다. Employee와 Contractor를 구분할 때 확인할 관계와 위험 신호를 살펴봅니다.",
     category: "고용 형태",
     readingTime: "8분",
@@ -165,6 +174,7 @@ export const articles: Article[] = [
   {
     slug: "casual-income-budget-australia",
     title: "Casual 수입이 매주 다를 때 생활비 예산 짜는 법",
+    socialTitle: "Budgeting with irregular casual income",
     description: "가장 많이 번 주가 아니라 낮은 수입 구간을 기준으로 렌트, 정기결제, 비상금과 자유 지출을 나누는 방법입니다.",
     category: "생활비",
     readingTime: "6분",
