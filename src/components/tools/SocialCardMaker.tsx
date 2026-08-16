@@ -60,7 +60,7 @@ export function SocialCardMaker({ baseUrl, initialContent }: { baseUrl: string; 
   const activeFormat = formats[format];
   const activeTheme = themes[theme];
   const displayUrl = `${baseUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
-  const caption = useMemo(() => `${title}\n\n${body}\n\n${cta}\n${displayUrl}\n\n#호주생활 #호주워홀 #호주유학`, [body, cta, displayUrl, title]);
+  const caption = useMemo(() => `${title}\n\n${body}\n\n${cta}\n${displayUrl}\n\n#호주생활 #호주워홀 #호주유학 #HojuCompass`, [body, cta, displayUrl, title]);
 
   function applyPreset(index: number) {
     const preset = presets[index];
@@ -95,7 +95,7 @@ export function SocialCardMaker({ baseUrl, initialContent }: { baseUrl: string; 
     ctx.strokeStyle = activeTheme.accent; ctx.lineWidth = 2 * scale; ctx.beginPath(); ctx.moveTo(pad, footerY - 52 * scale); ctx.lineTo(width - pad, footerY - 52 * scale); ctx.stroke();
     ctx.fillStyle = activeTheme.foreground; ctx.font = `700 ${27 * scale}px system-ui, sans-serif`; ctx.fillText(`${cta.slice(0, 42)}  →`, pad, footerY);
     ctx.fillStyle = activeTheme.muted; ctx.font = `400 ${20 * scale}px Arial, sans-serif`; ctx.fillText(displayUrl.slice(0, 76), pad, footerY + 44 * scale);
-    canvas.toBlob((blob) => { if (!blob) return; const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `hoju-compass-${format}.png`; anchor.click(); URL.revokeObjectURL(url); setStatus("PNG 이미지를 저장했습니다."); }, "image/png");
+    canvas.toBlob((blob) => { if (!blob) return; const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = `hoju-compass-${format}.png`; document.body.appendChild(anchor); anchor.click(); anchor.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 0); setStatus("PNG 이미지를 저장했습니다."); }, "image/png");
   }
 
   async function copyCaption() {
