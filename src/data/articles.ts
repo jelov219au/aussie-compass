@@ -4,6 +4,8 @@ export type Article = {
   description: string;
   category: string;
   readingTime: string;
+  publishedAt: string;
+  updatedAt?: string;
   toolHref: string;
   toolLabel: string;
   sections: Array<{ heading: string; paragraphs?: string[]; bullets?: string[] }>;
@@ -26,6 +28,8 @@ export const articles: Article[] = [
     description: "공고 저장부터 지원, 후속 연락과 면접 준비까지 놓치지 않는 간단한 구직 루틴을 소개합니다.",
     category: "호주 취업",
     readingTime: "5분",
+    publishedAt: "2026-08-13",
+    updatedAt: "2026-08-16",
     toolHref: "/job-application-tracker",
     toolLabel: "구직 지원 트래커 사용하기",
     sections: [
@@ -41,6 +45,8 @@ export const articles: Article[] = [
     description: "단순 업무 나열을 구체적이고 읽기 쉬운 영문 성과 문장으로 바꾸는 기본 공식을 확인하세요.",
     category: "영문 이력서",
     readingTime: "6분",
+    publishedAt: "2026-08-13",
+    updatedAt: "2026-08-16",
     toolHref: "/resume-builder",
     toolLabel: "영문 이력서 만들기",
     sections: [
@@ -56,6 +62,8 @@ export const articles: Article[] = [
     description: "월 생활비를 기준으로 비상금 목표를 세우고 부담 없는 주기로 꾸준히 모으는 방법을 설명합니다.",
     category: "저축과 생활비",
     readingTime: "5분",
+    publishedAt: "2026-08-13",
+    updatedAt: "2026-08-16",
     toolHref: "/savings-goal-calculator",
     toolLabel: "비상금 프로젝트 시작하기",
     sections: [
@@ -72,6 +80,7 @@ export const articles: Article[] = [
     description: "첫 급여가 들어왔을 때 근무시간, 시급, Casual Loading, 세금과 Super를 차근차근 대조하는 방법입니다.",
     category: "급여 확인",
     readingTime: "6분",
+    publishedAt: "2026-08-16",
     toolHref: "/payslip-guide",
     toolLabel: "Payslip 항목 확인하기",
     sections: [
@@ -88,6 +97,7 @@ export const articles: Article[] = [
     description: "집을 직접 확인하기 전에 보증금이나 개인정보를 요구받았을 때 점검할 위험 신호와 안전한 확인 순서를 정리합니다.",
     category: "집 구하기",
     readingTime: "7분",
+    publishedAt: "2026-08-16",
     toolHref: "/property-inspection-checklist",
     toolLabel: "집 방문 체크리스트 열기",
     sections: [
@@ -104,6 +114,7 @@ export const articles: Article[] = [
     description: "개인 판매자에게 중고차를 살 때 VIN, PPSR, 등록 상태와 영수증을 어떤 순서로 확인할지 정리합니다.",
     category: "차량 구매",
     readingTime: "7분",
+    publishedAt: "2026-08-16",
     toolHref: "/used-car-comparison",
     toolLabel: "중고차 첫 1년 비용 비교하기",
     sections: [
@@ -120,6 +131,7 @@ export const articles: Article[] = [
     description: "카페·레스토랑·매장에서 요청받은 무급 트라이얼이 단순한 기술 확인인지 실제 근무인지 구분할 질문을 정리합니다.",
     category: "직장 권리",
     readingTime: "6분",
+    publishedAt: "2026-08-16",
     toolHref: "/underpayment-guide",
     toolLabel: "미지급 급여 대응 순서 확인하기",
     sections: [
@@ -136,6 +148,7 @@ export const articles: Article[] = [
     description: "ABN과 Invoice가 있다는 이유만으로 Contractor가 되는 것은 아닙니다. Employee와 Contractor를 구분할 때 확인할 관계와 위험 신호를 살펴봅니다.",
     category: "고용 형태",
     readingTime: "8분",
+    publishedAt: "2026-08-16",
     toolHref: "/salary-calculator",
     toolLabel: "제시 금액을 급여 기준과 비교하기",
     sections: [
@@ -155,6 +168,7 @@ export const articles: Article[] = [
     description: "가장 많이 번 주가 아니라 낮은 수입 구간을 기준으로 렌트, 정기결제, 비상금과 자유 지출을 나누는 방법입니다.",
     category: "생활비",
     readingTime: "6분",
+    publishedAt: "2026-08-16",
     toolHref: "/cost-of-living-calculator",
     toolLabel: "내 주간·월간 생활비 계산하기",
     sections: [

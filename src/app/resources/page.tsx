@@ -3,7 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ResourcesDirectory } from "@/components/resources/ResourcesDirectory";
 import { Container } from "@/components/ui/Container";
-import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { BreadcrumbJsonLd, CollectionJsonLd } from "@/components/seo/JsonLd";
 import { articles } from "@/data/articles";
 import { createPageMetadata } from "@/lib/site";
 
@@ -13,6 +13,12 @@ export default function ResourcesPage() {
   return (
     <>
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "실용 자료", path: "/resources" }]} />
+      <CollectionJsonLd
+        name="호주 생활·취업 실용 자료"
+        description="호주 구직, 급여, 집 구하기, 중고차, 생활비와 저축에 바로 적용할 수 있는 한국어 가이드 모음"
+        path="/resources"
+        items={articles.map((article) => ({ name: article.title, path: `/resources/${article.slug}` }))}
+      />
       <Header />
       <main className="py-12 sm:py-16">
         <Container>

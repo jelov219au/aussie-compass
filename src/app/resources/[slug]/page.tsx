@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
-import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { articles, getArticle, getRelatedArticles } from "@/data/articles";
 import { createPageMetadata } from "@/lib/site";
 
@@ -21,6 +21,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         title: `${article.title} | Hoju Compass`,
         description: article.description,
         path: `/resources/${article.slug}`,
+        kind: "article",
+        publishedTime: article.publishedAt,
+        modifiedTime: article.updatedAt ?? article.publishedAt,
       })
     : {};
 }
@@ -41,6 +44,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           { name: article.title, path: `/resources/${article.slug}` },
         ]}
       />
+      <ArticleJsonLd
+        title={article.title}
+        description={article.description}
+        path={`/resources/${article.slug}`}
+        category={article.category}
+        publishedAt={article.publishedAt}
+        updatedAt={article.updatedAt}
+        sources={article.sources}
+      />
       <Header />
       <main className="py-12 sm:py-16">
         <Container>
@@ -49,7 +61,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           </Link>
           <article className="mx-auto mt-5 max-w-3xl">
             <header>
-              <p className="text-sm font-semibold text-gold">{article.category} · 읽는 시간 {article.readingTime}</p>
+              <p className="text-sm font-semibold text-gold">
+                {article.category} · 읽는 시간 {article.readingTime} · <time dateTime={article.updatedAt ?? article.publishedAt}>{article.updatedAt ? "업데이트" : "발행"} {(article.updatedAt ?? article.publishedAt).replaceAll("-", ".")}</time>
+              </p>
               <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-navy sm:text-4xl">{article.title}</h1>
               <p className="mt-5 text-lg leading-8 text-muted">{article.description}</p>
             </header>

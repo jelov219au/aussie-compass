@@ -47,10 +47,19 @@ const routes = [
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
-  return [...routes, ...articles.map((article) => `/resources/${article.slug}`)].map((route) => ({
+  const staticEntries: MetadataRoute.Sitemap = routes.map((route) => ({
     url: `${siteUrl}${route}`,
     lastModified,
     changeFrequency: route === "" ? "weekly" : "monthly",
     priority: route === "" ? 1 : route === "/salary-calculator" ? 0.9 : 0.7,
   }));
+
+  const articleEntries: MetadataRoute.Sitemap = articles.map((article) => ({
+    url: `${siteUrl}/resources/${article.slug}`,
+    lastModified: new Date(article.updatedAt ?? article.publishedAt),
+    changeFrequency: "monthly",
+    priority: 0.75,
+  }));
+
+  return [...staticEntries, ...articleEntries];
 }

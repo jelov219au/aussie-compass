@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 const fallbackSiteUrl = "https://hojucompass.com";
 
 function normaliseSiteUrl(value: string) {
@@ -14,23 +16,29 @@ type PageMetadata = {
   title: string;
   description: string;
   path: `/${string}`;
+  kind?: "website" | "article";
+  publishedTime?: string;
+  modifiedTime?: string;
 };
 
-export function createPageMetadata({ title, description, path }: PageMetadata): Metadata {
+export function createPageMetadata({ title, description, path, kind = "website", publishedTime, modifiedTime }: PageMetadata): Metadata {
+  const sharedOpenGraph = {
+    title,
+    description,
+    url: path,
+    siteName,
+    locale: "ko_KR",
+  };
+
   return {
     title,
     description,
     alternates: {
       canonical: path,
     },
-    openGraph: {
-      title,
-      description,
-      url: path,
-      siteName,
-      locale: "ko_KR",
-      type: "website",
-    },
+    openGraph: kind === "article"
+      ? { ...sharedOpenGraph, type: "article", publishedTime, modifiedTime }
+      : { ...sharedOpenGraph, type: "website" },
     twitter: {
       card: "summary_large_image",
       title,
@@ -38,4 +46,3 @@ export function createPageMetadata({ title, description, path }: PageMetadata): 
     },
   };
 }
-import type { Metadata } from "next";
