@@ -42,6 +42,9 @@ const items:SearchItem[]=[
   {href:"/resources/australia-job-search-plan",type:"자료",title:"호주 구직 지원 관리 방법",description:"공고 저장부터 후속 연락과 면접 준비 루틴",keywords:["취업","지원서","면접","구직루틴"]},
   {href:"/resources/english-resume-achievement-examples",type:"자료",title:"이력서 경력을 성과로 바꾸는 법",description:"업무를 영문 성과 문장으로 쓰는 공식과 예시",keywords:["resume","영작","achievement","경력문장"]},
   {href:"/resources/emergency-fund-australia-guide",type:"자료",title:"호주 생활 비상금 목표",description:"필수 생활비 기준 비상금 계획",keywords:["저축","emergency fund","생활비","목표"]},
+  {href:"/resources/first-payslip-checklist-australia",type:"자료",title:"호주 첫 Payslip 확인 체크리스트",description:"근무시간, 시급, Casual Loading, 세금과 Super 대조 방법",keywords:["첫급여","payslip","페이슬립","급여명세서","casual loading","super"]},
+  {href:"/resources/australia-rental-scam-red-flags",type:"자료",title:"렌트·쉐어하우스 사기 신호",description:"보증금 송금과 개인정보 제출 전 확인 순서",keywords:["렌트사기","쉐어하우스","보증금","bond","rental scam","집구하기"]},
+  {href:"/resources/used-car-ppsr-purchase-day-checklist",type:"자료",title:"중고차 구매 당일 PPSR 체크리스트",description:"VIN, PPSR, 등록 상태와 송금 전 확인 순서",keywords:["중고차","ppsr","vin","명의이전","rego","차량구매"]},
 ];
 
 export default function SearchPage(){return <><BreadcrumbJsonLd items={[{name:"홈",path:"/"},{name:"통합 검색",path:"/search"}]}/><Header/><main className="py-12 sm:py-16"><Container><Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 홈으로 돌아가기</Link><div className="mt-8 max-w-4xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Find your answer</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">필요한 정보를 한 번에 찾으세요.</h1><p className="mt-5 max-w-3xl leading-7 text-muted">도구 이름을 몰라도 괜찮습니다. 지금 궁금한 단어나 상황을 입력하면 관련 도구와 가이드를 함께 보여드립니다.</p></div><SiteSearch items={items}/><p className="mt-4 border-l-2 border-gold pl-4 text-xs leading-5 text-muted">검색어는 서버로 전송되거나 저장되지 않으며 현재 페이지 안에서만 처리됩니다.</p></Container></main><Footer/></>}
