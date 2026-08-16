@@ -33,6 +33,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - English resume builder with Korean-to-English resume suggestions, example sentences, colour and density themes, live preview, local autosave, draft backup, ATS-friendly text copy, and print/PDF output
 - Resume Pro product preview with premium template directions, a free-versus-Pro comparison, and a clearly labelled pre-payment state
 - Resume Pro development workspace with a local-only cover-letter draft, job-ad keyword check, and saved-resume connection
+- EOFY Pack Pro product preview with an evidence register, accountant-handoff summary, annual backup concept, and free-versus-Pro boundary
 - Payment readiness contract for an Australian sole trader, with payments disabled until Stripe, webhooks, entitlement storage, seller details and support are configured
 - Cost of living calculator with mixed payment frequencies, income comparison, local autosave, custom expenses, and printable results
 - Dedicated tools hub linking all available calculators and builders
@@ -47,6 +48,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Local-first service quote comparator for itemised costs, business checks, licensing prompts, timelines, and warranties
 - Property inspection checklist with tailored share-house, rental, and purchase modes, concern tracking, and state-specific official links
 - Public transport and student housing-area planner with three-candidate rent/commute comparison, Google Maps transit and nearby-amenity links, official state transport resources, and safety-data links
+- State-by-state overseas driver-licence guide covering visitor and resident timing, Korean-licence caveats, translation preparation, and current official authority links
 - Used-car comparison with first-year ownership costs and PPSR, VIN, registration, history, inspection, and test-drive checks
 - Moving project with staged preparation, address-change tasks, local progress, and downloadable calendar reminders
 - Private service-price log with itemised costs and personal median/range summaries, designed as a safe precursor to verified public data

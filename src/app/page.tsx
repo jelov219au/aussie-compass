@@ -9,6 +9,7 @@ import { ArticlesSection } from "@/components/sections/ArticlesSection";
 import { JourneySection } from "@/components/sections/JourneySection";
 import { ReturnVisitSection } from "@/components/sections/ReturnVisitSection";
 import { PersonalRouteFinder } from "@/components/sections/PersonalRouteFinder";
+import { PremiumToolsSection } from "@/components/sections/PremiumToolsSection";
 
 export default function HomePage() {
   return (
@@ -20,6 +21,7 @@ export default function HomePage() {
         <PersonalRouteFinder />
         <JourneySection />
         <ToolsSection />
+        <PremiumToolsSection />
         <ArticlesSection />
         <HowItWorksSection />
         <AboutSection />

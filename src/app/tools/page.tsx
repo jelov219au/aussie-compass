@@ -41,6 +41,15 @@ const availableTools: DirectoryTool[] = [
     categories: ["arrival", "home", "money"],
   },
   {
+    href: "/overseas-driver-licence-guide",
+    eyebrow: "한국 면허로 운전하기",
+    title: "주별 해외면허·면허 전환 가이드",
+    description: "거주 주와 비자 상태에 따라 한국 운전면허 사용 기간, 영문 번역과 현지 면허 전환 준비를 확인하세요.",
+    features: ["8개 주·준주 비교", "한국 면허 주의점", "공식 기관 바로가기"],
+    cta: "거주 주 규정 확인하기",
+    categories: ["arrival", "home"],
+  },
+  {
     href: "/visa-preparation-guide",
     eyebrow: "호주 첫 단계",
     title: "비자 신청·신체검사 준비 허브",
