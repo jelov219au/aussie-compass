@@ -9,9 +9,14 @@ const entitlementEvents = new Set<Stripe.Event.Type>([
   "checkout.session.completed",
   "checkout.session.async_payment_succeeded",
   "checkout.session.async_payment_failed",
+  "refund.created",
+  "refund.updated",
+  "refund.failed",
   "charge.refunded",
   "charge.dispute.created",
+  "charge.dispute.updated",
   "charge.dispute.closed",
+  "charge.dispute.funds_reinstated",
 ]);
 
 export async function POST(request: NextRequest) {

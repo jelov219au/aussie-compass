@@ -21,9 +21,11 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 
 - Use Stripe-hosted Checkout so Hoju Compass never receives raw card details.
 - Create Checkout Sessions only on the server.
-- In non-production environments, use only `sk_test_` keys. In production, use only `sk_live_` keys.
+- In non-production environments, use only test keys (`rk_test_` preferred, `sk_test_` supported). In production, use only live keys (`rk_live_` preferred, `sk_live_` supported).
+- Prefer least-privilege restricted keys (`rk_test_` / `rk_live_`) and grant only the Checkout Session and Price access used by this integration. Review Stripe request logs before adding permissions.
 - Validate the configured Resume Pro price server-side as active, one-time, AUD 19.90 before redirecting.
 - Enable Managed Payments explicitly for each Checkout Session after confirming product eligibility.
+- Add a unique Checkout `integration_identifier` so Resume Pro sessions can be filtered in Stripe Workbench.
 - Verify signed Stripe webhooks before granting access.
 - Store only the minimum entitlement record needed to restore access.
 - Never place `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in variables prefixed with `NEXT_PUBLIC_`.
@@ -41,3 +43,14 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 ## Required environment contract
 
 The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch.
+
+## Remaining actions before the first paid order
+
+1. In Stripe test mode, create or replace the current server key with a restricted key and verify that Price retrieval plus Checkout Session create/retrieve requests succeed.
+2. Add `STRIPE_WEBHOOK_SECRET` from a test webhook endpoint pointing to `/api/stripe/webhook`. Subscribe to `checkout.session.completed`, both `checkout.session.async_payment_*` events, `refund.created`, `refund.updated`, `refund.failed`, `charge.refunded`, and the dispute created/updated/closed/funds-reinstated events handled in code.
+3. Set `PAYMENTS_ENABLED=true` only in a non-production environment and complete the test matrix above.
+4. Choose and implement a durable entitlement store with unique Stripe event IDs, purchase restoration, and refund/dispute revocation. Production checkout remains hard-blocked until this code exists.
+5. Publish the legal seller name, ABN, support email, digital delivery terms and ACL-compatible refund process. Confirm GST treatment with a registered tax agent before enabling tax collection.
+6. After those gates pass, create the equivalent live restricted key and live webhook endpoint, then enable production payments deliberately.
+
+Do not enable Stripe automatic tax yet. It should only be enabled after the relevant registration is confirmed and recorded as Collecting in Stripe.

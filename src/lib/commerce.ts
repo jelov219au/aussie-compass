@@ -1,3 +1,7 @@
+import "server-only";
+
+import { getStripeSecretMode } from "@/lib/stripe";
+
 export const resumeProProduct = {
   id: "resume-pro",
   name: "Resume Pro",
@@ -19,9 +23,12 @@ export type PaymentReadiness = {
 
 export function getPaymentReadiness(): PaymentReadiness {
   const enabled = process.env.PAYMENTS_ENABLED === "true";
-  const stripeConfigured = Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_RESUME_PRO_PRICE_ID);
+  const stripeMode = getStripeSecretMode();
+  const expectedStripeMode = process.env.VERCEL_ENV === "production" ? "live" : "test";
+  const stripeConfigured = stripeMode === expectedStripeMode
+    && Boolean(process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_"));
   const managedPaymentsConfigured = process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true";
-  const webhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET);
+  const webhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_"));
   // Keep live checkout closed until a code-backed, durable entitlement provider is implemented.
   const entitlementStoreConfigured = false;
   const sellerDetailsConfigured = Boolean(process.env.BUSINESS_LEGAL_NAME && process.env.BUSINESS_ABN);

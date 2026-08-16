@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "node:crypto";
 
 import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
 import { siteUrl } from "@/lib/site";
@@ -8,6 +9,11 @@ export const runtime = "nodejs";
 
 function getCheckoutOrigin(request: NextRequest) {
   return process.env.VERCEL_ENV === "production" ? siteUrl : request.nextUrl.origin;
+}
+
+function createIntegrationIdentifier() {
+  const suffix = Array.from(randomBytes(8), (byte) => String.fromCharCode(97 + (byte % 26))).join("");
+  return `hoju_compass_resume_pro_${suffix}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -47,6 +53,7 @@ export async function POST(request: NextRequest) {
     const origin = getCheckoutOrigin(request);
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      integration_identifier: createIntegrationIdentifier(),
       line_items: [{ price: priceId, quantity: 1 }],
       customer_creation: "always",
       managed_payments: { enabled: true },

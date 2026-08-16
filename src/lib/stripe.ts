@@ -8,8 +8,8 @@ export function getStripeSecretMode() {
   const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
 
   if (!secretKey) return "missing" as const;
-  if (secretKey.startsWith("sk_test_")) return "test" as const;
-  if (secretKey.startsWith("sk_live_")) return "live" as const;
+  if (secretKey.startsWith("sk_test_") || secretKey.startsWith("rk_test_")) return "test" as const;
+  if (secretKey.startsWith("sk_live_") || secretKey.startsWith("rk_live_")) return "live" as const;
   return "invalid" as const;
 }
 
@@ -18,7 +18,7 @@ export function assertSafeStripeEnvironment() {
   const isProduction = process.env.VERCEL_ENV === "production";
 
   if (mode === "missing" || mode === "invalid") {
-    throw new Error("Stripe secret key is missing or invalid.");
+    throw new Error("Stripe server API key is missing or invalid.");
   }
 
   if (isProduction && mode !== "live") {
