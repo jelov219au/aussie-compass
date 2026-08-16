@@ -12,6 +12,7 @@ export function Footer() {
     { label: "나의 진행", href: "/my-compass" },
     { label: "기록 백업·이전", href: "/data-transfer" },
     { label: "통합 검색", href: "/search" },
+    { label: "새 글 RSS", href: "/feed.xml" },
     { label: "생활 용어집", href: "/glossary" },
     { label: "앱으로 사용하기", href: "/install" },
     { label: content.nav.guides, href: "/resources" },
