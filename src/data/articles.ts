@@ -16,8 +16,8 @@ export type Article = {
 export type ArticleTopicId = "start" | "work" | "home" | "money";
 
 export const articleTopicCategories: Record<ArticleTopicId, string[]> = {
-  start: ["호주 취업", "영문 이력서"],
-  work: ["급여 확인", "직장 권리", "고용 형태"],
+  start: ["호주 취업", "영문 이력서", "도착 행정", "구직 안전"],
+  work: ["급여 확인", "직장 권리", "고용 형태", "첫 직장"],
   home: ["집 구하기", "차량 구매"],
   money: ["저축과 생활비", "생활비"],
 };
@@ -188,6 +188,66 @@ export const articles: Article[] = [
       { heading: "좋은 주의 돈에는 미리 역할을 주세요", paragraphs: ["추가로 번 금액을 모두 자유 지출로 보지 말고 다음 저수입 주, 큰 청구서, 저축 목표로 나눠두세요. MoneySmart는 별도 계좌와 작은 단위의 bill smoothing을 활용하는 방법을 안내합니다."], bullets: ["Bills 계좌: 정기 비용의 주간 몫 이동", "Buffer 계좌: 근무시간 감소 대비", "Goal 계좌: 비자비·항공권·차량·교육비", "Spending 계좌: 남은 범위에서 자유 지출"] },
     ],
     sources: [{ label: "MoneySmart — Managing on a casual income", href: "https://moneysmart.gov.au/budgeting/managing-on-a-casual-income" }],
+  },
+  {
+    slug: "tfn-application-after-arrival-australia",
+    title: "호주 도착 후 TFN 신청, 시작 전에 확인할 것",
+    socialTitle: "Apply for a TFN after arriving in Australia",
+    description: "외국 여권 소지자와 임시 방문자가 호주 도착 후 TFN 온라인 신청 경로를 찾고, 이름·주소·연락처를 입력하기 전에 확인할 점을 정리합니다.",
+    category: "도착 행정",
+    readingTime: "6분",
+    publishedAt: "2026-08-16",
+    toolHref: "/arrival-checklist",
+    toolLabel: "첫 30일 정착 체크리스트 열기",
+    sections: [
+      { heading: "TFN은 ATO가 발급하는 개인 세금 번호입니다", paragraphs: ["TFN은 세금과 Super 기록을 연결하는 중요한 개인 식별번호입니다. 일자리 공고에 지원하기 위해 공개하거나 구직 사이트 프로필에 적는 번호가 아닙니다. ATO는 TFN을 안전하게 보관하고 개인 정보를 보호하라고 안내합니다."] },
+      { heading: "임시 방문자는 호주 도착 후 공식 경로를 확인하세요", paragraphs: ["ATO는 해외 여권 소지자, 영주 이민자와 임시 방문자가 호주에 도착해 일을 준비하는 경우 전용 온라인 TFN 신청 경로를 이용하도록 안내합니다. 호주 밖에 있는 사람이나 다른 신분에는 신청 경로가 달라질 수 있으므로, 검색 광고가 아니라 ATO의 Apply for a TFN 페이지에서 본인에게 맞는 항목을 다시 선택하세요."], bullets: ["여권의 영문 이름과 신청서 입력 이름을 동일하게 준비", "현재 받을 수 있는 호주 우편 주소와 연락처 확인", "이미 TFN을 받은 적이 있다면 새로 신청하지 말고 기존 번호 찾기 경로 확인", "신청 완료 화면과 접수 관련 정보를 안전한 곳에 기록"] },
+      { heading: "TFN과 ABN을 서로 바꾸어 생각하지 마세요", paragraphs: ["TFN은 개인 세금 기록에 쓰이고, ABN은 사업 활동을 식별하는 번호입니다. 직원으로 고용되는 사람에게 ABN 발급을 먼저 요구한다고 해서 자동으로 Contractor가 되는 것은 아닙니다. 업무 관계가 불분명하면 계약과 실제 일하는 방식을 함께 확인하세요."] },
+      { heading: "번호를 받은 뒤에도 필요한 곳에만 제공하세요", bullets: ["고용주의 정식 Tax file number declaration 절차", "은행이나 Super fund 등 법적으로 필요한 확인 절차", "ATO 또는 권한이 확인된 세무 전문가"], paragraphs: ["메신저로 접근한 채용 담당자, 집주인, 일반 서비스 업체가 TFN 전체 번호를 요구하면 보내기 전에 목적과 상대를 다시 확인하세요."] },
+    ],
+    sources: [
+      { label: "ATO — Foreign passport holders, permanent migrants and temporary visitors: TFN application", href: "https://www.ato.gov.au/individuals-and-families/tax-file-number/apply-for-a-tfn/foreign-passport-holders-permanent-migrants-and-temporary-visitors-tfn-application" },
+      { label: "ATO — Tax file number application guidance", href: "https://www.ato.gov.au/forms-and-instructions/payg-foreign-resident-withholding-variation/instructions-for-your-frwv-application" },
+    ],
+  },
+  {
+    slug: "first-job-super-fund-stapled-account-guide",
+    title: "호주 첫 직장 Super, 새 계좌를 만들기 전에 확인할 것",
+    socialTitle: "Check your super account before starting a new job",
+    description: "기존 Super 계좌, Stapled fund와 Standard choice form의 관계를 이해하고 첫 고용 서류에서 중복 계좌를 줄이는 확인 순서를 정리합니다.",
+    category: "첫 직장",
+    readingTime: "7분",
+    publishedAt: "2026-08-16",
+    toolHref: "/super-guide",
+    toolLabel: "Super 기본 구조 확인하기",
+    sections: [
+      { heading: "새 직장마다 새 Super 계좌가 필요한 것은 아닙니다", paragraphs: ["이미 본인에게 연결된 Super 계좌가 있다면 새 직장에서 그 계좌를 계속 사용할 수 있는지 먼저 확인하세요. 여러 계좌가 생기면 각각 수수료나 보험료가 부과될 수 있어, 계좌를 새로 열기 전에 기존 계좌 정보를 찾아보는 편이 좋습니다."] },
+      { heading: "Stapled fund는 직장을 옮겨도 따라가는 기존 계좌입니다", paragraphs: ["직원이 fund를 선택하지 않은 경우 고용주는 ATO에 기존 Stapled super fund 정보를 요청해야 할 수 있습니다. 이는 직장을 바꿀 때마다 불필요한 새 계좌가 만들어지는 일을 줄이기 위한 절차입니다."], bullets: ["myGov에 연결된 ATO 온라인 서비스에서 기존 Super 계좌 확인", "Fund 이름, ABN, USI와 Member number 대조", "이름·생년월일·TFN 정보가 fund 기록과 맞는지 확인"] },
+      { heading: "Standard choice form은 ATO가 아니라 고용주에게 냅니다", paragraphs: ["선택 자격이 있고 기존 fund를 지정하려면 myGov의 New employment 절차, ATO 양식 또는 고용주의 payroll 시스템을 이용할 수 있습니다. 온라인 양식에는 고용주 ABN과 고용 형태, 고용주의 default fund 정보가 필요할 수 있습니다."], bullets: ["임시 취업 비자 보유자는 choice-of-fund 자격이 다를 수 있으므로 본인 조건 확인", "양식의 빈칸과 fund 세부 정보가 정확한지 확인", "완성한 선택 양식은 ATO가 아니라 고용주에게 제출", "고용주에게 특정 fund의 투자 조언을 기대하지 않기"] },
+      { heading: "합치기 전에 보험과 비용을 먼저 비교하세요", paragraphs: ["여러 Super 계좌를 합치면 수수료를 줄일 수 있지만 기존 계좌에 연결된 보험이나 혜택을 잃을 수도 있습니다. 이 글은 특정 fund를 추천하지 않습니다. 통합 전에는 각 fund의 수수료, 보험, 투자 옵션과 본인의 체류 계획을 확인하세요."] },
+    ],
+    sources: [
+      { label: "ATO — Superannuation standard choice form", href: "https://www.ato.gov.au/forms-and-instructions/superannuation-standard-choice-form" },
+      { label: "ATO — Offer employees a choice of super fund", href: "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/setting-up-super-for-your-business/offer-employees-a-choice-of-super-fund" },
+    ],
+  },
+  {
+    slug: "australia-job-scam-red-flags",
+    title: "호주 구직 중 만나는 가짜 채용 제안, 사기 신호 8가지",
+    socialTitle: "Eight warning signs of an Australian job scam",
+    description: "WhatsApp·Telegram으로 갑자기 온 고수익 제안, 선입금·가상자산 충전과 신분증 요구를 멈추고 확인하는 방법입니다.",
+    category: "구직 안전",
+    readingTime: "7분",
+    publishedAt: "2026-08-16",
+    toolHref: "/help-directory",
+    toolLabel: "사기 신고와 도움 연락처 확인하기",
+    sections: [
+      { heading: "돈을 벌기 위해 먼저 돈을 내라고 하면 멈추세요", paragraphs: ["Scamwatch는 적은 노력으로 높은 수익을 약속하면서 일을 시작하려면 돈을 내라고 하는 제안을 대표적인 구직 사기로 안내합니다. 처음에 작은 금액을 지급해 신뢰하게 만든 뒤 더 큰 충전금이나 수수료를 요구할 수도 있습니다."] },
+      { heading: "가짜 채용 제안에서 자주 보이는 신호", bullets: ["지원하지 않았는데 WhatsApp, Telegram, Signal이나 문자로 갑자기 연락함", "경력·자격·추천인 확인이나 정식 면접 없이 바로 채용함", "집에서 간단한 작업만 하면 높은 수익을 준다고 함", "업무를 시작하거나 수익을 출금하려면 선입금·PayID·가상자산 충전을 요구함", "개인 계좌로 돈을 받아 다른 계좌나 가상자산 지갑으로 보내라고 함", "대신 물건을 구매하거나 택배를 받아 다시 보내라고 함", "회사 공식 이메일이 아닌 개인 주소와 메신저만 사용함", "검증하기 전에 여권, 운전면허증, 은행 계좌나 카드 정보를 요구함"] },
+      { heading: "회사 이름보다 연락 경로를 검증하세요", paragraphs: ["사기범은 실제 회사와 유명 채용회사의 이름을 도용할 수 있습니다. 메시지에 적힌 번호로만 확인하지 말고 회사 공식 웹사이트에서 직접 찾은 전화번호나 이메일로 채용 담당자의 이름과 공고를 확인하세요."], bullets: ["회사명과 recruiter 이름에 scam을 붙여 검색", "공식 채용 페이지에 같은 직무가 올라왔는지 확인", "도메인 철자와 이메일 주소가 공식 사이트와 같은지 대조", "급하게 결정하라는 요구에서 잠시 멈추고 주변 사람에게 보여주기"] },
+      { heading: "이미 돈이나 정보를 보냈다면 빠르게 움직이세요", bullets: ["은행이나 카드 제공사에 즉시 연락해 거래 중지 가능성 확인", "이메일·은행·정부 서비스 비밀번호 변경", "가짜 회사와 연락 중단", "광고가 올라온 플랫폼과 Scamwatch에 신고", "신분증 정보가 넘어갔다면 IDCARE 지원 확인"], paragraphs: ["개인 계좌로 다른 사람의 돈을 옮기는 money mule 역할은 본인이 범죄 구조를 몰랐더라도 심각한 문제가 될 수 있습니다. 의심되는 송금 업무는 즉시 중단하고 공식 도움을 받으세요."] },
+    ],
+    sources: [{ label: "Scamwatch — Jobs and employment scams", href: "https://www.scamwatch.gov.au/types-of-scams/jobs-and-employment-scams" }],
   },
 ];
 
