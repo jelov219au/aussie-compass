@@ -1,25 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 
+import { getEntitlementCommand } from "@/lib/entitlements";
 import { getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
 const maxWebhookPayloadBytes = 1024 * 1024;
-
-const entitlementEvents = new Set<Stripe.Event.Type>([
-  "checkout.session.completed",
-  "checkout.session.async_payment_succeeded",
-  "checkout.session.async_payment_failed",
-  "refund.created",
-  "refund.updated",
-  "refund.failed",
-  "charge.refunded",
-  "charge.dispute.created",
-  "charge.dispute.updated",
-  "charge.dispute.closed",
-  "charge.dispute.funds_reinstated",
-]);
 
 export async function POST(request: NextRequest) {
   const signature = request.headers.get("stripe-signature");
@@ -49,7 +36,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid webhook signature." }, { status: 400 });
   }
 
-  if (!entitlementEvents.has(event.type)) {
+  const entitlementCommand = getEntitlementCommand(event);
+
+  if (!entitlementCommand) {
     return NextResponse.json({ received: true });
   }
 
@@ -65,6 +54,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Live entitlement fulfillment is not configured." }, { status: 503 });
   }
 
-  console.info("Verified Stripe test webhook", { eventId: event.id, type: event.type });
+  console.info("Verified Stripe test webhook", {
+    eventId: event.id,
+    type: event.type,
+    entitlementAction: entitlementCommand.action,
+    reason: entitlementCommand.reason,
+  });
   return NextResponse.json({ received: true, testOnly: true });
 }
