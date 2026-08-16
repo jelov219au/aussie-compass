@@ -8,6 +8,7 @@ import {
   type ReadArticleRecord,
   type WeeklyReadingTarget,
 } from "@/lib/articleProgress";
+import { WeeklyCalendarReminder } from "@/components/dashboard/WeeklyCalendarReminder";
 
 export type ResourceSummary = {
   href: string;
@@ -122,6 +123,7 @@ export function ResourceReadingProgress({
             {completedThisWeek >= weeklyGoal ? "이번 주 목표를 달성했습니다. 잘 이어가고 있어요." : `이번 주 ${weeklyGoal - completedThisWeek}개 더 읽으면 목표 달성입니다.`}
           </p>
         </div>
+        <WeeklyCalendarReminder />
       </div>
 
       <div className="p-7 sm:p-8 lg:pl-10">
