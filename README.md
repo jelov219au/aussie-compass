@@ -38,7 +38,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Dedicated tools hub linking all available calculators and builders
 - Savings goal project with target timelines, contribution check-ins, progress milestones, recurring calendar reminders, and emergency fund planning
 - Local-first job application tracker for vacancies, interviews, offers, next actions, filtering, and JSON backups
-- SEO-focused Korean resources hub with actionable job search, resume, savings, first-payslip, rental-scam, and used-car purchase guides, official sources, and contextual tool links
+- SEO-focused Korean resources hub with actionable job search, resume, savings, first-payslip, rental-scam, used-car, unpaid-trial, ABN contractor, and casual-income guides, official sources, and contextual tool links
 - Searchable Korean glossary for 23 common Australian work, tax, visa, housing, and transport terms with official-source links
 - Local-only social card maker with Instagram post, portrait, and story sizes, editable editorial themes, PNG export, and copyable captions
 - Career pathway explorer that clearly separates labour shortages from skilled migration eligibility and links to official sources

@@ -105,6 +105,57 @@ export const articles: Article[] = [
     ],
     sources: [{ label: "Australian Government PPSR — Do a used car or vehicle search", href: "https://www.ppsr.gov.au/searching/do-used-car-or-vehicle-search" }],
   },
+  {
+    slug: "unpaid-trial-shift-australia-guide",
+    title: "호주 무급 Trial Shift, 어디까지 괜찮을까?",
+    description: "카페·레스토랑·매장에서 요청받은 무급 트라이얼이 단순한 기술 확인인지 실제 근무인지 구분할 질문을 정리합니다.",
+    category: "직장 권리",
+    readingTime: "6분",
+    toolHref: "/underpayment-guide",
+    toolLabel: "미지급 급여 대응 순서 확인하기",
+    sections: [
+      { heading: "Trial이라는 이름만으로 무급이 되는 것은 아닙니다", paragraphs: ["Fair Work Ombudsman은 무급 트라이얼을 채용 대상자가 직무에 필요한 기술을 보여주는 과정으로 설명합니다. 필요한 기술을 확인하는 범위를 넘거나, 필요 이상으로 길어지거나, 직접적인 감독 없이 실제 업무를 수행한다면 임금이 지급돼야 할 수 있습니다."] },
+      { heading: "시작 전에 확인할 질문", bullets: ["어떤 기술을 보여줘야 하나요?", "시작·종료 시간은 언제인가요?", "누가 옆에서 직접 평가하나요?", "고객 응대, 청소, 마감처럼 평가와 무관한 업무도 하나요?", "트라이얼이 무급이라는 점을 미리 명확하게 안내했나요?", "추가 시간이 필요하면 그 시간부터 어떤 시급으로 지급하나요?"] },
+      { heading: "실제 근무에 가까운 신호", bullets: ["정규 로스터의 빈자리를 채우도록 함", "여러 날 또는 여러 차례 무급 출근을 요구함", "혼자 고객을 응대하거나 매장을 운영하게 함", "기술 확인과 무관한 청소·재고·마감 업무를 계속 시킴", "못 나오는 날 대체 인력을 직접 구하라고 함", "채용 여부와 관계없이 사업에 실질적인 노동을 제공함"] },
+      { heading: "기록은 짧게라도 남겨두세요", paragraphs: ["공고, 트라이얼 요청 메시지, 날짜와 시간, 수행한 업무와 함께 일한 사람을 기록하세요. 합리적인 기술 시연을 넘었다고 생각되면 고용주에게 지급 기준을 서면으로 묻고, 해결되지 않으면 Fair Work의 공식 안내를 확인하세요. 상황마다 판단이 달라질 수 있으므로 이 글만으로 임금 지급 여부를 단정하지는 마세요."] },
+    ],
+    sources: [{ label: "Fair Work Ombudsman — Unpaid trials", href: "https://www.fairwork.gov.au/starting-employment/unpaid-work/unpaid-trials" }],
+  },
+  {
+    slug: "abn-employee-or-contractor-australia",
+    title: "‘ABN으로 일하세요’라고 들었을 때 확인할 것",
+    description: "ABN과 Invoice가 있다는 이유만으로 Contractor가 되는 것은 아닙니다. Employee와 Contractor를 구분할 때 확인할 관계와 위험 신호를 살펴봅니다.",
+    category: "고용 형태",
+    readingTime: "8분",
+    toolHref: "/salary-calculator",
+    toolLabel: "제시 금액을 급여 기준과 비교하기",
+    sections: [
+      { heading: "ABN 하나로 고용 형태가 결정되지는 않습니다", paragraphs: ["직원이 될지 독립 Contractor가 될지는 계약 제목이나 ABN 보유 여부 하나만으로 결정되지 않습니다. Fair Work는 계약 내용과 실제 관계의 성격, 업무 수행 방식 등 여러 요소를 함께 살펴야 한다고 안내합니다."] },
+      { heading: "관계를 확인하는 질문", bullets: ["업무 시간과 장소를 누가 결정하나요?", "일하는 방법을 누가 지시하고 감독하나요?", "도구·차량·재료와 보험을 누가 준비하나요?", "정해진 시급을 받나요, 결과물이나 견적에 따라 비용을 청구하나요?", "잘못된 작업을 내 비용으로 고쳐야 하는 사업상 위험이 있나요?", "다른 고객을 자유롭게 받을 수 있나요?", "다른 사람에게 일을 맡기거나 Subcontract할 수 있나요?", "휴가, Super, Workers compensation 같은 책임이 계약에 어떻게 적혀 있나요?"] },
+      { heading: "주의해서 봐야 할 상황", bullets: ["기존 Employee와 같은 일을 하면서 ABN과 Invoice만 요구받음", "고용주가 정한 고정 시간·장소에서 지속적으로 일함", "내 고객이나 사업 위험은 없는데 모든 책임만 Contractor에게 넘김", "Employee로 일하던 사람을 해고하거나 위협한 뒤 같은 일을 Contractor로 전환함", "계약서를 읽을 시간이나 독립적인 조언을 받을 기회를 주지 않음"] },
+      { heading: "서명 전 비용 구조까지 계산하세요", paragraphs: ["진짜 Contractor라면 청구 금액에서 세금, 보험, 장비, 무급 휴가, 회계 비용과 미지급 Invoice 위험까지 감당해야 할 수 있습니다. 제시 금액을 Employee 시급과 단순 비교하지 말고 전체 비용을 계산하세요. 관계가 불분명하거나 실제 업무가 계약과 다르면 Fair Work 안내와 독립적인 법률·세무 조언을 확인하는 편이 안전합니다."] },
+    ],
+    sources: [
+      { label: "Fair Work Ombudsman — Independent contractors", href: "https://www.fairwork.gov.au/find-help-for/independent-contractors/independent-contractors" },
+      { label: "Fair Work Ombudsman — Sham contracting", href: "https://www.fairwork.gov.au/find-help-for/independent-contractors/sham-contracting" },
+    ],
+  },
+  {
+    slug: "casual-income-budget-australia",
+    title: "Casual 수입이 매주 다를 때 생활비 예산 짜는 법",
+    description: "가장 많이 번 주가 아니라 낮은 수입 구간을 기준으로 렌트, 정기결제, 비상금과 자유 지출을 나누는 방법입니다.",
+    category: "생활비",
+    readingTime: "6분",
+    toolHref: "/cost-of-living-calculator",
+    toolLabel: "내 주간·월간 생활비 계산하기",
+    sections: [
+      { heading: "한 번의 좋은 급여를 기준으로 계약하지 마세요", paragraphs: ["Casual 근무는 주마다 시간이 달라질 수 있습니다. 최근 몇 주의 평균만 보기보다 낮게 들어온 주에도 감당할 수 있는 필수 지출을 먼저 확인하면 렌트나 할부처럼 고정된 약속을 정할 때 여유가 생깁니다."] },
+      { heading: "수입을 세 가지 숫자로 보세요", bullets: ["낮은 주: 근무시간이 줄었을 때 실제로 받은 Net Pay", "평균 주: 최근 여러 Pay cycle의 보통 수입", "좋은 주: 추가 Shift와 Penalty가 포함된 수입"] },
+      { heading: "낮은 주 수입으로 우선 배정할 항목", bullets: ["렌트와 기본 공과금", "식료품과 출퇴근 교통", "보험·통신·의료처럼 중단하기 어려운 비용", "곧 청구될 연간·분기 비용의 주간 몫", "최소한의 비상금 적립"] },
+      { heading: "좋은 주의 돈에는 미리 역할을 주세요", paragraphs: ["추가로 번 금액을 모두 자유 지출로 보지 말고 다음 저수입 주, 큰 청구서, 저축 목표로 나눠두세요. MoneySmart는 별도 계좌와 작은 단위의 bill smoothing을 활용하는 방법을 안내합니다."], bullets: ["Bills 계좌: 정기 비용의 주간 몫 이동", "Buffer 계좌: 근무시간 감소 대비", "Goal 계좌: 비자비·항공권·차량·교육비", "Spending 계좌: 남은 범위에서 자유 지출"] },
+    ],
+    sources: [{ label: "MoneySmart — Managing on a casual income", href: "https://moneysmart.gov.au/budgeting/managing-on-a-casual-income" }],
+  },
 ];
 
 export function getArticle(slug: string) { return articles.find((article) => article.slug === slug); }
