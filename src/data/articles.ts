@@ -7,10 +7,11 @@ export type Article = {
   readingTime: string;
   publishedAt: string;
   updatedAt?: string;
+  quickSummary: string[];
   toolHref: string;
   toolLabel: string;
   sections: Array<{ heading: string; paragraphs?: string[]; bullets?: string[] }>;
-  sources?: Array<{ label: string; href: string }>;
+  sources?: Array<{ label: string; href: string; summary: string }>;
 };
 
 export type ArticleTopicId = "start" | "work" | "home" | "money";
@@ -31,7 +32,8 @@ export const articles: Article[] = [
     category: "호주 취업",
     readingTime: "5분",
     publishedAt: "2026-08-13",
-    updatedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["지원할 때 공고 원문과 제출한 이력서 버전을 함께 보관하기", "지원 완료와 다음 확인 날짜를 한 세트로 기록하기", "면접 결과와 개선점을 다음 지원서에 바로 반영하기"],
     toolHref: "/job-application-tracker",
     toolLabel: "구직 지원 트래커 사용하기",
     sections: [
@@ -39,6 +41,10 @@ export const articles: Article[] = [
       { heading: "공고를 발견했을 때 기록할 항목", bullets: ["회사명과 정확한 직무명", "공고 원문 링크와 마감일", "지원에 사용할 이력서 버전", "담당자 이름이나 연락처가 공개된 경우 해당 정보", "공고에서 반복되는 핵심 역량과 표현"] },
       { heading: "지원 후에는 날짜를 정하세요", paragraphs: ["지원 완료만 기록하고 끝내기보다 결과를 확인할 날짜나 후속 연락을 검토할 날짜를 정하세요. 면접이 잡히면 장소, 준비 자료와 질문 목록을 메모해 두는 것이 좋습니다."], bullets: ["지원 당일: 공고와 제출 자료 보관", "면접 전: 회사와 직무 조사", "면접 후: 감사 연락과 답변 복기", "결과 수신 후: 다음 지원에 적용할 개선점 기록"] },
       { heading: "개인정보는 필요한 만큼만", paragraphs: ["구직 기록에는 민감한 신분증 번호, 여권 정보, 비자 문서 원본을 저장하지 않는 편이 안전합니다. Hoju Compass 트래커는 입력 내용을 서버로 보내지 않고 현재 브라우저에만 저장합니다."] },
+    ],
+    sources: [
+      { label: "Workforce Australia — Register to get started", href: "https://www.workforceaustralia.gov.au/individuals/coaching/how-to/introduction", summary: "구직 프로필, Job alert와 공고 저장 기능을 활용해 지원 과정을 관리하는 공식 고용서비스 안내입니다. Hoju Compass에서는 특정 정부 지원 의무와 무관하게 공고·지원일·다음 행동을 개인 기록으로 연결하는 방법을 설명합니다." },
+      { label: "Fair Work Ombudsman — Workplace privacy", href: "https://www.fairwork.gov.au/tools-and-resources/best-practice-guides/workplace-privacy", summary: "이력서, 연락처, 추천인과 학력 기록도 개인정보에 해당할 수 있음을 설명합니다. 지원 기록을 관리할 때 여권·TFN·은행정보 같은 민감한 자료를 불필요하게 함께 저장하지 말아야 하는 근거가 됩니다." },
     ],
   },
   {
@@ -49,7 +55,8 @@ export const articles: Article[] = [
     category: "영문 이력서",
     readingTime: "6분",
     publishedAt: "2026-08-13",
-    updatedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["책임을 나열하는 대신 행동과 결과를 한 문장에 담기", "강한 동사 뒤에 업무 규모·빈도·대상을 붙이기", "면접에서 설명할 수 없는 숫자나 성과는 만들지 않기"],
     toolHref: "/resume-builder",
     toolLabel: "영문 이력서 만들기",
     sections: [
@@ -57,6 +64,10 @@ export const articles: Article[] = [
       { heading: "문장 기본 공식", bullets: ["강한 동사로 시작: Delivered, Managed, Prepared, Trained, Resolved", "업무의 대상이나 규모 추가", "가능하면 숫자나 빈도 포함", "팀이나 고객에게 생긴 긍정적인 결과 설명"] },
       { heading: "업무별 예시", bullets: ["Delivered friendly service to more than 100 customers per shift.", "Prepared high-volume coffee orders while maintaining quality and presentation.", "Trained new team members in POS and closing procedures.", "Resolved customer requests promptly and professionally.", "Maintained accurate stock records and reduced avoidable waste."] },
       { heading: "숫자를 억지로 만들 필요는 없습니다", paragraphs: ["정확한 수치를 모르면 만들어 내지 마세요. high-volume, during busy periods, consistently처럼 사실에 맞는 범위에서 업무 환경과 일관성을 설명할 수 있습니다. 면접에서 구체적으로 설명할 수 있는 내용만 이력서에 넣는 것이 중요합니다."] },
+    ],
+    sources: [
+      { label: "Workforce Australia — Resume planner", href: "https://www.workforceaustralia.gov.au/content/online-learning/course/what-needs-to-be-in-your-resume/assets/Resume%20planner.pdf", summary: "이력서에 경력뿐 아니라 기술, 교육, 자격과 실제 성취를 정리하도록 돕는 공식 작성 자료입니다. 각 경험을 지원 직무와 연결하고, 본인이 설명할 수 있는 구체적인 사례를 고르는 데 활용할 수 있습니다." },
+      { label: "Fair Work Ombudsman — Recruitment application tips", href: "https://www.fairwork.gov.au/about-us/careers/our-recruitment-process", summary: "직무 설명에 맞춰 이력서를 조정하고, 역할의 기준을 다룰 때 구체적인 업무 사례를 제시하라는 지원 팁을 안내합니다. 한 기관의 채용 절차 예시이므로 모든 호주 고용주의 형식이 같다는 뜻은 아닙니다." },
     ],
   },
   {
@@ -67,7 +78,8 @@ export const articles: Article[] = [
     category: "저축과 생활비",
     readingTime: "5분",
     publishedAt: "2026-08-13",
-    updatedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["여행비가 아니라 예상 밖의 필수 지출을 위한 별도 자금으로 보기", "한 달 필수 생활비를 먼저 계산한 뒤 목표를 단계적으로 키우기", "급여일 자동이체와 별도 계좌로 저축을 반복 가능한 습관으로 만들기"],
     toolHref: "/savings-goal-calculator",
     toolLabel: "비상금 프로젝트 시작하기",
     sections: [
@@ -76,7 +88,7 @@ export const articles: Article[] = [
       { heading: "목표는 단계적으로", paragraphs: ["처음부터 큰 금액을 목표로 하면 시작하기 어려울 수 있습니다. 1차로 작은 완충 자금을 만들고, 이후 한 달치 필수 지출, 마지막으로 여러 달을 버틸 수 있는 금액으로 확장해 보세요. MoneySmart는 일반적인 목표로 약 3개월치 지출을 안내합니다."] },
       { heading: "꾸준함을 만드는 방법", bullets: ["급여일 직후 자동 이체 설정", "생활비 계좌와 분리", "매주 또는 격주로 완료 기록", "목표의 25%·50%·75% 지점 확인", "예상치 못한 인출 후에도 다시 시작"] },
     ],
-    sources: [{ label: "MoneySmart — Save for an emergency fund", href: "https://moneysmart.gov.au/saving/save-for-an-emergency-fund" }],
+    sources: [{ label: "MoneySmart — Save for an emergency fund", href: "https://moneysmart.gov.au/saving/save-for-an-emergency-fund", summary: "비상금 규모를 정하는 방법, 별도 저축계좌와 자동이체를 활용하는 방법을 안내합니다. Hoju Compass에서는 이를 호주 생활의 주거비·교통비·비자비처럼 실제 지출 항목에 맞춰 풀어 설명했습니다." }],
   },
   {
     slug: "first-payslip-checklist-australia",
@@ -86,6 +98,8 @@ export const articles: Article[] = [
     category: "급여 확인",
     readingTime: "6분",
     publishedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["통장 입금액보다 Pay period·시급·시간·수당부터 대조하기", "로스터와 출퇴근 기록을 Payslip과 같은 기간으로 맞춰 보기", "차이가 있으면 날짜·시간·예상액을 표로 정리해 서면 문의하기"],
     toolHref: "/payslip-guide",
     toolLabel: "Payslip 항목 확인하기",
     sections: [
@@ -94,7 +108,7 @@ export const articles: Article[] = [
       { heading: "내 기록과 한 줄씩 대조하세요", paragraphs: ["로스터와 출퇴근 기록을 열고 일반 근무, 주말, 공휴일, 휴식시간을 나눠 Payslip과 비교하세요. 첫 급여부터 같은 방식으로 확인하면 반복되는 누락을 빠르게 발견할 수 있습니다."], bullets: ["Roster 또는 근무시간 캡처 보관", "계약서의 고용 형태와 시급 확인", "적용 Award와 Classification 확인", "Payslip PDF와 실제 입금 내역 함께 보관"] },
       { heading: "차이가 있다면 먼저 사실을 정리하세요", paragraphs: ["누락된 날짜와 시간, 예상 시급, Payslip에 표시된 금액을 표로 정리한 뒤 고용주나 Payroll 담당자에게 서면으로 문의하세요. 해결되지 않으면 Fair Work Ombudsman의 공식 안내를 확인할 수 있습니다. Payslip은 급여일로부터 1 working day 이내에 제공돼야 합니다."] },
     ],
-    sources: [{ label: "Fair Work Ombudsman — Pay slips and record-keeping", href: "https://www.fairwork.gov.au/pay-and-wages/paying-wages/pay-slips" }],
+    sources: [{ label: "Fair Work Ombudsman — Pay slips", href: "https://www.fairwork.gov.au/pay-and-wages/paying-wages/pay-slips", summary: "Payslip을 언제 받아야 하는지, 고용주·직원 정보와 시급·시간·수당·공제·Super 중 무엇이 표시돼야 하는지 확인할 수 있습니다. 공식 기준은 급여일로부터 1 working day 이내 제공입니다." }],
   },
   {
     slug: "australia-rental-scam-red-flags",
@@ -104,6 +118,8 @@ export const articles: Article[] = [
     category: "집 구하기",
     readingTime: "7분",
     publishedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["방문이나 실시간 확인 전에 돈부터 요구하면 일단 멈추기", "주소·사진·게시자·계좌 명의를 서로 다른 경로로 교차 확인하기", "주세·공과금·Bond·퇴거 조건을 서면으로 받은 뒤 송금하기"],
     toolHref: "/property-inspection-checklist",
     toolLabel: "집 방문 체크리스트 열기",
     sections: [
@@ -112,7 +128,7 @@ export const articles: Article[] = [
       { heading: "돈을 보내기 전 확인 순서", bullets: ["가능하면 직접 방문하고 내부와 열쇠 접근을 확인", "주소, 게시자 이름, 이메일과 사진을 각각 검색", "임대인·에이전트·기존 세입자 중 누구와 계약하는지 확인", "주세와 공과금, Bond, 최소 거주기간, 퇴거 통지를 서면으로 받기", "해당 주의 Bond 납부·등록 절차와 영수증 확인", "송금 전 계약 상대와 계좌 명의를 다시 대조"] },
       { heading: "신분증은 필요한 범위만 제출하세요", paragraphs: ["렌트 신청 과정에서 신원 확인 자료가 필요할 수 있지만, 상대방과 절차를 검증하기 전에 민감한 전체 문서를 보내지는 마세요. TFN, 은행 비밀번호, 카드 보안번호는 주거 계약 확인에 필요하지 않습니다. 의심스러운 광고나 송금 피해는 Scamwatch와 해당 결제기관에 신속히 알리세요."] },
     ],
-    sources: [{ label: "Scamwatch — Looking for rental properties online?", href: "https://www.scamwatch.gov.au/about-us/news-and-alerts/looking-for-rental-properties-online-watch-out-for-scams" }],
+    sources: [{ label: "Scamwatch — Looking for rental properties online?", href: "https://www.scamwatch.gov.au/about-us/news-and-alerts/looking-for-rental-properties-online-watch-out-for-scams", summary: "실제 집 주소와 광고 사진을 도용하고, 집을 보여줄 수 없다며 선입금을 요구하는 전형적인 렌트 사기 수법을 설명합니다. 직접 Inspection, 주소·이름·이메일 검색, 송금 전 상대 확인이 핵심입니다." }],
   },
   {
     slug: "used-car-ppsr-purchase-day-checklist",
@@ -122,6 +138,8 @@ export const articles: Article[] = [
     category: "차량 구매",
     readingTime: "7분",
     publishedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["차체와 등록 서류의 VIN을 먼저 일치시키기", "구매 당일 정부 PPSR 검색 결과와 인증서를 보관하기", "PPSR과 별도로 정비 상태·등록·보험·명의이전을 확인하기"],
     toolHref: "/used-car-comparison",
     toolLabel: "중고차 첫 1년 비용 비교하기",
     sections: [
@@ -130,7 +148,7 @@ export const articles: Article[] = [
       { heading: "PPSR만으로 확인되지 않는 것", bullets: ["정확한 미상환 금융 금액", "이전 소유자 전체 기록", "주행거리 조작 여부", "미납 벌금", "엔진·변속기·차체의 실제 상태"] },
       { heading: "송금 전 마지막 순서", paragraphs: ["PPSR과 별도로 독립적인 사전 점검을 받고, 해당 주의 공식 등록 조회와 명의이전 절차를 확인하세요. 판매자 신원, VIN, 차량 가격, 날짜가 들어간 영수증을 준비하고 실제 차량과 열쇠를 인수하는 흐름에 맞춰 결제하세요."], bullets: ["보험 시작 시점을 차량 인수 전에 맞추기", "명의이전 책임과 제출 기한 확인", "예비 열쇠와 정비 기록 인수", "광고, 대화, 영수증과 PPSR 인증서 백업"] },
     ],
-    sources: [{ label: "Australian Government PPSR — Do a used car or vehicle search", href: "https://www.ppsr.gov.au/searching/do-used-car-or-vehicle-search" }],
+    sources: [{ label: "Australian Government PPSR — Used vehicle search", href: "https://www.ppsr.gov.au/searching/do-used-car-or-vehicle-search", summary: "VIN으로 차량의 등록된 금융 이해관계와 도난·폐차 관련 기록을 조회하는 정부 서비스입니다. 결과가 차량 상태 보증은 아니므로 독립적인 차량 점검과 주별 Rego 조회를 함께 해야 합니다." }],
   },
   {
     slug: "unpaid-trial-shift-australia-guide",
@@ -140,6 +158,8 @@ export const articles: Article[] = [
     category: "직장 권리",
     readingTime: "6분",
     publishedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["무급 Trial은 필요한 기술을 짧게 보여주는 범위인지 확인하기", "실제 고객 업무·청소·마감으로 이어지면 시간과 업무를 기록하기", "시작 전 종료 시간·평가자·유급 전환 기준을 서면으로 묻기"],
     toolHref: "/underpayment-guide",
     toolLabel: "미지급 급여 대응 순서 확인하기",
     sections: [
@@ -148,7 +168,7 @@ export const articles: Article[] = [
       { heading: "실제 근무에 가까운 신호", bullets: ["정규 로스터의 빈자리를 채우도록 함", "여러 날 또는 여러 차례 무급 출근을 요구함", "혼자 고객을 응대하거나 매장을 운영하게 함", "기술 확인과 무관한 청소·재고·마감 업무를 계속 시킴", "못 나오는 날 대체 인력을 직접 구하라고 함", "채용 여부와 관계없이 사업에 실질적인 노동을 제공함"] },
       { heading: "기록은 짧게라도 남겨두세요", paragraphs: ["공고, 트라이얼 요청 메시지, 날짜와 시간, 수행한 업무와 함께 일한 사람을 기록하세요. 합리적인 기술 시연을 넘었다고 생각되면 고용주에게 지급 기준을 서면으로 묻고, 해결되지 않으면 Fair Work의 공식 안내를 확인하세요. 상황마다 판단이 달라질 수 있으므로 이 글만으로 임금 지급 여부를 단정하지는 마세요."] },
     ],
-    sources: [{ label: "Fair Work Ombudsman — Unpaid trials", href: "https://www.fairwork.gov.au/starting-employment/unpaid-work/unpaid-trials" }],
+    sources: [{ label: "Fair Work Ombudsman — Unpaid trials", href: "https://www.fairwork.gov.au/starting-employment/unpaid-work/unpaid-trials", summary: "합법적인 무급 기술 시연과 임금을 받아야 할 수 있는 실제 근무를 구분하는 기준을 설명합니다. 필요한 기술 확인에 필요한 시간, 직접 감독 여부, 사업에 실질적인 노동을 제공했는지가 중요합니다." }],
   },
   {
     slug: "abn-employee-or-contractor-australia",
@@ -158,6 +178,8 @@ export const articles: Article[] = [
     category: "고용 형태",
     readingTime: "8분",
     publishedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["ABN이나 계약서 제목 하나로 Contractor가 결정되는 것은 아님", "업무 통제·도구·사업 위험·대체 가능성 등 실제 관계를 함께 보기", "제시 금액에서 세금·보험·장비·무급 휴가 비용까지 빼서 비교하기"],
     toolHref: "/salary-calculator",
     toolLabel: "제시 금액을 급여 기준과 비교하기",
     sections: [
@@ -167,8 +189,8 @@ export const articles: Article[] = [
       { heading: "서명 전 비용 구조까지 계산하세요", paragraphs: ["진짜 Contractor라면 청구 금액에서 세금, 보험, 장비, 무급 휴가, 회계 비용과 미지급 Invoice 위험까지 감당해야 할 수 있습니다. 제시 금액을 Employee 시급과 단순 비교하지 말고 전체 비용을 계산하세요. 관계가 불분명하거나 실제 업무가 계약과 다르면 Fair Work 안내와 독립적인 법률·세무 조언을 확인하는 편이 안전합니다."] },
     ],
     sources: [
-      { label: "Fair Work Ombudsman — Independent contractors", href: "https://www.fairwork.gov.au/find-help-for/independent-contractors/independent-contractors" },
-      { label: "Fair Work Ombudsman — Sham contracting", href: "https://www.fairwork.gov.au/find-help-for/independent-contractors/sham-contracting" },
+      { label: "Fair Work Ombudsman — Independent contractors", href: "https://www.fairwork.gov.au/find-help-for/independent-contractors/independent-contractors", summary: "Employee와 Contractor 관계를 판단할 때 계약뿐 아니라 실제 업무 관계 전체를 살펴야 한다는 기준과 각 형태의 일반적인 차이를 확인할 수 있습니다." },
+      { label: "Fair Work Ombudsman — Sham contracting", href: "https://www.fairwork.gov.au/find-help-for/independent-contractors/sham-contracting", summary: "실제로는 Employee인 사람을 Contractor로 잘못 표시해 권리와 비용 책임을 넘기는 행위, 해고 후 같은 업무를 Contractor로 강요하는 위험 신호를 설명합니다." },
     ],
   },
   {
@@ -179,6 +201,8 @@ export const articles: Article[] = [
     category: "생활비",
     readingTime: "6분",
     publishedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["가장 많이 번 주가 아니라 낮게 받은 주의 Net Pay로 고정비를 보기", "정기 청구액을 주간 몫으로 나눠 Bills 계좌에 미리 옮기기", "좋은 주의 추가 수입을 다음 저수입 주·비상금·목표에 배정하기"],
     toolHref: "/cost-of-living-calculator",
     toolLabel: "내 주간·월간 생활비 계산하기",
     sections: [
@@ -187,7 +211,7 @@ export const articles: Article[] = [
       { heading: "낮은 주 수입으로 우선 배정할 항목", bullets: ["렌트와 기본 공과금", "식료품과 출퇴근 교통", "보험·통신·의료처럼 중단하기 어려운 비용", "곧 청구될 연간·분기 비용의 주간 몫", "최소한의 비상금 적립"] },
       { heading: "좋은 주의 돈에는 미리 역할을 주세요", paragraphs: ["추가로 번 금액을 모두 자유 지출로 보지 말고 다음 저수입 주, 큰 청구서, 저축 목표로 나눠두세요. MoneySmart는 별도 계좌와 작은 단위의 bill smoothing을 활용하는 방법을 안내합니다."], bullets: ["Bills 계좌: 정기 비용의 주간 몫 이동", "Buffer 계좌: 근무시간 감소 대비", "Goal 계좌: 비자비·항공권·차량·교육비", "Spending 계좌: 남은 범위에서 자유 지출"] },
     ],
-    sources: [{ label: "MoneySmart — Managing on a casual income", href: "https://moneysmart.gov.au/budgeting/managing-on-a-casual-income" }],
+    sources: [{ label: "MoneySmart — Managing on a casual income", href: "https://moneysmart.gov.au/budgeting/managing-on-a-casual-income", summary: "불규칙한 수입에서 필수비용을 먼저 확보하고, 큰 청구서를 작은 주기로 나누며, 높은 수입이 들어온 시기에 완충 자금을 만드는 방법을 안내합니다." }],
   },
   {
     slug: "tfn-application-after-arrival-australia",
@@ -197,6 +221,8 @@ export const articles: Article[] = [
     category: "도착 행정",
     readingTime: "6분",
     publishedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["해외 여권 소지자는 호주 도착 후 본인에게 맞는 ATO 신청 경로를 선택하기", "여권 영문 이름·연락처·우편 주소를 정확히 준비하기", "한 번 받은 TFN은 재신청하지 말고 필요한 기관에만 제공하기"],
     toolHref: "/arrival-checklist",
     toolLabel: "첫 30일 정착 체크리스트 열기",
     sections: [
@@ -206,8 +232,7 @@ export const articles: Article[] = [
       { heading: "번호를 받은 뒤에도 필요한 곳에만 제공하세요", bullets: ["고용주의 정식 Tax file number declaration 절차", "은행이나 Super fund 등 법적으로 필요한 확인 절차", "ATO 또는 권한이 확인된 세무 전문가"], paragraphs: ["메신저로 접근한 채용 담당자, 집주인, 일반 서비스 업체가 TFN 전체 번호를 요구하면 보내기 전에 목적과 상대를 다시 확인하세요."] },
     ],
     sources: [
-      { label: "ATO — Foreign passport holders, permanent migrants and temporary visitors: TFN application", href: "https://www.ato.gov.au/individuals-and-families/tax-file-number/apply-for-a-tfn/foreign-passport-holders-permanent-migrants-and-temporary-visitors-tfn-application" },
-      { label: "ATO — Tax file number application guidance", href: "https://www.ato.gov.au/forms-and-instructions/payg-foreign-resident-withholding-variation/instructions-for-your-frwv-application" },
+      { label: "ATO — Foreign passport holders and temporary visitors TFN application", href: "https://www.ato.gov.au/individuals-and-families/tax-file-number/apply-for-a-tfn/foreign-passport-holders-permanent-migrants-and-temporary-visitors-tfn-application", summary: "해외 여권 소지자·영주 이민자·임시 방문자가 이용할 수 있는 온라인 TFN 신청 자격과 공식 시작 경로를 안내합니다. 호주 입국 전후 상태에 따라 신청 방식이 달라질 수 있습니다." },
     ],
   },
   {
@@ -218,6 +243,8 @@ export const articles: Article[] = [
     category: "첫 직장",
     readingTime: "7분",
     publishedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["새 직장마다 새 Super 계좌를 만들기 전에 기존 계좌부터 찾기", "Fund 이름·ABN·USI·Member number를 고용 서류와 대조하기", "계좌 통합 전 수수료뿐 아니라 기존 보험과 혜택 손실도 확인하기"],
     toolHref: "/super-guide",
     toolLabel: "Super 기본 구조 확인하기",
     sections: [
@@ -227,8 +254,8 @@ export const articles: Article[] = [
       { heading: "합치기 전에 보험과 비용을 먼저 비교하세요", paragraphs: ["여러 Super 계좌를 합치면 수수료를 줄일 수 있지만 기존 계좌에 연결된 보험이나 혜택을 잃을 수도 있습니다. 이 글은 특정 fund를 추천하지 않습니다. 통합 전에는 각 fund의 수수료, 보험, 투자 옵션과 본인의 체류 계획을 확인하세요."] },
     ],
     sources: [
-      { label: "ATO — Superannuation standard choice form", href: "https://www.ato.gov.au/forms-and-instructions/superannuation-standard-choice-form" },
-      { label: "ATO — Offer employees a choice of super fund", href: "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/setting-up-super-for-your-business/offer-employees-a-choice-of-super-fund" },
+      { label: "ATO — Superannuation standard choice form", href: "https://www.ato.gov.au/forms-and-instructions/superannuation-standard-choice-form", summary: "기존 Super fund를 고용주에게 지정할 때 사용하는 공식 양식과 제출 대상을 안내합니다. 완성된 양식은 ATO가 아니라 고용주에게 제출합니다." },
+      { label: "ATO — Offer employees a choice of super fund", href: "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/setting-up-super-for-your-business/offer-employees-a-choice-of-super-fund", summary: "직원이 fund를 선택할 수 있는 경우, 고용주가 choice 절차와 stapled fund 확인을 어떻게 처리하는지 설명합니다. 본인의 선택 자격과 고용주의 의무를 함께 이해하는 데 유용합니다." },
     ],
   },
   {
@@ -239,6 +266,8 @@ export const articles: Article[] = [
     category: "구직 안전",
     readingTime: "7분",
     publishedAt: "2026-08-16",
+    updatedAt: "2026-08-17",
+    quickSummary: ["지원하지 않은 고수익 메신저 제안은 회사 공식 채널로 다시 검증하기", "일을 시작하거나 수익을 찾기 위해 선입금·충전을 요구하면 중단하기", "이미 송금했다면 은행 연락·비밀번호 변경·신고를 동시에 진행하기"],
     toolHref: "/help-directory",
     toolLabel: "사기 신고와 도움 연락처 확인하기",
     sections: [
@@ -247,7 +276,7 @@ export const articles: Article[] = [
       { heading: "회사 이름보다 연락 경로를 검증하세요", paragraphs: ["사기범은 실제 회사와 유명 채용회사의 이름을 도용할 수 있습니다. 메시지에 적힌 번호로만 확인하지 말고 회사 공식 웹사이트에서 직접 찾은 전화번호나 이메일로 채용 담당자의 이름과 공고를 확인하세요."], bullets: ["회사명과 recruiter 이름에 scam을 붙여 검색", "공식 채용 페이지에 같은 직무가 올라왔는지 확인", "도메인 철자와 이메일 주소가 공식 사이트와 같은지 대조", "급하게 결정하라는 요구에서 잠시 멈추고 주변 사람에게 보여주기"] },
       { heading: "이미 돈이나 정보를 보냈다면 빠르게 움직이세요", bullets: ["은행이나 카드 제공사에 즉시 연락해 거래 중지 가능성 확인", "이메일·은행·정부 서비스 비밀번호 변경", "가짜 회사와 연락 중단", "광고가 올라온 플랫폼과 Scamwatch에 신고", "신분증 정보가 넘어갔다면 IDCARE 지원 확인"], paragraphs: ["개인 계좌로 다른 사람의 돈을 옮기는 money mule 역할은 본인이 범죄 구조를 몰랐더라도 심각한 문제가 될 수 있습니다. 의심되는 송금 업무는 즉시 중단하고 공식 도움을 받으세요."] },
     ],
-    sources: [{ label: "Scamwatch — Jobs and employment scams", href: "https://www.scamwatch.gov.au/types-of-scams/jobs-and-employment-scams" }],
+    sources: [{ label: "Scamwatch — Jobs and employment scams", href: "https://www.scamwatch.gov.au/types-of-scams/jobs-and-employment-scams", summary: "가짜 채용 담당자, 간단한 온라인 작업, 선입금·가상자산 충전, money mule 제안처럼 반복되는 구직 사기 유형과 피해 후 대응 방법을 안내합니다." }],
   },
 ];
 

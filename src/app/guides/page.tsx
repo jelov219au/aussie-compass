@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { GuideIcon } from "@/components/icons/Icons";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
@@ -13,13 +12,13 @@ export const metadata = createPageMetadata({
 });
 
 const guides = [
-  { href: "/minimum-wage-guide", title: "최저 시급 가이드", description: "최신 호주 최저 시급과 적용 기준을 확인합니다.", tag: "시급" },
-  { href: "/award-guide", title: "내 Award 찾기", description: "Award와 Classification을 찾아 정확한 시급을 확인합니다.", tag: "시급" },
-  { href: "/casual-loading-guide", title: "Casual Loading", description: "Casual 시급이 높은 이유와 25% Loading을 알아봅니다.", tag: "고용 형태" },
-  { href: "/payslip-guide", title: "Payslip 읽는 법", description: "Gross, Net, PAYG, Super와 YTD 항목을 쉽게 확인합니다.", tag: "급여 확인" },
-  { href: "/underpayment-guide", title: "급여가 적게 들어왔다면", description: "기록과 Payslip을 비교하고 차액을 문의하는 순서를 봅니다.", tag: "문제 해결" },
-  { href: "/super-guide", title: "Super 이해하기", description: "Super 12%와 급여 패키지 포함 여부를 확인합니다.", tag: "Super" },
-  { href: "/leave-guide", title: "휴가·병가·공휴일", description: "Annual Leave, Personal Leave와 Public Holiday 권리를 비교합니다.", tag: "휴가" },
+  { href: "/minimum-wage-guide", title: "최저 시급 가이드", description: "최신 호주 최저 시급과 적용 기준을 확인합니다.", tag: "시급", covers: ["전국 최저임금과 적용 시점", "Award 시급을 따로 확인해야 하는 이유"] },
+  { href: "/award-guide", title: "내 Award 찾기", description: "Award와 Classification을 찾아 정확한 시급을 확인합니다.", tag: "시급", covers: ["업종·직무로 Award 좁히기", "Level과 근무 시간대별 시급 확인"] },
+  { href: "/casual-loading-guide", title: "Casual Loading", description: "Casual 시급이 높은 이유와 25% Loading을 알아봅니다.", tag: "고용 형태", covers: ["기본 시급과 Loading 구분", "주말·공휴일 Penalty와 비교"] },
+  { href: "/payslip-guide", title: "Payslip 읽는 법", description: "Gross, Net, PAYG, Super와 YTD 항목을 쉽게 확인합니다.", tag: "급여 확인", covers: ["급여명세서 필수 항목", "근무 기록과 차이가 날 때 확인 순서"] },
+  { href: "/underpayment-guide", title: "급여가 적게 들어왔다면", description: "기록과 Payslip을 비교하고 차액을 문의하는 순서를 봅니다.", tag: "문제 해결", covers: ["증거를 남기는 방법", "고용주 문의부터 Fair Work 도움까지"] },
+  { href: "/super-guide", title: "Super 이해하기", description: "Super 12%와 급여 패키지 포함 여부를 확인합니다.", tag: "Super", covers: ["급여와 별도인지 포함인지 확인", "납부 내역과 계좌 확인 방법"] },
+  { href: "/leave-guide", title: "휴가·병가·공휴일", description: "Annual Leave, Personal Leave와 Public Holiday 권리를 비교합니다.", tag: "휴가", covers: ["고용 형태별 휴가 차이", "공휴일 근무와 휴무 조건"] },
 ];
 
 export default function GuidesPage() {
@@ -38,29 +37,32 @@ export default function GuidesPage() {
 
           <section className="mt-10" aria-labelledby="all-guides-heading">
             <h2 id="all-guides-heading" className="sr-only">전체 급여 가이드</h2>
-            <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {guides.map((guide) => (
-                <li key={guide.href}>
-                  <Link href={guide.href} className="group flex h-full min-h-56 flex-col rounded-2xl border border-border bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-md">
-                    <div className="flex items-start justify-between gap-4">
-                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gold/10 text-navy"><GuideIcon /></span>
-                      <span className="rounded-full bg-surface px-3 py-1 text-xs font-medium text-muted">{guide.tag}</span>
-                    </div>
-                    <h3 className="mt-5 text-lg font-semibold text-navy">{guide.title}</h3>
-                    <p className="mt-2 flex-1 text-sm leading-6 text-muted">{guide.description}</p>
-                    <span className="mt-5 text-sm font-semibold text-navy group-hover:text-navy-light">가이드 읽기 &rarr;</span>
+            <ul className="grid border-y border-navy/20 lg:grid-cols-2">
+              {guides.map((guide, index) => (
+                <li key={guide.href} className="border-b border-border last:border-b-0 lg:odd:border-r lg:last:border-r-0">
+                  <Link href={guide.href} className="group grid h-full min-h-72 grid-cols-[3rem_1fr] gap-4 p-6 transition hover:bg-white/70 sm:p-8">
+                    <span className="font-mono text-sm text-gold">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="flex min-w-0 flex-col">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{guide.tag}</span>
+                      <strong className="mt-2 text-xl font-semibold text-navy sm:text-2xl">{guide.title}</strong>
+                      <span className="mt-2 text-sm leading-6 text-muted">{guide.description}</span>
+                      <span className="mt-5 border-l-2 border-gold/70 pl-4">
+                        {guide.covers.map((item) => <span key={item} className="block py-1 text-sm leading-6 text-navy">{item}</span>)}
+                      </span>
+                      <span className="mt-auto pt-6 text-sm font-semibold text-navy">가이드 읽기 <span className="inline-block transition group-hover:translate-x-1">→</span></span>
+                    </span>
                   </Link>
                 </li>
               ))}
             </ul>
           </section>
 
-          <section className="mt-10 rounded-2xl bg-navy p-6 text-white sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-8">
+          <section className="mt-10 border-l-4 border-gold bg-navy p-6 text-white sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-8">
             <div>
               <h2 className="text-xl font-semibold">내 급여를 바로 계산하고 싶나요?</h2>
               <p className="mt-2 leading-7 text-white/70">시급이나 연봉을 입력해 세전·세후 급여, Super와 총 패키지를 확인하세요.</p>
             </div>
-            <Link href="/salary-calculator" className="mt-5 inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-gold px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-gold/90 sm:mt-0">통합 급여 계산기 열기</Link>
+            <Link href="/salary-calculator" className="mt-5 inline-flex min-h-11 shrink-0 items-center justify-center bg-gold px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-gold/90 sm:mt-0">통합 급여 계산기 열기</Link>
           </section>
         </Container>
       </main>

@@ -14,10 +14,10 @@ export const metadata = createPageMetadata({
 });
 
 const officialLinks = [
-  { href: "https://www.ato.gov.au/individuals-and-families/your-tax-return/how-to-lodge-your-tax-return", title: "신고 방법과 기한", source: "Australian Taxation Office" },
-  { href: "https://www.ato.gov.au/individuals-and-families/your-tax-return/in-detail/pre-fill-availability", title: "myTax Pre-fill 확인", source: "Australian Taxation Office" },
-  { href: "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim", title: "공제 가능 항목", source: "Australian Taxation Office" },
-  { href: "https://www.tpb.gov.au/registrations_search", title: "등록 세무사 검색", source: "Tax Practitioners Board" },
+  { href: "https://www.ato.gov.au/individuals-and-families/your-tax-return/how-to-lodge-your-tax-return", title: "신고 방법과 기한", source: "Australian Taxation Office", summary: "myTax 직접 신고, 등록 세무사 이용과 종이 신고 경로를 비교하고 각 방식의 일반적인 제출 기한을 확인하는 원문입니다. 작년 신고가 늦었거나 특수한 사정이 있으면 표시된 날짜만 따르지 말고 ATO 또는 등록 세무사에게 본인 기한을 확인하세요." },
+  { href: "https://www.ato.gov.au/individuals-and-families/your-tax-return/in-detail/pre-fill-availability", title: "myTax Pre-fill 확인", source: "Australian Taxation Office", summary: "고용주, 은행, 정부기관 등이 ATO에 보낸 소득 자료가 언제 myTax에 채워지는지 확인할 수 있습니다. Pre-fill은 편리한 시작점이지만 자동 입력된 금액의 정확성과 누락 여부를 최종 확인할 책임은 신고자에게 있습니다." },
+  { href: "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim", title: "공제 가능 항목", source: "Australian Taxation Office", summary: "업무 관련 비용 등 공제 항목별 기본 조건과 필요한 기록으로 이동하는 공식 허브입니다. 돈을 지출했다는 사실만으로 공제되는 것은 아니며, 소득을 얻는 일과의 관련성·개인 사용분 제외·증빙 보관을 함께 확인해야 합니다." },
+  { href: "https://www.tpb.gov.au/registrations_search", title: "등록 세무사 검색", source: "Tax Practitioners Board", summary: "유료로 Tax agent 서비스를 제공하는 사람이 현재 TPB에 등록되어 있는지 이름이나 등록번호로 확인하는 공식 검색입니다. 등록 상태와 조건을 확인한 뒤 서비스 범위, 수수료와 제출 전 검토 절차도 서면으로 물어보세요." },
 ];
 
 export default function TaxReturnGuidePage() {
@@ -64,10 +64,11 @@ export default function TaxReturnGuidePage() {
         </section>
 
         <section className="mt-10" aria-labelledby="official-tax-links">
-          <h2 id="official-tax-links" className="text-2xl font-semibold text-navy">최종 확인은 공식 사이트에서</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">세법과 기한은 바뀔 수 있습니다. 신고 전 현재 회계연도 안내를 다시 확인하세요.</p>
-          <ul className="mt-5 grid gap-4 sm:grid-cols-2">
-            {officialLinks.map((link) => <li key={link.href}><a href={link.href} target="_blank" rel="noreferrer" className="group block h-full rounded-2xl border border-border bg-white p-5 transition hover:border-gold/60 hover:shadow-sm"><span className="text-xs font-semibold text-gold">{link.source}</span><span className="mt-1 block font-semibold text-navy group-hover:text-navy-light">{link.title} &rarr;</span></a></li>)}
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Official sources, explained</p>
+          <h2 id="official-tax-links" className="mt-2 text-2xl font-semibold text-navy">공식 자료를 한국어로 먼저 이해하세요</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">각 링크에서 무엇을 확인해야 하는지 먼저 풀어 설명했습니다. 세법과 기한은 바뀔 수 있으므로 실제 신고 전에는 해당 회계연도의 원문을 마지막으로 확인하세요.</p>
+          <ul className="mt-6 divide-y divide-border border-y border-navy/20 sm:grid sm:grid-cols-2 sm:divide-y-0">
+            {officialLinks.map((link, index) => <li key={link.href} className="border-b border-border sm:odd:border-r"><a href={link.href} target="_blank" rel="noreferrer" className="group grid h-full grid-cols-[2.5rem_1fr] gap-3 p-5 transition hover:bg-white sm:p-6"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><span><span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{link.source}</span><strong className="mt-1 block text-lg text-navy">{link.title}</strong><span className="mt-3 block text-sm leading-7 text-muted">{link.summary}</span><span className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">공식 원문 열기 <span className="ml-2 transition group-hover:translate-x-1">↗</span></span></span></a></li>)}
           </ul>
         </section>
 

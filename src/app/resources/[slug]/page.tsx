@@ -62,50 +62,73 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           <Link href="/resources" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">
             &larr; 실용 자료 목록
           </Link>
-          <article className="mx-auto mt-5 max-w-3xl">
-            <header>
-              <p className="text-sm font-semibold text-gold">
+          <article className="mx-auto mt-5 max-w-4xl">
+            <header className="border-t-2 border-navy pt-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">
                 {article.category} · 읽는 시간 {article.readingTime} · <time dateTime={article.updatedAt ?? article.publishedAt}>{article.updatedAt ? "업데이트" : "발행"} {(article.updatedAt ?? article.publishedAt).replaceAll("-", ".")}</time>
               </p>
-              <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-navy sm:text-4xl">{article.title}</h1>
-              <p className="mt-5 text-lg leading-8 text-muted">{article.description}</p>
-              <div className="mt-6"><PageShareButton /><Link href={{ pathname: "/social-card-maker", query: { eyebrow: `${article.category} · ${article.readingTime}`, title: article.title, body: article.description, cta: "전체 가이드 읽기", path: `/resources/${article.slug}` } }} className="mt-1 inline-flex min-h-11 items-center gap-2 border-b-2 border-border text-sm font-semibold text-navy hover:border-gold"><span aria-hidden="true">▣</span>이 글로 카드뉴스 만들기</Link></div>
+              <h1 className="mt-4 max-w-4xl text-balance text-3xl font-semibold leading-tight tracking-tight text-navy sm:text-5xl">{article.title}</h1>
+              <p className="mt-6 max-w-3xl text-lg leading-8 text-muted sm:text-xl sm:leading-9">{article.description}</p>
+              <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2">
+                <PageShareButton />
+                <Link href={{ pathname: "/social-card-maker", query: { eyebrow: `${article.category} · ${article.readingTime}`, title: article.title, body: article.description, cta: "전체 가이드 읽기", path: `/resources/${article.slug}` } }} className="inline-flex min-h-11 items-center gap-2 border-b-2 border-border text-sm font-semibold text-navy hover:border-gold"><span aria-hidden="true">▣</span>이 글로 카드뉴스 만들기</Link>
+              </div>
             </header>
+
+            <section className="mt-10 border-y border-navy/20 py-7 sm:grid sm:grid-cols-[10rem_1fr] sm:gap-8" aria-labelledby="quick-summary-heading">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Quick brief</p>
+                <h2 id="quick-summary-heading" className="mt-2 text-xl font-semibold text-navy">먼저 이것만</h2>
+              </div>
+              <ol className="mt-5 space-y-4 sm:mt-0">
+                {article.quickSummary.map((summary, index) => (
+                  <li key={summary} className="grid grid-cols-[2rem_1fr] gap-3 text-sm leading-7 text-navy sm:text-base">
+                    <span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span>
+                    <span>{summary}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
 
             <ArticleReadingNav
               sections={readingSections}
               article={{ href: `/resources/${article.slug}`, title: article.title }}
             />
 
-            <div id="article-body" className="mt-10 space-y-10">
+            <div id="article-body" className="mt-12 border-t border-navy/20">
               {article.sections.map((section, index) => (
-                <section id={`section-${index + 1}`} key={section.heading} className="scroll-mt-24">
-                  <h2 className="text-2xl font-semibold tracking-tight text-navy">{section.heading}</h2>
-                  {section.paragraphs?.map((paragraph) => (
-                    <p key={paragraph} className="mt-4 leading-8 text-muted">{paragraph}</p>
-                  ))}
-                  {section.bullets && (
-                    <ul className="mt-4 space-y-3">
-                      {section.bullets.map((bullet) => (
-                        <li key={bullet} className="flex gap-3 leading-7 text-muted">
-                          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" aria-hidden="true" />
-                          <span>{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                <section id={`section-${index + 1}`} key={section.heading} className="scroll-mt-24 border-b border-border py-10 sm:grid sm:grid-cols-[5rem_1fr] sm:gap-6 sm:py-12">
+                  <p className="font-mono text-sm text-gold" aria-hidden="true">{String(index + 1).padStart(2, "0")}</p>
+                  <div className="mt-3 sm:mt-0">
+                    <h2 className="text-2xl font-semibold leading-8 tracking-tight text-navy sm:text-3xl">{section.heading}</h2>
+                    {section.paragraphs?.map((paragraph) => (
+                      <p key={paragraph} className="mt-5 text-[1.02rem] leading-8 text-muted">{paragraph}</p>
+                    ))}
+                    {section.bullets && (
+                      <ul className="mt-6 border-l-2 border-gold/70 pl-5 sm:pl-6">
+                        {section.bullets.map((bullet) => (
+                          <li key={bullet} className="border-b border-border/70 py-3 leading-7 text-muted last:border-b-0 first:pt-0 last:pb-0">
+                            {bullet}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </section>
               ))}
             </div>
 
             {article.sources && (
-              <section className="mt-12 border-t border-border pt-8" aria-labelledby="article-sources">
-                <h2 id="article-sources" className="text-lg font-semibold text-navy">공식 출처</h2>
-                <ul className="mt-3 space-y-2">
+              <section className="mt-14 bg-white px-5 py-7 ring-1 ring-border sm:px-8 sm:py-9" aria-labelledby="article-sources">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Official sources, explained</p>
+                <h2 id="article-sources" className="mt-2 text-2xl font-semibold text-navy">공식 출처를 한국어로 읽기</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-muted">원문을 일일이 열기 전에 무엇을 확인할 수 있는 자료인지 한국어로 정리했습니다. 제도 변경이나 본인 조건은 원문 링크에서 마지막으로 확인하세요.</p>
+                <ul className="mt-7 divide-y divide-border border-y border-border">
                   {article.sources.map((source) => (
-                    <li key={source.href}>
-                      <a href={source.href} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-sm font-medium text-navy underline decoration-gold decoration-2 underline-offset-4">
-                        {source.label} <span className="ml-2" aria-hidden="true">↗</span>
+                    <li key={source.href} className="py-5">
+                      <p className="text-sm leading-7 text-muted">{source.summary}</p>
+                      <a href={source.href} target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
+                        원문 보기 · {source.label} <span className="ml-2" aria-hidden="true">↗</span>
                       </a>
                     </li>
                   ))}
@@ -147,7 +170,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                       </div>
                       <h3 className="mt-4 text-xl font-semibold leading-7 text-navy">{related.title}</h3>
                       <div className="mt-5 flex items-end justify-between gap-4">
-                        <p className="text-sm leading-6 text-muted">{related.description}</p>
+                        <p className="text-sm leading-6 text-muted">{related.quickSummary[0]}</p>
                         <span className="shrink-0 text-xl text-navy transition group-hover:translate-x-1" aria-hidden="true">→</span>
                       </div>
                     </Link>

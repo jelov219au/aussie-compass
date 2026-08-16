@@ -22,7 +22,7 @@ function searchableText(article: Article) {
     ...(section.bullets ?? []),
   ]);
 
-  return [article.title, article.description, article.category, ...sectionText]
+  return [article.title, article.description, article.category, ...article.quickSummary, ...sectionText]
     .join(" ")
     .toLocaleLowerCase("ko-KR");
 }
@@ -130,7 +130,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
               <li key={article.slug} className="border-b border-border last:border-b-0 lg:[&:nth-last-child(-n+2)]:border-b-0 lg:odd:border-r">
                 <Link
                   href={href}
-                  className="group grid h-full min-h-64 grid-rows-[auto_auto_1fr_auto] px-1 py-8 transition hover:bg-white/60 focus-visible:bg-white focus-visible:outline-none sm:px-6 lg:p-8"
+                  className="group grid h-full min-h-72 grid-rows-[auto_auto_auto_1fr_auto] px-1 py-8 transition hover:bg-white/60 focus-visible:bg-white focus-visible:outline-none sm:px-6 lg:p-8"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.13em] text-gold">
@@ -144,9 +144,13 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
                     {article.title}
                   </h3>
                   <p className="mt-3 max-w-xl text-sm leading-6 text-muted">{article.description}</p>
+                  <div className="mt-5 border-l-2 border-gold/70 pl-4">
+                    <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-muted">이 글에서 바로 확인</p>
+                    <p className="mt-1 text-sm leading-6 text-navy">{article.quickSummary[0]}</p>
+                  </div>
                   <div className="mt-8 flex items-end justify-between gap-4 border-t border-border pt-4">
                     <span className="text-xs font-medium text-muted">
-                      {hasRead ? "✓ 읽음 완료" : article.sources?.length ? "공식 출처 확인" : "Hoju Compass 가이드"}
+                      {hasRead ? "✓ 읽음 완료" : article.sources?.length ? `한국어 해설 + 공식 출처 ${article.sources.length}개` : "단계별 한국어 가이드"}
                     </span>
                     <span className="flex h-10 w-10 items-center justify-center border border-border text-lg text-navy transition group-hover:translate-x-1 group-hover:border-gold group-hover:bg-gold" aria-hidden="true">
                       →
