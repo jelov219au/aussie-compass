@@ -4,11 +4,12 @@ import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { SiteSearch, type SearchItem } from "@/components/search/SiteSearch";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { articles } from "@/data/articles";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata=createPageMetadata({title:"호주 생활 정보 검색 | Hoju Compass",description:"비자, TFN, 급여, 이력서, 집, 교통, 세금, Super와 귀국 준비 도구·가이드를 한 번에 검색하세요.",path:"/search"});
 
-const items:SearchItem[]=[
+const coreItems:SearchItem[]=[
   {href:"/my-compass",type:"도구",title:"나의 진행 상황",description:"이 기기에 저장된 정착·구직·저축·세금 프로젝트 모아보기",keywords:["대시보드","이어하기","저장","진행률","내 프로젝트","my compass"]},
   {href:"/data-transfer",type:"도구",title:"기기 데이터 백업·이전",description:"체크리스트, 이력서와 계산 기록을 파일로 백업하고 새 주소·기기로 옮기기",keywords:["백업","복원","가져오기","내보내기","이전","새 도메인","JSON","기기 변경"]},
   {href:"/life-admin-reminder",type:"도구",title:"만료일·갱신 일정 리마인더",description:"비자, 여권, 렌트, Rego, 보험과 자격증 날짜 관리",keywords:["리마인더","알림","만료일","갱신","캘린더","일정","rego","보험","여권"]},
@@ -39,15 +40,16 @@ const items:SearchItem[]=[
   {href:"/underpayment-guide",type:"가이드",title:"급여가 적게 들어왔다면",description:"미지급 급여 확인과 대응 순서",keywords:["임금체불","underpayment","신고","차액"]},
   {href:"/super-guide",type:"가이드",title:"Super 이해하기",description:"Super 비율과 급여 패키지 확인",keywords:["슈퍼","연금","고용주납부","fund"]},
   {href:"/leave-guide",type:"가이드",title:"휴가·병가·공휴일",description:"Annual Leave와 Personal Leave 권리",keywords:["연차","sick leave","public holiday","휴일"]},
-  {href:"/resources/australia-job-search-plan",type:"자료",title:"호주 구직 지원 관리 방법",description:"공고 저장부터 후속 연락과 면접 준비 루틴",keywords:["취업","지원서","면접","구직루틴"]},
-  {href:"/resources/english-resume-achievement-examples",type:"자료",title:"이력서 경력을 성과로 바꾸는 법",description:"업무를 영문 성과 문장으로 쓰는 공식과 예시",keywords:["resume","영작","achievement","경력문장"]},
-  {href:"/resources/emergency-fund-australia-guide",type:"자료",title:"호주 생활 비상금 목표",description:"필수 생활비 기준 비상금 계획",keywords:["저축","emergency fund","생활비","목표"]},
-  {href:"/resources/first-payslip-checklist-australia",type:"자료",title:"호주 첫 Payslip 확인 체크리스트",description:"근무시간, 시급, Casual Loading, 세금과 Super 대조 방법",keywords:["첫급여","payslip","페이슬립","급여명세서","casual loading","super"]},
-  {href:"/resources/australia-rental-scam-red-flags",type:"자료",title:"렌트·쉐어하우스 사기 신호",description:"보증금 송금과 개인정보 제출 전 확인 순서",keywords:["렌트사기","쉐어하우스","보증금","bond","rental scam","집구하기"]},
-  {href:"/resources/used-car-ppsr-purchase-day-checklist",type:"자료",title:"중고차 구매 당일 PPSR 체크리스트",description:"VIN, PPSR, 등록 상태와 송금 전 확인 순서",keywords:["중고차","ppsr","vin","명의이전","rego","차량구매"]},
-  {href:"/resources/unpaid-trial-shift-australia-guide",type:"자료",title:"호주 무급 Trial Shift 확인법",description:"기술 시연과 실제 무급 근무를 구분할 질문",keywords:["무급트라이얼","trial shift","unpaid trial","카페","급여","직장권리"]},
-  {href:"/resources/abn-employee-or-contractor-australia",type:"자료",title:"ABN Employee·Contractor 구분",description:"ABN 계약 제안에서 확인할 업무 관계와 비용",keywords:["abn","contractor","employee","sham contracting","인보이스","개인사업자"]},
-  {href:"/resources/casual-income-budget-australia",type:"자료",title:"Casual 수입 생활비 예산",description:"매주 달라지는 수입을 낮은 주·평균 주·좋은 주로 관리",keywords:["casual","캐주얼","생활비","예산","저수입주","bill smoothing"]},
 ];
+
+const articleItems: SearchItem[] = articles.map((article) => ({
+  href: `/resources/${article.slug}`,
+  type: "자료",
+  title: article.title,
+  description: article.description,
+  keywords: [article.category, article.toolLabel, ...article.sections.map((section) => section.heading)],
+}));
+
+const items = [...coreItems, ...articleItems];
 
 export default function SearchPage(){return <><BreadcrumbJsonLd items={[{name:"홈",path:"/"},{name:"통합 검색",path:"/search"}]}/><Header/><main className="py-12 sm:py-16"><Container><Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 홈으로 돌아가기</Link><div className="mt-8 max-w-4xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Find your answer</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">필요한 정보를 한 번에 찾으세요.</h1><p className="mt-5 max-w-3xl leading-7 text-muted">도구 이름을 몰라도 괜찮습니다. 지금 궁금한 단어나 상황을 입력하면 관련 도구와 가이드를 함께 보여드립니다.</p></div><SiteSearch items={items}/><p className="mt-4 border-l-2 border-gold pl-4 text-xs leading-5 text-muted">검색어는 서버로 전송되거나 저장되지 않으며 현재 페이지 안에서만 처리됩니다.</p></Container></main><Footer/></>}

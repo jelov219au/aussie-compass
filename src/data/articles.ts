@@ -10,6 +10,15 @@ export type Article = {
   sources?: Array<{ label: string; href: string }>;
 };
 
+export type ArticleTopicId = "start" | "work" | "home" | "money";
+
+export const articleTopicCategories: Record<ArticleTopicId, string[]> = {
+  start: ["호주 취업", "영문 이력서"],
+  work: ["급여 확인", "직장 권리", "고용 형태"],
+  home: ["집 구하기", "차량 구매"],
+  money: ["저축과 생활비", "생활비"],
+};
+
 export const articles: Article[] = [
   {
     slug: "australia-job-search-plan",
@@ -159,3 +168,19 @@ export const articles: Article[] = [
 ];
 
 export function getArticle(slug: string) { return articles.find((article) => article.slug === slug); }
+
+export function getArticleTopic(category: string): ArticleTopicId {
+  return (Object.entries(articleTopicCategories).find(([, categories]) => categories.includes(category))?.[0] ?? "start") as ArticleTopicId;
+}
+
+export function getRelatedArticles(slug: string, limit = 2) {
+  const current = getArticle(slug);
+  if (!current) return [];
+
+  const currentTopic = getArticleTopic(current.category);
+  const candidates = articles.filter((article) => article.slug !== slug);
+  const sameTopic = candidates.filter((article) => getArticleTopic(article.category) === currentTopic);
+  const otherTopics = candidates.filter((article) => getArticleTopic(article.category) !== currentTopic);
+
+  return [...sameTopic, ...otherTopics].slice(0, limit);
+}

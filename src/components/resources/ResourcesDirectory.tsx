@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import type { Article } from "@/data/articles";
+import { articleTopicCategories, type Article, type ArticleTopicId } from "@/data/articles";
 
 const filters = [
   { id: "all", label: "전체" },
@@ -13,13 +13,6 @@ const filters = [
 ] as const;
 
 type FilterId = (typeof filters)[number]["id"];
-
-const categoryGroups: Record<Exclude<FilterId, "all">, string[]> = {
-  start: ["호주 취업", "영문 이력서"],
-  work: ["급여 확인", "직장 권리", "고용 형태"],
-  home: ["집 구하기", "차량 구매"],
-  money: ["저축과 생활비", "생활비"],
-};
 
 function searchableText(article: Article) {
   const sectionText = article.sections.flatMap((section) => [
@@ -42,7 +35,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
 
     return articles.filter((article) => {
       const matchesCategory =
-        active === "all" || categoryGroups[active].includes(article.category);
+        active === "all" || articleTopicCategories[active as ArticleTopicId].includes(article.category);
       const matchesQuery =
         normalizedQuery.length === 0 || searchableText(article).includes(normalizedQuery);
 
