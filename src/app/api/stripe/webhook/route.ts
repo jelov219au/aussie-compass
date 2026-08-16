@@ -1,0 +1,46 @@
+import { NextRequest, NextResponse } from "next/server";
+import type Stripe from "stripe";
+
+import { getStripe } from "@/lib/stripe";
+
+export const runtime = "nodejs";
+
+const entitlementEvents = new Set<Stripe.Event.Type>([
+  "checkout.session.completed",
+  "checkout.session.async_payment_succeeded",
+  "checkout.session.async_payment_failed",
+  "charge.refunded",
+  "charge.dispute.created",
+  "charge.dispute.closed",
+]);
+
+export async function POST(request: NextRequest) {
+  const signature = request.headers.get("stripe-signature");
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+
+  if (!signature || !webhookSecret) {
+    return NextResponse.json({ error: "Webhook is not configured." }, { status: 503 });
+  }
+
+  let event: Stripe.Event;
+
+  try {
+    const payload = await request.text();
+    event = getStripe().webhooks.constructEvent(payload, signature, webhookSecret);
+  } catch (error) {
+    console.warn("Rejected Stripe webhook", error instanceof Error ? error.message : "Invalid signature");
+    return NextResponse.json({ error: "Invalid webhook signature." }, { status: 400 });
+  }
+
+  if (!entitlementEvents.has(event.type)) {
+    return NextResponse.json({ received: true });
+  }
+
+  if (event.livemode) {
+    // Returning a failure keeps Stripe retrying instead of silently losing a paid order.
+    return NextResponse.json({ error: "Live entitlement fulfillment is not configured." }, { status: 503 });
+  }
+
+  console.info("Verified Stripe test webhook", { eventId: event.id, type: event.type });
+  return NextResponse.json({ received: true, testOnly: true });
+}

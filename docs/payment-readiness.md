@@ -21,11 +21,15 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 
 - Use Stripe-hosted Checkout so Hoju Compass never receives raw card details.
 - Create Checkout Sessions only on the server.
+- In non-production environments, use only `sk_test_` keys. In production, use only `sk_live_` keys.
+- Validate the configured Resume Pro price server-side as active, one-time, AUD 19.90 before redirecting.
+- Enable Managed Payments explicitly for each Checkout Session after confirming product eligibility.
 - Verify signed Stripe webhooks before granting access.
 - Store only the minimum entitlement record needed to restore access.
 - Never place `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in variables prefixed with `NEXT_PUBLIC_`.
 - Test successful payment, cancellation, duplicate webhook, refund, chargeback and failed payment in Stripe test mode.
 - Keep `PAYMENTS_ENABLED=false` until test evidence and legal copy are reviewed.
+- Live webhook events intentionally return an error until the durable entitlement provider is implemented, preventing paid orders from being silently acknowledged without fulfillment.
 
 ## Bookkeeping
 

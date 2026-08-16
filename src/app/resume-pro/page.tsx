@@ -3,6 +3,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { Container } from "@/components/ui/Container";
+import { canCreateTestCheckout, getPaymentReadiness } from "@/lib/commerce";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -76,6 +77,10 @@ function TemplatePreview({ variant, label }: { variant: "editorial" | "split" | 
 }
 
 export default function ResumeProPage() {
+  const paymentReadiness = getPaymentReadiness();
+  const testCheckoutAvailable = canCreateTestCheckout();
+  const checkoutAvailable = paymentReadiness.ready || testCheckoutAvailable;
+
   return (
     <>
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "영문 이력서 빌더", path: "/resume-builder" }, { name: "Resume Pro", path: "/resume-pro" }]} />
@@ -99,9 +104,21 @@ export default function ResumeProPage() {
             <div className="mt-10 flex flex-wrap gap-3">
               <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">무료 이력서 먼저 만들기</Link>
               <Link href="/resume-pro/workspace" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy hover:bg-white">Pro 기능 개발판 체험</Link>
-              <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">결제 기능 준비 중</span>
+              {checkoutAvailable ? (
+                <form action="/api/checkout/resume-pro" method="post">
+                  <button type="submit" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">
+                    {testCheckoutAvailable ? "테스트 결제 시작" : "Resume Pro 구매"}
+                  </button>
+                </form>
+              ) : (
+                <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">결제 기능 준비 중</span>
+              )}
             </div>
-            <p className="mt-4 text-xs leading-5 text-muted">현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다.</p>
+            <p className="mt-4 text-xs leading-5 text-muted">
+              {testCheckoutAvailable
+                ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구나 Pro 이용권 부여가 발생하지 않습니다."
+                : "현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다."}
+            </p>
           </Container>
         </section>
 
