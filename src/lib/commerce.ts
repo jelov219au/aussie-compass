@@ -29,8 +29,8 @@ export function getPaymentReadiness(): PaymentReadiness {
     && Boolean(process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_"));
   const managedPaymentsConfigured = process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true";
   const webhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_"));
-  // Keep live checkout closed until a code-backed, durable entitlement provider is implemented.
-  const entitlementStoreConfigured = false;
+  const entitlementStoreConfigured = process.env.PAYMENTS_ENTITLEMENT_STORE === "neon"
+    && Boolean(process.env.ENTITLEMENT_DB_URL?.trim().match(/^postgres(?:ql)?:\/\//));
   const sellerDetailsConfigured = Boolean(process.env.BUSINESS_LEGAL_NAME && process.env.BUSINESS_ABN);
   const supportConfigured = Boolean(process.env.NEXT_PUBLIC_SUPPORT_EMAIL);
   const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && sellerDetailsConfigured && supportConfigured;

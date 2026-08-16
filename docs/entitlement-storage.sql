@@ -54,6 +54,168 @@ create table if not exists purchase_restore_tokens (
 create index if not exists purchase_restore_tokens_entitlement_idx
   on purchase_restore_tokens (entitlement_id);
 
+create or replace function apply_entitlement_event(
+  p_event_id text,
+  p_event_type text,
+  p_livemode boolean,
+  p_stripe_created_at timestamptz,
+  p_action text,
+  p_product_code text,
+  p_checkout_session_id text,
+  p_payment_intent_id text,
+  p_charge_id text,
+  p_customer_id text,
+  p_reason text
+)
+returns table (
+  outcome text,
+  id bigint,
+  product_code text,
+  status text,
+  stripe_checkout_session_id text,
+  stripe_payment_intent_id text,
+  stripe_charge_id text,
+  stripe_customer_id text,
+  granted_at timestamptz,
+  revoked_at timestamptz
+)
+language plpgsql
+security invoker
+as $$
+declare
+  v_inserted_event_id text;
+  v_entitlement_id bigint;
+  v_status text;
+begin
+  if p_action not in ('grant', 'revoke', 'review') then
+    raise exception 'Unsupported entitlement action';
+  end if;
+
+  perform pg_advisory_xact_lock(hashtext(coalesce(
+    p_payment_intent_id,
+    p_checkout_session_id,
+    p_charge_id,
+    p_event_id
+  )));
+
+  insert into payment_webhook_events (
+    stripe_event_id,
+    event_type,
+    livemode,
+    stripe_created_at,
+    command_action,
+    processing_status
+  ) values (
+    p_event_id,
+    p_event_type,
+    p_livemode,
+    p_stripe_created_at,
+    p_action,
+    'processing'
+  )
+  on conflict (stripe_event_id) do nothing
+  returning stripe_event_id into v_inserted_event_id;
+
+  select entitlement.id
+  into v_entitlement_id
+  from purchase_entitlements entitlement
+  where (p_checkout_session_id is not null and entitlement.stripe_checkout_session_id = p_checkout_session_id)
+     or (p_payment_intent_id is not null and entitlement.stripe_payment_intent_id = p_payment_intent_id)
+     or (p_charge_id is not null and entitlement.stripe_charge_id = p_charge_id)
+  order by entitlement.id
+  limit 1
+  for update;
+
+  if v_inserted_event_id is null then
+    return query
+    select
+      'duplicate'::text,
+      entitlement.id,
+      entitlement.product_code,
+      entitlement.status,
+      entitlement.stripe_checkout_session_id,
+      entitlement.stripe_payment_intent_id,
+      entitlement.stripe_charge_id,
+      entitlement.stripe_customer_id,
+      entitlement.granted_at,
+      entitlement.revoked_at
+    from purchase_entitlements entitlement
+    where entitlement.id = v_entitlement_id;
+    return;
+  end if;
+
+  v_status := case p_action
+    when 'grant' then 'active'
+    when 'revoke' then 'revoked'
+    else 'review'
+  end;
+
+  if v_entitlement_id is null then
+    if p_product_code is null then
+      raise exception 'No entitlement matches Stripe event %', p_event_id;
+    end if;
+
+    insert into purchase_entitlements (
+      product_code,
+      status,
+      stripe_checkout_session_id,
+      stripe_payment_intent_id,
+      stripe_charge_id,
+      stripe_customer_id,
+      last_stripe_event_id,
+      granted_at,
+      revoked_at
+    ) values (
+      p_product_code,
+      v_status,
+      p_checkout_session_id,
+      p_payment_intent_id,
+      p_charge_id,
+      p_customer_id,
+      p_event_id,
+      case when v_status = 'active' then now() end,
+      case when v_status = 'revoked' then now() end
+    )
+    returning purchase_entitlements.id into v_entitlement_id;
+  else
+    update purchase_entitlements entitlement
+    set
+      status = v_status,
+      stripe_checkout_session_id = coalesce(entitlement.stripe_checkout_session_id, p_checkout_session_id),
+      stripe_payment_intent_id = coalesce(entitlement.stripe_payment_intent_id, p_payment_intent_id),
+      stripe_charge_id = coalesce(entitlement.stripe_charge_id, p_charge_id),
+      stripe_customer_id = coalesce(entitlement.stripe_customer_id, p_customer_id),
+      last_stripe_event_id = p_event_id,
+      granted_at = case when v_status = 'active' then coalesce(entitlement.granted_at, now()) else entitlement.granted_at end,
+      revoked_at = case when v_status = 'revoked' then now() when v_status = 'active' then null else entitlement.revoked_at end,
+      updated_at = now()
+    where entitlement.id = v_entitlement_id;
+  end if;
+
+  update payment_webhook_events
+  set
+    processing_status = 'processed',
+    failure_code = null,
+    processed_at = now()
+  where stripe_event_id = p_event_id;
+
+  return query
+  select
+    'processed'::text,
+    entitlement.id,
+    entitlement.product_code,
+    entitlement.status,
+    entitlement.stripe_checkout_session_id,
+    entitlement.stripe_payment_intent_id,
+    entitlement.stripe_charge_id,
+    entitlement.stripe_customer_id,
+    entitlement.granted_at,
+    entitlement.revoked_at
+  from purchase_entitlements entitlement
+  where entitlement.id = v_entitlement_id;
+end;
+$$;
+
 -- Security requirements for the future adapter:
 -- 1. Never store raw restore tokens; persist only a SHA-256 hash.
 -- 2. Compute buyer_email_hmac server-side with a separate secret so raw emails are not searchable in the table.

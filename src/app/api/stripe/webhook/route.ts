@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 
 import { getEntitlementCommand } from "@/lib/entitlements";
+import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import { getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -49,16 +50,47 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Webhook environment mismatch." }, { status: 400 });
   }
 
-  if (event.livemode) {
+  const entitlementStore = getConfiguredEntitlementStore();
+
+  if (!entitlementStore) {
     // Returning a failure keeps Stripe retrying instead of silently losing a paid order.
-    return NextResponse.json({ error: "Live entitlement fulfillment is not configured." }, { status: 503 });
+    if (event.livemode) {
+      return NextResponse.json({ error: "Live entitlement fulfillment is not configured." }, { status: 503 });
+    }
+
+    console.info("Verified Stripe test webhook without persistence", {
+      eventId: event.id,
+      type: event.type,
+      entitlementAction: entitlementCommand.action,
+      reason: entitlementCommand.reason,
+    });
+    return NextResponse.json({ received: true, testOnly: true, persisted: false });
   }
 
-  console.info("Verified Stripe test webhook", {
-    eventId: event.id,
-    type: event.type,
-    entitlementAction: entitlementCommand.action,
-    reason: entitlementCommand.reason,
-  });
-  return NextResponse.json({ received: true, testOnly: true });
+  try {
+    const result = await entitlementStore.applyStripeEvent({
+      receipt: {
+        eventId: event.id,
+        eventType: event.type,
+        livemode: event.livemode,
+        createdAt: new Date(event.created * 1000),
+      },
+      command: entitlementCommand,
+    });
+
+    console.info("Persisted Stripe entitlement event", {
+      eventId: event.id,
+      type: event.type,
+      outcome: result.outcome,
+      entitlementAction: entitlementCommand.action,
+    });
+    return NextResponse.json({ received: true, testOnly: !event.livemode, persisted: true, outcome: result.outcome });
+  } catch (error) {
+    console.error("Unable to persist Stripe entitlement event", {
+      eventId: event.id,
+      type: event.type,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    return NextResponse.json({ error: "Entitlement persistence failed." }, { status: 503 });
+  }
 }

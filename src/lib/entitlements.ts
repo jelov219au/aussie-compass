@@ -42,7 +42,7 @@ export interface EntitlementStore {
     command: EntitlementCommand;
   }): Promise<{ outcome: "processed" | "duplicate"; entitlement?: EntitlementRecord }>;
 
-  findByRestoreTokenHash(tokenHash: string): Promise<EntitlementRecord | null>;
+  consumeRestoreTokenHash(tokenHash: string): Promise<EntitlementRecord | null>;
 }
 
 function expandableId(value: string | { id: string } | null | undefined) {

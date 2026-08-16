@@ -53,7 +53,7 @@ The repository includes placeholders in `.env.example`. Production secrets belon
 1. In Stripe test mode, create or replace the current server key with a restricted key and verify that Price retrieval plus Checkout Session create/retrieve requests succeed.
 2. Add `STRIPE_WEBHOOK_SECRET` from a test webhook endpoint pointing to `/api/stripe/webhook`. Subscribe to `checkout.session.completed`, both `checkout.session.async_payment_*` events, `refund.created`, `refund.updated`, `refund.failed`, `charge.refunded`, and the dispute created/updated/closed/funds-reinstated events handled in code.
 3. Set `PAYMENTS_ENABLED=true` only in a non-production environment and complete the test matrix above.
-4. Choose and implement a durable entitlement store using the contract in `src/lib/entitlements.ts` and the provider-neutral draft in `docs/entitlement-storage.sql`. Production checkout remains hard-blocked until a reviewed adapter exists.
+4. Apply `docs/entitlement-storage.sql` to the approved Neon database and verify the adapter in `src/lib/neonEntitlementStore.ts` with duplicate, refund and dispute test events. Production checkout remains hard-blocked until this test evidence exists.
 5. Publish the legal seller name, ABN, support email, digital delivery terms and ACL-compatible refund process. Confirm GST treatment with a registered tax agent before enabling tax collection.
 6. After those gates pass, create the equivalent live restricted key and live webhook endpoint, then enable production payments deliberately.
 
