@@ -1,12 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { markArticleAsRead, readArticleHistory } from "@/lib/articleProgress";
 
 type ReadingSection = { id: string; label: string };
+type ReadingArticle = { href: string; title: string };
 
-export function ArticleReadingNav({ sections }: { sections: ReadingSection[] }) {
+export function ArticleReadingNav({ sections, article }: { sections: ReadingSection[]; article: ReadingArticle }) {
+  const { href: articleHref, title: articleTitle } = article;
   const [activeId, setActiveId] = useState(sections[0]?.id ?? "");
   const [progress, setProgress] = useState(0);
+  const [completed, setCompleted] = useState(false);
+
+  useEffect(() => {
+    setCompleted(readArticleHistory().some((record) => record.href === articleHref));
+  }, [articleHref]);
+
+  useEffect(() => {
+    if (progress < 90 || completed) return;
+    markArticleAsRead({ href: articleHref, title: articleTitle });
+    setCompleted(true);
+  }, [articleHref, articleTitle, completed, progress]);
 
   useEffect(() => {
     const articleBody = document.getElementById("article-body");
@@ -61,9 +75,12 @@ export function ArticleReadingNav({ sections }: { sections: ReadingSection[] }) 
       <nav className="mt-8 border-y border-navy/20 py-5" aria-label="이 글의 목차">
         <div className="flex items-center justify-between gap-5">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">In this guide</p>
-          <p className="font-mono text-xs text-muted" role="progressbar" aria-label="읽기 진행률" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
-            {String(progress).padStart(2, "0")}%
-          </p>
+          <div className="flex items-center gap-3">
+            {completed && <span className="text-xs font-semibold text-navy">✓ 읽음 완료</span>}
+            <p className="font-mono text-xs text-muted" role="progressbar" aria-label="읽기 진행률" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
+              {String(progress).padStart(2, "0")}%
+            </p>
+          </div>
         </div>
         <ol className="mt-4 grid gap-x-8 gap-y-2 sm:grid-cols-2">
           {sections.map((section, index) => (

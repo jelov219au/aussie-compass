@@ -72,7 +72,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               <div className="mt-6"><PageShareButton /><Link href={{ pathname: "/social-card-maker", query: { eyebrow: `${article.category} · ${article.readingTime}`, title: article.title, body: article.description, cta: "전체 가이드 읽기", path: `/resources/${article.slug}` } }} className="mt-1 inline-flex min-h-11 items-center gap-2 border-b-2 border-border text-sm font-semibold text-navy hover:border-gold"><span aria-hidden="true">▣</span>이 글로 카드뉴스 만들기</Link></div>
             </header>
 
-            <ArticleReadingNav sections={readingSections} />
+            <ArticleReadingNav
+              sections={readingSections}
+              article={{ href: `/resources/${article.slug}`, title: article.title }}
+            />
 
             <div id="article-body" className="mt-10 space-y-10">
               {article.sections.map((section, index) => (

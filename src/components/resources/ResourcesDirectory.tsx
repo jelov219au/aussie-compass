@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { articleTopicCategories, type Article, type ArticleTopicId } from "@/data/articles";
+import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory } from "@/lib/articleProgress";
 
 const filters = [
   { id: "all", label: "전체" },
@@ -29,6 +30,18 @@ function searchableText(article: Article) {
 export function ResourcesDirectory({ articles }: { articles: Article[] }) {
   const [active, setActive] = useState<FilterId>("all");
   const [query, setQuery] = useState("");
+  const [readHrefs, setReadHrefs] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const refresh = () => setReadHrefs(new Set(readArticleHistory().map((record) => record.href)));
+    refresh();
+    window.addEventListener("storage", refresh);
+    window.addEventListener(ARTICLE_READING_UPDATED_EVENT, refresh);
+    return () => {
+      window.removeEventListener("storage", refresh);
+      window.removeEventListener(ARTICLE_READING_UPDATED_EVENT, refresh);
+    };
+  }, []);
 
   const visible = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("ko-KR");
@@ -110,35 +123,39 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
 
       {visible.length > 0 ? (
         <ol className="grid border-b border-navy/20 lg:grid-cols-2" aria-label="실용 자료 목록">
-          {visible.map((article, index) => (
-            <li key={article.slug} className="border-b border-border last:border-b-0 lg:[&:nth-last-child(-n+2)]:border-b-0 lg:odd:border-r">
-              <Link
-                href={`/resources/${article.slug}`}
-                className="group grid h-full min-h-64 grid-rows-[auto_auto_1fr_auto] px-1 py-8 transition hover:bg-white/60 focus-visible:bg-white focus-visible:outline-none sm:px-6 lg:p-8"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.13em] text-gold">
-                    {article.category} · {article.readingTime}
-                  </p>
-                  <span className="font-mono text-xs text-muted/70">
-                    {String(index + 1).padStart(2, "0")} / {String(visible.length).padStart(2, "0")}
-                  </span>
-                </div>
-                <h3 className="mt-5 max-w-xl text-xl font-semibold leading-8 tracking-tight text-navy sm:text-2xl">
-                  {article.title}
-                </h3>
-                <p className="mt-3 max-w-xl text-sm leading-6 text-muted">{article.description}</p>
-                <div className="mt-8 flex items-end justify-between gap-4 border-t border-border pt-4">
-                  <span className="text-xs font-medium text-muted">
-                    {article.sources?.length ? "공식 출처 확인" : "Hoju Compass 가이드"}
-                  </span>
-                  <span className="flex h-10 w-10 items-center justify-center border border-border text-lg text-navy transition group-hover:translate-x-1 group-hover:border-gold group-hover:bg-gold" aria-hidden="true">
-                    →
-                  </span>
-                </div>
-              </Link>
-            </li>
-          ))}
+          {visible.map((article, index) => {
+            const href = `/resources/${article.slug}`;
+            const hasRead = readHrefs.has(href);
+            return (
+              <li key={article.slug} className="border-b border-border last:border-b-0 lg:[&:nth-last-child(-n+2)]:border-b-0 lg:odd:border-r">
+                <Link
+                  href={href}
+                  className="group grid h-full min-h-64 grid-rows-[auto_auto_1fr_auto] px-1 py-8 transition hover:bg-white/60 focus-visible:bg-white focus-visible:outline-none sm:px-6 lg:p-8"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.13em] text-gold">
+                      {article.category} · {article.readingTime}
+                    </p>
+                    <span className="font-mono text-xs text-muted/70">
+                      {String(index + 1).padStart(2, "0")} / {String(visible.length).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <h3 className="mt-5 max-w-xl text-xl font-semibold leading-8 tracking-tight text-navy sm:text-2xl">
+                    {article.title}
+                  </h3>
+                  <p className="mt-3 max-w-xl text-sm leading-6 text-muted">{article.description}</p>
+                  <div className="mt-8 flex items-end justify-between gap-4 border-t border-border pt-4">
+                    <span className="text-xs font-medium text-muted">
+                      {hasRead ? "✓ 읽음 완료" : article.sources?.length ? "공식 출처 확인" : "Hoju Compass 가이드"}
+                    </span>
+                    <span className="flex h-10 w-10 items-center justify-center border border-border text-lg text-navy transition group-hover:translate-x-1 group-hover:border-gold group-hover:bg-gold" aria-hidden="true">
+                      →
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
         </ol>
       ) : (
         <div className="border-b border-navy/20 py-16 text-center">

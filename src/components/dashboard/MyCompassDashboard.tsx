@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory, type ReadArticleRecord } from "@/lib/articleProgress";
 
 type DashboardItem = { href: string; eyebrow: string; title: string; detail: string; progress?: number; active: boolean; action: string };
 type Bookmark = { href: string; title: string; savedAt: string };
@@ -67,18 +68,36 @@ function buildItems(): DashboardItem[] {
 export function MyCompassDashboard() {
   const [items, setItems] = useState<DashboardItem[]>([]);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [readArticles, setReadArticles] = useState<ReadArticleRecord[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const refresh = useCallback(() => { setItems(buildItems()); const savedBookmarks = readJson("aussie-compass-bookmarks-v1"); setBookmarks(Array.isArray(savedBookmarks) ? savedBookmarks : []); setLoaded(true); }, []);
-  useEffect(() => { refresh(); window.addEventListener("focus", refresh); window.addEventListener("storage", refresh); return () => { window.removeEventListener("focus", refresh); window.removeEventListener("storage", refresh); }; }, [refresh]);
+  const refresh = useCallback(() => {
+    setItems(buildItems());
+    const savedBookmarks = readJson("aussie-compass-bookmarks-v1");
+    setBookmarks(Array.isArray(savedBookmarks) ? savedBookmarks : []);
+    setReadArticles(readArticleHistory());
+    setLoaded(true);
+  }, []);
+  useEffect(() => {
+    refresh();
+    window.addEventListener("focus", refresh);
+    window.addEventListener("storage", refresh);
+    window.addEventListener(ARTICLE_READING_UPDATED_EVENT, refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("storage", refresh);
+      window.removeEventListener(ARTICLE_READING_UPDATED_EVENT, refresh);
+    };
+  }, [refresh]);
   const active = useMemo(() => items.filter((item) => item.active), [items]);
   const suggestions = useMemo(() => items.filter((item) => !item.active).slice(0, 4), [items]);
   if (!loaded) return <div className="mt-10 min-h-48 animate-pulse bg-surface" aria-label="저장된 진행 상황 불러오는 중" />;
 
-  return <div className="mt-10"><section className="grid gap-6 border-y border-navy/20 py-7 sm:grid-cols-[1fr_auto] sm:items-end"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Saved on this device</p><h2 className="mt-2 text-2xl font-semibold text-navy">현재 기기에 {active.length + bookmarks.length}개의 기록이 있습니다.</h2><p className="mt-2 text-sm leading-6 text-muted">이 화면은 브라우저에 이미 저장된 진행 상태만 읽으며, 이름·연락처·급여·예산 금액은 요약 화면에 표시하지 않습니다.</p></div><div className="flex flex-wrap items-center gap-5"><Link href="/data-transfer" className="inline-flex min-h-11 items-center border-b-2 border-navy text-sm font-semibold text-navy hover:border-gold">백업·기기 이전</Link><button type="button" onClick={refresh} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">진행 상황 새로고침</button></div></section>
+  return <div className="mt-10"><section className="grid gap-6 border-y border-navy/20 py-7 sm:grid-cols-[1fr_auto] sm:items-end"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Saved on this device</p><h2 className="mt-2 text-2xl font-semibold text-navy">현재 기기에 {active.length + bookmarks.length + readArticles.length}개의 기록이 있습니다.</h2><p className="mt-2 text-sm leading-6 text-muted">이 화면은 브라우저에 이미 저장된 진행 상태만 읽으며, 이름·연락처·급여·예산 금액은 요약 화면에 표시하지 않습니다.</p></div><div className="flex flex-wrap items-center gap-5"><Link href="/data-transfer" className="inline-flex min-h-11 items-center border-b-2 border-navy text-sm font-semibold text-navy hover:border-gold">백업·기기 이전</Link><button type="button" onClick={refresh} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">진행 상황 새로고침</button></div></section>
 
     {active.length ? <section className="mt-10" aria-labelledby="active-projects"><div className="flex items-end justify-between border-b border-navy/20 pb-4"><h2 id="active-projects" className="text-2xl font-semibold text-navy">이어서 할 일</h2><span className="font-mono text-xs text-muted">{String(active.length).padStart(2,"0")}</span></div><ol>{active.map((item,index)=><li key={item.href} className="border-b border-border"><Link href={item.href} className="group grid gap-4 py-6 sm:grid-cols-[3rem_minmax(12rem,0.8fr)_1.2fr_auto] sm:items-center sm:px-3"><span className="font-mono text-xs text-gold">{String(index+1).padStart(2,"0")}</span><span><span className="block text-xs font-semibold uppercase tracking-[0.12em] text-muted">{item.eyebrow}</span><strong className="mt-1 block text-lg text-navy">{item.title}</strong></span><span><span className="block text-sm leading-6 text-muted">{item.detail}</span>{typeof item.progress === "number" && <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-surface"><span className="block h-full bg-gold" style={{width:`${item.progress}%`}} /></span>}</span><span className="text-sm font-semibold text-navy">{item.action} →</span></Link></li>)}</ol></section> : <section className="mt-10 rounded-2xl bg-navy p-7 text-white sm:p-9"><p className="text-sm font-semibold text-gold">처음이라면</p><h2 className="mt-2 text-2xl font-semibold">한 가지 프로젝트만 시작해 보세요.</h2><p className="mt-3 max-w-2xl text-sm leading-7 text-white/70">진행 상태를 저장하면 다음 방문부터 이 화면에서 바로 이어갈 수 있습니다. 계정이나 개인정보 제출은 필요하지 않습니다.</p><Link href="/arrival-checklist" className="mt-5 inline-flex min-h-11 items-center bg-gold px-4 text-sm font-semibold text-navy">첫 30일 체크리스트 시작 →</Link></section>}
 
     {suggestions.length > 0 && <section className="mt-12" aria-labelledby="suggested-projects"><h2 id="suggested-projects" className="text-2xl font-semibold text-navy">다음에 시작할 수 있는 것</h2><ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{suggestions.map((item)=><li key={item.href}><Link href={item.href} className="flex h-full flex-col border-t-2 border-navy bg-white px-1 py-5"><span className="text-xs font-semibold text-gold">{item.eyebrow}</span><strong className="mt-2 text-lg text-navy">{item.title}</strong><span className="mt-2 flex-1 text-sm leading-6 text-muted">{item.detail}</span><span className="mt-5 text-sm font-semibold text-navy">{item.action} →</span></Link></li>)}</ul></section>}
+    {readArticles.length > 0 && <section className="mt-12 border-t border-navy/20 pt-7" aria-labelledby="read-articles"><div className="flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Reading history</p><h2 id="read-articles" className="mt-1 text-2xl font-semibold text-navy">읽은 실용 자료</h2></div><span className="font-mono text-xs text-muted">{String(readArticles.length).padStart(2,"0")}</span></div><ul className="mt-4 grid gap-x-8 md:grid-cols-2">{readArticles.map((item)=><li key={item.href} className="border-b border-border"><Link href={item.href} className="group flex min-h-20 items-center justify-between gap-4 py-4"><span><strong className="block text-navy">{item.title}</strong><span className="mt-1 block text-xs text-muted">{new Date(item.completedAt).toLocaleDateString("ko-KR")} 읽음 완료</span></span><span className="text-xl text-navy transition group-hover:translate-x-1">→</span></Link></li>)}</ul></section>}
     {bookmarks.length > 0 && <section className="mt-12 border-t border-navy/20 pt-7" aria-labelledby="saved-pages"><div className="flex items-end justify-between"><h2 id="saved-pages" className="text-2xl font-semibold text-navy">나중에 볼 페이지</h2><span className="font-mono text-xs text-muted">{String(bookmarks.length).padStart(2,"0")}</span></div><ul className="mt-4 grid gap-x-8 md:grid-cols-2">{bookmarks.map((item)=><li key={item.href} className="border-b border-border"><Link href={item.href} className="group flex min-h-20 items-center justify-between gap-4 py-4"><span><strong className="block text-navy">{item.title}</strong><span className="mt-1 block text-xs text-muted">{new Date(item.savedAt).toLocaleDateString("ko-KR")} 저장</span></span><span className="text-xl text-navy transition group-hover:translate-x-1">→</span></Link></li>)}</ul></section>}
   </div>;
 }

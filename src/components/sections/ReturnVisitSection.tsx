@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory } from "@/lib/articleProgress";
 
 const progressKeys = [
   "visa-preparation-project",
@@ -28,6 +29,7 @@ function savedCount() {
   } catch {
     // An invalid local value should not hide the rest of the homepage.
   }
+  count += readArticleHistory().length;
   return count;
 }
 
@@ -39,9 +41,11 @@ export function ReturnVisitSection() {
     refresh();
     window.addEventListener("focus", refresh);
     window.addEventListener("storage", refresh);
+    window.addEventListener(ARTICLE_READING_UPDATED_EVENT, refresh);
     return () => {
       window.removeEventListener("focus", refresh);
       window.removeEventListener("storage", refresh);
+      window.removeEventListener(ARTICLE_READING_UPDATED_EVENT, refresh);
     };
   }, []);
 
@@ -56,7 +60,7 @@ export function ReturnVisitSection() {
                 {count && count > 0 ? `이 기기에 저장된 ${count}개의 작업이 있습니다.` : "오늘 시작한 일을 다음 방문에도 이어가세요."}
               </p>
               <p className="mt-1 text-sm leading-6 text-white/65">
-                로그인 없이 체크리스트, 계산, 이력서와 저장한 페이지를 한곳에서 확인할 수 있습니다.
+                로그인 없이 체크리스트, 계산, 이력서와 읽은 자료를 한곳에서 확인할 수 있습니다.
               </p>
             </div>
           </div>
