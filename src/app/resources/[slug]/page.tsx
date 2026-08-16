@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { PageShareButton } from "@/components/pwa/PageShareButton";
+import { ArticleReadingNav } from "@/components/resources/ArticleReadingNav";
 import { Container } from "@/components/ui/Container";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { articles, getArticle, getRelatedArticles } from "@/data/articles";
@@ -34,6 +36,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   if (!article) notFound();
 
   const relatedArticles = getRelatedArticles(article.slug);
+  const readingSections = article.sections.map((section, index) => ({ id: `section-${index + 1}`, label: section.heading }));
 
   return (
     <>
@@ -66,11 +69,14 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               </p>
               <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-navy sm:text-4xl">{article.title}</h1>
               <p className="mt-5 text-lg leading-8 text-muted">{article.description}</p>
+              <div className="mt-6"><PageShareButton /></div>
             </header>
 
-            <div className="mt-10 space-y-10">
-              {article.sections.map((section) => (
-                <section key={section.heading}>
+            <ArticleReadingNav sections={readingSections} />
+
+            <div id="article-body" className="mt-10 space-y-10">
+              {article.sections.map((section, index) => (
+                <section id={`section-${index + 1}`} key={section.heading} className="scroll-mt-24">
                   <h2 className="text-2xl font-semibold tracking-tight text-navy">{section.heading}</h2>
                   {section.paragraphs?.map((paragraph) => (
                     <p key={paragraph} className="mt-4 leading-8 text-muted">{paragraph}</p>
