@@ -1,5 +1,8 @@
 export const ARTICLE_READ_HISTORY_KEY = "aussie-compass-read-articles-v1";
 export const ARTICLE_READING_UPDATED_EVENT = "hoju-compass:reading-updated";
+export const WEEKLY_READING_GOAL_KEY = "hoju-compass-weekly-reading-goal-v1";
+
+export type WeeklyReadingTarget = 1 | 3 | 5;
 
 export type ReadArticleRecord = {
   href: string;
@@ -33,4 +36,19 @@ export function markArticleAsRead(article: { href: string; title: string }) {
   localStorage.setItem(ARTICLE_READ_HISTORY_KEY, JSON.stringify(next));
   window.dispatchEvent(new Event(ARTICLE_READING_UPDATED_EVENT));
   return next;
+}
+
+export function readWeeklyReadingGoal(): WeeklyReadingTarget {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(WEEKLY_READING_GOAL_KEY) ?? "null");
+    if (!parsed || typeof parsed !== "object") return 3;
+    const target = (parsed as { target?: unknown }).target;
+    return target === 1 || target === 3 || target === 5 ? target : 3;
+  } catch {
+    return 3;
+  }
+}
+
+export function saveWeeklyReadingGoal(target: WeeklyReadingTarget) {
+  localStorage.setItem(WEEKLY_READING_GOAL_KEY, JSON.stringify({ target, updatedAt: new Date().toISOString() }));
 }

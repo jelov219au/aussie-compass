@@ -1,5 +1,13 @@
+"use client";
+
 import Link from "next/link";
-import type { ReadArticleRecord } from "@/lib/articleProgress";
+import { useEffect, useState } from "react";
+import {
+  readWeeklyReadingGoal,
+  saveWeeklyReadingGoal,
+  type ReadArticleRecord,
+  type WeeklyReadingTarget,
+} from "@/lib/articleProgress";
 
 export type ResourceSummary = {
   href: string;
@@ -18,6 +26,12 @@ function getRecommendations(articles: ResourceSummary[], readHrefs: Set<string>,
   return ordered.filter((article) => !readHrefs.has(article.href)).slice(0, 3);
 }
 
+function startOfThisWeek() {
+  const now = new Date();
+  const daysSinceMonday = (now.getDay() + 6) % 7;
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysSinceMonday).getTime();
+}
+
 export function ResourceReadingProgress({
   articles,
   readArticles,
@@ -25,6 +39,12 @@ export function ResourceReadingProgress({
   articles: ResourceSummary[];
   readArticles: ReadArticleRecord[];
 }) {
+  const [weeklyGoal, setWeeklyGoal] = useState<WeeklyReadingTarget>(3);
+
+  useEffect(() => {
+    setWeeklyGoal(readWeeklyReadingGoal());
+  }, []);
+
   if (!articles.length) return null;
 
   const availableHrefs = new Set(articles.map((article) => article.href));
@@ -32,6 +52,17 @@ export function ResourceReadingProgress({
   const completed = readHrefs.size;
   const progress = Math.round((completed / articles.length) * 100);
   const recommendations = getRecommendations(articles, readHrefs, readArticles[0]?.href);
+  const weekStart = startOfThisWeek();
+  const completedThisWeek = readArticles.filter((article) => {
+    const completedAt = new Date(article.completedAt).getTime();
+    return availableHrefs.has(article.href) && Number.isFinite(completedAt) && completedAt >= weekStart;
+  }).length;
+  const weeklyProgress = Math.min(100, Math.round((completedThisWeek / weeklyGoal) * 100));
+
+  const chooseWeeklyGoal = (target: WeeklyReadingTarget) => {
+    setWeeklyGoal(target);
+    saveWeeklyReadingGoal(target);
+  };
 
   return (
     <section className="mt-12 grid border-y border-navy/20 lg:grid-cols-[18rem_minmax(0,1fr)]" aria-labelledby="reading-progress-heading">
@@ -59,6 +90,38 @@ export function ResourceReadingProgress({
         <Link href="/resources" className="mt-5 inline-flex min-h-11 items-center border-b border-gold text-sm font-semibold">
           전체 자료 보기 →
         </Link>
+
+        <div className="mt-7 border-t border-white/15 pt-6">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Weekly goal</p>
+              <h3 className="mt-1 text-lg font-semibold">이번 주 읽기 목표</h3>
+            </div>
+            <p className="font-mono text-sm text-white/65"><strong className="text-xl text-white">{completedThisWeek}</strong> / {weeklyGoal}</p>
+          </div>
+          <div className="mt-4 h-1 overflow-hidden rounded-full bg-white/15" aria-hidden="true">
+            <span className="block h-full bg-gold transition-[width]" style={{ width: `${weeklyProgress}%` }} />
+          </div>
+          <fieldset className="mt-4">
+            <legend className="sr-only">이번 주 읽을 자료 수</legend>
+            <div className="flex gap-2">
+              {([1, 3, 5] as WeeklyReadingTarget[]).map((target) => (
+                <button
+                  key={target}
+                  type="button"
+                  aria-pressed={weeklyGoal === target}
+                  onClick={() => chooseWeeklyGoal(target)}
+                  className={`min-h-10 flex-1 border px-2 text-xs font-semibold transition ${weeklyGoal === target ? "border-gold bg-gold text-navy" : "border-white/20 text-white/75 hover:border-white/50"}`}
+                >
+                  주 {target}개
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          <p className="mt-3 text-xs leading-5 text-white/60" aria-live="polite">
+            {completedThisWeek >= weeklyGoal ? "이번 주 목표를 달성했습니다. 잘 이어가고 있어요." : `이번 주 ${weeklyGoal - completedThisWeek}개 더 읽으면 목표 달성입니다.`}
+          </p>
+        </div>
       </div>
 
       <div className="p-7 sm:p-8 lg:pl-10">
