@@ -49,6 +49,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Local-first job application tracker for vacancies, interviews, offers, next actions, filtering, and JSON backups
 - SEO-focused Korean resources hub with actionable job search, resume, savings, first-payslip, rental-scam, used-car, unpaid-trial, ABN contractor, and casual-income guides, official sources, and contextual tool links
 - Detailed Korean TFN arrival guide covering IAR eligibility, exact application preparation, the typical 28-day process, employment while waiting, troubleshooting and identifier safety with current ATO sources
+- Detailed Korean bank-account opening guide covering transaction-account costs, identity checks, payroll details, TFN interest withholding, PayID safety, FCS protection and first-week security without recommending a specific bank
 - Searchable Korean glossary for 23 common Australian work, tax, visa, housing, and transport terms with official-source links
 - Local-only social card maker with Instagram post, portrait, and story sizes, editable editorial themes, PNG export, and copyable captions
 - Career pathway explorer that clearly separates labour shortages from skilled migration eligibility and links to official sources
