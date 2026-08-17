@@ -1,0 +1,30 @@
+import Link from "next/link";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
+import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { Container } from "@/components/ui/Container";
+import { createPageMetadata } from "@/lib/site";
+
+export const metadata = createPageMetadata({ title: "Leaving Australia Pack Pro 미리보기 | Hoju Compass", description: "호주 출국 전후 업무와 마지막 정산을 날짜순으로 추적하고 개인 귀국 준비 요약을 만드는 Pro 개발판입니다.", path: "/leaving-australia-pro" });
+
+const features = [
+  ["01", "Ordered departure", "출국 전과 출국 후 업무를 한 흐름에서 상태별로 관리합니다."],
+  ["02", "Settlement tracker", "Bond, 마지막 급여, 공과금 환급과 DASP의 확인 예정일을 기록합니다."],
+  ["03", "Question handoff", "ATO, Super 펀드, 세무사 또는 기관에 확인할 질문을 따로 모읍니다."],
+  ["04", "Local summary", "민감한 번호와 원본 파일 없이 개인 인계 요약을 저장합니다."],
+] as const;
+
+const sources = [
+  { label: "ATO", title: "귀국 후 Tax return", href: "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/returning-to-your-home-country", body: "일반 신고 시기, 해외에서의 온라인 신고와 제한적인 조기 신고 조건을 확인합니다." },
+  { label: "ATO", title: "DASP 신청", href: "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/temporary-residents-and-superannuation/departing-australia-superannuation-payment-dasp", body: "출국과 비자 종료 조건, 준비 정보, 처리 과정과 지급 확인 방법을 확인합니다." },
+  { label: "ATO official system", title: "DASP 온라인 시스템", href: "https://www.applicant.tr.super.ato.gov.au/applicants/default.aspx?pid=1", body: "실제 자격 확인과 신청은 Hoju Compass가 아닌 ATO 공식 시스템에서 진행합니다." },
+];
+
+export default function LeavingAustraliaProPage() {
+  return <><BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "귀국 준비 가이드", path: "/leaving-australia-guide" }, { name: "Leaving Australia Pack Pro", path: "/leaving-australia-pro" }]} /><Header /><main>
+    <section className="border-b border-navy/15 py-12 sm:py-20"><Container><Link href="/leaving-australia-guide" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 귀국 준비 가이드로 돌아가기</Link><div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end"><div className="max-w-3xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Leaving Australia Pack Pro</p><h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">출국은 하루지만,<br /><span className="font-normal text-navy-light">정산은 그 뒤에도 이어집니다.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">퇴사·퇴거·계정 접근을 출국 전에 정리하고, Bond·마지막 급여·세금·DASP는 수령할 때까지 후속 확인합니다.</p></div><aside className="border-l-2 border-gold pl-6"><p className="text-sm font-semibold text-muted">검토 중인 1회 가격</p><p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$12.90</p><p className="mt-2 text-sm leading-6 text-muted">구독 없이 한 번의 귀국 준비 프로젝트를 정리하는 방식입니다.</p></aside></div><div className="mt-10 flex flex-wrap gap-3"><Link href="/leaving-australia-pro/workspace" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">개발판 무료 체험</Link><Link href="/leaving-australia-guide" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 text-sm font-semibold text-navy">무료 가이드 사용</Link><span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">결제 없음</span></div></Container></section>
+    <section className="py-14 sm:py-20"><Container><div className="grid gap-8 lg:grid-cols-[18rem_1fr]"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">One final handoff</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy">무료 정보는 그대로,<br />후속 추적만 Pro.</h2><p className="mt-4 text-sm leading-7 text-muted">DASP 조건, 세율과 체크리스트는 계속 무료입니다. Pro는 흩어진 진행 상태와 정산을 개인 기록으로 묶습니다.</p></div><ol className="grid border-t border-navy/20 md:grid-cols-2">{features.map(([number, eyebrow, title], index) => <li key={number} className={`min-h-52 border-b border-navy/20 p-6 ${index % 2 === 0 ? "md:border-r" : ""}`}><div className="flex items-center justify-between"><span className="font-mono text-sm text-gold">{number} / 04</span><span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{eyebrow}</span></div><h3 className="mt-8 text-xl font-semibold leading-8 text-navy">{title}</h3></li>)}</ol></div></Container></section>
+    <section className="border-y border-navy/15 bg-white py-14 sm:py-20"><Container><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Official sources, explained</p><h2 className="mt-2 text-2xl font-semibold text-navy">실제 신청과 판단은 공식 경로에서</h2><ul className="mt-7 grid gap-px bg-border lg:grid-cols-3">{sources.map((source) => <li key={source.href} className="bg-surface"><a href={source.href} target="_blank" rel="noreferrer" className="group flex min-h-64 flex-col p-6 hover:bg-white"><span className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">{source.label}</span><strong className="mt-3 text-xl text-navy">{source.title}</strong><span className="mt-4 text-sm leading-7 text-muted">{source.body}</span><span className="mt-auto pt-6 text-sm font-semibold text-navy">공식 원문 열기 ↗</span></a></li>)}</ul></Container></section>
+    <section className="bg-navy py-12 text-white sm:py-16"><Container className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-end"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Local-first preview</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">민감한 번호 없이, 끝날 때까지 추적합니다.</h2><p className="mt-3 max-w-2xl text-sm leading-7 text-white/65">현재 개발판은 브라우저 안에 상태와 메모만 저장하며 기관 조회, 신청 제출 또는 DASP 예상액 계산을 하지 않습니다.</p></div><Link href="/leaving-australia-pro/workspace" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 text-sm font-semibold text-navy hover:bg-white">개발판 열기 →</Link></Container></section>
+  </main><Footer /></>;
+}

@@ -39,6 +39,8 @@ const routes = [
   "/visa-preparation-guide",
   "/arrival-checklist",
   "/leaving-australia-guide",
+  "/leaving-australia-pro",
+  "/leaving-australia-pro/workspace",
   "/guides",
   "/minimum-wage-guide",
   "/casual-loading-guide",
