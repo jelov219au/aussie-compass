@@ -7,7 +7,7 @@ import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory } from "@/lib/article
 
 const filters = [
   { id: "all", label: "전체" },
-  { id: "start", label: "구직·지원" },
+  { id: "start", label: "도착·구직" },
   { id: "work", label: "일·급여" },
   { id: "home", label: "집·차" },
   { id: "money", label: "돈 관리" },
