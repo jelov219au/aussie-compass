@@ -8,6 +8,7 @@ type InitialValues = { target?: string; source?: string; campaign?: string; date
 const STORAGE_KEY = "hoju-compass-content-results-v1";
 const topics = [
   { id: "arrival", title: "호주 도착 첫 30일 순서", path: "/arrival-checklist" },
+  { id: "sim", title: "호주 첫 SIM·eSIM 안전하게 개통하기", path: "/resources/australia-sim-esim-setup-guide" },
   { id: "bank", title: "호주 첫 은행 계좌 안전하게 열기", path: "/resources/australia-bank-account-opening-guide" },
   { id: "payslip", title: "첫 Payslip에서 확인할 5가지", path: "/payslip-guide" },
   { id: "resume", title: "호주식 영문 이력서 시작하기", path: "/resume-builder" },

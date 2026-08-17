@@ -9,6 +9,7 @@ type Target = { path: string; label: string; title: string; body: string; cta: s
 const STORAGE_KEY = "hoju-compass-campaign-links-v1";
 const targets: Target[] = [
   { path: "/arrival-checklist", label: "첫 30일 정착", title: "호주 도착 후 첫 30일, 무엇부터 해야 할까?", body: "전화·교통·은행부터 TFN과 첫 Payslip까지 순서대로 준비하세요.", cta: "무료 체크리스트 보기" },
+  { path: "/resources/australia-sim-esim-setup-guide", label: "SIM·eSIM 개통", title: "호주 도착 당일, SIM부터 급하게 고르지 마세요", body: "선불·후불, 신분 확인, 커버리지, 번호 이동과 SIM swap 예방을 순서대로 확인하세요.", cta: "무료 SIM 가이드 보기" },
   { path: "/resources/australia-bank-account-opening-guide", label: "첫 은행 계좌", title: "호주 첫 은행 계좌, 수수료부터 보안까지", body: "신원 확인, 급여 입금, TFN·PayID와 예금자 보호를 순서대로 점검하세요.", cta: "무료 계좌 가이드 보기" },
   { path: "/salary-calculator", label: "급여 계산기", title: "호주 급여, 시급만 보고 판단하면 안 되는 이유", body: "세전·세후 급여와 Super를 같은 화면에서 확인하세요.", cta: "급여 계산기 열기" },
   { path: "/resume-builder", label: "영문 이력서 빌더", title: "호주 구직용 영문 이력서를 무료로 준비하세요", body: "영문 예시 문장과 디자인을 선택해 PDF로 저장할 수 있습니다.", cta: "이력서 만들기" },
