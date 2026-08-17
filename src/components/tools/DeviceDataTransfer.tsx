@@ -41,6 +41,7 @@ const storedRecords: StoredRecord[] = [
   { key: "aussie-compass-job-tracker-v1", label: "구직 지원 현황", group: "구직", sensitive: true },
   { key: "aussie-compass-commute-housing-v1", label: "통학·생활권 비교", group: "주거·이동" },
   { key: "aussie-compass-property-inspection-v1", label: "집 방문 점검", group: "주거·이동", sensitive: true },
+  { key: "hoju-compass-rental-application-pro-v1", label: "렌트 신청 패키지", group: "주거·이동", sensitive: true },
   { key: "aussie-compass-service-quotes-v1", label: "서비스 견적 비교", group: "생활 서비스", sensitive: true },
   { key: "aussie-compass-service-price-log-v1", label: "서비스 가격 기록", group: "생활 서비스", sensitive: true },
   { key: "aussie-compass-vehicle-comparison-v1", label: "중고차 비교", group: "주거·이동", sensitive: true },

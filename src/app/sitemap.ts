@@ -20,6 +20,8 @@ const routes = [
   "/resume-pro",
   "/resume-pro/workspace",
   "/eofy-pro",
+  "/rental-application-pro",
+  "/rental-application-pro/workspace",
   "/cost-of-living-calculator",
   "/savings-goal-calculator",
   "/job-application-tracker",

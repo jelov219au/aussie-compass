@@ -34,6 +34,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Resume Pro product preview with premium template directions, a free-versus-Pro comparison, and a clearly labelled pre-payment state
 - Resume Pro development workspace with a local-only cover-letter draft, job-ad keyword check, and saved-resume connection
 - EOFY Pack Pro product preview with an evidence register, accountant-handoff summary, annual backup concept, and free-versus-Pro boundary
+- Rental Application Pack Pro preview and local workspace with document readiness, privacy checks, an English introduction draft, and text-package export without document uploads
 - Payment readiness contract for an Australian sole trader, with payments disabled until Stripe, webhooks, entitlement storage, seller details and support are configured
 - Cost of living calculator with mixed payment frequencies, income comparison, local autosave, custom expenses, and printable results
 - Dedicated tools hub linking all available calculators and builders
