@@ -26,13 +26,18 @@ function cleanTag(value: string) {
   return value.trim().toLocaleLowerCase("ko-KR").replace(/\s+/g, "-").replace(/[^a-z0-9가-힣_-]/g, "").replace(/-+/g, "-").slice(0, 64);
 }
 
-export function CampaignLinkBuilder({ baseUrl }: { baseUrl: string }) {
-  const [targetPath, setTargetPath] = useState(targets[0].path);
-  const [sourceChoice, setSourceChoice] = useState("instagram");
+type InitialValues = { target?: string; source?: string; campaign?: string; content?: string };
+
+export function CampaignLinkBuilder({ baseUrl, initialValues }: { baseUrl: string; initialValues?: InitialValues }) {
+  const initialTarget = targets.some((item) => item.path === initialValues?.target) ? initialValues?.target ?? targets[0].path : targets[0].path;
+  const initialSource = sourceOptions.some(([id]) => id === initialValues?.source) ? initialValues?.source ?? "instagram" : "instagram";
+  const initialMedium = sourceOptions.find(([id]) => id === initialSource)?.[2] ?? "social";
+  const [targetPath, setTargetPath] = useState(initialTarget);
+  const [sourceChoice, setSourceChoice] = useState(initialSource);
   const [customSource, setCustomSource] = useState("");
-  const [medium, setMedium] = useState("social");
-  const [campaign, setCampaign] = useState("first-30-days");
-  const [content, setContent] = useState("card-01");
+  const [medium, setMedium] = useState<string>(initialMedium);
+  const [campaign, setCampaign] = useState(cleanTag(initialValues?.campaign ?? "first-30-days"));
+  const [content, setContent] = useState(cleanTag(initialValues?.content ?? "card-01"));
   const [saved, setSaved] = useState<SavedLink[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");

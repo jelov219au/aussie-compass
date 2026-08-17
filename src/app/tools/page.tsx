@@ -195,6 +195,15 @@ const availableTools: DirectoryTool[] = [
     categories: ["arrival", "work", "money", "home", "annual", "departure"],
   },
   {
+    href: "/content-planner",
+    eyebrow: "콘텐츠 운영",
+    title: "콘텐츠 발행 플래너",
+    description: "호주 생활 콘텐츠의 주제, 채널, 형식과 발행일을 정하고 공유 링크와 카드뉴스 제작까지 이어가세요.",
+    features: ["10가지 주제 제안", "발행 상태 관리", "캘린더·링크 제작 연결"],
+    cta: "발행 일정 만들기",
+    categories: ["arrival", "work", "money", "home", "annual", "departure"],
+  },
+  {
     href: "/data-transfer",
     eyebrow: "기록 관리",
     title: "기기 데이터 백업·이전",

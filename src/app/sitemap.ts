@@ -14,6 +14,7 @@ const routes = [
   "/install",
   "/social-card-maker",
   "/campaign-link-builder",
+  "/content-planner",
   "/my-compass",
   "/data-transfer",
   "/life-admin-reminder",
