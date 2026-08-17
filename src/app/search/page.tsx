@@ -17,6 +17,7 @@ const coreItems:SearchItem[]=[
   {href:"/social-card-maker",type:"도구",title:"SNS 카드뉴스 만들기",description:"호주 생활 정보를 게시물·스토리 PNG와 설명문으로 제작",keywords:["인스타그램","Instagram","릴스","스토리","카드뉴스","콘텐츠","홍보","이미지"]},
   {href:"/campaign-link-builder",type:"도구",title:"캠페인 공유 링크 만들기",description:"SNS·커뮤니티·뉴스레터용 UTM 링크와 게시물 버전 관리",keywords:["UTM","유입","트래픽","instagram","youtube","naver","facebook","campaign"]},
   {href:"/content-planner",type:"도구",title:"콘텐츠 발행 플래너",description:"SNS·커뮤니티 콘텐츠 주제, 채널, 형식과 발행 일정 관리",keywords:["콘텐츠캘린더","발행계획","SNS운영","카드뉴스","인스타그램","네이버","유튜브"]},
+  {href:"/content-performance",type:"도구",title:"콘텐츠 성과 기록판",description:"게시물 조회·도달, 링크 클릭과 저장 합계 비교",keywords:["성과측정","조회수","클릭률","CTR","인스타그램통계","콘텐츠분석","트래픽"]},
   {href:"/install",type:"도구",title:"홈 화면에 앱으로 추가",description:"iPhone·Android에서 Hoju Compass를 앱처럼 사용",keywords:["PWA","설치","홈화면","아이폰","안드로이드","바로가기"]},
   {href:"/glossary",type:"자료",title:"호주 생활 용어집",description:"TFN, ABN, Award, Super, Bond 등 약어 풀이",keywords:["뜻","용어","약어","PAYG","VEVO","Rego","PPSR","HAP ID","OSHC","USI"]},
   {href:"/help-directory",type:"도구",title:"호주 생활 도움 연락처",description:"긴급전화, 의료상담, 통역, 직장 문제와 사기 신고",keywords:["000","응급","lifeline","healthdirect","TIS","한국어","Fair Work","Scamwatch"]},

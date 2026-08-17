@@ -30,6 +30,7 @@ const storedRecords: StoredRecord[] = [
   { key: "aussie-compass-bookmarks-v1", label: "저장한 페이지", group: "내 Compass" },
   { key: "hoju-compass-campaign-links-v1", label: "캠페인 공유 링크", group: "내 Compass" },
   { key: "hoju-compass-content-planner-v1", label: "콘텐츠 발행 계획", group: "내 Compass" },
+  { key: "hoju-compass-content-results-v1", label: "콘텐츠 성과 합계", group: "내 Compass" },
   { key: "aussie-compass-read-articles-v1", label: "읽은 실용 자료", group: "내 Compass" },
   { key: "hoju-compass-weekly-reading-goal-v1", label: "주간 읽기 목표", group: "내 Compass" },
   { key: "hoju-compass-route-finder-v1", label: "맞춤 시작 경로", group: "내 Compass" },

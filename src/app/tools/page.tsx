@@ -204,6 +204,15 @@ const availableTools: DirectoryTool[] = [
     categories: ["arrival", "work", "money", "home", "annual", "departure"],
   },
   {
+    href: "/content-performance",
+    eyebrow: "콘텐츠 성과",
+    title: "콘텐츠 성과 기록판",
+    description: "게시물별 조회·도달, 링크 클릭과 저장 합계를 직접 기록해 효과가 좋은 주제와 채널을 비교하세요.",
+    features: ["개인정보 없는 합계 기록", "채널·주제 비교", "CSV 결과 저장"],
+    cta: "콘텐츠 성과 기록하기",
+    categories: ["arrival", "work", "money", "home", "annual", "departure"],
+  },
+  {
     href: "/data-transfer",
     eyebrow: "기록 관리",
     title: "기기 데이터 백업·이전",
