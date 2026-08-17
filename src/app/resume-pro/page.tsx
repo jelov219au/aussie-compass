@@ -76,7 +76,10 @@ function TemplatePreview({ variant, label }: { variant: "editorial" | "split" | 
   );
 }
 
-export default function ResumeProPage() {
+type Props = { searchParams: Promise<{ access?: string; checkout?: string }> };
+
+export default async function ResumeProPage({ searchParams }: Props) {
+  const { access, checkout } = await searchParams;
   const paymentReadiness = getPaymentReadiness();
   const testCheckoutAvailable = canCreateTestCheckout();
   const checkoutAvailable = paymentReadiness.ready || testCheckoutAvailable;
@@ -89,6 +92,21 @@ export default function ResumeProPage() {
         <section className="border-b border-navy/15 py-12 sm:py-20">
           <Container>
             <Link href="/resume-builder" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 이력서 빌더로 돌아가기</Link>
+            {access === "required" && (
+              <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">
+                이 기기의 Resume Pro 접근이 만료됐거나 확인되지 않았습니다. 결제 완료 화면에서 다시 열거나 아래 이용권 복구를 사용해 주세요.
+              </div>
+            )}
+            {access === "released" && (
+              <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">
+                이 기기의 Resume Pro 접근을 안전하게 해제했습니다. 구매 이용권은 유지됩니다.
+              </div>
+            )}
+            {checkout === "cancelled" && (
+              <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">
+                결제가 취소됐습니다. 청구되지 않았으며 준비가 되면 다시 시작할 수 있습니다.
+              </div>
+            )}
             <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
               <div className="max-w-3xl">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro / Preview</p>

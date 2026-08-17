@@ -55,6 +55,13 @@ export function ResumeProAccessTools() {
         </div>
       )}
       {status && <p className="mt-3 text-sm leading-6 text-muted" role="status">{status}</p>}
+      <div className="mt-6 border-t border-border pt-5">
+        <h3 className="text-sm font-semibold text-navy">공용 기기에서 이용 중인가요?</h3>
+        <p className="mt-2 text-sm leading-6 text-muted">이 기기의 Resume Pro 접근 쿠키만 제거합니다. 구매 이용권과 다른 기기의 접근은 유지됩니다.</p>
+        <form action="/api/resume-pro/access/release" method="post" className="mt-3">
+          <button type="submit" className="inline-flex min-h-11 items-center justify-center border border-navy px-4 py-2 text-sm font-semibold text-navy">이 기기 접근 해제</button>
+        </form>
+      </div>
     </section>
   );
 }

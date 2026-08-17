@@ -6,7 +6,9 @@ import { cookies } from "next/headers";
 import type { EntitlementRecord } from "@/lib/entitlements";
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 
-const accessCookieName = "hoju_resume_pro_access";
+const accessCookieName = process.env.NODE_ENV === "production"
+  ? "__Host-hoju_resume_pro_access"
+  : "hoju_resume_pro_access";
 const sessionLifetimeSeconds = 60 * 60 * 24 * 30;
 const restoreLifetimeSeconds = 60 * 60 * 24 * 30;
 
@@ -76,9 +78,23 @@ export async function setResumeProAccessCookie(entitlement: EntitlementRecord) {
   cookieStore.set(accessCookieName, encodeAccessToken(entitlement), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "strict",
     path: "/",
     maxAge: sessionLifetimeSeconds,
+    priority: "high",
+  });
+}
+
+export async function clearResumeProAccessCookie() {
+  const cookieStore = await cookies();
+  cookieStore.set(accessCookieName, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+    priority: "high",
   });
 }
 
