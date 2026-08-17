@@ -28,6 +28,7 @@ const storedRecords: StoredRecord[] = [
   { key: "leaving-australia-project", label: "귀국 준비", group: "체크리스트" },
   { key: "hoju-compass-leaving-pro-v1", label: "귀국 준비 패키지", group: "체크리스트", sensitive: true },
   { key: "aussie-compass-bookmarks-v1", label: "저장한 페이지", group: "내 Compass" },
+  { key: "hoju-compass-campaign-links-v1", label: "캠페인 공유 링크", group: "내 Compass" },
   { key: "aussie-compass-read-articles-v1", label: "읽은 실용 자료", group: "내 Compass" },
   { key: "hoju-compass-weekly-reading-goal-v1", label: "주간 읽기 목표", group: "내 Compass" },
   { key: "hoju-compass-route-finder-v1", label: "맞춤 시작 경로", group: "내 Compass" },

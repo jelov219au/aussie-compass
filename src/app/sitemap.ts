@@ -13,6 +13,7 @@ const routes = [
   "/glossary",
   "/install",
   "/social-card-maker",
+  "/campaign-link-builder",
   "/my-compass",
   "/data-transfer",
   "/life-admin-reminder",

@@ -15,6 +15,7 @@ const coreItems:SearchItem[]=[
   {href:"/data-transfer",type:"도구",title:"기기 데이터 백업·이전",description:"체크리스트, 이력서와 계산 기록을 파일로 백업하고 새 주소·기기로 옮기기",keywords:["백업","복원","가져오기","내보내기","이전","새 도메인","JSON","기기 변경"]},
   {href:"/life-admin-reminder",type:"도구",title:"만료일·갱신 일정 리마인더",description:"비자, 여권, 렌트, Rego, 보험과 자격증 날짜 관리",keywords:["리마인더","알림","만료일","갱신","캘린더","일정","rego","보험","여권"]},
   {href:"/social-card-maker",type:"도구",title:"SNS 카드뉴스 만들기",description:"호주 생활 정보를 게시물·스토리 PNG와 설명문으로 제작",keywords:["인스타그램","Instagram","릴스","스토리","카드뉴스","콘텐츠","홍보","이미지"]},
+  {href:"/campaign-link-builder",type:"도구",title:"캠페인 공유 링크 만들기",description:"SNS·커뮤니티·뉴스레터용 UTM 링크와 게시물 버전 관리",keywords:["UTM","유입","트래픽","instagram","youtube","naver","facebook","campaign"]},
   {href:"/install",type:"도구",title:"홈 화면에 앱으로 추가",description:"iPhone·Android에서 Hoju Compass를 앱처럼 사용",keywords:["PWA","설치","홈화면","아이폰","안드로이드","바로가기"]},
   {href:"/glossary",type:"자료",title:"호주 생활 용어집",description:"TFN, ABN, Award, Super, Bond 등 약어 풀이",keywords:["뜻","용어","약어","PAYG","VEVO","Rego","PPSR","HAP ID","OSHC","USI"]},
   {href:"/help-directory",type:"도구",title:"호주 생활 도움 연락처",description:"긴급전화, 의료상담, 통역, 직장 문제와 사기 신고",keywords:["000","응급","lifeline","healthdirect","TIS","한국어","Fair Work","Scamwatch"]},

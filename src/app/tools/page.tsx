@@ -186,6 +186,15 @@ const availableTools: DirectoryTool[] = [
     categories: ["arrival", "work", "money", "home", "annual", "departure"],
   },
   {
+    href: "/campaign-link-builder",
+    eyebrow: "콘텐츠 유입",
+    title: "캠페인 공유 링크 만들기",
+    description: "Instagram, YouTube, Naver, Facebook와 뉴스레터 링크에 채널·캠페인 이름을 일관되게 붙이세요.",
+    features: ["UTM 링크 생성", "카드뉴스 연결", "기기 내 링크 목록"],
+    cta: "공유 링크 만들기",
+    categories: ["arrival", "work", "money", "home", "annual", "departure"],
+  },
+  {
     href: "/data-transfer",
     eyebrow: "기록 관리",
     title: "기기 데이터 백업·이전",
