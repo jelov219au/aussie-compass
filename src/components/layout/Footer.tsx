@@ -19,6 +19,7 @@ export function Footer() {
     { label: content.nav.guides, href: "/resources" },
     { label: "호주 생활 단계", href: "/#journey" },
     { label: "도움 연락처", href: "/help-directory" },
+    { label: "구매·환불 안내", href: "/purchase-information" },
     { label: content.footer.privacy, href: "/privacy" },
     { label: content.footer.disclaimer, href: "/disclaimer" },
   ];

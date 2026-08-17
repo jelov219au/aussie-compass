@@ -134,9 +134,13 @@ export default async function ResumeProPage({ searchParams }: Props) {
             </div>
             <p className="mt-4 text-xs leading-5 text-muted">
               {testCheckoutAvailable
-                ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구나 Pro 이용권 부여가 발생하지 않습니다."
+                ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다. 테스트 이용권과 결제 처리 기술 기록만 생성됩니다."
                 : "현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다."}
             </p>
+            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-navy">
+              <Link href="/purchase-information" className="underline decoration-gold underline-offset-4">구매·환불 안내</Link>
+              <Link href="/privacy" className="underline decoration-gold underline-offset-4">결제 데이터 처리 안내</Link>
+            </div>
           </Container>
         </section>
 
