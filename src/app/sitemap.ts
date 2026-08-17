@@ -20,6 +20,7 @@ const routes = [
   "/resume-pro",
   "/resume-pro/workspace",
   "/eofy-pro",
+  "/eofy-pro/workspace",
   "/rental-application-pro",
   "/rental-application-pro/workspace",
   "/cost-of-living-calculator",

@@ -19,8 +19,8 @@ const products = [
     name: "EOFY Pack Pro",
     price: "A$9.90",
     summary: "소득과 공제 증빙을 한 해의 체크리스트와 회계사 전달용 요약으로 묶습니다.",
-    detail: "1회 결제 검토 · 제품 미리보기",
-    status: "출시 준비 중",
+    detail: "1회 결제 검토 · 개발판 체험 가능",
+    status: "기능 검증 중",
   },
   {
     href: "/rental-application-pro",
