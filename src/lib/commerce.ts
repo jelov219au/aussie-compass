@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getEntitlementDatabaseUrl } from "@/lib/entitlementConfig";
 import { getStripeSecretMode } from "@/lib/stripe";
 
 export const resumeProProduct = {
@@ -31,7 +32,7 @@ export function getPaymentReadiness(): PaymentReadiness {
   const managedPaymentsConfigured = process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true";
   const webhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_"));
   const entitlementStoreConfigured = process.env.PAYMENTS_ENTITLEMENT_STORE === "neon"
-    && Boolean(process.env.ENTITLEMENT_DB_URL?.trim().match(/^postgres(?:ql)?:\/\//));
+    && Boolean(getEntitlementDatabaseUrl()?.match(/^postgres(?:ql)?:\/\//));
   // Keep live checkout fail-closed until a signed, revocable browser access
   // session and self-service purchase restoration are implemented.
   const accessDeliveryImplemented = false;

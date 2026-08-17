@@ -48,7 +48,7 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 
 ## Required environment contract
 
-The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch.
+The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch. The app accepts the manual `ENTITLEMENT_DB_URL` override or Vercel Neon's managed `ENTITLEMENT_DB_DATABASE_URL`; do not copy the managed connection string into a second variable.
 
 ## Remaining actions before the first paid order
 

@@ -2,6 +2,7 @@ import "server-only";
 
 import { neon } from "@neondatabase/serverless";
 
+import { getEntitlementDatabaseUrl } from "@/lib/entitlementConfig";
 import type {
   EntitlementCommand,
   EntitlementRecord,
@@ -23,10 +24,10 @@ type EntitlementRow = {
 };
 
 function getConnectionString() {
-  const value = process.env.ENTITLEMENT_DB_URL?.trim();
+  const value = getEntitlementDatabaseUrl();
 
   if (!value || (!value.startsWith("postgres://") && !value.startsWith("postgresql://"))) {
-    throw new Error("ENTITLEMENT_DB_URL is not configured as a Postgres connection string.");
+    throw new Error("The entitlement database is not configured as a Postgres connection string.");
   }
 
   return value;
