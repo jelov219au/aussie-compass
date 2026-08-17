@@ -1,18 +1,21 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { RentalApplicationWorkspace } from "@/components/tools/RentalApplicationWorkspace";
 import { Container } from "@/components/ui/Container";
-import { createPageMetadata } from "@/lib/site";
+import { requireLocalProductPreviewAccess } from "@/lib/localPreviewOnly";
 
-export const metadata = createPageMetadata({
+export const metadata: Metadata = {
   title: "Rental Application Pack Pro 개발 프리뷰 | Hoju Compass",
   description: "호주 렌트 신청 서류를 안전하게 점검하고 영문 소개문과 준비 현황을 기기 안에서 정리하세요.",
-  path: "/rental-application-pro/workspace",
-});
+  robots: { index: false, follow: false },
+};
 
 export default function RentalApplicationWorkspacePage() {
+  requireLocalProductPreviewAccess();
+
   return <>
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "Rental Application Pack Pro", path: "/rental-application-pro" }, { name: "개발 프리뷰", path: "/rental-application-pro/workspace" }]} />
     <Header />

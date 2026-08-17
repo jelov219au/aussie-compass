@@ -16,6 +16,7 @@ export type PaymentReadiness = {
   managedPaymentsConfigured: boolean;
   webhookConfigured: boolean;
   entitlementStoreConfigured: boolean;
+  accessDeliveryImplemented: boolean;
   sellerDetailsConfigured: boolean;
   supportConfigured: boolean;
   ready: boolean;
@@ -31,11 +32,14 @@ export function getPaymentReadiness(): PaymentReadiness {
   const webhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_"));
   const entitlementStoreConfigured = process.env.PAYMENTS_ENTITLEMENT_STORE === "neon"
     && Boolean(process.env.ENTITLEMENT_DB_URL?.trim().match(/^postgres(?:ql)?:\/\//));
+  // Keep live checkout fail-closed until a signed, revocable browser access
+  // session and self-service purchase restoration are implemented.
+  const accessDeliveryImplemented = false;
   const sellerDetailsConfigured = Boolean(process.env.BUSINESS_LEGAL_NAME && process.env.BUSINESS_ABN);
   const supportConfigured = Boolean(process.env.NEXT_PUBLIC_SUPPORT_EMAIL);
-  const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && sellerDetailsConfigured && supportConfigured;
+  const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && accessDeliveryImplemented && sellerDetailsConfigured && supportConfigured;
 
-  return { enabled, stripeConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, sellerDetailsConfigured, supportConfigured, ready };
+  return { enabled, stripeConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, ready };
 }
 
 export function canCreateTestCheckout() {

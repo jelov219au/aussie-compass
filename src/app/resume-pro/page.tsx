@@ -103,7 +103,7 @@ export default function ResumeProPage() {
             </div>
             <div className="mt-10 flex flex-wrap gap-3">
               <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">무료 이력서 먼저 만들기</Link>
-              <Link href="/resume-pro/workspace" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy hover:bg-white">Pro 기능 개발판 체험</Link>
+              <span className="inline-flex min-h-12 items-center justify-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted">Pro 작업 공간 출시 준비 중</span>
               {checkoutAvailable ? (
                 <form action="/api/checkout/resume-pro" method="post">
                   <button type="submit" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">
@@ -148,7 +148,7 @@ export default function ResumeProPage() {
                 </li>
               ))}
             </ol>
-            <div className="mt-8 flex justify-end"><Link href="/resume-pro/workspace" className="inline-flex min-h-12 items-center border-b-2 border-gold text-sm font-semibold text-navy">커버레터·공고 점검 체험하기 <span className="ml-3" aria-hidden="true">→</span></Link></div>
+            <p className="mt-8 border-l-2 border-gold pl-4 text-sm leading-6 text-muted">실제 작업 공간은 결제 권한 확인과 다른 기기에서의 구매 복구까지 검증한 뒤 공개합니다.</p>
           </Container>
         </section>
 

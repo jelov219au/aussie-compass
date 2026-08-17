@@ -16,6 +16,7 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 - Publish seller identity, ABN, support contact, delivery method, refund process, privacy notice and terms before accepting money.
 - Do not use “no refunds”. Australian Consumer Law rights must remain available.
 - Provide a self-service way to restore a purchase on another device and revoke access after a refund or chargeback.
+- Keep every paid workspace inaccessible on deployed builds until that server-verified access path is complete.
 
 ## Technical launch gates
 
@@ -29,6 +30,7 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 - Verify signed Stripe webhooks before granting access.
 - Reject oversized webhook payloads and events whose test/live mode does not match the deployment environment.
 - Store only the minimum entitlement record needed to restore access.
+- Issue a signed, short-lived browser access session only after confirming an active server-side entitlement; never unlock a workspace from the success-page URL alone.
 - Process each Stripe event once by claiming its event ID and updating the entitlement in the same database transaction.
 - Treat partial refunds and ambiguous payment states as manual review instead of automatically granting or revoking access.
 - Never place `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in variables prefixed with `NEXT_PUBLIC_`.
@@ -54,8 +56,9 @@ The repository includes placeholders in `.env.example`. Production secrets belon
 2. Add `STRIPE_WEBHOOK_SECRET` from a test webhook endpoint pointing to `/api/stripe/webhook`. Subscribe to `checkout.session.completed`, both `checkout.session.async_payment_*` events, `refund.created`, `refund.updated`, `refund.failed`, `charge.refunded`, and the dispute created/updated/closed/funds-reinstated events handled in code.
 3. Set `PAYMENTS_ENABLED=true` only in a non-production environment and complete the test matrix above.
 4. Apply `docs/entitlement-storage.sql` to the approved Neon database and verify the adapter in `src/lib/neonEntitlementStore.ts` with duplicate, refund and dispute test events. Production checkout remains hard-blocked until this test evidence exists.
-5. Publish the legal seller name, ABN, support email, digital delivery terms and ACL-compatible refund process. Confirm GST treatment with a registered tax agent before enabling tax collection.
-6. After those gates pass, create the equivalent live restricted key and live webhook endpoint, then enable production payments deliberately.
+5. Implement the signed browser access session, active-entitlement lookup and one-time purchase restoration flow. Until then, the code deliberately keeps `accessDeliveryImplemented` false and all deployed Pro workspaces return 404.
+6. Publish the legal seller name, ABN, support email, digital delivery terms and ACL-compatible refund process. Confirm GST treatment with a registered tax agent before enabling tax collection.
+7. After those gates pass, create the equivalent live restricted key and live webhook endpoint, then enable production payments deliberately.
 
 Do not enable Stripe automatic tax yet. It should only be enabled after the relevant registration is confirmed and recorded as Collecting in Stripe.
 

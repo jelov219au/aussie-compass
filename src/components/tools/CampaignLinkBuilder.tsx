@@ -17,7 +17,7 @@ const targets: Target[] = [
   { path: "/property-inspection-checklist", label: "집 방문 체크리스트", title: "쉐어하우스 방문에서 놓치기 쉬운 것", body: "Bond, 공과금, 계약 상대, 곰팡이와 교통까지 현장에서 확인하세요.", cta: "집 체크리스트 보기" },
   { path: "/tax-return-guide", label: "택스 리턴 준비", title: "EOFY 전에 먼저 모아야 할 자료", body: "Income statement와 공제 증빙을 신고 전에 정리하세요.", cta: "택스 리턴 가이드 보기" },
   { path: "/leaving-australia-guide", label: "귀국·DASP", title: "귀국 뒤에도 남는 호주 생활 정산", body: "퇴거, 마지막 급여, 세금과 DASP를 출국 전후로 준비하세요.", cta: "귀국 준비 시작하기" },
-  { path: "/pro", label: "Pro 도구 비교", title: "호주 생활 준비 시간을 줄이는 5개 작업 공간", body: "이력서, 렌트, 급여 증빙, EOFY와 귀국 준비 개발판을 비교하세요.", cta: "Pro 개발판 비교하기" },
+  { path: "/pro", label: "Pro 도구 비교", title: "호주 생활 준비 시간을 줄이는 5개 작업 공간", body: "이력서, 렌트, 급여 증빙, EOFY와 귀국 준비 제품 구성을 비교하세요.", cta: "Pro 제품 비교하기" },
 ];
 
 const sourceOptions = [

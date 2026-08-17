@@ -41,7 +41,7 @@ export default function TaxReturnGuidePage() {
 
         <TaxReturnChecklist />
 
-        <section className="mt-8 border-y border-navy/20 bg-white p-6 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-8"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">다음 단계 · 개발 프리뷰</p><h2 className="mt-2 text-xl font-semibold text-navy">소득·공제 증빙과 확인 질문을 한 묶음으로 정리하세요</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-muted">영수증을 업로드하지 않고 공제 후보 기록과 등록 세무사 전달용 요약을 만들 수 있습니다.</p></div><Link href="/eofy-pro/workspace" className="mt-4 inline-flex min-h-11 shrink-0 items-center bg-navy px-4 text-sm font-semibold text-white sm:mt-0">EOFY Pack 무료 체험 &rarr;</Link></section>
+        <section className="mt-8 border-y border-navy/20 bg-white p-6 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-8"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">다음 단계 · Pro 미리보기</p><h2 className="mt-2 text-xl font-semibold text-navy">소득·공제 증빙과 확인 질문을 한 묶음으로 정리하세요</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-muted">영수증을 업로드하지 않고 공제 후보 기록과 등록 세무사 전달용 요약을 만드는 제품 구성을 확인할 수 있습니다.</p></div><Link href="/eofy-pro" className="mt-4 inline-flex min-h-11 shrink-0 items-center bg-navy px-4 text-sm font-semibold text-white sm:mt-0">EOFY Pack 구성 보기 &rarr;</Link></section>
 
         <div className="mt-8"><TaxTimeReminder /></div>
 

@@ -1,18 +1,21 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { EofyProWorkspace } from "@/components/tools/EofyProWorkspace";
 import { Container } from "@/components/ui/Container";
-import { createPageMetadata } from "@/lib/site";
+import { requireLocalProductPreviewAccess } from "@/lib/localPreviewOnly";
 
-export const metadata = createPageMetadata({
+export const metadata: Metadata = {
   title: "EOFY Pack Pro 개발 프리뷰 | Hoju Compass",
   description: "호주 택스 리턴 전 소득 상태, 공제 후보 증빙과 등록 세무사에게 확인할 질문을 기기 안에서 정리하세요.",
-  path: "/eofy-pro/workspace",
-});
+  robots: { index: false, follow: false },
+};
 
 export default function EofyProWorkspacePage() {
+  requireLocalProductPreviewAccess();
+
   return <>
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "택스 리턴 준비", path: "/tax-return-guide" }, { name: "EOFY Pack Pro", path: "/eofy-pro" }, { name: "개발 프리뷰", path: "/eofy-pro/workspace" }]} />
     <Header />

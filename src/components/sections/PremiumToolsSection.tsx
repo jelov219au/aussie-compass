@@ -9,7 +9,7 @@ const products = [
     name: "Resume Pro",
     price: "A$19.90",
     summary: "이력서, 커버레터와 공고 점검을 회사별 지원 패키지로 정리합니다.",
-    detail: "1회 결제 검토 · 개발판 체험 가능",
+    detail: "1회 결제 검토 · 제품 구성 공개",
     status: "결제 테스트 중",
   },
   {
@@ -19,7 +19,7 @@ const products = [
     name: "EOFY Pack Pro",
     price: "A$9.90",
     summary: "소득과 공제 증빙을 한 해의 체크리스트와 회계사 전달용 요약으로 묶습니다.",
-    detail: "1회 결제 검토 · 개발판 체험 가능",
+    detail: "1회 결제 검토 · 제품 구성 공개",
     status: "기능 검증 중",
   },
   {
@@ -29,7 +29,7 @@ const products = [
     name: "Rental Pack Pro",
     price: "A$14.90",
     summary: "렌트 신청 서류, 개인정보 점검과 영문 소개문을 집 후보별 패키지로 정리합니다.",
-    detail: "1회 결제 검토 · 개발판 체험 가능",
+    detail: "1회 결제 검토 · 제품 구성 공개",
     status: "기능 검증 중",
   },
   {
@@ -39,7 +39,7 @@ const products = [
     name: "Leaving Pack Pro",
     price: "A$12.90",
     summary: "출국 전후 업무, 마지막 정산과 확인 질문을 개인 귀국 준비 패키지로 정리합니다.",
-    detail: "1회 결제 검토 · 개발판 체험 가능",
+    detail: "1회 결제 검토 · 제품 구성 공개",
     status: "기능 검증 중",
   },
   {
@@ -49,7 +49,7 @@ const products = [
     name: "Pay Evidence Pro",
     price: "A$12.90",
     summary: "근무기록, Payslip 차이와 증빙을 급여기간별 확인 패키지로 정리합니다.",
-    detail: "1회 결제 검토 · 개발판 체험 가능",
+    detail: "1회 결제 검토 · 제품 구성 공개",
     status: "기능 검증 중",
   },
 ];

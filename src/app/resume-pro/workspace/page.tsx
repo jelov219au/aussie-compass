@@ -1,18 +1,21 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { ResumeProWorkspace } from "@/components/tools/ResumeProWorkspace";
 import { Container } from "@/components/ui/Container";
-import { createPageMetadata } from "@/lib/site";
+import { requireLocalProductPreviewAccess } from "@/lib/localPreviewOnly";
 
-export const metadata = createPageMetadata({
+export const metadata: Metadata = {
   title: "Resume Pro 개발 프리뷰 | Hoju Compass",
   description: "저장된 영문 이력서를 바탕으로 커버레터 초안을 만들고 채용 공고의 핵심 표현을 점검하세요.",
-  path: "/resume-pro/workspace",
-});
+  robots: { index: false, follow: false },
+};
 
 export default function ResumeProWorkspacePage() {
+  requireLocalProductPreviewAccess();
+
   return (
     <>
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "Resume Pro", path: "/resume-pro" }, { name: "개발 프리뷰", path: "/resume-pro/workspace" }]} />
