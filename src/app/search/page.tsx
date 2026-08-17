@@ -31,6 +31,7 @@ const coreItems:SearchItem[]=[
   {href:"/tax-return-guide",type:"도구",title:"택스 리턴 준비",description:"EOFY 소득자료, 공제 증빙과 신고 일정",keywords:["세금환급","ATO","tax return","deduction","공제"]},
   {href:"/service-quote-comparator",type:"도구",title:"서비스 견적 비교",description:"플러머·전기기사·청소·이사 견적 비교",keywords:["바가지","업체","tradie","plumber","electrician","ABN","면허"]},
   {href:"/service-price-log",type:"도구",title:"서비스 가격 기록",description:"생활 서비스 견적과 실제 결제 금액 기록",keywords:["가격데이터","비용","중앙값","청구서"]},
+  {href:"/pay-evidence-pro",type:"도구",title:"Pay Evidence Pack Pro",description:"근무기록과 Payslip 차이, 증빙과 영문 급여 확인 요청문",keywords:["미지급급여","급여차이","underpayment","payslip","근무시간","증빙"]},
   {href:"/used-car-comparison",type:"도구",title:"중고차 구매 비교",description:"첫 1년 비용, PPSR, VIN과 사전검사",keywords:["차","자동차","rego","보험","연료","차량"]},
   {href:"/leaving-australia-guide",type:"도구",title:"귀국 준비·Super DASP",description:"퇴사, 렌트, 계정 정리와 Super 환급",keywords:["출국","한국귀국","슈퍼환급","연금환급","DASP","비자종료"]},
   {href:"/leaving-australia-pro",type:"도구",title:"Leaving Australia Pack Pro",description:"출국 전후 업무와 Bond·마지막 급여·DASP 후속 확인",keywords:["귀국패키지","출국정산","bond","final pay","DASP","한국귀국"]},

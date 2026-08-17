@@ -37,6 +37,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - EOFY Pack Pro local workspace for income-source readiness, deduction-candidate evidence notes, accountant questions, and a text summary without receipt uploads or refund estimates
 - Rental Application Pack Pro preview and local workspace with document readiness, privacy checks, an English introduction draft, and text-package export without document uploads
 - Leaving Australia Pack Pro preview and local workspace with ordered departure tasks, expected-payment follow-up, confirmation questions, and a text handoff without sensitive identifiers
+- Pay Evidence Pack Pro preview and local workspace with period-by-period gross comparisons, evidence readiness, an English review request, and a text handoff without source-document uploads
 - Payment readiness contract for an Australian sole trader, with payments disabled until Stripe, webhooks, entitlement storage, seller details and support are configured
 - Cost of living calculator with mixed payment frequencies, income comparison, local autosave, custom expenses, and printable results
 - Dedicated tools hub linking all available calculators and builders

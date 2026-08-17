@@ -41,6 +41,8 @@ const routes = [
   "/leaving-australia-guide",
   "/leaving-australia-pro",
   "/leaving-australia-pro/workspace",
+  "/pay-evidence-pro",
+  "/pay-evidence-pro/workspace",
   "/guides",
   "/minimum-wage-guide",
   "/casual-loading-guide",

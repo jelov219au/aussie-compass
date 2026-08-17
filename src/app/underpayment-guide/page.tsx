@@ -116,6 +116,13 @@ export default function UnderpaymentGuidePage() {
             </ul>
           </section>
 
+          <section className="mt-8 border border-navy/20 bg-white p-5 sm:p-6" aria-labelledby="pay-evidence-pro-cta">
+            <div className="grid gap-5 sm:grid-cols-[1fr_auto] sm:items-center">
+              <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Pay Evidence Pack Pro / Development preview</p><h2 id="pay-evidence-pro-cta" className="mt-2 text-xl font-semibold text-navy">급여기간별 차이와 증빙을 한 파일로 정리하세요.</h2><p className="mt-2 text-sm leading-6 text-muted">무료 대응 순서는 그대로 사용하고, 기대 Gross·Payslip Gross·증빙 상태와 영문 확인 요청문을 개인 패키지로 묶을 수 있습니다.</p></div>
+              <Link href="/pay-evidence-pro/workspace" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white">Pro 개발판 체험 →</Link>
+            </div>
+          </section>
+
           <section className="mt-8 grid gap-5 md:grid-cols-2" aria-label="중요한 급여 확인 사항">
             <article className="rounded-2xl border border-border bg-white p-6 sm:p-8">
               <h2 className="text-xl font-semibold text-navy">Payslip이 없어도 기록하세요</h2>
