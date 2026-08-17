@@ -112,9 +112,95 @@ async function consumeRestoreTokenHash(tokenHash: string) {
   return rows[0] ? toEntitlementRecord(rows[0]) : null;
 }
 
+async function findActiveByCheckoutSession(checkoutSessionId: string) {
+  if (!/^cs_(?:test_)?[A-Za-z0-9]+$/.test(checkoutSessionId)) return null;
+
+  const sql = neon(getConnectionString());
+  const rows = await sql`
+    select
+      id,
+      product_code,
+      status,
+      stripe_checkout_session_id,
+      stripe_payment_intent_id,
+      stripe_charge_id,
+      stripe_customer_id,
+      granted_at,
+      revoked_at
+    from purchase_entitlements
+    where stripe_checkout_session_id = ${checkoutSessionId}
+      and product_code = 'resume_pro'
+      and status = 'active'
+    limit 1
+  ` as EntitlementRow[];
+
+  return rows[0] ? toEntitlementRecord(rows[0]) : null;
+}
+
+async function findActiveById(entitlementId: string) {
+  if (!/^\d+$/.test(entitlementId)) return null;
+
+  const sql = neon(getConnectionString());
+  const rows = await sql`
+    select
+      id,
+      product_code,
+      status,
+      stripe_checkout_session_id,
+      stripe_payment_intent_id,
+      stripe_charge_id,
+      stripe_customer_id,
+      granted_at,
+      revoked_at
+    from purchase_entitlements
+    where id = ${entitlementId}
+      and product_code = 'resume_pro'
+      and status = 'active'
+    limit 1
+  ` as EntitlementRow[];
+
+  return rows[0] ? toEntitlementRecord(rows[0]) : null;
+}
+
+async function createRestoreTokenHash(input: {
+  entitlementId: string;
+  tokenHash: string;
+  expiresAt: Date;
+}) {
+  if (!/^\d+$/.test(input.entitlementId) || !/^[a-f0-9]{64}$/i.test(input.tokenHash)) {
+    throw new Error("Invalid restore-token input.");
+  }
+
+  const sql = neon(getConnectionString());
+  const rows = await sql`
+    with active_entitlement as (
+      select id
+      from purchase_entitlements
+      where id = ${input.entitlementId}
+        and product_code = 'resume_pro'
+        and status = 'active'
+    ), invalidated as (
+      update purchase_restore_tokens
+      set used_at = now()
+      where entitlement_id in (select id from active_entitlement)
+        and used_at is null
+      returning token_hash
+    )
+    insert into purchase_restore_tokens (token_hash, entitlement_id, expires_at)
+    select ${input.tokenHash.toLowerCase()}, id, ${input.expiresAt.toISOString()}
+    from active_entitlement
+    returning token_hash
+  ` as { token_hash: string }[];
+
+  if (!rows[0]) throw new Error("An active entitlement is required to create a restore token.");
+}
+
 export const neonEntitlementStore: EntitlementStore = {
   applyStripeEvent,
   consumeRestoreTokenHash,
+  findActiveByCheckoutSession,
+  findActiveById,
+  createRestoreTokenHash,
 };
 
 export function getConfiguredEntitlementStore() {

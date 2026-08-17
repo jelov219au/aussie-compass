@@ -34,6 +34,7 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 - Process each Stripe event once by claiming its event ID and updating the entitlement in the same database transaction.
 - Treat partial refunds and ambiguous payment states as manual review instead of automatically granting or revoking access.
 - Never place `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in variables prefixed with `NEXT_PUBLIC_`.
+- Sign access cookies with a separate `ENTITLEMENT_SESSION_SECRET` of at least 32 random characters and keep it server-only.
 - Run `npm run security:secrets` before publishing changes to catch accidentally tracked Stripe or Vercel credentials.
 - Test successful payment, cancellation, duplicate webhook, refund, chargeback and failed payment in Stripe test mode.
 - Keep `PAYMENTS_ENABLED=false` until test evidence and legal copy are reviewed.
@@ -56,7 +57,7 @@ The repository includes placeholders in `.env.example`. Production secrets belon
 2. Add `STRIPE_WEBHOOK_SECRET` from a test webhook endpoint pointing to `/api/stripe/webhook`. Subscribe to `checkout.session.completed`, both `checkout.session.async_payment_*` events, `refund.created`, `refund.updated`, `refund.failed`, `charge.refunded`, and the dispute created/updated/closed/funds-reinstated events handled in code.
 3. Set `PAYMENTS_ENABLED=true` only in a non-production environment and complete the test matrix above.
 4. Apply `docs/entitlement-storage.sql` to the approved Neon database and verify the adapter in `src/lib/neonEntitlementStore.ts` with duplicate, refund and dispute test events. Production checkout remains hard-blocked until this test evidence exists.
-5. Implement the signed browser access session, active-entitlement lookup and one-time purchase restoration flow. Until then, the code deliberately keeps `accessDeliveryImplemented` false and all deployed Pro workspaces return 404.
+5. Add `ENTITLEMENT_SESSION_SECRET` to the approved Preview environment, then verify access activation, revoked-entitlement blocking, one-time recovery-code consumption and expiry. Resume Pro remains fail-closed on deployed builds until the secret is configured and those tests pass.
 6. Publish the legal seller name, ABN, support email, digital delivery terms and ACL-compatible refund process. Confirm GST treatment with a registered tax agent before enabling tax collection.
 7. After those gates pass, create the equivalent live restricted key and live webhook endpoint, then enable production payments deliberately.
 
@@ -64,12 +65,15 @@ Do not enable Stripe automatic tax yet. It should only be enabled after the rele
 
 ## Preview verification record
 
-The protected Preview integration was verified on 17 August 2026 without enabling live payments:
+The protected Preview integration was verified on 18 August 2026 without enabling live payments:
 
 - A Stripe test-mode Checkout completed for Resume Pro at AUD 19.90.
-- The signed `checkout.session.completed` event reached the Preview webhook and returned HTTP 200.
-- A request with an invalid Stripe signature was rejected with HTTP 400.
-- The temporary Vercel automation bypass was revoked immediately after the test.
-- The temporary Stripe test webhook endpoint was disabled and its bypass query value removed.
+- Stripe manually resent that real `checkout.session.completed` event to the protected Preview webhook.
+- The signed event returned HTTP 200 with `persisted: true` and `outcome: "processed"`.
+- Repeated delivery of the same Stripe event returned HTTP 200 with `outcome: "duplicate"`.
+- Neon contained one webhook-event row and one active Resume Pro entitlement for the Checkout Session after all three deliveries.
+- A request with an invalid Stripe signature was rejected with HTTP 400 during the earlier endpoint verification.
+- The temporary Vercel automation bypass was removed, the protected Preview was redeployed, and an unauthenticated request using the revoked value was redirected to Vercel authentication.
+- The Stripe test webhook endpoint was disabled and its URL was stripped of the bypass query value. Its signing secret remains connected to the branch-scoped Preview environment for future controlled tests.
 
-This record proves the Checkout-to-webhook path works in test mode. It is not approval to accept live payments; durable entitlements, customer restoration, legal seller details and live-mode credentials are still required.
+This record proves the Checkout-to-webhook path and durable entitlement idempotency work in test mode. It is not approval to accept live payments; signed customer access sessions, purchase restoration, legal seller details and live-mode credentials are still required.

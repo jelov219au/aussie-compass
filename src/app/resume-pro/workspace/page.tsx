@@ -3,9 +3,11 @@ import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { ResumeProAccessTools } from "@/components/tools/ResumeProAccessTools";
 import { ResumeProWorkspace } from "@/components/tools/ResumeProWorkspace";
 import { Container } from "@/components/ui/Container";
-import { requireLocalProductPreviewAccess } from "@/lib/localPreviewOnly";
+import { getActiveResumeProEntitlement } from "@/lib/resumeProAccess";
+import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Resume Pro 개발 프리뷰 | Hoju Compass",
@@ -13,8 +15,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function ResumeProWorkspacePage() {
-  requireLocalProductPreviewAccess();
+export const dynamic = "force-dynamic";
+
+export default async function ResumeProWorkspacePage() {
+  if (process.env.NODE_ENV === "production" && !await getActiveResumeProEntitlement()) notFound();
 
   return (
     <>
@@ -28,6 +32,7 @@ export default function ResumeProWorkspacePage() {
             <aside className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted"><strong className="block text-navy">개발 프리뷰 · 현재 무료</strong>기능 검증 단계이며 결제와 계정 생성은 진행되지 않습니다.</aside>
           </div>
           <div className="mt-9"><ResumeProWorkspace /></div>
+          {process.env.NODE_ENV === "production" && <ResumeProAccessTools />}
           <section className="mt-10 border-l-2 border-gold bg-surface p-5 text-sm leading-7 text-muted"><h2 className="font-semibold text-navy">개인정보와 결과 안내</h2><p className="mt-1">이 도구는 입력 내용을 외부 AI나 서버로 전송하지 않고 브라우저 안에서 규칙 기반으로 초안을 만듭니다. 생성된 문장은 일반적인 제안이며 취업 결과를 보장하지 않습니다.</p></section>
         </Container>
       </main>

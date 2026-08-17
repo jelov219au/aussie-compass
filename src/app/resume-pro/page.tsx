@@ -149,6 +149,7 @@ export default function ResumeProPage() {
               ))}
             </ol>
             <p className="mt-8 border-l-2 border-gold pl-4 text-sm leading-6 text-muted">실제 작업 공간은 결제 권한 확인과 다른 기기에서의 구매 복구까지 검증한 뒤 공개합니다.</p>
+            <Link href="/resume-pro/restore" className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-navy">이미 구매했다면 이용권 복구하기 <span className="ml-2" aria-hidden="true">→</span></Link>
           </Container>
         </section>
 

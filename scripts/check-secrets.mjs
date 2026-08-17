@@ -1,13 +1,13 @@
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
-const trackedFiles = spawnSync("git", ["ls-files", "-z"], {
+const trackedFiles = spawnSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], {
   encoding: "utf8",
   windowsHide: true,
 });
 
 if (trackedFiles.status !== 0) {
-  console.error("Unable to list tracked files for the secret scan.");
+  console.error("Unable to list source files for the secret scan.");
   process.exit(1);
 }
 
@@ -63,4 +63,4 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-console.log(`Secret scan passed across ${files.length} tracked files.`);
+console.log(`Secret scan passed across ${files.length} tracked and untracked source files.`);

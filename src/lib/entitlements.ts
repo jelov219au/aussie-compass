@@ -43,6 +43,16 @@ export interface EntitlementStore {
   }): Promise<{ outcome: "processed" | "duplicate"; entitlement?: EntitlementRecord }>;
 
   consumeRestoreTokenHash(tokenHash: string): Promise<EntitlementRecord | null>;
+
+  findActiveByCheckoutSession(checkoutSessionId: string): Promise<EntitlementRecord | null>;
+
+  findActiveById(entitlementId: string): Promise<EntitlementRecord | null>;
+
+  createRestoreTokenHash(input: {
+    entitlementId: string;
+    tokenHash: string;
+    expiresAt: Date;
+  }): Promise<void>;
 }
 
 function expandableId(value: string | { id: string } | null | undefined) {
