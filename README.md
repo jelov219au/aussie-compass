@@ -39,9 +39,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Leaving Australia Pack Pro preview and local workspace with ordered departure tasks, expected-payment follow-up, confirmation questions, and a text handoff without sensitive identifiers
 - Pay Evidence Pack Pro preview and local workspace with period-by-period gross comparisons, evidence readiness, an English review request, and a text handoff without source-document uploads
 - Hoju Compass Pro comparison hub with a situation-based product finder, transparent free-versus-paid boundaries, pricing candidates, and direct access to all development workspaces
-- Campaign link builder for consistent UTM source, medium, campaign, and content naming, with local link history and direct social-card-maker handoff
-- Local content publishing planner with practical topic prompts, channel and format scheduling, production statuses, calendar export, and campaign-link handoff
-- Privacy-safe manual content scorecard for aggregate reach, link clicks and saves, with channel/topic comparisons and CSV export
+- Local-development operator workspace for campaign links, content scheduling and aggregate performance records; excluded from public tools, search, sitemap and device backups, with production routes returning 404 until admin authentication is added
 - Payment readiness contract for an Australian sole trader, with payments disabled until Stripe, webhooks, entitlement storage, seller details and support are configured
 - Cost of living calculator with mixed payment frequencies, income comparison, local autosave, custom expenses, and printable results
 - Dedicated tools hub linking all available calculators and builders
