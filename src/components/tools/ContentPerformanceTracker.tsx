@@ -10,6 +10,7 @@ const topics = [
   { id: "arrival", title: "호주 도착 첫 30일 순서", path: "/arrival-checklist" },
   { id: "sim", title: "호주 첫 SIM·eSIM 안전하게 개통하기", path: "/resources/australia-sim-esim-setup-guide" },
   { id: "bank", title: "호주 첫 은행 계좌 안전하게 열기", path: "/resources/australia-bank-account-opening-guide" },
+  { id: "health", title: "처음 아플 때 GP·병원·약국 이용 순서", path: "/resources/australia-gp-hospital-pharmacy-guide" },
   { id: "payslip", title: "첫 Payslip에서 확인할 5가지", path: "/payslip-guide" },
   { id: "resume", title: "호주식 영문 이력서 시작하기", path: "/resume-builder" },
   { id: "rent", title: "쉐어하우스 방문 체크리스트", path: "/property-inspection-checklist" },
