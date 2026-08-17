@@ -16,6 +16,7 @@ export function Header() {
     { label: content.nav.tools, href: "/tools" },
     { label: "나의 진행", href: "/my-compass" },
     { label: content.nav.guides, href: "/resources" },
+    { label: "Pro", href: "/pro" },
   ];
 
   return (

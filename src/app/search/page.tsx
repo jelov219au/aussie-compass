@@ -11,6 +11,7 @@ export const metadata=createPageMetadata({title:"호주 생활 정보 검색 | H
 
 const coreItems:SearchItem[]=[
   {href:"/my-compass",type:"도구",title:"나의 진행 상황",description:"이 기기에 저장된 정착·구직·저축·세금 프로젝트 모아보기",keywords:["대시보드","이어하기","저장","진행률","내 프로젝트","my compass"]},
+  {href:"/pro",type:"도구",title:"Hoju Compass Pro 비교",description:"Resume, Rental, 급여 증빙, EOFY와 귀국 준비 개발판 비교",keywords:["유료","프리미엄","pro","가격","결제","상품","패키지"]},
   {href:"/data-transfer",type:"도구",title:"기기 데이터 백업·이전",description:"체크리스트, 이력서와 계산 기록을 파일로 백업하고 새 주소·기기로 옮기기",keywords:["백업","복원","가져오기","내보내기","이전","새 도메인","JSON","기기 변경"]},
   {href:"/life-admin-reminder",type:"도구",title:"만료일·갱신 일정 리마인더",description:"비자, 여권, 렌트, Rego, 보험과 자격증 날짜 관리",keywords:["리마인더","알림","만료일","갱신","캘린더","일정","rego","보험","여권"]},
   {href:"/social-card-maker",type:"도구",title:"SNS 카드뉴스 만들기",description:"호주 생활 정보를 게시물·스토리 PNG와 설명문으로 제작",keywords:["인스타그램","Instagram","릴스","스토리","카드뉴스","콘텐츠","홍보","이미지"]},

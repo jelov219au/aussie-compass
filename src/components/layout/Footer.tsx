@@ -10,6 +10,7 @@ export function Footer() {
   const footerLinks = [
     { label: content.nav.tools, href: "/tools" },
     { label: "나의 진행", href: "/my-compass" },
+    { label: "Hoju Compass Pro", href: "/pro" },
     { label: "기록 백업·이전", href: "/data-transfer" },
     { label: "통합 검색", href: "/search" },
     { label: "새 글 RSS", href: "/feed.xml" },
