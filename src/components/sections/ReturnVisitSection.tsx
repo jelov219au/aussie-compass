@@ -50,23 +50,23 @@ export function ReturnVisitSection() {
   }, []);
 
   return (
-    <section className="border-b border-navy/20 bg-navy py-6 text-white" aria-label="저장한 작업 이어가기">
+    <section className="border-b border-border bg-surface py-6" aria-label="저장한 작업 이어가기">
       <Container>
-        <div className="grid gap-5 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div className="grid gap-5 rounded-2xl border border-border bg-white px-5 py-5 sm:grid-cols-[1fr_auto] sm:items-center sm:px-6">
           <div className="flex gap-4">
-            <span className="mt-0.5 font-mono text-sm text-gold" aria-hidden="true">↗</span>
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-sm text-gold" aria-hidden="true">↗</span>
             <div>
-              <p className="font-semibold">
+              <p className="font-semibold text-navy">
                 {count && count > 0 ? `이 기기에 저장된 ${count}개의 작업이 있습니다.` : "오늘 시작한 일을 다음 방문에도 이어가세요."}
               </p>
-              <p className="mt-1 text-sm leading-6 text-white/65">
+              <p className="mt-1 text-sm leading-6 text-muted">
                 로그인 없이 체크리스트, 계산, 이력서와 읽은 자료를 한곳에서 확인할 수 있습니다.
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
-            <Link href="/my-compass" className="inline-flex min-h-11 items-center border-b border-gold">나의 진행 열기 →</Link>
-            <Link href="/install" className="inline-flex min-h-11 items-center text-white/75 hover:text-white">홈 화면에 추가</Link>
+            <Link href="/my-compass" className="inline-flex min-h-11 items-center text-navy">나의 진행 열기 →</Link>
+            <Link href="/install" className="inline-flex min-h-11 items-center text-muted hover:text-navy">홈 화면에 추가</Link>
           </div>
         </div>
       </Container>
