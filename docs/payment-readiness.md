@@ -75,8 +75,10 @@ The protected Preview integration was verified on 18 August 2026 without enablin
 - Repeated delivery of the same Stripe event returned HTTP 200 with `outcome: "duplicate"`.
 - Neon contained one webhook-event row and one active Resume Pro entitlement for the Checkout Session after all three deliveries.
 - The entitlement ordering migration was applied on 18 August 2026. The existing row was backfilled with its Stripe event creation time, the timestamp column was verified non-null, and the database routine was verified to return `ignored_stale` for events that must not replace a newer state.
+- A full AUD 19.90 Stripe test-mode refund then delivered `charge.refunded`, `refund.created` and `refund.updated` to the protected Preview endpoint. All three signed deliveries returned HTTP 200 and the entitlement remained inaccessible in `review` after the final refund update.
+- Resending the original Checkout event returned `duplicate` and did not restore access. A separate transaction-only database regression used a different older event ID, returned `ignored_stale`, preserved the blocked state and was rolled back with zero test rows left behind.
 - A request with an invalid Stripe signature was rejected with HTTP 400 during the earlier endpoint verification.
-- The temporary Vercel automation bypass was removed, the protected Preview was redeployed, and an unauthenticated request using the revoked value was redirected to Vercel authentication.
+- The temporary Vercel automation bypass was removed, and a fresh unauthenticated request to the Preview webhook was redirected to Vercel authentication.
 - The Stripe test webhook endpoint was disabled and its URL was stripped of the bypass query value. Its signing secret remains connected to the branch-scoped Preview environment for future controlled tests.
 
 This record proves the Checkout-to-webhook path and durable entitlement idempotency work in test mode. It is not approval to accept live payments; signed customer access sessions, purchase restoration, legal seller details and live-mode credentials are still required.
