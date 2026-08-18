@@ -66,7 +66,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
       <div className="grid gap-6 border-y border-navy/20 py-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
-            Browse the library
+            지금 궁금한 주제부터
           </p>
           <h2 id="resource-directory-heading" className="mt-1 text-xl font-semibold text-navy">
             지금 필요한 주제를 골라보세요
@@ -150,7 +150,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
                   </div>
                   <div className="mt-8 flex items-end justify-between gap-4 border-t border-border pt-4">
                     <span className="text-xs font-medium text-muted">
-                      {hasRead ? "✓ 읽음 완료" : article.sources?.length ? `한국어 해설 + 공식 출처 ${article.sources.length}개` : "단계별 한국어 가이드"}
+                      {hasRead ? "✓ 읽어본 글" : article.sources?.length ? `한국어 설명 + 공식 출처 ${article.sources.length}개` : "차근차근 읽는 한국어 안내"}
                     </span>
                     <span className="flex h-10 w-10 items-center justify-center border border-border text-lg text-navy transition group-hover:translate-x-1 group-hover:border-gold group-hover:bg-gold" aria-hidden="true">
                       →
@@ -163,8 +163,8 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
         </ol>
       ) : (
         <div className="border-b border-navy/20 py-16 text-center">
-          <p className="text-lg font-semibold text-navy">검색 결과가 없습니다.</p>
-          <p className="mt-2 text-sm text-muted">다른 검색어나 주제를 선택해보세요.</p>
+          <p className="text-lg font-semibold text-navy">아직 맞는 자료를 찾지 못했어요.</p>
+          <p className="mt-2 text-sm text-muted">검색어를 조금 짧게 쓰거나 다른 주제를 골라보세요.</p>
           <button type="button" onClick={reset} className="mt-6 min-h-11 border border-navy px-5 text-sm font-semibold text-navy transition hover:bg-navy hover:text-white">
             전체 자료 보기
           </button>

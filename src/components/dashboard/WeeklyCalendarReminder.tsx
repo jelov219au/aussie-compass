@@ -77,13 +77,13 @@ export function WeeklyCalendarReminder() {
     anchor.click();
     anchor.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
-    setMessage(`${selectedDay.label} ${time} 반복 일정을 만들었습니다. 내려받은 파일을 열어 캘린더에 저장하세요.`);
+    setMessage(`${selectedDay.label} ${time} 일정 파일을 만들었어요. 내려받은 파일을 열면 캘린더에 저장할 수 있어요.`);
   };
 
   return (
     <div className="mt-7 border-t border-white/15 pt-6">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Calendar reminder</p>
-      <h3 className="mt-1 text-lg font-semibold">잊지 않게 캘린더에 추가</h3>
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">잊지 않도록</p>
+      <h3 className="mt-1 text-lg font-semibold">내 캘린더에 읽는 시간 남기기</h3>
       <div className="mt-4 grid grid-cols-2 gap-2">
         <label>
           <span className="sr-only">반복 요일</span>
@@ -107,10 +107,10 @@ export function WeeklyCalendarReminder() {
         </label>
       </div>
       <button type="button" onClick={downloadReminder} className="mt-3 inline-flex min-h-11 w-full items-center justify-center border border-gold px-3 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy">
-        반복 리마인더 파일 받기
+        캘린더 일정 파일 받기
       </button>
       <p className="mt-3 text-xs leading-5 text-white/55">
-        파일을 열면 기본 캘린더 앱에서 매주 반복 일정을 저장할 수 있습니다. 알림은 캘린더 앱이 관리하며 Hoju Compass는 이메일을 보내지 않습니다.
+        파일을 열면 사용하는 캘린더 앱에 매주 반복 일정을 넣을 수 있어요. 알림은 캘린더 앱에서 보내며 Hoju Compass는 이메일을 보내지 않아요.
       </p>
       {message && <p className="mt-3 border-l-2 border-gold pl-3 text-xs leading-5 text-white/75" role="status">{message}</p>}
     </div>

@@ -31,7 +31,7 @@ export default function PurchaseInformationPage() {
           <Link href="/resume-pro" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; Resume Pro로 돌아가기</Link>
           <div className="mt-8 grid gap-8 border-b border-navy/20 pb-10 lg:grid-cols-[1fr_18rem] lg:items-end">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Purchase information</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">구매 전에 알아둘 내용</p>
               <h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">결제 전에 조건을 먼저 확인하세요.</h1>
               <p className="mt-5 max-w-3xl leading-7 text-muted">가격과 제공 방식, 이용권 복구, 판매자 연락처와 환불 요청 절차를 한곳에 정리했습니다.</p>
             </div>

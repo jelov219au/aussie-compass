@@ -36,11 +36,11 @@ export function GlossaryExplorer({ terms }: { terms: GlossaryTerm[] }) {
     <div className="mt-10">
       <section className="border-y border-navy/20 py-6" aria-labelledby="glossary-search-heading">
         <h2 id="glossary-search-heading" className="sr-only">용어 검색과 분야 선택</h2>
-        <label htmlFor="glossary-search" className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Search terms</label>
+        <label htmlFor="glossary-search" className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">궁금한 용어 찾기</label>
         <div className="mt-3 flex items-center border-b-2 border-navy pb-3">
           <span className="mr-3 font-mono text-2xl text-gold" aria-hidden="true">⌕</span>
           <input id="glossary-search" type="search" autoComplete="off" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="예: TFN, 급여명세서, 보증금" className="min-h-12 w-full bg-transparent text-xl text-navy outline-none placeholder:text-muted/55 sm:text-2xl" />
-          <span className="ml-3 shrink-0 font-mono text-xs text-muted" aria-live="polite">{filtered.length} terms</span>
+          <span className="ml-3 shrink-0 font-mono text-xs text-muted" aria-live="polite">{filtered.length}개</span>
         </div>
         <div className="mt-5 flex flex-wrap gap-2" aria-label="용어 분야">
           {categories.map((item) => <button key={item} type="button" onClick={() => setCategory(item)} aria-pressed={category === item} className={`min-h-10 rounded-full border px-4 text-sm font-medium transition ${category === item ? "border-navy bg-navy text-white" : "border-border bg-white text-muted hover:border-gold hover:text-navy"}`}>{item}</button>)}
@@ -64,8 +64,8 @@ export function GlossaryExplorer({ terms }: { terms: GlossaryTerm[] }) {
         </dl>
       ) : (
         <div className="mt-8 border-y border-border py-16 text-center">
-          <p className="text-xl font-semibold text-navy">일치하는 용어가 없습니다.</p>
-          <p className="mt-2 text-sm text-muted">약어를 짧게 입력하거나 다른 분야를 선택해 보세요.</p>
+          <p className="text-xl font-semibold text-navy">아직 맞는 용어를 찾지 못했어요.</p>
+          <p className="mt-2 text-sm text-muted">단어를 조금 짧게 입력하거나 다른 분야를 골라보세요.</p>
           <button type="button" onClick={() => { setQuery(""); setCategory("전체"); }} className="mt-5 min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">전체 용어 보기</button>
         </div>
       )}

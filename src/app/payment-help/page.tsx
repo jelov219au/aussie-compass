@@ -32,11 +32,11 @@ export default function PaymentHelpPage() {
         <Container className="max-w-5xl">
           <Link href="/purchase-information" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 구매·환불 안내로 돌아가기</Link>
           <div className="mt-8 grid gap-8 border-b border-navy/20 pb-10 lg:grid-cols-[1fr_18rem] lg:items-end">
-            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Payment support</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">결제보다 먼저, 문제 상황을 구분하세요.</h1><p className="mt-5 max-w-3xl leading-7 text-muted">중복 결제와 민감정보 노출을 피하면서 Resume Pro 접근 문제나 환불 요청을 준비하는 순서입니다.</p></div>
+            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">결제 문제가 생겼다면</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">무엇이 문제인지부터 차근차근 확인해요.</h1><p className="mt-5 max-w-3xl leading-7 text-muted">중복으로 결제하거나 민감한 정보를 보내지 않도록, Resume Pro 이용 문제와 환불 문의 순서를 상황별로 정리했어요.</p></div>
             <p className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted"><strong className="block text-navy">서버 제출 없음</strong>아래 선택과 문의 문구는 현재 브라우저에서만 만들어집니다.</p>
           </div>
           <section className="mt-9 bg-navy p-5 text-white sm:p-7" aria-labelledby="safety-first-heading">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Safety first</p><h2 id="safety-first-heading" className="mt-2 text-xl font-semibold">지원 요청 전에 확인하세요.</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">개인정보를 지키면서</p><h2 id="safety-first-heading" className="mt-2 text-xl font-semibold">문의하기 전에 이것만 확인해 주세요.</h2>
             <ul className="mt-4 space-y-3 text-sm leading-6 text-white/75">{warnings.map((warning) => <li key={warning}>• {warning}</li>)}</ul>
           </section>
           <div className="mt-8"><PaymentSupportHelper supportEmail={seller.email} /></div>

@@ -123,8 +123,8 @@ export function DriverLicenceGuide() {
       <div className="border-y border-navy/20 bg-white">
         <div className="grid gap-6 px-5 py-6 sm:px-8 lg:grid-cols-[15rem_1fr] lg:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">State selector</p>
-            <h2 id="state-licence-heading" className="mt-2 text-2xl font-semibold text-navy">거주할 주를 선택하세요</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">지역마다 규정이 달라요</p>
+            <h2 id="state-licence-heading" className="mt-2 text-2xl font-semibold text-navy">생활할 주·준주를 골라보세요</h2>
           </div>
           <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="주·준주 선택">
             {rules.map((rule) => (

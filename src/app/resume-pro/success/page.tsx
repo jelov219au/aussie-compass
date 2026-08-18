@@ -43,7 +43,7 @@ export default async function ResumeProSuccessPage({ searchParams }: Props) {
       <Header />
       <main className="py-14 sm:py-20">
         <Container className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Payment status</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">결제 결과 확인</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
             {paid ? "결제가 확인됐습니다." : "결제 상태를 확인할 수 없습니다."}
           </h1>

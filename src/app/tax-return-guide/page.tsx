@@ -66,9 +66,9 @@ export default function TaxReturnGuidePage() {
         </section>
 
         <section className="mt-10" aria-labelledby="official-tax-links">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Official sources, explained</p>
-          <h2 id="official-tax-links" className="mt-2 text-2xl font-semibold text-navy">공식 자료를 한국어로 먼저 이해하세요</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">각 링크에서 무엇을 확인해야 하는지 먼저 풀어 설명했습니다. 세법과 기한은 바뀔 수 있으므로 실제 신고 전에는 해당 회계연도의 원문을 마지막으로 확인하세요.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">공식 자료도 함께 살펴봤어요</p>
+          <h2 id="official-tax-links" className="mt-2 text-2xl font-semibold text-navy">원문을 열기 전에 알아둘 내용</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">각 링크에서 무엇을 확인할 수 있는지 먼저 한국어로 풀어봤어요. 세법과 기한은 바뀔 수 있으니 실제 신고 전에는 해당 회계연도의 원문을 마지막으로 확인해 주세요.</p>
           <ul className="mt-6 divide-y divide-border border-y border-navy/20 sm:grid sm:grid-cols-2 sm:divide-y-0">
             {officialLinks.map((link, index) => <li key={link.href} className="border-b border-border sm:odd:border-r"><a href={link.href} target="_blank" rel="noreferrer" className="group grid h-full grid-cols-[2.5rem_1fr] gap-3 p-5 transition hover:bg-white sm:p-6"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><span><span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{link.source}</span><strong className="mt-1 block text-lg text-navy">{link.title}</strong><span className="mt-3 block text-sm leading-7 text-muted">{link.summary}</span><span className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">공식 원문 열기 <span className="ml-2 transition group-hover:translate-x-1">↗</span></span></span></a></li>)}
           </ul>

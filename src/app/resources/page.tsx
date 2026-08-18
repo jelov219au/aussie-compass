@@ -26,10 +26,10 @@ export default function ResourcesPage() {
             &larr; 홈으로 돌아가기
           </Link>
           <div className="mt-5 max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">실용 자료 허브</p>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 생활과 취업을 한 단계씩</h1>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">필요할 때 찾아보는 호주 생활 정보</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">낯선 호주 생활을 조금 더 쉽게</h1>
             <p className="mt-4 text-base leading-7 text-muted sm:text-lg">
-              호주 정부와 공공기관의 원문을 한국어로 풀어 설명하고, 확인 순서와 바로 실행할 수 있는 무료 도구까지 한 글에 담았습니다.
+              복잡한 공식 안내는 한국어로 쉽게 풀고, 무엇부터 확인하면 좋을지와 바로 써볼 수 있는 무료 도구까지 한 글에 담았어요.
             </p>
             <div className="mt-6 flex flex-wrap gap-x-7 gap-y-2 border-l-2 border-gold pl-4 text-sm font-medium text-navy">
               <span>3줄 핵심 요약</span>

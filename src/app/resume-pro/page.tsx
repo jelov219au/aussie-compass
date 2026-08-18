@@ -109,7 +109,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
             )}
             <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
               <div className="max-w-3xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro / Preview</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro · 미리보기</p>
                 <h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">이력서 한 장에서,<br /><span className="font-normal text-navy-light">지원 준비 전체로.</span></h1>
                 <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">무료 빌더의 작성 경험은 그대로 두고, 회사별 커버레터와 공고 점검, 프리미엄 디자인, 지원서 묶음 내보내기를 더할 예정입니다.</p>
               </div>
@@ -147,7 +147,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
         <section className="py-14 sm:py-20" aria-labelledby="templates-heading">
           <Container>
             <div className="grid gap-10 lg:grid-cols-[18rem_1fr]">
-              <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Template direction</p><h2 id="templates-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy">같은 내용도<br />다르게 보이도록.</h2><p className="mt-4 text-sm leading-6 text-muted">화려한 장식보다 채용 담당자가 빠르게 읽을 수 있는 정보 구조에 집중합니다.</p></div>
+              <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">이력서 디자인</p><h2 id="templates-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy">내용은 같아도,<br />읽히는 방식은 달라요.</h2><p className="mt-4 text-sm leading-6 text-muted">화려한 장식보다 채용 담당자가 필요한 내용을 빠르게 찾을 수 있도록 구성했어요.</p></div>
               <div className="grid gap-5 sm:grid-cols-3">
                 <TemplatePreview variant="editorial" label="Hospitality / Service" />
                 <TemplatePreview variant="split" label="Office / Professional" />
@@ -159,7 +159,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
 
         <section className="border-y border-navy/15 bg-white py-14 sm:py-20" aria-labelledby="pro-features-heading">
           <Container>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Application workflow</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">지원 준비 순서</p>
             <h2 id="pro-features-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">지원할 때 실제로 반복하는 일을 줄입니다.</h2>
             <ol className="mt-10 grid border-t border-navy/20 md:grid-cols-2">
               {features.map((feature, index) => (
@@ -178,7 +178,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
         <section className="py-14 sm:py-20" aria-labelledby="comparison-heading">
           <Container>
             <div className="grid gap-10 lg:grid-cols-[18rem_1fr]">
-              <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Free stays free</p><h2 id="comparison-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy">무료 기능은<br />없애지 않습니다.</h2><p className="mt-4 text-sm leading-6 text-muted">기본 이력서 작성과 PDF 저장은 계속 무료로 제공하고, 추가 작업을 줄이는 기능만 Pro로 구분합니다.</p></div>
+              <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">무료 기능은 그대로</p><h2 id="comparison-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy">무료 이력서만으로도<br />충분히 시작할 수 있어요.</h2><p className="mt-4 text-sm leading-6 text-muted">기본 이력서 작성과 PDF 저장은 계속 무료예요. 반복되는 추가 준비를 덜어주는 기능만 Pro로 나눴어요.</p></div>
               <div className="min-w-0 overflow-x-auto border-t border-navy/20">
                 <table className="w-full border-collapse text-left text-sm">
                   <thead><tr className="border-b border-navy/20"><th className="px-3 py-4 font-semibold text-navy sm:px-4">기능</th><th className="w-16 px-2 py-4 text-center font-semibold text-navy sm:w-28 sm:px-4">무료</th><th className="w-16 bg-gold/10 px-2 py-4 text-center font-semibold text-navy sm:w-28 sm:px-4">Pro</th></tr></thead>
@@ -191,7 +191,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
 
         <section className="bg-navy py-12 text-white sm:py-16">
           <Container className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Start with the free builder</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">지금은 이력서 내용을 먼저 준비하세요.</h2><p className="mt-3 max-w-xl text-sm leading-6 text-white/65">작성 내용은 현재 기기의 브라우저에만 저장되며 Resume Pro 미리보기 페이지에서는 별도 정보를 수집하지 않습니다.</p></div>
+            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">무료 이력서부터 시작해요</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">Pro를 기다리지 않아도 이력서부터 준비할 수 있어요.</h2><p className="mt-3 max-w-xl text-sm leading-6 text-white/65">작성한 내용은 지금 사용하는 기기의 브라우저에만 저장돼요. Resume Pro 미리보기에서는 별도 정보를 받지 않아요.</p></div>
             <Link href="/resume-builder" className="inline-flex min-h-12 shrink-0 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">무료 빌더 열기 <span className="ml-3" aria-hidden="true">→</span></Link>
           </Container>
         </section>

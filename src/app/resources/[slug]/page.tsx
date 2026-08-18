@@ -76,7 +76,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
             <section className="mt-10 border-y border-navy/20 py-7 sm:grid sm:grid-cols-[10rem_1fr] sm:gap-8" aria-labelledby="quick-summary-heading">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Quick brief</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">바쁘다면 여기부터</p>
                 <h2 id="quick-summary-heading" className="mt-2 text-xl font-semibold text-navy">먼저 이것만</h2>
               </div>
               <ol className="mt-5 space-y-4 sm:mt-0">
@@ -119,9 +119,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
             {article.sources && (
               <section className="mt-14 bg-white px-5 py-7 ring-1 ring-border sm:px-8 sm:py-9" aria-labelledby="article-sources">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Official sources, explained</p>
-                <h2 id="article-sources" className="mt-2 text-2xl font-semibold text-navy">공식 출처를 한국어로 읽기</h2>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-muted">원문을 일일이 열기 전에 무엇을 확인할 수 있는 자료인지 한국어로 정리했습니다. 제도 변경이나 본인 조건은 원문 링크에서 마지막으로 확인하세요.</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">공식 자료도 함께 확인했어요</p>
+                <h2 id="article-sources" className="mt-2 text-2xl font-semibold text-navy">원문을 열기 전에 알아둘 내용</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-muted">각 공식 자료에서 무엇을 확인할 수 있는지 먼저 한국어로 풀어봤어요. 제도가 바뀌었거나 내 조건에 따라 달라질 수 있는 내용은 마지막으로 원문에서 확인해 주세요.</p>
                 <ul className="mt-7 divide-y divide-border border-y border-border">
                   {article.sources.map((source) => (
                     <li key={source.href} className="py-5">
@@ -136,8 +136,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             )}
 
             <aside className="mt-12 bg-navy p-6 text-white sm:p-8">
-              <p className="text-sm font-semibold text-gold">읽은 내용을 바로 실행해 보세요</p>
-              <h2 className="mt-2 text-2xl font-semibold">무료 도구로 이어서 진행하기</h2>
+              <p className="text-sm font-semibold text-gold">읽고 나서 무엇을 하면 좋을까요?</p>
+              <h2 className="mt-2 text-2xl font-semibold">관련 무료 도구에서 이어볼 수 있어요</h2>
               <Link href={article.toolHref} className="mt-5 inline-flex min-h-12 items-center bg-gold px-5 py-3 font-semibold text-navy">
                 {article.toolLabel}
               </Link>
@@ -152,8 +152,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <section className="mx-auto mt-16 max-w-5xl border-t border-navy/20 pt-8" aria-labelledby="related-articles-heading">
               <div className="flex items-end justify-between gap-6 border-b border-border pb-5">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Continue reading</p>
-                  <h2 id="related-articles-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">이어서 확인할 자료</h2>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">함께 보면 좋은 글</p>
+                  <h2 id="related-articles-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">이 내용도 도움이 될 거예요</h2>
                 </div>
                 <Link href="/resources" className="hidden min-h-11 items-center text-sm font-semibold text-navy sm:inline-flex">
                   전체 자료 →

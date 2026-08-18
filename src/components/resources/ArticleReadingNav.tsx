@@ -74,7 +74,7 @@ export function ArticleReadingNav({ sections, article }: { sections: ReadingSect
       </div>
       <nav className="mt-8 border-y border-navy/20 py-5" aria-label="이 글의 목차">
         <div className="flex items-center justify-between gap-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">In this guide</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">이 글에서 다루는 내용</p>
           <div className="flex items-center gap-3">
             {completed && <span className="text-xs font-semibold text-navy">✓ 읽음 완료</span>}
             <p className="font-mono text-xs text-muted" role="progressbar" aria-label="읽기 진행률" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>

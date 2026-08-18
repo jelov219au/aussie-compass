@@ -19,7 +19,7 @@ export function DomainMigrationNotice() {
     <aside className="border-b border-gold/30 bg-navy text-white" aria-label="Hoju Compass 공식 주소 이전 안내">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">New official address</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">새 공식 주소를 알려드려요</p>
           <p className="mt-1 text-sm font-semibold leading-6 sm:text-base">공식 주소가 hojucompass.com으로 바뀌었습니다.</p>
           <p className="mt-1 text-xs leading-5 text-white/65 sm:text-sm">이 주소에 저장한 이력서·체크리스트·계산 기록은 자동으로 이동하지 않습니다. 기록이 있다면 먼저 백업한 뒤 새 주소에서 불러오세요.</p>
         </div>

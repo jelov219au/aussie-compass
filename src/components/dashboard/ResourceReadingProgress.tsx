@@ -68,9 +68,9 @@ export function ResourceReadingProgress({
   return (
     <section className="mt-12 grid border-y border-navy/20 lg:grid-cols-[18rem_minmax(0,1fr)]" aria-labelledby="reading-progress-heading">
       <div className="bg-navy p-7 text-white sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Resource progress</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">지금까지 읽은 자료</p>
         <h2 id="reading-progress-heading" className="mt-2 text-2xl font-semibold">
-          실용 자료 완독률
+          내 읽기 기록
         </h2>
         <p className="mt-5 font-mono text-4xl text-gold">
           {completed}<span className="text-lg text-white/45"> / {articles.length}</span>
@@ -86,7 +86,7 @@ export function ResourceReadingProgress({
           <span className="block h-full bg-gold transition-[width]" style={{ width: `${progress}%` }} />
         </div>
         <p className="mt-3 text-sm leading-6 text-white/65">
-          글을 90% 이상 읽으면 이 기기에 자동으로 완료 기록이 남습니다.
+          글을 거의 다 읽으면 이 기기에 읽은 기록이 자동으로 남아요.
         </p>
         <Link href="/resources" className="mt-5 inline-flex min-h-11 items-center border-b border-gold text-sm font-semibold">
           전체 자료 보기 →
@@ -95,7 +95,7 @@ export function ResourceReadingProgress({
         <div className="mt-7 border-t border-white/15 pt-6">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Weekly goal</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">이번 주 목표</p>
               <h3 className="mt-1 text-lg font-semibold">이번 주 읽기 목표</h3>
             </div>
             <p className="font-mono text-sm text-white/65"><strong className="text-xl text-white">{completedThisWeek}</strong> / {weeklyGoal}</p>
@@ -120,7 +120,7 @@ export function ResourceReadingProgress({
             </div>
           </fieldset>
           <p className="mt-3 text-xs leading-5 text-white/60" aria-live="polite">
-            {weeklyGoalComplete ? "이번 주 목표를 달성했습니다. 잘 이어가고 있어요." : `이번 주 ${weeklyGoal - completedThisWeek}개 더 읽으면 목표 달성입니다.`}
+            {weeklyGoalComplete ? "이번 주 목표를 채웠어요. 천천히 잘 이어가고 있어요." : `이번 주에 ${weeklyGoal - completedThisWeek}개만 더 읽으면 목표를 채울 수 있어요.`}
           </p>
         </div>
         <WeeklyCalendarReminder />
@@ -129,9 +129,9 @@ export function ResourceReadingProgress({
       <div className="p-7 sm:p-8 lg:pl-10">
         <div className="flex items-end justify-between gap-4 border-b border-border pb-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Up next</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">다음으로 볼 자료</p>
             <h3 className="mt-1 text-xl font-semibold text-navy">
-              {recommendations.length ? "다음에 읽을 자료" : "모든 자료를 읽었습니다"}
+              {recommendations.length ? "이어서 읽어볼까요?" : "공개된 자료를 모두 읽었어요"}
             </h3>
           </div>
           {recommendations.length > 0 && <span className="font-mono text-xs text-muted">약 {recommendations.reduce((total, article) => total + Number.parseInt(article.readingTime, 10), 0)}분</span>}
@@ -155,8 +155,8 @@ export function ResourceReadingProgress({
           </ol>
         ) : (
           <div className="py-8">
-            <p className="text-lg font-semibold text-navy">현재 공개된 자료를 모두 확인했습니다.</p>
-            <p className="mt-2 text-sm leading-7 text-muted">새 자료는 실용 자료 허브와 RSS에서 확인할 수 있습니다.</p>
+            <p className="text-lg font-semibold text-navy">여기까지 모두 읽었어요.</p>
+            <p className="mt-2 text-sm leading-7 text-muted">새로운 자료가 올라오면 실용 자료 목록과 RSS에서 만날 수 있어요.</p>
             <Link href="/feed.xml" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold underline-offset-4">새 글 RSS 열기 →</Link>
           </div>
         )}
