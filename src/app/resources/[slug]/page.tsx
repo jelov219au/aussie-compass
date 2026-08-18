@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   return article
     ? createPageMetadata({
-        title: `${article.title} | Hoju Compass`,
+        title: `${article.seoTitle ?? article.title} | Hoju Compass`,
         description: article.description,
         path: `/resources/${article.slug}`,
         kind: "article",
