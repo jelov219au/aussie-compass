@@ -27,11 +27,11 @@ const regions: Array<{
 ];
 
 const starts = [
-  { number: "01", href: "/arrival-checklist", label: "호주 도착", detail: "비자·전화·은행·TFN", symbol: "→" },
-  { number: "02", href: "/resume-builder", label: "일자리·급여", detail: "이력서·지원·Payslip", symbol: "↗" },
-  { number: "03", href: "/property-inspection-checklist", label: "집·교통", detail: "쉐어·렌트·생활권", symbol: "⌂" },
-  { number: "04", href: "/salary-calculator", label: "생활비·세금", detail: "급여·예산·택스 리턴", symbol: "$" },
-  { number: "05", href: "/leaving-australia-guide", label: "귀국 준비", detail: "퇴거·계정·Super DASP", symbol: "✓" },
+  { number: "01", href: "/arrival-checklist", label: "곧 출국하거나 막 도착했어요", detail: "비자·전화·은행·TFN", symbol: "→" },
+  { number: "02", href: "/resume-builder", label: "일자리를 찾고 있어요", detail: "이력서·지원·Payslip", symbol: "↗" },
+  { number: "03", href: "/property-inspection-checklist", label: "살 집을 알아보고 있어요", detail: "쉐어·렌트·생활권", symbol: "⌂" },
+  { number: "04", href: "/salary-calculator", label: "생활비와 세금이 궁금해요", detail: "급여·예산·택스 리턴", symbol: "$" },
+  { number: "05", href: "/leaving-australia-guide", label: "한국으로 돌아갈 준비를 해요", detail: "퇴거·계정·Super DASP", symbol: "✓" },
 ];
 
 export function HomeStartSection() {
@@ -56,11 +56,11 @@ export function HomeStartSection() {
       <Container>
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 id="home-start-heading" className="text-2xl font-semibold tracking-tight text-navy sm:text-3xl">지금 필요한 것부터 시작하세요</h2>
-            <p className="mt-2 text-sm leading-6 text-muted sm:text-base">상황을 고르면 바로 쓸 수 있는 도구로 연결됩니다.</p>
+            <h2 id="home-start-heading" className="text-2xl font-semibold tracking-tight text-navy sm:text-3xl">오늘은 어디에서 막혔나요?</h2>
+            <p className="mt-2 text-sm leading-6 text-muted sm:text-base">가장 가까운 상황 하나만 골라도 괜찮아요. 필요한 도구로 바로 이어드릴게요.</p>
           </div>
           <label className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-white px-4 py-3 text-sm sm:w-auto">
-            <span className="font-medium text-muted">거주 지역</span>
+            <span className="font-medium text-muted">내가 있는 지역</span>
             <select value={regionId} onChange={(event) => selectRegion(event.target.value as RegionId)} className="min-h-8 bg-transparent font-semibold text-navy outline-none" aria-label="거주 주 또는 준주">
               {regions.map((item) => <option key={item.id} value={item.id}>{item.id}</option>)}
             </select>
@@ -79,7 +79,7 @@ export function HomeStartSection() {
         </ol>
 
         <div className="mt-4 flex flex-col gap-4 rounded-2xl border border-border bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div><strong className="text-sm text-navy">{region.id} 생활 정보</strong><span className="ml-2 text-xs text-muted">{region.name}</span></div>
+          <div><strong className="text-sm text-navy">{region.id}에서 자주 찾는 정보</strong><span className="ml-2 text-xs text-muted">{region.name}</span></div>
           <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
             <a href={region.transportHref} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center text-navy hover:text-gold">{region.transport} ↗</a>
             <a href={region.rentingHref} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center text-navy hover:text-gold">{region.renting} ↗</a>

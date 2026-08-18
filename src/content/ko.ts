@@ -12,12 +12,12 @@ export const ko: SiteContent = {
     exploreTools: "도구 찾기",
   },
   hero: {
-    label: "호주 생활을 위한 실용 정보",
+    label: "낯선 호주 생활에 필요한 안내",
     heading: "호주 생활과 직장 생활, 더 이상 혼자 헤매지 마세요.",
     description:
-      "비자와 정착, 급여, 집, 세금부터 귀국 준비까지. 호주 생활의 중요한 순간을 한국어 도구와 공식 정보로 이어가세요.",
-    primaryCta: "내 상황에서 시작하기",
-    secondaryCta: "전체 도구 보기",
+      "비자와 첫 정착부터 급여, 집, 세금, 귀국 준비까지. 복잡한 공식 정보는 쉽게 풀고, 지금 해볼 일은 바로 쓸 수 있는 도구로 준비했어요.",
+    primaryCta: "지금 내 상황 골라보기",
+    secondaryCta: "도구부터 둘러보기",
     trust: "쉽고 명확하며 실제 생활에 도움이 되는 정보를 제공합니다.",
   },
   tools: {
@@ -30,7 +30,7 @@ export const ko: SiteContent = {
     steps: [
       {
         title: "필요한 도구 선택",
-        description: "지금 궁금한 내용에 맞는 계산기나 가이드를 선택하세요.",
+        description: "지금 막막한 일을 골라보면 알맞은 계산기와 가이드를 찾을 수 있어요.",
       },
       {
         title: "간단한 정보 입력",
@@ -38,7 +38,7 @@ export const ko: SiteContent = {
       },
       {
         title: "명확한 결과 확인",
-        description: "실생활에 활용할 수 있는 예상 금액과 쉬운 설명을 확인하세요.",
+        description: "계산 결과와 다음에 확인할 내용을 한눈에 볼 수 있어요.",
       },
     ],
   },

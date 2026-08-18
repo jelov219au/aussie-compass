@@ -57,15 +57,15 @@ export function ReturnVisitSection() {
             <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-sm text-gold" aria-hidden="true">↗</span>
             <div>
               <p className="font-semibold text-navy">
-                {count && count > 0 ? `이 기기에 저장된 ${count}개의 작업이 있습니다.` : "오늘 시작한 일을 다음 방문에도 이어가세요."}
+                {count && count > 0 ? `전에 보던 ${count}개의 기록이 이 기기에 남아 있어요.` : "오늘 시작한 일은 다음에 다시 이어볼 수 있어요."}
               </p>
               <p className="mt-1 text-sm leading-6 text-muted">
-                로그인 없이 체크리스트, 계산, 이력서와 읽은 자료를 한곳에서 확인할 수 있습니다.
+                체크리스트와 계산 결과, 이력서, 읽은 자료를 로그인 없이 한곳에서 모아볼 수 있어요.
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
-            <Link href="/my-compass" className="inline-flex min-h-11 items-center text-navy">나의 진행 열기 →</Link>
+            <Link href="/my-compass" className="inline-flex min-h-11 items-center text-navy">이어서 보기 →</Link>
             <Link href="/install" className="inline-flex min-h-11 items-center text-muted hover:text-navy">홈 화면에 추가</Link>
           </div>
         </div>

@@ -28,7 +28,7 @@ export function Hero() {
             </Button>
           </div>
 
-          <p className="mt-10 border-t border-border pt-5 text-xs leading-6 text-muted">회원가입 없이 사용하고, 입력한 내용은 별도 안내가 없는 한 이 기기에만 저장됩니다.</p>
+          <p className="mt-10 border-t border-border pt-5 text-xs leading-6 text-muted">먼저 둘러보기만 해도 괜찮아요. 회원가입은 필요 없고, 입력한 내용은 별도 안내가 없는 한 이 기기에만 남습니다.</p>
         </div>
       </Container>
     </section>
