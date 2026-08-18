@@ -8,7 +8,7 @@ import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
   title: "호주 도착 후 첫 30일 정착 체크리스트 | Hoju Compass",
-  description: "호주 입국 직후 VEVO, TFN, 은행, 통신, 교통, 의료, 학생 USI와 첫 직장 준비를 시기별로 확인하세요.",
+  description: "호주에 도착한 뒤 VEVO, TFN, 은행, 통신, 교통, 의료와 첫 직장 준비를 첫 30일 순서에 맞춰 챙겨보세요.",
   path: "/arrival-checklist",
 });
 
@@ -50,11 +50,11 @@ const officialLinks = [
 
 export default function ArrivalChecklistPage() { return <><BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "호주 도착 후 30일", path: "/arrival-checklist" }]} /><Header /><main className="py-12 sm:py-16"><Container>
   <Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 도구 목록으로 돌아가기</Link>
-  <div className="mt-5 max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">비자 승인 다음 단계</p><h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 도착 후 첫 30일, 순서대로 정착하세요</h1><p className="mt-4 text-base leading-7 text-muted sm:text-lg">도착 직후 모든 일을 한꺼번에 처리할 필요는 없습니다. 먼저 안전한 연락·이동 수단을 마련하고, 비자 조건과 세금·의료·학생 절차를 공식 페이지에서 확인한 뒤 주거와 일을 이어가세요.</p></div>
+  <div className="mt-5 max-w-4xl"><p className="text-sm font-semibold text-gold">비자 승인 뒤, 이제 호주 생활을 시작할 차례</p><h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 도착 후 첫 30일, 필요한 것부터 차근차근</h1><p className="mt-4 text-base leading-7 text-muted sm:text-lg">도착하자마자 모든 일을 끝낼 필요는 없어요. 첫날에는 연락과 이동을 챙기고, 첫 주에는 비자 조건과 은행·TFN을 확인하는 식으로 여유 있게 따라가 보세요.</p></div>
 
   <div className="my-8 grid gap-4 md:grid-cols-4">{[["DAY 1–2", "연락·교통", "숙소 도착, 전화번호와 이동수단"], ["WEEK 1", "공식 등록", "VEVO, 은행, TFN과 학생 절차"], ["WEEK 2", "생활 기반", "의료, 장기 주거와 사기 예방"], ["DAY 30", "첫 점검", "Payslip, Super와 실제 생활비"]].map(([time, title, body], index) => <article key={time} className={`rounded-2xl border p-5 ${index === 0 ? "border-gold/40 bg-gold/5" : "border-border bg-white"}`}><p className="text-xs font-semibold text-gold">{time}</p><h2 className="mt-2 font-semibold text-navy">{title}</h2><p className="mt-2 text-sm leading-6 text-muted">{body}</p></article>)}</div>
 
-  <LocalProjectChecklist storageKey="arrival-first-30-days" eyebrow="내 기기에만 저장되는 정착 프로젝트" title="첫 30일 체크리스트" description="완료 여부만 현재 브라우저에 저장됩니다. 여권, TFN, 비자 번호, 계좌·보험 정보는 입력하지 마세요." groups={groups} dateLabel="30일 정착 점검일" calendarTitle="호주 도착 후 정착 진행 점검" />
+  <LocalProjectChecklist storageKey="arrival-first-30-days" eyebrow="하나씩 체크하며 이어가기" title="첫 30일 체크리스트" description="체크한 항목만 이 브라우저에 남아요. 여권, TFN, 비자 번호, 계좌·보험 정보는 적지 않아도 됩니다." groups={groups} dateLabel="30일 정착 점검일" calendarTitle="호주 도착 후 정착 진행 점검" />
 
   <section className="mt-10" aria-labelledby="arrival-official-heading"><h2 id="arrival-official-heading" className="text-2xl font-semibold text-navy">공식 확인 바로가기</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted">자격·기한·필요 서류는 비자와 개인 상황에 따라 다릅니다. 아래 기관에서 최신 기준을 직접 확인하세요.</p><ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{officialLinks.map(([eyebrow, label, href]) => <li key={label}><a href={href} target="_blank" rel="noreferrer" className="flex h-full min-h-28 flex-col justify-between rounded-xl border border-border bg-white p-4 transition hover:border-gold"><span className="text-xs font-semibold text-gold">{eyebrow}</span><strong className="text-navy">{label} ↗</strong></a></li>)}</ul></section>
 

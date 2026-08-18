@@ -8,7 +8,7 @@ import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
   title: "호주 통합 급여 계산기 | Hoju Compass",
-  description: "시급 또는 연봉 입력으로 세전 급여, 예상 세후 소득, Super와 총 보상 패키지를 확인하세요.",
+  description: "시급이나 연봉을 입력하면 세전·세후 급여, Super와 전체 보상 규모를 한눈에 볼 수 있어요.",
   path: "/salary-calculator",
 });
 
@@ -21,21 +21,21 @@ export default function SalaryCalculatorPage() {
         <Container>
           <Link href="/#tools" className="inline-flex text-sm font-medium text-muted transition-colors hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">&larr; 도구 목록으로 돌아가기</Link>
           <div className="mb-10 mt-6 max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">대표 무료 도구</p>
+            <p className="text-sm font-semibold text-gold">이번 주 급여가 궁금할 때</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 통합 급여 계산기</h1>
-            <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">시급과 근무시간 또는 연봉을 입력하고 세전·세후 급여, Super, 총 패키지를 모두 확인하세요.</p>
+            <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">시급과 근무시간 또는 연봉만 넣어보세요. 예상 세전·세후 급여와 Super, 회사가 제시한 전체 패키지의 차이를 함께 보여드려요.</p>
           </div>
 
           <SalaryCalculator />
 
           <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="result-meaning-heading">
             <div className="max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-gold">결과 이해하기</p>
+              <p className="text-sm font-semibold text-gold">계산 결과 읽어보기</p>
               <h2 id="result-meaning-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">
-                이 결과는 무슨 뜻인가요?
+                낯선 급여 항목도 쉽게 살펴보세요
               </h2>
               <p className="mt-3 leading-relaxed text-muted">
-                계산기에 표시되는 주요 항목을 쉬운 말로 정리했습니다.
+                통장에 들어오는 금액과 회사가 말하는 연봉이 왜 다른지, 항목별로 풀어드릴게요.
               </p>
             </div>
 
@@ -69,12 +69,12 @@ export default function SalaryCalculatorPage() {
 
           <section className="mt-8" aria-labelledby="learn-more-heading">
             <div className="max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-gold">관련 정보</p>
+              <p className="text-sm font-semibold text-gold">계산한 뒤 함께 보면 좋아요</p>
               <h2 id="learn-more-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">
-                내 급여 더 알아보기
+                실제 급여와 하나씩 맞춰보기
               </h2>
               <p className="mt-3 leading-relaxed text-muted">
-                계산 결과를 확인한 다음 필요한 내용을 이어서 살펴보세요.
+                예상 금액을 확인했다면 최저임금, Casual Loading, Super와 Payslip도 이어서 비교해보세요.
               </p>
             </div>
 

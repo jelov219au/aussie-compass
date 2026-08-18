@@ -14,10 +14,10 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
+        <ToolsSection />
         <HomeStartSection />
         <ReturnVisitSection />
         <PersonalRouteFinder />
-        <ToolsSection />
         <ArticlesSection />
         <PremiumToolsSection />
       </main>
