@@ -4,9 +4,10 @@ import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { SocialCardMaker, type SocialCardInitialContent } from "@/components/tools/SocialCardMaker";
+import { requireLocalOperatorAccess } from "@/lib/operatorOnly";
 import { createPageMetadata, siteUrl } from "@/lib/site";
 
-export const metadata = createPageMetadata({ title: "호주 생활 SNS 카드뉴스 만들기", description: "호주 생활 정보를 Instagram 게시물·스토리 크기의 카드 이미지와 설명문으로 만들어 무료로 저장하세요.", path: "/social-card-maker" });
+export const metadata = { ...createPageMetadata({ title: "호주 생활 SNS 카드뉴스 만들기", description: "Hoju Compass 운영용 SNS 카드 이미지와 설명문 제작 도구입니다.", path: "/social-card-maker" }), robots: { index: false, follow: false } };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -15,6 +16,7 @@ function readParam(value: string | string[] | undefined, maxLength: number) {
 }
 
 export default async function SocialCardMakerPage({ searchParams }: { searchParams: SearchParams }) {
+  requireLocalOperatorAccess();
   const params = await searchParams;
   const title = readParam(params.title, 58);
   const rawPath = readParam(params.path, 300);

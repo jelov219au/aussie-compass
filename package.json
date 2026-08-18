@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "eslint . && node scripts/check-public-boundaries.mjs",
     "test:entitlement-ordering": "node scripts/check-entitlement-ordering.mjs",
     "security:secrets": "node scripts/check-secrets.mjs"
   },

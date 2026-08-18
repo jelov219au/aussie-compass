@@ -177,15 +177,6 @@ const availableTools: DirectoryTool[] = [
     categories: ["arrival", "work", "home", "annual", "departure"],
   },
   {
-    href: "/social-card-maker",
-    eyebrow: "SNS 콘텐츠",
-    title: "호주 생활 카드뉴스 만들기",
-    description: "검증한 생활 정보를 Instagram 게시물·스토리용 이미지와 설명문으로 만들고 바로 저장하세요.",
-    features: ["3가지 이미지 크기", "예시 문장", "PNG·설명문 저장"],
-    cta: "SNS 카드 만들기",
-    categories: ["arrival", "work", "money", "home", "annual", "departure"],
-  },
-  {
     href: "/data-transfer",
     eyebrow: "기록 관리",
     title: "기기 데이터 백업·이전",

@@ -60,18 +60,6 @@ export function ResourceReadingProgress({
   }).length;
   const weeklyProgress = Math.min(100, Math.round((completedThisWeek / weeklyGoal) * 100));
   const weeklyGoalComplete = completedThisWeek >= weeklyGoal;
-  const shareCardContent = {
-    eyebrow: weeklyGoalComplete ? "WEEKLY GOAL COMPLETE" : "HOJU COMPASS WEEKLY CHECK-IN",
-    title: completedThisWeek > 0
-      ? `이번 주 호주 생활 자료 ${completedThisWeek}개 읽기 완료`
-      : `이번 주 호주 생활 자료 ${weeklyGoal}개 읽기 도전`,
-    body: weeklyGoalComplete
-      ? `주간 목표 ${weeklyGoal}개를 달성했습니다. 필요한 정보를 조금씩 읽고 실제 호주 생활 준비로 이어가고 있어요.`
-      : `${weeklyGoal}개 목표 중 ${completedThisWeek}개를 완료했습니다. 다음 자료도 한 단계씩 확인해 볼게요.`,
-    cta: "호주 생활 실용 자료 둘러보기",
-    path: "/resources",
-  };
-
   const chooseWeeklyGoal = (target: WeeklyReadingTarget) => {
     setWeeklyGoal(target);
     saveWeeklyReadingGoal(target);
@@ -134,12 +122,6 @@ export function ResourceReadingProgress({
           <p className="mt-3 text-xs leading-5 text-white/60" aria-live="polite">
             {weeklyGoalComplete ? "이번 주 목표를 달성했습니다. 잘 이어가고 있어요." : `이번 주 ${weeklyGoal - completedThisWeek}개 더 읽으면 목표 달성입니다.`}
           </p>
-          <Link
-            href={{ pathname: "/social-card-maker", query: shareCardContent }}
-            className="mt-4 inline-flex min-h-11 w-full items-center justify-center bg-white/10 px-3 text-center text-sm font-semibold text-white transition hover:bg-white hover:text-navy"
-          >
-            주간 체크인 카드 만들기 ↗
-          </Link>
         </div>
         <WeeklyCalendarReminder />
       </div>
