@@ -176,8 +176,8 @@ export function PersonalRouteFinder() {
     <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
       <div>
         <p className="text-sm font-semibold text-gold">내 상황에 맞춰보기</p>
-        <h2 id="route-finder-heading" className="mt-2 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">두 가지만 알려주시면<br/>먼저 할 일을 골라드릴게요.</h2>
-        <p className="mt-4 max-w-xl text-base leading-7 text-muted">모든 정보를 처음부터 읽지 않아도 괜찮아요. 지금의 생활 단계와 가장 마음 쓰이는 일을 고르면, 먼저 볼 세 가지를 보여드려요.</p>
+        <h2 id="route-finder-heading" className="mt-2 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">지금 단계와 고민을<br/>하나씩 골라보세요.</h2>
+        <p className="mt-4 max-w-xl text-base leading-7 text-muted">모든 정보를 처음부터 읽지 않아도 괜찮아요. 지금 필요한 순서에 맞춰 먼저 볼 세 가지를 보여드려요.</p>
 
         <fieldset className="mt-8"><legend className="text-sm font-semibold text-navy"><span className="mr-2 text-gold">01</span>지금 어느 단계인가요?</legend><div className="mt-3 grid gap-2 sm:grid-cols-2">{stages.map((item) => <label key={item.id} className={`cursor-pointer rounded-xl border px-4 py-3 transition ${stage === item.id ? "border-navy bg-surface" : "border-border bg-white hover:border-navy/30"}`}><input type="radio" name="route-stage" value={item.id} checked={stage === item.id} onChange={() => setStage(item.id)} className="sr-only"/><span className="block text-sm font-semibold text-navy">{item.label}</span><span className="mt-1 block text-xs text-muted">{item.detail}</span></label>)}</div></fieldset>
 

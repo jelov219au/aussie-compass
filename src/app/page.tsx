@@ -1,7 +1,6 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
-import { HomeStartSection } from "@/components/sections/HomeStartSection";
 import { ToolsSection } from "@/components/sections/ToolsSection";
 import { ArticlesSection } from "@/components/sections/ArticlesSection";
 import { ReturnVisitSection } from "@/components/sections/ReturnVisitSection";
@@ -15,7 +14,6 @@ export default function HomePage() {
       <main>
         <Hero />
         <ToolsSection />
-        <HomeStartSection />
         <ReturnVisitSection />
         <PersonalRouteFinder />
         <ArticlesSection />
