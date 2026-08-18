@@ -32,11 +32,13 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 - Store only the minimum entitlement record needed to restore access.
 - Issue a signed, short-lived browser access session only after confirming an active server-side entitlement; never unlock a workspace from the success-page URL alone.
 - Process each Stripe event once by claiming its event ID and updating the entitlement in the same database transaction.
+- Compare Stripe event creation times before changing an existing entitlement. Ignore older events, and use `revoke > review > grant` when events share the same second so delayed delivery cannot reopen access after a refund or dispute.
 - Treat partial refunds and ambiguous payment states as manual review instead of automatically granting or revoking access.
 - Never place `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in variables prefixed with `NEXT_PUBLIC_`.
 - Sign access cookies with a separate `ENTITLEMENT_SESSION_SECRET` of at least 32 random characters and keep it server-only.
 - Run `npm run security:secrets` before publishing changes to catch accidentally tracked Stripe or Vercel credentials.
 - Test successful payment, cancellation, duplicate webhook, refund, chargeback and failed payment in Stripe test mode.
+- Run `npm run test:entitlement-ordering` before publishing payment changes.
 - Keep `PAYMENTS_ENABLED=false` until test evidence and legal copy are reviewed.
 - Live webhook events intentionally return an error until the durable entitlement provider is implemented, preventing paid orders from being silently acknowledged without fulfillment.
 
@@ -72,6 +74,7 @@ The protected Preview integration was verified on 18 August 2026 without enablin
 - The signed event returned HTTP 200 with `persisted: true` and `outcome: "processed"`.
 - Repeated delivery of the same Stripe event returned HTTP 200 with `outcome: "duplicate"`.
 - Neon contained one webhook-event row and one active Resume Pro entitlement for the Checkout Session after all three deliveries.
+- The entitlement ordering migration was applied on 18 August 2026. The existing row was backfilled with its Stripe event creation time, the timestamp column was verified non-null, and the database routine was verified to return `ignored_stale` for events that must not replace a newer state.
 - A request with an invalid Stripe signature was rejected with HTTP 400 during the earlier endpoint verification.
 - The temporary Vercel automation bypass was removed, the protected Preview was redeployed, and an unauthenticated request using the revoked value was redirected to Vercel authentication.
 - The Stripe test webhook endpoint was disabled and its URL was stripped of the bypass query value. Its signing secret remains connected to the branch-scoped Preview environment for future controlled tests.

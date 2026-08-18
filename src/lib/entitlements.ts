@@ -40,7 +40,10 @@ export interface EntitlementStore {
   applyStripeEvent(input: {
     receipt: StripeEventReceipt;
     command: EntitlementCommand;
-  }): Promise<{ outcome: "processed" | "duplicate"; entitlement?: EntitlementRecord }>;
+  }): Promise<{
+    outcome: "processed" | "duplicate" | "ignored_stale";
+    entitlement?: EntitlementRecord;
+  }>;
 
   consumeRestoreTokenHash(tokenHash: string): Promise<EntitlementRecord | null>;
 

@@ -24,6 +24,7 @@ create table if not exists purchase_entitlements (
   stripe_customer_id text,
   buyer_email_hmac text,
   last_stripe_event_id text not null references payment_webhook_events(stripe_event_id),
+  last_stripe_event_created_at timestamptz not null,
   granted_at timestamptz,
   revoked_at timestamptz,
   created_at timestamptz not null default now(),
@@ -34,6 +35,19 @@ create table if not exists purchase_entitlements (
     or stripe_charge_id is not null
   )
 );
+
+-- Idempotent migration for databases created before event-order protection was added.
+alter table purchase_entitlements
+  add column if not exists last_stripe_event_created_at timestamptz;
+
+update purchase_entitlements entitlement
+set last_stripe_event_created_at = event.stripe_created_at
+from payment_webhook_events event
+where entitlement.last_stripe_event_id = event.stripe_event_id
+  and entitlement.last_stripe_event_created_at is null;
+
+alter table purchase_entitlements
+  alter column last_stripe_event_created_at set not null;
 
 create index if not exists purchase_entitlements_customer_idx
   on purchase_entitlements (stripe_customer_id)
@@ -85,6 +99,9 @@ as $$
 declare
   v_inserted_event_id text;
   v_entitlement_id bigint;
+  v_current_status text;
+  v_last_event_created_at timestamptz;
+  v_should_apply boolean := true;
   v_status text;
 begin
   if p_action not in ('grant', 'revoke', 'review') then
@@ -116,8 +133,14 @@ begin
   on conflict (stripe_event_id) do nothing
   returning stripe_event_id into v_inserted_event_id;
 
-  select entitlement.id
-  into v_entitlement_id
+  select
+    entitlement.id,
+    entitlement.status,
+    entitlement.last_stripe_event_created_at
+  into
+    v_entitlement_id,
+    v_current_status,
+    v_last_event_created_at
   from purchase_entitlements entitlement
   where (p_checkout_session_id is not null and entitlement.stripe_checkout_session_id = p_checkout_session_id)
      or (p_payment_intent_id is not null and entitlement.stripe_payment_intent_id = p_payment_intent_id)
@@ -150,6 +173,26 @@ begin
     else 'review'
   end;
 
+  if v_entitlement_id is not null then
+    -- Stripe does not guarantee webhook delivery order. A newer event wins. When
+    -- two events share Stripe's second-level timestamp, prefer the safer state:
+    -- revoked, then review, then active. Equal-priority events are already
+    -- represented by the current entitlement and do not need to rewrite it.
+    v_should_apply := p_stripe_created_at > v_last_event_created_at
+      or (
+        p_stripe_created_at = v_last_event_created_at
+        and case p_action
+          when 'revoke' then 3
+          when 'review' then 2
+          else 1
+        end > case v_current_status
+          when 'revoked' then 3
+          when 'review' then 2
+          else 1
+        end
+      );
+  end if;
+
   if v_entitlement_id is null then
     if p_product_code is null then
       raise exception 'No entitlement matches Stripe event %', p_event_id;
@@ -163,6 +206,7 @@ begin
       stripe_charge_id,
       stripe_customer_id,
       last_stripe_event_id,
+      last_stripe_event_created_at,
       granted_at,
       revoked_at
     ) values (
@@ -173,11 +217,12 @@ begin
       p_charge_id,
       p_customer_id,
       p_event_id,
+      p_stripe_created_at,
       case when v_status = 'active' then now() end,
       case when v_status = 'revoked' then now() end
     )
     returning purchase_entitlements.id into v_entitlement_id;
-  else
+  elsif v_should_apply then
     update purchase_entitlements entitlement
     set
       status = v_status,
@@ -186,6 +231,7 @@ begin
       stripe_charge_id = coalesce(entitlement.stripe_charge_id, p_charge_id),
       stripe_customer_id = coalesce(entitlement.stripe_customer_id, p_customer_id),
       last_stripe_event_id = p_event_id,
+      last_stripe_event_created_at = p_stripe_created_at,
       granted_at = case when v_status = 'active' then coalesce(entitlement.granted_at, now()) else entitlement.granted_at end,
       revoked_at = case when v_status = 'revoked' then now() when v_status = 'active' then null else entitlement.revoked_at end,
       updated_at = now()
@@ -201,7 +247,7 @@ begin
 
   return query
   select
-    'processed'::text,
+    case when v_should_apply then 'processed' else 'ignored_stale' end::text,
     entitlement.id,
     entitlement.product_code,
     entitlement.status,
@@ -222,3 +268,4 @@ $$;
 -- 3. Give the application role only SELECT/INSERT/UPDATE on these tables.
 -- 4. Insert payment_webhook_events first; a duplicate primary key means the Stripe event was already handled.
 -- 5. Do not store the full Stripe webhook payload unless a separate retention and privacy policy is approved.
+-- 6. Preserve last_stripe_event_created_at so delayed events cannot overwrite a newer entitlement state.

@@ -11,7 +11,7 @@ import type {
 } from "@/lib/entitlements";
 
 type EntitlementRow = {
-  outcome?: "processed" | "duplicate";
+  outcome?: "processed" | "duplicate" | "ignored_stale";
   id: string | number | bigint;
   product_code: "resume_pro";
   status: "active" | "revoked" | "review";
