@@ -30,6 +30,7 @@ export default async function ResumeProRestorePage({ searchParams }: Props) {
             <button type="submit" className="mt-4 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white">이용권 복구</button>
           </form>
           <p className="mt-5 text-xs leading-5 text-muted">복구 코드를 분실했다면 결제 이메일만으로 자동 복구하지 않습니다. 구매 정보 확인 절차가 마련될 때까지 지원 채널을 이용해야 합니다.</p>
+          <Link href="/payment-help" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold underline-offset-4">복구 코드가 없다면 문제 해결 순서 보기 →</Link>
           <Link href="/resume-pro" className="mt-7 inline-flex min-h-11 items-center text-sm font-semibold text-navy">&larr; Resume Pro로 돌아가기</Link>
         </Container>
       </main>

@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { Container } from "@/components/ui/Container";
 import { getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
+import { getPublicSellerDetails } from "@/lib/publicSeller";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -15,22 +16,8 @@ export const metadata = createPageMetadata({
 
 export const dynamic = "force-dynamic";
 
-function publicSellerDetails() {
-  const name = process.env.BUSINESS_LEGAL_NAME?.trim();
-  const abnDigits = process.env.BUSINESS_ABN?.replace(/\D/g, "") ?? "";
-  const email = process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim();
-
-  return {
-    name: name && name.length <= 120 ? name : null,
-    abn: /^\d{11}$/.test(abnDigits)
-      ? `${abnDigits.slice(0, 2)} ${abnDigits.slice(2, 5)} ${abnDigits.slice(5, 8)} ${abnDigits.slice(8)}`
-      : null,
-    email: email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null,
-  };
-}
-
 export default function PurchaseInformationPage() {
-  const seller = publicSellerDetails();
+  const seller = getPublicSellerDetails();
   const readiness = getPaymentReadiness();
   const price = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(resumeProProduct.priceCents / 100);
   const sellerReady = Boolean(seller.name && seller.abn && seller.email);
@@ -81,6 +68,7 @@ export default function PurchaseInformationPage() {
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>결제 화면은 Stripe가 처리하며 Hoju Compass는 전체 카드번호나 카드 보안번호를 직접 받지 않습니다. 결제가 완료되고 서명된 결제 알림으로 활성 이용권이 확인돼야 작업 공간을 열 수 있습니다.</p>
                 <p>웹훅 처리가 늦으면 결제 완료 화면에서 잠시 기다린 뒤 다시 확인할 수 있습니다. 결제는 확인됐지만 접근이 계속 열리지 않으면 지원 이메일로 결제 시각과 Stripe 영수증 정보를 보내 주세요. 카드번호 전체나 보안번호는 보내지 마세요.</p>
+                <Link href="/payment-help" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">결제·접근 문제 해결 순서 보기 →</Link>
               </div>
             </section>
 

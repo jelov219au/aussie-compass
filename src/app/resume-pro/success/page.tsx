@@ -65,6 +65,7 @@ export default async function ResumeProSuccessPage({ searchParams }: Props) {
             )}
             <Link href="/resume-pro" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white">Resume Pro로 돌아가기</Link>
             <Link href="/resume-pro/restore" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy">이용권 복구</Link>
+            <Link href="/payment-help" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy">결제·접근 문제 해결</Link>
             <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy">무료 이력서 빌더</Link>
           </div>
         </Container>

@@ -8,6 +8,7 @@ const routes = [
   "/pro",
   "/privacy",
   "/purchase-information",
+  "/payment-help",
   "/disclaimer",
   "/help-directory",
   "/search",
