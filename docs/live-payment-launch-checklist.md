@@ -7,27 +7,32 @@ This is the short owner checklist for opening Resume Pro payments. Keep legal na
 - [x] Register the business name `Hoju Compass` and save the ASIC Record of Registration.
 - [ ] Confirm that ABN Lookup shows the expected sole-trader entity, registered business name and current GST status.
 - [ ] Confirm the legal seller name and how Managed Payments sales, GST documents, fees and payouts should be recorded with a registered tax agent.
-- [ ] Use a monitored support email that customers can reply to.
+- [x] Use a monitored support email that customers can reply to (`support@hojucompass.com`).
 
 ## 2. Vercel seller settings
 
 Add these only through encrypted environment settings:
 
 - `BUSINESS_TRADING_NAME` — optional; leave unset to use the registered site name `Hoju Compass`.
-- [ ] `BUSINESS_LEGAL_NAME` — underlying sole-trader legal seller.
-- [ ] `BUSINESS_ABN` — 11 digits; spacing is optional.
-- [ ] `NEXT_PUBLIC_SUPPORT_EMAIL` — published support contact.
+- [x] `BUSINESS_LEGAL_NAME` — underlying sole-trader legal seller.
+- [x] `BUSINESS_ABN` — 11 digits; spacing is optional.
+- [x] `NEXT_PUBLIC_SUPPORT_EMAIL` — published support contact.
 
 Run `npm run payments:check -- --strict` in the target environment. The command shows only pass/wait results and does not print the stored values.
 
+- [x] Connect the existing Neon entitlement database to Production with sensitive `ENTITLEMENT_DB_*` variables.
+- [x] Store a separate Production `ENTITLEMENT_SESSION_SECRET` and set `PAYMENTS_ENTITLEMENT_STORE=neon`.
+- [x] Keep the Production launch switch explicitly locked with `PAYMENTS_ENABLED=false` during setup.
+
 ## 3. Stripe live settings
 
-- [ ] Complete identity and Australian payout-bank verification.
+- [x] Complete the live account representative identity-document task. Rechecked on 20 August 2026: the account status page shows no active tasks and payment activation is complete.
+- [x] Confirm the paused-payout warning is no longer shown after identity review.
 - [ ] Set the public business name, support email, website and a recognisable statement descriptor.
-- [ ] Create an active one-time AUD 19.90 Resume Pro Price.
+- [x] Create an active one-time AUD 19.90 Resume Pro Price.
 - [ ] Create a least-privilege `rk_live_` key that can retrieve Prices and create/retrieve Checkout Sessions.
-- [ ] Create the live `/api/stripe/webhook` endpoint and subscribe to the same Checkout, refund and dispute events verified in test mode.
-- [ ] Store the live key, Price ID and webhook signing secret only in Vercel Production.
+- [x] Create the live `/api/stripe/webhook` endpoint and subscribe to the same 11 Checkout, refund and dispute events verified in test mode.
+- [ ] Store the live key, Price ID and webhook signing secret only in Vercel Production. The Price ID and webhook signing secret are stored; the restricted live key remains pending.
 - [ ] Do not add a separate app-controlled automatic-tax setting or manual tax rate. Confirm live Checkout still records Stripe as the tax-liability party under Managed Payments and that the invoice wording is appropriate.
 
 ## 4. Final controlled test
@@ -42,3 +47,5 @@ Run `npm run payments:check -- --strict` in the target environment. The command 
 - [ ] Reconcile the gross sale, Stripe fee, refund and bank payout record.
 
 Production should not stay open if any identity, tax, access-delivery, refund or support check fails.
+
+Do not start the controlled live purchase while the Stripe account status page shows an active identity task or paused payouts. An onboarding approval email does not override an active capability restriction shown in the Dashboard.
