@@ -20,7 +20,7 @@ export default function PurchaseInformationPage() {
   const seller = getPublicSellerDetails();
   const readiness = getPaymentReadiness();
   const price = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(resumeProProduct.priceCents / 100);
-  const sellerReady = Boolean(seller.name && seller.abn && seller.email);
+  const sellerReady = Boolean(seller.tradingName && seller.legalName && seller.abn && seller.email);
 
   return (
     <>
@@ -53,12 +53,13 @@ export default function PurchaseInformationPage() {
               <div className="max-w-3xl text-sm leading-7 text-muted">
                 {sellerReady ? (
                   <dl className="grid gap-x-5 gap-y-2 sm:grid-cols-[7rem_1fr]">
-                    <dt className="font-semibold text-navy">법적 이름</dt><dd>{seller.name}</dd>
+                    <dt className="font-semibold text-navy">사업명</dt><dd>{seller.tradingName}</dd>
+                    <dt className="font-semibold text-navy">법적 판매자</dt><dd>{seller.legalName}</dd>
                     <dt className="font-semibold text-navy">ABN</dt><dd>{seller.abn}</dd>
                     <dt className="font-semibold text-navy">지원 이메일</dt><dd><a className="font-semibold text-navy underline decoration-gold underline-offset-4" href={`mailto:${seller.email}`}>{seller.email}</a></dd>
                   </dl>
                 ) : (
-                  <p className="border-l-2 border-gold bg-surface p-4">법적 판매자 이름, ABN과 지원 이메일은 라이브 결제를 열기 전에 이 위치에 공개합니다. 이 정보가 보이지 않는 동안에는 실제 결제가 활성화되지 않습니다.</p>
+                  <p className="border-l-2 border-gold bg-surface p-4">등록 사업명, 법적 판매자 이름, ABN과 지원 이메일은 라이브 결제를 열기 전에 이 위치에 공개합니다. 이 정보가 모두 보이기 전에는 실제 결제가 활성화되지 않습니다.</p>
                 )}
               </div>
             </section>

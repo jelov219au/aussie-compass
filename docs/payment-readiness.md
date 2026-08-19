@@ -6,6 +6,7 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 
 - Create and verify the Stripe account as an Individual / Sole trader.
 - Enter the legal name, ABN, identity document and Australian payout bank account directly in Stripe.
+- Keep the registered business name (`Hoju Compass`) separate from the sole trader's legal seller name. The customer-facing purchase page must show both without hardcoding either person's private details into source control.
 - Never send identity documents, bank details or secret keys through chat, source control or client-side environment variables.
 - Create a separate business bank account where practical and confirm the ABN entity and GST registration status with a registered tax agent.
 
@@ -39,6 +40,8 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 - Run `npm run security:secrets` before publishing changes to catch accidentally tracked Stripe or Vercel credentials.
 - Test successful payment, cancellation, duplicate webhook, refund, chargeback and failed payment in Stripe test mode.
 - Run `npm run test:entitlement-ordering` before publishing payment changes.
+- Run `npm run test:resume-pro-tokens` to verify signed-session tamper resistance, expiry, revoked-access blocking and restore-code hashing.
+- Run `npm run payments:check -- --strict` inside the target deployment environment. It reports only pass/wait states and never prints credentials, connection strings, legal names or the ABN.
 - Keep `PAYMENTS_ENABLED=false` until test evidence and legal copy are reviewed.
 - Live webhook events intentionally return an error until the durable entitlement provider is implemented, preventing paid orders from being silently acknowledged without fulfillment.
 
@@ -51,17 +54,17 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 
 ## Required environment contract
 
-The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch. The app accepts the manual `ENTITLEMENT_DB_URL` override or Vercel Neon's managed `ENTITLEMENT_DB_DATABASE_URL`; do not copy the managed connection string into a second variable.
+The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. The registered site name `Hoju Compass` is the default customer-facing business name; `BUSINESS_TRADING_NAME` is only an optional override. `BUSINESS_LEGAL_NAME` is the underlying legal seller and must never be hardcoded. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch. The app accepts the manual `ENTITLEMENT_DB_URL` override or Vercel Neon's managed `ENTITLEMENT_DB_DATABASE_URL`; do not copy the managed connection string into a second variable.
 
 ## Remaining actions before the first paid order
 
-1. In Stripe test mode, create or replace the current server key with a restricted key and verify that Price retrieval plus Checkout Session create/retrieve requests succeed.
-2. Add `STRIPE_WEBHOOK_SECRET` from a test webhook endpoint pointing to `/api/stripe/webhook`. Subscribe to `checkout.session.completed`, both `checkout.session.async_payment_*` events, `refund.created`, `refund.updated`, `refund.failed`, `charge.refunded`, and the dispute created/updated/closed/funds-reinstated events handled in code.
-3. Set `PAYMENTS_ENABLED=true` only in a non-production environment and complete the test matrix above.
-4. Apply `docs/entitlement-storage.sql` to the approved Neon database and verify the adapter in `src/lib/neonEntitlementStore.ts` with duplicate, refund and dispute test events. Production checkout remains hard-blocked until this test evidence exists.
-5. Add `ENTITLEMENT_SESSION_SECRET` to the approved Preview environment, then verify access activation, revoked-entitlement blocking, one-time recovery-code consumption and expiry. Resume Pro remains fail-closed on deployed builds until the secret is configured and those tests pass.
-6. Publish the legal seller name, ABN, support email, digital delivery terms and ACL-compatible refund process. Confirm GST treatment with a registered tax agent before enabling tax collection.
-7. After those gates pass, create the equivalent live restricted key and live webhook endpoint, then enable production payments deliberately.
+1. Run the target-environment launch audit with `npm run payments:check -- --strict`. Replace the test server key with a restricted key if it is still a full `sk_test_` key, then repeat the Checkout test.
+2. In the protected Preview, complete the remaining customer-access checks: successful activation after payment, revoked-entitlement blocking, one-time recovery-code consumption, recovery-code expiry and access release on the original device.
+3. Add `BUSINESS_LEGAL_NAME`, `BUSINESS_ABN` and `NEXT_PUBLIC_SUPPORT_EMAIL` to Vercel without pasting the sole trader's private details into chat or source control. Confirm the purchase page shows the registered business name and legal seller as separate fields. Add `BUSINESS_TRADING_NAME` only if the displayed business name must differ from `Hoju Compass`.
+4. Confirm the ABN/GST status through the Australian Business Register and with a registered tax agent. Do not label a receipt as a tax invoice or claim GST is included until this is confirmed.
+5. Finish the Stripe live-mode business profile, statement descriptor, customer support details and payout bank verification. Create the live restricted key, live Resume Pro Price and live webhook endpoint with the same event subscriptions verified in Preview.
+6. Run one low-value live purchase using the real customer path, confirm entitlement delivery and receipt wording, then issue a full refund and confirm access is blocked before opening sales broadly.
+7. Enable `PAYMENTS_ENABLED=true` in Production only after every item above passes and the production Preview has been shown to the owner.
 
 Do not enable Stripe automatic tax yet. It should only be enabled after the relevant registration is confirmed and recorded as Collecting in Stripe.
 
@@ -81,4 +84,4 @@ The protected Preview integration was verified on 18 August 2026 without enablin
 - The temporary Vercel automation bypass was removed, and a fresh unauthenticated request to the Preview webhook was redirected to Vercel authentication.
 - The Stripe test webhook endpoint was disabled and its URL was stripped of the bypass query value. Its signing secret remains connected to the branch-scoped Preview environment for future controlled tests.
 
-This record proves the Checkout-to-webhook path and durable entitlement idempotency work in test mode. It is not approval to accept live payments; signed customer access sessions, purchase restoration, legal seller details and live-mode credentials are still required.
+This record proves the Checkout-to-webhook path and durable entitlement idempotency work in test mode. Signed access-session and restore-code logic is now covered by a deterministic local security check, but the deployed customer access and recovery flow still needs its final Preview test. This is not approval to accept live payments; public seller details, GST treatment, live-mode credentials and the controlled live purchase/refund test remain required.

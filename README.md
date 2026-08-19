@@ -40,7 +40,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Pay Evidence Pack Pro preview and local workspace with period-by-period gross comparisons, evidence readiness, an English review request, and a text handoff without source-document uploads
 - Hoju Compass Pro comparison hub with a situation-based product finder, transparent free-versus-paid boundaries, pricing candidates, and direct access to all development workspaces
 - Local-development operator workspace for campaign links, social cards, content scheduling and aggregate performance records; excluded from public tools, search, sitemap and device backups, with production routes returning 404 until admin authentication is added
-- Payment readiness contract for an Australian sole trader, with payments disabled until Stripe, webhooks, entitlement storage, seller details and support are configured
+- Payment readiness contract for an Australian sole trader, with registered-business and legal-seller separation, secret-safe launch diagnostics, signed access-session tests, and payments disabled until Stripe, webhooks, entitlement storage, seller details and support are configured
 - Cost of living calculator with mixed payment frequencies, income comparison, local autosave, custom expenses, and printable results
 - Dedicated tools hub linking all available calculators and builders
 - Savings goal project with target timelines, contribution check-ins, progress milestones, recurring calendar reminders, and emergency fund planning
@@ -86,6 +86,10 @@ For production SEO URLs, set `NEXT_PUBLIC_SITE_URL` to the deployed site origin.
 - `npm run build` — create a production build
 - `npm run start` — serve the production build
 - `npm run lint` — run ESLint
+- `npm run payments:check` — report payment launch gates without printing secrets or private seller values; add `-- --strict` to fail when anything is missing
+- `npm run test:resume-pro-tokens` — verify signed access-session tamper, expiry and restore-code contracts
+- `npm run test:entitlement-ordering` — verify refund and dispute events cannot be overwritten by older payment events
+- `npm run security:secrets` — scan tracked and untracked source files for accidentally pasted payment credentials
 
 ## Project structure
 

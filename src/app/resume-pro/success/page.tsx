@@ -10,7 +10,7 @@ import { getVerifiedResumeProCheckout } from "@/lib/resumeProPurchase";
 
 export const metadata: Metadata = {
   title: "Resume Pro 결제 확인 | Hoju Compass",
-  description: "Resume Pro 테스트 결제 상태를 안전하게 확인합니다.",
+  description: "Resume Pro 결제와 이용권 처리 상태를 안전하게 확인합니다.",
   robots: { index: false, follow: false },
 };
 
