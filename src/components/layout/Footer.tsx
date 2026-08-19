@@ -17,6 +17,7 @@ export function Footer() {
 
   const supportLinks = [
     { label: "문의하기", href: "/contact" },
+    { label: "콘텐츠 작성 원칙", href: "/editorial-policy" },
     { label: "서비스 이용 조건", href: "/terms" },
     { label: "앱으로 사용하기", href: "/install" },
     { label: "구매·환불 안내", href: "/purchase-information" },

@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export type SearchItem = { href: string; type: "도구" | "가이드" | "자료"; title: string; description: string; keywords: string[] };
 
-const suggestions = ["TFN", "쉐어하우스", "세후 급여", "영문 이력서", "택스 리턴", "Super 환급", "통역", "교통"];
+const suggestions = ["TFN", "Bond", "전기 요금", "세후 급여", "영문 이력서", "택스 리턴", "Super 환급", "중고거래", "통역", "교통"];
 const normalize = (value: string) => value.toLocaleLowerCase("ko-KR").replace(/\s+/g, "").replace(/[·/–—-]/g, "");
 
 export function SiteSearch({ items }: { items: SearchItem[] }) {

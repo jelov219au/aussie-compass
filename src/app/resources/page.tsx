@@ -10,6 +10,12 @@ import { createPageMetadata } from "@/lib/site";
 export const metadata = createPageMetadata({ title: "호주 생활·취업 실용 자료 | Hoju Compass", description: "호주 구직, 급여, 집 구하기, 중고차, 생활비와 저축에 바로 적용할 수 있는 한국어 가이드를 읽어보세요.", path: "/resources" });
 
 export default function ResourcesPage() {
+  const sortedArticles = [...articles].sort((a, b) =>
+    (b.updatedAt ?? b.publishedAt).localeCompare(a.updatedAt ?? a.publishedAt)
+    || b.publishedAt.localeCompare(a.publishedAt),
+  );
+  const featuredArticles = sortedArticles.slice(0, 4);
+
   return (
     <>
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "실용 자료", path: "/resources" }]} />
@@ -47,7 +53,27 @@ export default function ResourcesPage() {
             </span>
             <span className="text-xl text-navy transition group-hover:translate-x-1" aria-hidden="true">→</span>
           </Link>
-          <ResourcesDirectory articles={articles} />
+          <section className="mt-12" aria-labelledby="new-life-tips-heading">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">이번 주 생활 팁</p>
+                <h2 id="new-life-tips-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">오늘 바로 써볼 수 있는 정보</h2>
+              </div>
+              <Link href="/editorial-policy" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold underline-offset-4">출처를 확인하는 기준 →</Link>
+            </div>
+            <ol className="mt-6 grid border-y border-navy/20 sm:grid-cols-2 lg:grid-cols-4">
+              {featuredArticles.map((article, index) => (
+                <li key={article.slug} className="border-b border-border sm:odd:border-r lg:border-b-0 lg:border-r lg:last:border-r-0">
+                  <Link href={`/resources/${article.slug}`} className="group grid h-full min-h-60 grid-rows-[auto_1fr_auto] p-5 transition hover:bg-white/65 sm:p-6">
+                    <span className="flex items-center justify-between text-xs"><span className="font-mono text-gold">0{index + 1}</span><span className="text-muted">{article.category}</span></span>
+                    <span className="py-7"><strong className="block text-lg leading-7 text-navy">{article.title}</strong><span className="mt-3 block text-sm leading-6 text-muted">{article.quickSummary[0]}</span></span>
+                    <span className="text-sm font-semibold text-navy">자세히 보기 <span className="transition group-hover:ml-1" aria-hidden="true">→</span></span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </section>
+          <ResourcesDirectory articles={sortedArticles} />
         </Container>
       </main>
       <Footer />

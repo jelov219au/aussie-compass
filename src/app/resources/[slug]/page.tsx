@@ -119,7 +119,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
             {article.sources && (
               <section className="mt-14 bg-white px-5 py-7 ring-1 ring-border sm:px-8 sm:py-9" aria-labelledby="article-sources">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">공식 자료도 함께 확인했어요</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">공식 자료 기준 · 마지막 확인 {(article.updatedAt ?? article.publishedAt).replaceAll("-", ".")}</p>
                 <h2 id="article-sources" className="mt-2 text-2xl font-semibold text-navy">원문을 열기 전에 알아둘 내용</h2>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-muted">각 공식 자료에서 무엇을 확인할 수 있는지 먼저 한국어로 풀어봤어요. 제도가 바뀌었거나 내 조건에 따라 달라질 수 있는 내용은 마지막으로 원문에서 확인해 주세요.</p>
                 <ul className="mt-7 divide-y divide-border border-y border-border">
@@ -132,6 +132,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                     </li>
                   ))}
                 </ul>
+                <Link href="/editorial-policy" className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold underline-offset-4">Hoju Compass 콘텐츠 작성 원칙 →</Link>
               </section>
             )}
 

@@ -14,6 +14,7 @@ const coreItems:SearchItem[]=[
   {href:"/pro",type:"도구",title:"Hoju Compass Pro 비교",description:"Resume, Rental, 급여 증빙, EOFY와 귀국 준비 개발판 비교",keywords:["유료","프리미엄","pro","가격","결제","상품","패키지"]},
   {href:"/purchase-information",type:"자료",title:"구매·환불 안내",description:"Resume Pro 가격, 판매자 정보, 영수증, 이용권 복구와 환불 요청 절차",keywords:["환불","결제","영수증","인보이스","ABN","소비자권리","Stripe","구매"]},
   {href:"/contact",type:"자료",title:"Hoju Compass 문의하기",description:"콘텐츠 정정, 도구 이용과 결제 문제를 안전하게 이메일로 문의",keywords:["고객센터","이메일","support","문의","오류신고","정보수정","제휴"]},
+  {href:"/editorial-policy",type:"자료",title:"콘텐츠 작성 원칙",description:"공식 출처 확인, 업데이트, 정정과 광고·제휴 표시 기준",keywords:["신뢰","출처","공식자료","업데이트","광고","제휴","수정","정정"]},
   {href:"/terms",type:"자료",title:"서비스 이용 조건",description:"무료 도구와 Resume Pro의 이용 범위, 1회 결제, 접근 복구와 소비자 권리",keywords:["약관","이용조건","terms","서비스","결제조건","디지털제품","소비자보장"]},
   {href:"/payment-help",type:"도구",title:"결제·접근 문제 해결",description:"결제 확인 지연, 접근 만료, 복구 코드 분실과 환불 문의 준비",keywords:["결제오류","접근안됨","복구코드","지원","문의","환불요청","중복결제","카드보안"]},
   {href:"/data-transfer",type:"도구",title:"기기 데이터 백업·이전",description:"체크리스트, 이력서와 계산 기록을 파일로 백업하고 새 주소·기기로 옮기기",keywords:["백업","복원","가져오기","내보내기","이전","새 도메인","JSON","기기 변경"]},

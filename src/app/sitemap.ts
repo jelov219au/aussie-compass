@@ -12,6 +12,7 @@ const routes = [
   "/purchase-information",
   "/payment-help",
   "/disclaimer",
+  "/editorial-policy",
   "/help-directory",
   "/search",
   "/glossary",
