@@ -131,7 +131,9 @@ export default async function ResumeProPage({ searchParams }: Props) {
             <p className="mt-4 text-xs leading-5 text-muted">
               {testCheckoutAvailable
                 ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다. 테스트 이용권과 결제 처리 기술 기록만 생성됩니다."
-                : "현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다."}
+                : checkoutAvailable
+                  ? "결제는 Stripe의 보안 결제 페이지에서 진행되며, 결제가 완료되면 Resume Pro 작업 공간을 바로 열 수 있어요."
+                  : "현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다."}
             </p>
             {!checkoutAvailable && (
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-navy">
