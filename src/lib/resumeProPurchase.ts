@@ -5,7 +5,7 @@ import { getStripe, getStripeSecretMode } from "@/lib/stripe";
 
 export async function getVerifiedResumeProCheckout(sessionId: string) {
   const secretMode = getStripeSecretMode();
-  if (!/^cs_(?:test_)?[A-Za-z0-9]+$/.test(sessionId)
+  if (!/^cs_(?:test|live)_[A-Za-z0-9]+$/.test(sessionId)
     || (secretMode !== "test" && secretMode !== "live")) return null;
 
   try {
