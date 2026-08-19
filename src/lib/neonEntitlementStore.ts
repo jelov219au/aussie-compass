@@ -113,7 +113,7 @@ async function consumeRestoreTokenHash(tokenHash: string) {
 }
 
 async function findActiveByCheckoutSession(checkoutSessionId: string) {
-  if (!/^cs_(?:test_)?[A-Za-z0-9]+$/.test(checkoutSessionId)) return null;
+  if (!/^cs_(?:test|live)_[A-Za-z0-9]+$/.test(checkoutSessionId)) return null;
 
   const sql = neon(getConnectionString());
   const rows = await sql`
