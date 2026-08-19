@@ -51,16 +51,13 @@ export default function PurchaseInformationPage() {
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
               <div><p className="font-mono text-xs text-gold">01 / SELLER</p><h2 className="mt-2 text-xl font-semibold text-navy">판매자와 지원 연락처</h2></div>
               <div className="max-w-3xl text-sm leading-7 text-muted">
-                {sellerReady ? (
-                  <dl className="grid gap-x-5 gap-y-2 sm:grid-cols-[7rem_1fr]">
-                    <dt className="font-semibold text-navy">사업명</dt><dd>{seller.tradingName}</dd>
-                    <dt className="font-semibold text-navy">법적 판매자</dt><dd>{seller.legalName}</dd>
-                    <dt className="font-semibold text-navy">ABN</dt><dd>{seller.abn}</dd>
-                    <dt className="font-semibold text-navy">지원 이메일</dt><dd><a className="font-semibold text-navy underline decoration-gold underline-offset-4" href={`mailto:${seller.email}`}>{seller.email}</a></dd>
-                  </dl>
-                ) : (
-                  <p className="border-l-2 border-gold bg-surface p-4">등록 사업명, 법적 판매자 이름, ABN과 지원 이메일은 라이브 결제를 열기 전에 이 위치에 공개합니다. 이 정보가 모두 보이기 전에는 실제 결제가 활성화되지 않습니다.</p>
-                )}
+                <dl className="grid gap-x-5 gap-y-2 sm:grid-cols-[7rem_1fr]">
+                  <dt className="font-semibold text-navy">사업명</dt><dd>{seller.tradingName ?? "Hoju Compass"}</dd>
+                  <dt className="font-semibold text-navy">법적 판매자</dt><dd>{seller.legalName ?? "라이브 결제 전에 공개"}</dd>
+                  <dt className="font-semibold text-navy">ABN</dt><dd>{seller.abn ?? "라이브 결제 전에 공개"}</dd>
+                  <dt className="font-semibold text-navy">지원 이메일</dt><dd>{seller.email ? <a className="font-semibold text-navy underline decoration-gold underline-offset-4" href={`mailto:${seller.email}`}>{seller.email}</a> : "준비 중"}</dd>
+                </dl>
+                {!sellerReady && <p className="mt-4 border-l-2 border-gold bg-surface p-4">법적 판매자 이름과 ABN을 포함한 필수 정보가 모두 표시되기 전에는 실제 결제가 활성화되지 않습니다.</p>}
               </div>
             </section>
 
