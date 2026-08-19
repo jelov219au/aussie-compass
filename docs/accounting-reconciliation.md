@@ -50,6 +50,22 @@ Remove-Item Env:STRIPE_ACCOUNTING_KEY
 
 The exporter writes a new CSV under `private/accounting/` and refuses to overwrite an existing file. That directory is excluded from Git.
 
+## Private automatic ledger
+
+The monthly automation keeps a derived spreadsheet-readable file at `private/accounting/hoju-compass-stripe-ledger.csv`. It merges Balance Transactions by their unique Stripe transaction ID, so a missed or repeated scheduled run cannot duplicate a transaction. The source exports remain unchanged beside it.
+
+The setup script accepts only a dedicated Stripe restricted key (`rk_live_` or `rk_test_`). Windows encrypts the saved credential for the current Windows user and computer. The task checks the previous completed month each morning at 7:15 and calls Stripe only when that month's immutable source export does not already exist. This daily check allows a missed run to continue after the laptop is next switched on.
+
+Run the one-time setup locally and paste the key only into the protected PowerShell prompt:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-accounting-automation.ps1
+```
+
+The live key should have only the read permission required for Balance Transactions. Do not give it write access and do not reuse the Checkout key. The generated CSV intentionally excludes customer names, email addresses, billing details and card information.
+
+The formatted workbook in the private output folder remains the management and reconciliation file. Treat the automatically generated CSV as the read-only Stripe source ledger, and record bank matching, GST/BAS review and accountant notes in the formatted workbook rather than editing the derived CSV.
+
 ## Retention and review
 
 ATO guidance says business and GST records generally need to be retained for five years, with longer periods applying in some circumstances. Preserve the original Stripe invoice, refund or credit document, Stripe report, bank statement and the reconciliation workbook. Confirm the period that applies to the business with the registered tax agent.
