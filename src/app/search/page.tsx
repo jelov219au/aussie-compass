@@ -13,6 +13,7 @@ const coreItems:SearchItem[]=[
   {href:"/my-compass",type:"도구",title:"나의 진행 상황",description:"이 기기에 저장된 정착·구직·저축·세금 프로젝트 모아보기",keywords:["대시보드","이어하기","저장","진행률","내 프로젝트","my compass"]},
   {href:"/pro",type:"도구",title:"Hoju Compass Pro 비교",description:"Resume, Rental, 급여 증빙, EOFY와 귀국 준비 개발판 비교",keywords:["유료","프리미엄","pro","가격","결제","상품","패키지"]},
   {href:"/purchase-information",type:"자료",title:"구매·환불 안내",description:"Resume Pro 가격, 판매자 정보, 영수증, 이용권 복구와 환불 요청 절차",keywords:["환불","결제","영수증","인보이스","ABN","소비자권리","Stripe","구매"]},
+  {href:"/contact",type:"자료",title:"Hoju Compass 문의하기",description:"콘텐츠 정정, 도구 이용과 결제 문제를 안전하게 이메일로 문의",keywords:["고객센터","이메일","support","문의","오류신고","정보수정","제휴"]},
   {href:"/payment-help",type:"도구",title:"결제·접근 문제 해결",description:"결제 확인 지연, 접근 만료, 복구 코드 분실과 환불 문의 준비",keywords:["결제오류","접근안됨","복구코드","지원","문의","환불요청","중복결제","카드보안"]},
   {href:"/data-transfer",type:"도구",title:"기기 데이터 백업·이전",description:"체크리스트, 이력서와 계산 기록을 파일로 백업하고 새 주소·기기로 옮기기",keywords:["백업","복원","가져오기","내보내기","이전","새 도메인","JSON","기기 변경"]},
   {href:"/life-admin-reminder",type:"도구",title:"만료일·갱신 일정 리마인더",description:"비자, 여권, 렌트, Rego, 보험과 자격증 날짜 관리",keywords:["리마인더","알림","만료일","갱신","캘린더","일정","rego","보험","여권"]},
