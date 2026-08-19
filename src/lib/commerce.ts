@@ -33,8 +33,8 @@ export function getPaymentReadiness(): PaymentReadiness {
   const enabled = process.env.PAYMENTS_ENABLED === "true";
   const stripeMode = getStripeSecretMode();
   const expectedStripeMode = process.env.VERCEL_ENV === "production" ? "live" : "test";
-  const stripeConfigured = stripeMode === expectedStripeMode
-    && Boolean(process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_"));
+  const stripePriceConfigured = Boolean(process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_"));
+  const stripeConfigured = stripeMode === expectedStripeMode && stripePriceConfigured;
   const managedPaymentsConfigured = process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true";
   const webhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_"));
   const entitlementStoreConfigured = process.env.PAYMENTS_ENTITLEMENT_STORE === "neon"
@@ -62,6 +62,9 @@ export function getPaymentReadiness(): PaymentReadiness {
   ) {
     hasLoggedIncompleteProductionReadiness = true;
     console.warn("[payments] Production readiness is incomplete.", {
+      stripeMode,
+      expectedStripeMode,
+      stripePriceConfigured,
       stripeConfigured,
       managedPaymentsConfigured,
       webhookConfigured,
