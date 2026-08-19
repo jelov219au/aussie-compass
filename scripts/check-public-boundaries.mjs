@@ -33,6 +33,18 @@ function collectSourceFiles(directory) {
 
 const errors = [];
 
+for (const ignoreFile of [".gitignore", ".vercelignore"]) {
+  const ignoredPaths = readFileSync(path.join(projectRoot, ignoreFile), "utf8")
+    .split(/\r?\n/)
+    .map((line) => line.trim().replace(/^\//, "").replace(/\/$/, ""));
+
+  for (const privateDirectory of ["outputs", "private"]) {
+    if (!ignoredPaths.includes(privateDirectory)) {
+      errors.push(`${ignoreFile}: /${privateDirectory}/ must remain excluded from source and deployment uploads`);
+    }
+  }
+}
+
 for (const [route, pageFile] of operatorRoutes) {
   const source = readFileSync(path.join(projectRoot, pageFile), "utf8");
   if (!source.includes("requireLocalOperatorAccess();")) {
