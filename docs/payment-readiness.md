@@ -1,6 +1,6 @@
 # Hoju Compass payment readiness
 
-Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole trader. Payments must remain disabled until every launch gate below is complete.
+Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Production payments were opened after the controlled live purchase, access-delivery and full-refund test passed on 20 August 2026. The remaining owner and bookkeeping checks below still need ongoing review.
 
 ## Owner-only setup
 
@@ -59,15 +59,15 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 
 The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. The registered site name `Hoju Compass` is the default customer-facing business name; `BUSINESS_TRADING_NAME` is only an optional override. `BUSINESS_LEGAL_NAME` is the underlying legal seller and must never be hardcoded. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch. The app accepts the manual `ENTITLEMENT_DB_URL` override or Vercel Neon's managed `ENTITLEMENT_DB_DATABASE_URL`; do not copy the managed connection string into a second variable.
 
-## Remaining actions before the first paid order
+## Post-launch owner actions
 
-1. Run the target-environment launch audit with `npm run payments:check -- --strict`. Replace the test server key with a restricted key if it is still a full `sk_test_` key, then repeat the Checkout test.
+1. Run the target-environment launch audit with `npm run payments:check -- --strict` after any payment-setting change. Replace the full live key with a least-privilege restricted key when its required Checkout and Price permissions are confirmed.
 2. Repeat the completed protected-Preview customer-access test after any change to the webhook, entitlement schema, access cookie or recovery-code flow. Recovery-code expiry remains covered by the deterministic token test because the deployed code lasts 30 days.
 3. Add `BUSINESS_LEGAL_NAME`, `BUSINESS_ABN` and `NEXT_PUBLIC_SUPPORT_EMAIL` to Vercel without pasting the sole trader's private details into chat or source control. Confirm the purchase page shows the registered business name and legal seller as separate fields. Add `BUSINESS_TRADING_NAME` only if the displayed business name must differ from `Hoju Compass`.
 4. Confirm the ABN/GST status through the Australian Business Register and with a registered tax agent. Verify that live Managed Payments continues to show Stripe as the tax-liability party and ask how the gross sale, GST shown by Stripe, fees and payout belong in the sole trader's records.
 5. Finish the Stripe live-mode business profile, statement descriptor, customer support details and payout bank verification. Create the live restricted key, live Resume Pro Price and live webhook endpoint with the same event subscriptions verified in Preview.
-6. Run one low-value live purchase using the real customer path, confirm entitlement delivery and receipt wording, then issue a full refund and confirm access is blocked before opening sales broadly.
-7. Enable `PAYMENTS_ENABLED=true` in Production only after every item above passes and the production Preview has been shown to the owner.
+6. Reconcile the controlled live purchase, Stripe fee and full refund with the first Stripe balance and payout reports.
+7. If identity, payout, webhook, entitlement or support monitoring fails, set `PAYMENTS_ENABLED=false` and redeploy before investigating.
 
 Do not add a separate application-level `automatic_tax` or manual tax rate while Managed Payments controls tax. The verified test Checkout enabled tax with liability assigned to Stripe and included GST inside the A$19.90 total. Reconfirm this in live mode before launch; it does not decide the sole trader's ABN, GST, income-tax or BAS obligations.
 
@@ -91,4 +91,18 @@ The protected Preview integration was verified on 18 August 2026 without enablin
 - The workspace created a 30-day, one-time recovery code. Releasing the current device immediately blocked the workspace, the code restored access once, and a second use was rejected with `status=invalid`.
 - The temporary Vercel automation bypass was removed after the test. The Stripe test webhook endpoint was disabled, its URL was stripped of the bypass query value, and its metadata records the successful verification and revoked bypass.
 
-This record proves the Checkout-to-webhook path, durable entitlement idempotency, signed device access, access release and one-time recovery work in test mode. Deterministic local tests additionally cover token tampering and expiry. This is not approval to accept live payments; public seller details, GST treatment, live-mode credentials and the controlled live purchase/refund test remain required.
+This record proves the Checkout-to-webhook path, durable entitlement idempotency, signed device access, access release and one-time recovery work in test mode. Deterministic local tests additionally cover token tampering and expiry.
+
+## Live verification record
+
+The public Production integration was verified on 20 August 2026:
+
+- A real Managed Payments Checkout completed for Resume Pro at AUD 19.90 and included AUD 1.81 GST in the total.
+- Production initially rejected the signed event because the stored webhook secret did not match the live destination. Payments were immediately disabled while the secret was corrected and the endpoint redeployed.
+- The recovered `checkout.session.completed` delivery returned HTTP 200 with `persisted: true` and `outcome: "processed"`.
+- Live Checkout Session validation and Neon entitlement lookup were both updated to accept the explicit `cs_live_` prefix, with a contract test covering both boundaries.
+- The paid success page exposed the activation action only after the active Neon entitlement existed. Activating it opened `/resume-pro/workspace` with a signed browser session.
+- Stripe issued a full AUD 19.90 refund. Both `refund.created` and `charge.refunded` reached Production with HTTP 200; the charge event revoked the entitlement and the existing workspace session redirected to `access=required`.
+- Production payments were re-enabled only after the grant and revoke paths both passed.
+
+No customer email, card detail, legal name, ABN, secret key, webhook secret or database connection string is recorded in this verification note.

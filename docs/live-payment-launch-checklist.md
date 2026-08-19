@@ -22,7 +22,7 @@ Run `npm run payments:check -- --strict` in the target environment. The command 
 
 - [x] Connect the existing Neon entitlement database to Production with sensitive `ENTITLEMENT_DB_*` variables.
 - [x] Store a separate Production `ENTITLEMENT_SESSION_SECRET` and set `PAYMENTS_ENTITLEMENT_STORE=neon`.
-- [x] Keep the Production launch switch explicitly locked with `PAYMENTS_ENABLED=false` during setup.
+- [x] Keep the Production launch switch explicitly locked with `PAYMENTS_ENABLED=false` during setup. It was enabled only after the controlled live purchase and refund passed on 20 August 2026.
 
 ## 3. Stripe live settings
 
@@ -32,18 +32,18 @@ Run `npm run payments:check -- --strict` in the target environment. The command 
 - [x] Create an active one-time AUD 19.90 Resume Pro Price.
 - [ ] Create a least-privilege `rk_live_` key that can retrieve Prices and create/retrieve Checkout Sessions.
 - [x] Create the live `/api/stripe/webhook` endpoint and subscribe to the same 11 Checkout, refund and dispute events verified in test mode.
-- [ ] Store the live key, Price ID and webhook signing secret only in Vercel Production. The Price ID and webhook signing secret are stored; the restricted live key remains pending.
-- [ ] Do not add a separate app-controlled automatic-tax setting or manual tax rate. Confirm live Checkout still records Stripe as the tax-liability party under Managed Payments and that the invoice wording is appropriate.
+- [x] Store the live key, Price ID and webhook signing secret only in Vercel Production. Replacing the full live key with a least-privilege restricted key remains a security follow-up.
+- [x] Do not add a separate app-controlled automatic-tax setting or manual tax rate. The controlled live Checkout included AUD 1.81 GST inside the AUD 19.90 total under Managed Payments.
 
 ## 4. Final controlled test
 
-- [ ] Confirm the purchase page shows the business name, legal seller, ABN, support contact, price, digital-delivery method and ACL-compatible refund process.
-- [ ] Confirm Checkout links the versioned service terms, purchase information and privacy notice before payment.
-- [ ] Confirm Production still fails closed before the deliberate launch switch is enabled.
-- [ ] Enable Production payments for the controlled test.
-- [ ] Make one real purchase through the public customer path.
-- [ ] Confirm the entitlement opens the Resume Pro workspace and the receipt wording is correct.
-- [ ] Issue a full refund in Stripe and confirm the entitlement is blocked.
+- [x] Confirm the purchase page shows the business name, legal seller, ABN, support contact, price, digital-delivery method and ACL-compatible refund process.
+- [x] Confirm Checkout links the versioned service terms, purchase information and privacy notice before payment.
+- [x] Confirm Production still fails closed before the deliberate launch switch is enabled.
+- [x] Enable Production payments for the controlled test.
+- [x] Make one real purchase through the public customer path.
+- [x] Confirm the signed live webhook persists the entitlement and the Resume Pro workspace opens only after that entitlement exists.
+- [x] Issue a full AUD 19.90 refund in Stripe; `refund.created` and `charge.refunded` both returned HTTP 200 and the workspace was blocked immediately.
 - [ ] Reconcile the gross sale, Stripe fee, refund and bank payout record.
 
 Production should not stay open if any identity, tax, access-delivery, refund or support check fails.
