@@ -8,7 +8,7 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 - Enter the legal name, ABN, identity document and Australian payout bank account directly in Stripe.
 - Keep the registered business name (`Hoju Compass`) separate from the sole trader's legal seller name. The customer-facing purchase page must show both without hardcoding either person's private details into source control.
 - Never send identity documents, bank details or secret keys through chat, source control or client-side environment variables.
-- Create a separate business bank account where practical and confirm the ABN entity and GST registration status with a registered tax agent.
+- Create a separate business bank account where practical and confirm the ABN entity, GST registration status and how Managed Payments payouts, fees and tax documents should be recorded with a registered tax agent.
 
 ## Product and customer protection
 
@@ -64,18 +64,20 @@ The repository includes placeholders in `.env.example`. Production secrets belon
 1. Run the target-environment launch audit with `npm run payments:check -- --strict`. Replace the test server key with a restricted key if it is still a full `sk_test_` key, then repeat the Checkout test.
 2. In the protected Preview, complete the remaining customer-access checks: successful activation after payment, revoked-entitlement blocking, one-time recovery-code consumption, recovery-code expiry and access release on the original device.
 3. Add `BUSINESS_LEGAL_NAME`, `BUSINESS_ABN` and `NEXT_PUBLIC_SUPPORT_EMAIL` to Vercel without pasting the sole trader's private details into chat or source control. Confirm the purchase page shows the registered business name and legal seller as separate fields. Add `BUSINESS_TRADING_NAME` only if the displayed business name must differ from `Hoju Compass`.
-4. Confirm the ABN/GST status through the Australian Business Register and with a registered tax agent. Do not label a receipt as a tax invoice or claim GST is included until this is confirmed.
+4. Confirm the ABN/GST status through the Australian Business Register and with a registered tax agent. Verify that live Managed Payments continues to show Stripe as the tax-liability party and ask how the gross sale, GST shown by Stripe, fees and payout belong in the sole trader's records.
 5. Finish the Stripe live-mode business profile, statement descriptor, customer support details and payout bank verification. Create the live restricted key, live Resume Pro Price and live webhook endpoint with the same event subscriptions verified in Preview.
 6. Run one low-value live purchase using the real customer path, confirm entitlement delivery and receipt wording, then issue a full refund and confirm access is blocked before opening sales broadly.
 7. Enable `PAYMENTS_ENABLED=true` in Production only after every item above passes and the production Preview has been shown to the owner.
 
-Do not enable Stripe automatic tax yet. It should only be enabled after the relevant registration is confirmed and recorded as Collecting in Stripe.
+Do not add a separate application-level `automatic_tax` or manual tax rate while Managed Payments controls tax. The verified test Checkout enabled tax with liability assigned to Stripe and included GST inside the A$19.90 total. Reconfirm this in live mode before launch; it does not decide the sole trader's ABN, GST, income-tax or BAS obligations.
 
 ## Preview verification record
 
 The protected Preview integration was verified on 18 August 2026 without enabling live payments:
 
 - A Stripe test-mode Checkout completed for Resume Pro at AUD 19.90.
+- A fresh Managed Payments test on 19 August 2026 recorded the current purchase-terms version, produced an invoice, included AUD 1.81 GST inside the AUD 19.90 total and reported Stripe as the automatic-tax liability party.
+- With the controlled Preview webhook intentionally disabled, that fresh paid Checkout returned to the success page but did not display the Resume Pro activation action. This confirms a paid URL alone still fails closed; a valid signed webhook and active Neon entitlement remain mandatory.
 - Stripe manually resent that real `checkout.session.completed` event to the protected Preview webhook.
 - The signed event returned HTTP 200 with `persisted: true` and `outcome: "processed"`.
 - Repeated delivery of the same Stripe event returned HTTP 200 with `outcome: "duplicate"`.

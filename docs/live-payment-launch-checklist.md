@@ -6,7 +6,7 @@ This is the short owner checklist for opening Resume Pro payments. Keep legal na
 
 - [x] Register the business name `Hoju Compass` and save the ASIC Record of Registration.
 - [ ] Confirm that ABN Lookup shows the expected sole-trader entity, registered business name and current GST status.
-- [ ] Confirm the legal seller name and GST treatment with a registered tax agent.
+- [ ] Confirm the legal seller name and how Managed Payments sales, GST documents, fees and payouts should be recorded with a registered tax agent.
 - [ ] Use a monitored support email that customers can reply to.
 
 ## 2. Vercel seller settings
@@ -28,7 +28,7 @@ Run `npm run payments:check -- --strict` in the target environment. The command 
 - [ ] Create a least-privilege `rk_live_` key that can retrieve Prices and create/retrieve Checkout Sessions.
 - [ ] Create the live `/api/stripe/webhook` endpoint and subscribe to the same Checkout, refund and dispute events verified in test mode.
 - [ ] Store the live key, Price ID and webhook signing secret only in Vercel Production.
-- [ ] Leave Stripe automatic tax off until GST registration and tax treatment are confirmed. If it is later enabled, first confirm the Australian registration is shown as Collecting in Stripe.
+- [ ] Do not add a separate app-controlled automatic-tax setting or manual tax rate. Confirm live Checkout still records Stripe as the tax-liability party under Managed Payments and that the invoice wording is appropriate.
 
 ## 4. Final controlled test
 

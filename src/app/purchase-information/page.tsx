@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 export default function PurchaseInformationPage() {
   const seller = getPublicSellerDetails();
   const readiness = getPaymentReadiness();
-  const price = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(resumeProProduct.priceCents / 100);
+  const price = `A$${(resumeProProduct.priceCents / 100).toFixed(2)}`;
   const sellerReady = Boolean(seller.tradingName && seller.legalName && seller.abn && seller.email);
 
   return (
@@ -76,8 +76,8 @@ export default function PurchaseInformationPage() {
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
               <div><p className="font-mono text-xs text-gold">03 / RECEIPT</p><h2 className="mt-2 text-xl font-semibold text-navy">영수증과 인보이스</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
-                <p>결제 증빙에는 판매자 정보, 구매일, 제품 설명과 결제 금액이 식별될 수 있어야 합니다. 필요한 경우 지원 이메일로 영수증 또는 사업자의 GST 등록 상태에 맞는 인보이스를 요청할 수 있도록 준비합니다.</p>
-                <p>GST 등록 여부가 확인되지 않은 상태에서 문서를 ‘Tax invoice’라고 표시하거나 GST가 포함됐다고 안내하지 않습니다.</p>
+                <p>결제 증빙에는 판매자 정보, 구매일, 제품 설명과 결제 금액이 식별될 수 있어야 합니다. Stripe Managed Payments가 적용된 결제에서는 Stripe가 결제 단계에 세금을 표시하고 인보이스를 제공할 수 있습니다.</p>
+                <p>테스트 결과 A$19.90 총액 안에 GST가 구분 표시됐고 해당 결제의 세금 책임은 Stripe로 기록됐습니다. 실제 구매의 세금 금액과 문서 명칭은 최종 Stripe 결제 화면과 발급된 인보이스를 기준으로 확인하세요. Hoju Compass가 별도의 세율을 임의로 더하지 않습니다.</p>
               </div>
             </section>
 
@@ -101,7 +101,7 @@ export default function PurchaseInformationPage() {
 
           <section className="mt-10 border-l-2 border-gold bg-surface p-6 text-sm leading-7 text-muted">
             <h2 className="font-semibold text-navy">출시 전 확인 사항</h2>
-            <p className="mt-1">이 페이지는 현재 준비 상태를 투명하게 설명하기 위한 안내이며 법률·세무 자문이 아닙니다. 라이브 결제 전 판매자 정보, GST 처리, 영수증 전달과 지원 절차를 등록 세무사 또는 적절한 전문가와 최종 확인해야 합니다.</p>
+            <p className="mt-1">이 페이지는 현재 준비 상태를 투명하게 설명하기 위한 안내이며 법률·세무 자문이 아닙니다. 라이브 결제 전 판매자 정보, Managed Payments의 세금 책임 표시, 영수증 전달과 사업자의 장부·BAS 처리 방식을 등록 세무사 또는 적절한 전문가와 최종 확인해야 합니다.</p>
             <p className="mt-2 text-xs">구매 조건 안내 기준일: {resumeProPurchaseTermsVersion}</p>
           </section>
         </Container>

@@ -18,7 +18,7 @@ for (const contract of [
 }
 
 assert.ok(!checkout.includes("payment_method_types"), "Checkout must keep Stripe dynamic payment methods enabled");
-assert.ok(!checkout.includes("automatic_tax"), "Automatic tax must remain off until an active registration is confirmed");
+assert.ok(!checkout.includes("automatic_tax"), "The app must not add a separate automatic-tax setting on top of Managed Payments");
 
 for (const contract of [
   "webhooks.constructEvent",
