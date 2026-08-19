@@ -27,6 +27,8 @@ export type PaymentReadiness = {
   ready: boolean;
 };
 
+let hasLoggedIncompleteProductionReadiness = false;
+
 export function getPaymentReadiness(): PaymentReadiness {
   const enabled = process.env.PAYMENTS_ENABLED === "true";
   const stripeMode = getStripeSecretMode();
@@ -51,6 +53,24 @@ export function getPaymentReadiness(): PaymentReadiness {
   );
   const supportConfigured = Boolean(supportEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail));
   const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && accessDeliveryImplemented && sellerDetailsConfigured && supportConfigured;
+
+  if (
+    enabled
+    && process.env.VERCEL_ENV === "production"
+    && !ready
+    && !hasLoggedIncompleteProductionReadiness
+  ) {
+    hasLoggedIncompleteProductionReadiness = true;
+    console.warn("[payments] Production readiness is incomplete.", {
+      stripeConfigured,
+      managedPaymentsConfigured,
+      webhookConfigured,
+      entitlementStoreConfigured,
+      accessDeliveryImplemented,
+      sellerDetailsConfigured,
+      supportConfigured,
+    });
+  }
 
   return { enabled, stripeConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, ready };
 }
