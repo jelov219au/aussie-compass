@@ -30,9 +30,18 @@ type ProDraft = {
   accent: ProAccent;
   coverLetter: string;
 };
+type SavedApplication = {
+  id: string;
+  company: string;
+  role: string;
+  updatedAt: string;
+  draft: ProDraft;
+};
+type ApplicationStore = { activeId: string | null; items: SavedApplication[] };
 
 const RESUME_STORAGE_KEY = "aussie-compass-resume-v1";
 const PRO_STORAGE_KEY = "hoju-compass-resume-pro-preview-v1";
+const APPLICATIONS_STORAGE_KEY = "hoju-compass-resume-pro-applications-v1";
 const inputClass = "mt-1.5 min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy outline-none transition placeholder:text-muted/60 focus:border-navy focus:ring-2 focus:ring-navy/15";
 const labelClass = "block text-sm font-medium text-navy";
 const proLayouts: Array<{ id: ProLayout; name: string; description: string }> = [
@@ -122,6 +131,8 @@ function ResumeProDocument({ resume, layout, accent }: { resume: SavedResume; la
 export function ResumeProWorkspace() {
   const [savedResume, setSavedResume] = useState<SavedResume>({});
   const [draft, setDraft] = useState<ProDraft>({ company: "", role: "", hiringManager: "", jobAd: "", tone: "clear", layout: "editorial", accent: "eucalyptus", coverLetter: "" });
+  const [applications, setApplications] = useState<SavedApplication[]>([]);
+  const [activeApplicationId, setActiveApplicationId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -130,6 +141,12 @@ export function ResumeProWorkspace() {
     try {
       const stored = window.localStorage.getItem(PRO_STORAGE_KEY);
       if (stored) setDraft((current) => ({ ...current, ...JSON.parse(stored) }));
+      const applicationStore = window.localStorage.getItem(APPLICATIONS_STORAGE_KEY);
+      if (applicationStore) {
+        const parsed = JSON.parse(applicationStore) as Partial<ApplicationStore>;
+        if (Array.isArray(parsed.items)) setApplications(parsed.items.slice(0, 30));
+        if (typeof parsed.activeId === "string") setActiveApplicationId(parsed.activeId);
+      }
     } catch {
       // The preview remains usable when local storage is unavailable.
     }
@@ -148,6 +165,14 @@ export function ResumeProWorkspace() {
     return () => window.clearTimeout(timer);
   }, [draft, loaded]);
 
+  useEffect(() => {
+    if (!loaded) return;
+    const timer = window.setTimeout(() => {
+      try { window.localStorage.setItem(APPLICATIONS_STORAGE_KEY, JSON.stringify({ activeId: activeApplicationId, items: applications.slice(0, 30) } satisfies ApplicationStore)); } catch {}
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [activeApplicationId, applications, loaded]);
+
   const resumeText = useMemo(() => JSON.stringify(savedResume).toLowerCase(), [savedResume]);
   const keywords = useMemo(() => extractKeywords(draft.jobAd), [draft.jobAd]);
   const matched = useMemo(() => keywords.filter((keyword) => resumeText.includes(keyword)), [keywords, resumeText]);
@@ -161,6 +186,39 @@ export function ResumeProWorkspace() {
     const next = readSavedResume();
     setSavedResume(next);
     setMessage(next.name || next.summary ? "무료 빌더의 최신 이력서를 불러왔습니다." : "저장된 이력서가 없습니다. 무료 빌더에서 먼저 작성해 주세요.");
+  };
+
+  const saveApplication = () => {
+    const company = draft.company.trim();
+    const role = draft.role.trim() || savedResume.title?.trim() || "지원 직무 미정";
+    if (!company) {
+      setMessage("회사명을 입력한 뒤 회사별 지원서로 저장해 주세요.");
+      return;
+    }
+    const id = activeApplicationId || `application-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const saved: SavedApplication = { id, company, role, updatedAt: new Date().toISOString(), draft };
+    setApplications((current) => [saved, ...current.filter((item) => item.id !== id)].slice(0, 30));
+    setActiveApplicationId(id);
+    setMessage(`${company} 지원서를 저장했습니다.`);
+  };
+
+  const loadApplication = (application: SavedApplication) => {
+    setDraft((current) => ({ ...current, ...application.draft }));
+    setActiveApplicationId(application.id);
+    setMessage(`${application.company} 지원서를 불러왔습니다.`);
+  };
+
+  const startNewApplication = () => {
+    setDraft((current) => ({ company: "", role: savedResume.title || "", hiringManager: "", jobAd: "", tone: current.tone, layout: current.layout, accent: current.accent, coverLetter: "" }));
+    setActiveApplicationId(null);
+    setMessage("새 지원서를 시작했습니다. 기존에 목록에 저장한 지원서는 그대로 남아 있습니다.");
+  };
+
+  const deleteApplication = (application: SavedApplication) => {
+    if (!window.confirm(`${application.company} 지원서를 목록에서 삭제할까요?`)) return;
+    setApplications((current) => current.filter((item) => item.id !== application.id));
+    if (activeApplicationId === application.id) setActiveApplicationId(null);
+    setMessage(`${application.company} 지원서를 목록에서 삭제했습니다.`);
   };
 
   const createCoverLetter = () => {
@@ -266,6 +324,7 @@ export function ResumeProWorkspace() {
         <div className={`mt-5 border-l-2 p-4 text-sm leading-6 ${hasResume ? "border-[#3f6d5c] bg-[#3f6d5c]/8 text-navy" : "border-gold bg-gold/8 text-muted"}`}>
           {hasResume ? <><strong className="block text-navy">{savedResume.name || "저장된 이력서"}의 내용을 연결했습니다.</strong>무료 이력서 빌더의 Summary, 경력과 Skills를 초안에 사용합니다.</> : <><strong className="block text-navy">저장된 이력서를 찾지 못했습니다.</strong>입력 없이도 사용할 수 있지만 무료 빌더를 먼저 작성하면 더 구체적인 초안이 만들어집니다.</>}
         </div>
+        <section className="mt-5 border border-border bg-white p-4" aria-labelledby="saved-applications-heading"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">현재 브라우저에 최대 30개까지 저장됩니다.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button type="button" onClick={saveApplication} className="min-h-10 bg-navy px-3 text-xs font-semibold text-white">현재 지원서 저장</button></div></div>{applications.length > 0 ? <ul className="mt-4 divide-y divide-border border-y border-border">{applications.map((application) => <li key={application.id} className="flex flex-wrap items-center gap-3 py-3"><button type="button" onClick={() => loadApplication(application)} className="min-h-10 flex-1 text-left"><strong className="block text-sm text-navy">{application.company}</strong><span className="mt-1 block text-xs text-muted">{application.role} · {new Date(application.updatedAt).toLocaleDateString("en-AU")}{activeApplicationId === application.id ? " · 현재 열림" : ""}</span></button><button type="button" onClick={() => deleteApplication(application)} className="min-h-10 px-2 text-xs text-muted hover:text-red-700">삭제</button></li>)}</ul> : <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted">저장한 지원서가 아직 없습니다. 회사명을 입력하고 현재 지원서 저장을 눌러 주세요.</p>}</section>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className={labelClass}>회사명<input className={inputClass} value={draft.company} onChange={(event) => setField("company", event.target.value)} placeholder="Compass Cafe" /></label>
           <label className={labelClass}>지원 직무<input className={inputClass} value={draft.role} onChange={(event) => setField("role", event.target.value)} placeholder="Barista" /></label>
