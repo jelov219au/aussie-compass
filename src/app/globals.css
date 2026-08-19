@@ -123,6 +123,28 @@ body {
     break-inside: avoid;
   }
 
+  #resume-pro-preview,
+  #resume-pro-preview * {
+    visibility: visible !important;
+  }
+
+  #resume-pro-preview {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-height: 0 !important;
+    color: #202636 !important;
+    background: white !important;
+    box-shadow: none !important;
+    print-color-adjust: exact;
+  }
+
+  #resume-pro-preview section,
+  #resume-pro-preview header,
+  #resume-pro-preview aside {
+    break-inside: avoid;
+  }
+
   #living-budget-results,
   #living-budget-results * {
     visibility: visible !important;

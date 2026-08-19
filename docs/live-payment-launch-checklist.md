@@ -22,7 +22,8 @@ Run `npm run payments:check -- --strict` in the target environment. The command 
 
 ## 3. Stripe live settings
 
-- [ ] Complete identity and Australian payout-bank verification.
+- [ ] Complete the live account representative identity-document task. As checked on 19 August 2026, the task is past due, payouts are paused and payments may be paused if it remains unresolved.
+- [ ] Confirm Australian payout-bank verification returns to an enabled state after identity review.
 - [ ] Set the public business name, support email, website and a recognisable statement descriptor.
 - [ ] Create an active one-time AUD 19.90 Resume Pro Price.
 - [ ] Create a least-privilege `rk_live_` key that can retrieve Prices and create/retrieve Checkout Sessions.
@@ -42,3 +43,5 @@ Run `npm run payments:check -- --strict` in the target environment. The command 
 - [ ] Reconcile the gross sale, Stripe fee, refund and bank payout record.
 
 Production should not stay open if any identity, tax, access-delivery, refund or support check fails.
+
+Do not start the controlled live purchase while the Stripe account status page shows an active identity task or paused payouts. An onboarding approval email does not override an active capability restriction shown in the Dashboard.
