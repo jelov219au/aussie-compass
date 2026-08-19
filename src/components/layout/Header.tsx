@@ -19,7 +19,18 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
       <Container className="flex h-[4.5rem] items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2.5 rounded-sm text-lg font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"><span className="relative inline-flex h-7 w-7 items-center justify-center rounded-full border border-gold/70" aria-hidden="true"><span className="h-2 w-2 rotate-45 border-r border-t border-navy" /></span>{content.brand.name}</Link>
+        <Link href="/" className="flex items-center gap-2.5 rounded-sm text-lg font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+          <span className="relative inline-flex h-8 w-8 items-center justify-center rounded-full bg-navy shadow-sm" aria-hidden="true">
+            <svg viewBox="0 0 32 32" className="h-5 w-5" fill="none">
+              <path d="m11 8 5 7 5-3 3 7" stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
+              <circle cx="11" cy="8" r="1.6" fill="#F4D36A" />
+              <circle cx="16" cy="15" r="1.8" fill="#F4D36A" />
+              <circle cx="21" cy="12" r="1.4" fill="#F4D36A" />
+              <circle cx="24" cy="19" r="1.7" fill="#F4D36A" />
+            </svg>
+          </span>
+          {content.brand.name}
+        </Link>
 
         <nav
           className="hidden items-center gap-7 md:flex"
