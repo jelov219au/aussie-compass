@@ -8,8 +8,8 @@ import { canCreateTestCheckout, getPaymentReadiness } from "@/lib/commerce";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "Resume Pro 미리보기 | Hoju Compass",
-  description: "호주 구직 지원서를 한 번에 정리하는 Resume Pro의 프리미엄 이력서, 커버레터, 공고 키워드 점검 기능을 미리 확인하세요.",
+  title: "Resume Pro | Hoju Compass",
+  description: "프리미엄 이력서 디자인, 커버레터, 채용 공고 키워드 점검을 한곳에서 준비하세요.",
   path: "/resume-pro",
 });
 
@@ -110,19 +110,19 @@ export default async function ResumeProPage({ searchParams }: Props) {
             )}
             <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
               <div className="max-w-3xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro · 미리보기</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro</p>
                 <h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">이력서 한 장에서,<br /><span className="font-normal text-navy-light">지원 준비 전체로.</span></h1>
-                <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">무료 빌더의 작성 경험은 그대로 두고, 회사별 커버레터와 공고 점검, 프리미엄 디자인, 지원서 묶음 내보내기를 더할 예정입니다.</p>
+                <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">무료 빌더에서 작성한 내용을 바탕으로 회사별 커버레터, 공고 점검, 프리미엄 디자인과 지원서 묶음을 한곳에서 준비할 수 있어요.</p>
               </div>
               <aside className="border-l-2 border-gold pl-6">
-                <p className="text-sm font-semibold text-muted">출시 예정가</p>
+                <p className="text-sm font-semibold text-muted">Resume Pro 1회 이용권</p>
                 <p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$19.90</p>
-                <p className="mt-2 text-sm leading-6 text-muted">구독이 아닌 1회 결제를 우선 검토합니다.</p>
+                <p className="mt-2 text-sm leading-6 text-muted">매달 빠져나가는 구독료 없이 한 번만 결제해요.</p>
               </aside>
             </div>
             <div className="mt-10 flex flex-wrap items-start gap-3">
               <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">무료 이력서 먼저 만들기</Link>
-              <span className="inline-flex min-h-12 items-center justify-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted">Pro 작업 공간 출시 준비 중</span>
+              <span className="inline-flex min-h-12 items-center justify-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted">{checkoutAvailable ? "Pro 작업 공간 이용 가능" : "Pro 작업 공간 출시 준비 중"}</span>
               {!checkoutAvailable && (
                 <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">결제 기능 준비 중</span>
               )}
@@ -170,7 +170,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 </li>
               ))}
             </ol>
-            <p className="mt-8 border-l-2 border-gold pl-4 text-sm leading-6 text-muted">실제 작업 공간은 결제 권한 확인과 다른 기기에서의 구매 복구까지 검증한 뒤 공개합니다.</p>
+            <p className="mt-8 border-l-2 border-gold pl-4 text-sm leading-6 text-muted">결제가 확인되면 작업 공간이 바로 열립니다. 기기를 바꿔도 1회용 복구 코드로 다시 이용할 수 있어요.</p>
             <Link href="/resume-pro/restore" className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-navy">이미 구매했다면 이용권 복구하기 <span className="ml-2" aria-hidden="true">→</span></Link>
           </Container>
         </section>
@@ -191,7 +191,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
 
         <section className="bg-navy py-12 text-white sm:py-16">
           <Container className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">무료 이력서부터 시작해요</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">Pro를 기다리지 않아도 이력서부터 준비할 수 있어요.</h2><p className="mt-3 max-w-xl text-sm leading-6 text-white/65">작성한 내용은 지금 사용하는 기기의 브라우저에만 저장돼요. Resume Pro 미리보기에서는 별도 정보를 받지 않아요.</p></div>
+            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">무료 이력서부터 시작해요</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">먼저 무료로 작성한 뒤, 필요할 때 Pro를 이용하세요.</h2><p className="mt-3 max-w-xl text-sm leading-6 text-white/65">작성한 내용은 지금 사용하는 기기의 브라우저에 저장돼요. 결제 전에는 이름이나 연락처를 서버로 보내지 않습니다.</p></div>
             <Link href="/resume-builder" className="inline-flex min-h-12 shrink-0 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">무료 빌더 열기 <span className="ml-3" aria-hidden="true">→</span></Link>
           </Container>
         </section>
