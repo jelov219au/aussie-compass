@@ -48,4 +48,3 @@ try {
   Remove-Item Env:STRIPE_ACCOUNTING_KEY -ErrorAction SilentlyContinue
   $plainKey = $null
 }
-

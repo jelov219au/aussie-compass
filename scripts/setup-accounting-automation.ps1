@@ -31,4 +31,3 @@ $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Description "Refreshes the previous completed month of Hoju Compass Stripe balance records. Re-runs are idempotent." -Force | Out-Null
 
 Write-Host "Accounting automation is ready. The previous completed month will be checked daily at 7:15am and exported only once."
-

@@ -90,4 +90,3 @@ const outputRows = [expectedHeader, ...sortedRows];
 await writeFile(masterPath, `${outputRows.map((row) => row.map(csvCell).join(",")).join("\n")}\n`);
 
 console.log(`Updated the private accounting ledger with ${sortedRows.length} unique Stripe balance records.`);
-
