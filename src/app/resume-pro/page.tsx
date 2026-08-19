@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { ResumeProCheckoutForm } from "@/components/tools/ResumeProCheckoutForm";
 import { Container } from "@/components/ui/Container";
 import { canCreateTestCheckout, getPaymentReadiness } from "@/lib/commerce";
 import { createPageMetadata } from "@/lib/site";
@@ -119,19 +120,14 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 <p className="mt-2 text-sm leading-6 text-muted">구독이 아닌 1회 결제를 우선 검토합니다.</p>
               </aside>
             </div>
-            <div className="mt-10 flex flex-wrap gap-3">
+            <div className="mt-10 flex flex-wrap items-start gap-3">
               <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">무료 이력서 먼저 만들기</Link>
               <span className="inline-flex min-h-12 items-center justify-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted">Pro 작업 공간 출시 준비 중</span>
-              {checkoutAvailable ? (
-                <form action="/api/checkout/resume-pro" method="post">
-                  <button type="submit" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">
-                    {testCheckoutAvailable ? "테스트 결제 시작" : "Resume Pro 구매"}
-                  </button>
-                </form>
-              ) : (
+              {!checkoutAvailable && (
                 <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">결제 기능 준비 중</span>
               )}
             </div>
+            {checkoutAvailable && <div className="mt-5"><ResumeProCheckoutForm testMode={testCheckoutAvailable} /></div>}
             <p className="mt-4 text-xs leading-5 text-muted">
               {testCheckoutAvailable
                 ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다. 테스트 이용권과 결제 처리 기술 기록만 생성됩니다."

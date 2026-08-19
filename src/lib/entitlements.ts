@@ -1,5 +1,3 @@
-import "server-only";
-
 import type Stripe from "stripe";
 
 export type EntitlementAction = "grant" | "revoke" | "review";

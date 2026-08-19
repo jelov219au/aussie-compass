@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { Container } from "@/components/ui/Container";
-import { getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
+import { getPaymentReadiness, resumeProProduct, resumeProPurchaseTermsVersion } from "@/lib/commerce";
 import { getPublicSellerDetails } from "@/lib/publicSeller";
 import { createPageMetadata } from "@/lib/site";
 
@@ -102,6 +102,7 @@ export default function PurchaseInformationPage() {
           <section className="mt-10 border-l-2 border-gold bg-surface p-6 text-sm leading-7 text-muted">
             <h2 className="font-semibold text-navy">출시 전 확인 사항</h2>
             <p className="mt-1">이 페이지는 현재 준비 상태를 투명하게 설명하기 위한 안내이며 법률·세무 자문이 아닙니다. 라이브 결제 전 판매자 정보, GST 처리, 영수증 전달과 지원 절차를 등록 세무사 또는 적절한 전문가와 최종 확인해야 합니다.</p>
+            <p className="mt-2 text-xs">구매 조건 안내 기준일: {resumeProPurchaseTermsVersion}</p>
           </section>
         </Container>
       </main>

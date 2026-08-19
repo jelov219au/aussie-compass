@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 
-import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
+import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct, resumeProPurchaseTermsVersion } from "@/lib/commerce";
 import { siteUrl } from "@/lib/site";
 import { assertSafeStripeEnvironment, getStripe } from "@/lib/stripe";
 
@@ -21,6 +21,18 @@ export async function POST(request: NextRequest) {
 
   if (requestOrigin && requestOrigin !== request.nextUrl.origin) {
     return NextResponse.json({ error: "Invalid checkout origin." }, { status: 403 });
+  }
+
+  let termsAccepted = false;
+  try {
+    const formData = await request.formData();
+    termsAccepted = formData.get("terms_accepted") === "yes";
+  } catch {
+    return NextResponse.json({ error: "Invalid checkout request." }, { status: 400 });
+  }
+
+  if (!termsAccepted) {
+    return NextResponse.json({ error: "Purchase terms must be acknowledged before checkout." }, { status: 400 });
   }
 
   const readiness = getPaymentReadiness();
@@ -61,6 +73,7 @@ export async function POST(request: NextRequest) {
         product_code: "resume_pro",
         billing_model: "one_time",
         entitlement_version: "1",
+        purchase_terms_version: resumeProPurchaseTermsVersion,
       },
       success_url: `${origin}/resume-pro/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/resume-pro?checkout=cancelled`,

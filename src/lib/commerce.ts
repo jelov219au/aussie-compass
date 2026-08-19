@@ -13,6 +13,8 @@ export const resumeProProduct = {
   billing: "one_time",
 } as const;
 
+export const resumeProPurchaseTermsVersion = "2026-08-19";
+
 export type PaymentReadiness = {
   enabled: boolean;
   stripeConfigured: boolean;

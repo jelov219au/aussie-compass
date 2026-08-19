@@ -14,6 +14,7 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 
 - Keep the existing resume builder and PDF output free.
 - State the full AUD price before checkout and identify the purchase as one-time, not recurring.
+- Require the customer to acknowledge the current purchase and privacy notices before creating Checkout, and record only the notice version in Stripe metadata rather than copying the page contents into payment records.
 - Publish seller identity, ABN, support contact, delivery method, refund process, privacy notice and terms before accepting money.
 - Do not use “no refunds”. Australian Consumer Law rights must remain available.
 - Provide a self-service way to restore a purchase on another device and revoke access after a refund or chargeback.
@@ -40,7 +41,9 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 - Run `npm run security:secrets` before publishing changes to catch accidentally tracked Stripe or Vercel credentials.
 - Test successful payment, cancellation, duplicate webhook, refund, chargeback and failed payment in Stripe test mode.
 - Run `npm run test:entitlement-ordering` before publishing payment changes.
+- Run `npm run test:entitlement-commands` to verify paid, unpaid, asynchronous, refund and dispute events map to the intended access state.
 - Run `npm run test:resume-pro-tokens` to verify signed-session tamper resistance, expiry, revoked-access blocking and restore-code hashing.
+- Run `npm run test:stripe-contract` to prevent accidental removal of Checkout consent, server-side price validation, dynamic payment methods or webhook signature checks.
 - Run `npm run payments:check -- --strict` inside the target deployment environment. It reports only pass/wait states and never prints credentials, connection strings, legal names or the ABN.
 - Keep `PAYMENTS_ENABLED=false` until test evidence and legal copy are reviewed.
 - Live webhook events intentionally return an error until the durable entitlement provider is implemented, preventing paid orders from being silently acknowledged without fulfillment.
