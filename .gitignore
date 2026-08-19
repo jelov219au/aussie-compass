@@ -17,6 +17,8 @@
 
 # production
 /build
+/outputs/
+/private/
 
 # misc
 .DS_Store

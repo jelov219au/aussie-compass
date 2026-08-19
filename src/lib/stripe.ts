@@ -37,6 +37,11 @@ export function getStripe() {
     throw new Error("STRIPE_SECRET_KEY is not configured.");
   }
 
-  stripeClient ??= new Stripe(secretKey);
+  stripeClient ??= new Stripe(secretKey, {
+    appInfo: { name: "Hoju Compass", version: "0.1.0" },
+    maxNetworkRetries: 2,
+    timeout: 10_000,
+    telemetry: false,
+  });
   return stripeClient;
 }

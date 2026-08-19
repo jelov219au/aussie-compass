@@ -51,6 +51,7 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 ## Bookkeeping
 
 - Record gross customer sales, Stripe fees, refunds and net bank payouts separately.
+- Keep the original Stripe Balance/Payout reconciliation export and bank evidence outside the repository, and update the private accounting register without customer details.
 - Export Stripe payments, balance and payout reports and reconcile them with the bank account.
 - Track GST turnover across all activities operated under the same sole trader ABN.
 - Retain invoices and business records for the required period.
@@ -67,6 +68,7 @@ The repository includes placeholders in `.env.example`. Production secrets belon
 4. Confirm the ABN/GST status through the Australian Business Register and with a registered tax agent. Verify that live Managed Payments continues to show Stripe as the tax-liability party and ask how the gross sale, GST shown by Stripe, fees and payout belong in the sole trader's records.
 5. Finish the Stripe live-mode business profile, statement descriptor, customer support details and payout bank verification. Create the live restricted key, live Resume Pro Price and live webhook endpoint with the same event subscriptions verified in Preview.
 6. Reconcile the controlled live purchase, Stripe fee and full refund with the first Stripe balance and payout reports.
+   The private accounting register now contains the verified A$19.90 sale and full refund. Stripe fee, credit-document tax reversal and bank payout remain blank until supported by the source reports.
 7. If identity, payout, webhook, entitlement or support monitoring fails, set `PAYMENTS_ENABLED=false` and redeploy before investigating.
 
 Do not add a separate application-level `automatic_tax` or manual tax rate while Managed Payments controls tax. The verified test Checkout enabled tax with liability assigned to Stripe and included GST inside the A$19.90 total. Reconfirm this in live mode before launch; it does not decide the sole trader's ABN, GST, income-tax or BAS obligations.

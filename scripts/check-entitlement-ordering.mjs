@@ -10,6 +10,7 @@ const priority = {
 };
 
 function shouldApply({ currentCreatedAt, currentStatus, incomingCreatedAt, incomingAction }) {
+  if (currentStatus === "revoked" && incomingAction === "review") return false;
   if (incomingCreatedAt > currentCreatedAt) return true;
   if (incomingCreatedAt < currentCreatedAt) return false;
   return priority[incomingAction] > priority[currentStatus];
@@ -60,12 +61,20 @@ assert.equal(shouldApply({
   incomingAction: "grant",
 }), true, "a newer dispute-win event may restore access");
 
+assert.equal(shouldApply({
+  currentCreatedAt: earlier,
+  currentStatus: "revoked",
+  incomingCreatedAt: later,
+  incomingAction: "review",
+}), false, "a late refund lifecycle event must not weaken a completed revocation");
+
 const sql = await readFile(new URL("../docs/entitlement-storage.sql", import.meta.url), "utf8");
 
 for (const contract of [
   "last_stripe_event_created_at",
   "p_stripe_created_at > v_last_event_created_at",
   "p_stripe_created_at = v_last_event_created_at",
+  "v_current_status = 'revoked' and p_action = 'review'",
   "ignored_stale",
 ]) {
   assert.ok(sql.includes(contract), `SQL contract is missing: ${contract}`);

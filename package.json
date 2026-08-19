@@ -12,6 +12,8 @@
     "test:entitlement-commands": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-entitlement-commands.mjs",
     "test:resume-pro-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-resume-pro-tokens.mjs",
     "test:entitlement-ordering": "node scripts/check-entitlement-ordering.mjs",
+    "test:accounting-contract": "node scripts/check-accounting-export-contract.mjs",
+    "accounting:export": "node scripts/export-stripe-accounting.mjs",
     "security:secrets": "node scripts/check-secrets.mjs"
   },
   "dependencies": {

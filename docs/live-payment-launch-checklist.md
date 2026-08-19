@@ -45,6 +45,8 @@ Run `npm run payments:check -- --strict` in the target environment. The command 
 - [x] Confirm the signed live webhook persists the entitlement and the Resume Pro workspace opens only after that entitlement exists.
 - [x] Issue a full AUD 19.90 refund in Stripe; `refund.created` and `charge.refunded` both returned HTTP 200 and the workspace was blocked immediately.
 - [ ] Reconcile the gross sale, Stripe fee, refund and bank payout record.
+- [x] Start a private accounting register with the verified sale and full refund; unknown fee and payout values remain explicitly unconfirmed.
+- [x] Add a read-only Balance Transactions exporter that requires a separate restricted accounting key and excludes customer details.
 
 Production should not stay open if any identity, tax, access-delivery, refund or support check fails.
 

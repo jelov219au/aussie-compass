@@ -9,17 +9,28 @@ export const runtime = "nodejs";
 
 const maxWebhookPayloadBytes = 1024 * 1024;
 
+function webhookResponse(body: Record<string, unknown>, status = 200) {
+  return NextResponse.json(body, {
+    status,
+    headers: { "Cache-Control": "no-store" },
+  });
+}
+
 export async function POST(request: NextRequest) {
   const signature = request.headers.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
   const contentLength = Number(request.headers.get("content-length") ?? 0);
 
   if (!signature || !webhookSecret) {
-    return NextResponse.json({ error: "Webhook is not configured." }, { status: 503 });
+    return webhookResponse({ error: "Webhook is not configured." }, 503);
+  }
+
+  if (request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase() !== "application/json") {
+    return webhookResponse({ error: "Unsupported webhook content type." }, 415);
   }
 
   if (Number.isFinite(contentLength) && contentLength > maxWebhookPayloadBytes) {
-    return NextResponse.json({ error: "Webhook payload is too large." }, { status: 413 });
+    return webhookResponse({ error: "Webhook payload is too large." }, 413);
   }
 
   let event: Stripe.Event;
@@ -28,26 +39,26 @@ export async function POST(request: NextRequest) {
     const payload = await request.text();
 
     if (Buffer.byteLength(payload, "utf8") > maxWebhookPayloadBytes) {
-      return NextResponse.json({ error: "Webhook payload is too large." }, { status: 413 });
+      return webhookResponse({ error: "Webhook payload is too large." }, 413);
     }
 
     event = getStripe().webhooks.constructEvent(payload, signature, webhookSecret);
   } catch (error) {
     console.warn("Rejected Stripe webhook", error instanceof Error ? error.message : "Invalid signature");
-    return NextResponse.json({ error: "Invalid webhook signature." }, { status: 400 });
+    return webhookResponse({ error: "Invalid webhook signature." }, 400);
   }
 
   const entitlementCommand = getEntitlementCommand(event);
 
   if (!entitlementCommand) {
-    return NextResponse.json({ received: true });
+    return webhookResponse({ received: true });
   }
 
   const expectsLiveEvent = process.env.VERCEL_ENV === "production";
 
   if (event.livemode !== expectsLiveEvent) {
     console.warn("Rejected Stripe webhook from the wrong environment", { eventId: event.id, type: event.type });
-    return NextResponse.json({ error: "Webhook environment mismatch." }, { status: 400 });
+    return webhookResponse({ error: "Webhook environment mismatch." }, 400);
   }
 
   const entitlementStore = getConfiguredEntitlementStore();
@@ -55,7 +66,7 @@ export async function POST(request: NextRequest) {
   if (!entitlementStore) {
     // Returning a failure keeps Stripe retrying instead of silently losing a paid order.
     if (event.livemode) {
-      return NextResponse.json({ error: "Live entitlement fulfillment is not configured." }, { status: 503 });
+      return webhookResponse({ error: "Live entitlement fulfillment is not configured." }, 503);
     }
 
     console.info("Verified Stripe test webhook without persistence", {
@@ -64,7 +75,7 @@ export async function POST(request: NextRequest) {
       entitlementAction: entitlementCommand.action,
       reason: entitlementCommand.reason,
     });
-    return NextResponse.json({ received: true, testOnly: true, persisted: false });
+    return webhookResponse({ received: true, testOnly: true, persisted: false });
   }
 
   try {
@@ -84,13 +95,13 @@ export async function POST(request: NextRequest) {
       outcome: result.outcome,
       entitlementAction: entitlementCommand.action,
     });
-    return NextResponse.json({ received: true, testOnly: !event.livemode, persisted: true, outcome: result.outcome });
+    return webhookResponse({ received: true, testOnly: !event.livemode, persisted: true, outcome: result.outcome });
   } catch (error) {
     console.error("Unable to persist Stripe entitlement event", {
       eventId: event.id,
       type: event.type,
       message: error instanceof Error ? error.message : "Unknown error",
     });
-    return NextResponse.json({ error: "Entitlement persistence failed." }, { status: 503 });
+    return webhookResponse({ error: "Entitlement persistence failed." }, 503);
   }
 }

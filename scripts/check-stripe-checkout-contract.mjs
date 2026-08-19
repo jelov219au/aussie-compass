@@ -6,6 +6,7 @@ const checkoutForm = await readFile(new URL("../src/components/tools/ResumeProCh
 const webhook = await readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
 const purchaseVerification = await readFile(new URL("../src/lib/resumeProPurchase.ts", import.meta.url), "utf8");
 const entitlementStore = await readFile(new URL("../src/lib/neonEntitlementStore.ts", import.meta.url), "utf8");
+const requestSecurity = await readFile(new URL("../src/lib/requestSecurity.ts", import.meta.url), "utf8");
 
 for (const contract of [
   "checkout.sessions.create",
@@ -32,9 +33,14 @@ for (const contract of [
   "webhooks.constructEvent",
   "stripe-signature",
   "maxWebhookPayloadBytes",
+  "Unsupported webhook content type",
   "event.livemode !== expectsLiveEvent",
 ]) {
   assert.ok(webhook.includes(contract), `Webhook safety contract is missing: ${contract}`);
+}
+
+for (const contract of ["VERCEL_ENV === \"production\"", "sec-fetch-site", "maxBodyBytes", "allowedContentTypes"]) {
+  assert.ok(requestSecurity.includes(contract), `Mutation-request safety contract is missing: ${contract}`);
 }
 
 console.log("Stripe Checkout and webhook safety-contract checks passed.");

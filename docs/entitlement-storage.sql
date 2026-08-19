@@ -174,23 +174,31 @@ begin
   end;
 
   if v_entitlement_id is not null then
-    -- Stripe does not guarantee webhook delivery order. A newer event wins. When
-    -- two events share Stripe's second-level timestamp, prefer the safer state:
-    -- revoked, then review, then active. Equal-priority events are already
-    -- represented by the current entitlement and do not need to rewrite it.
-    v_should_apply := p_stripe_created_at > v_last_event_created_at
-      or (
-        p_stripe_created_at = v_last_event_created_at
-        and case p_action
-          when 'revoke' then 3
-          when 'review' then 2
-          else 1
-        end > case v_current_status
-          when 'revoked' then 3
-          when 'review' then 2
-          else 1
-        end
-      );
+    -- A review event must never weaken an already revoked entitlement. Stripe
+    -- can deliver refund.created/refund.updated after charge.refunded, and both
+    -- states block access, but preserving revoked makes the completed refund
+    -- authoritative. A later explicit grant (for example a won dispute) can
+    -- still restore access.
+    if v_current_status = 'revoked' and p_action = 'review' then
+      v_should_apply := false;
+    else
+      -- Stripe does not guarantee webhook delivery order. A newer event wins.
+      -- When two events share Stripe's second-level timestamp, prefer the safer
+      -- state: revoked, then review, then active.
+      v_should_apply := p_stripe_created_at > v_last_event_created_at
+        or (
+          p_stripe_created_at = v_last_event_created_at
+          and case p_action
+            when 'revoke' then 3
+            when 'review' then 2
+            else 1
+          end > case v_current_status
+            when 'revoked' then 3
+            when 'review' then 2
+            else 1
+          end
+        );
+    end if;
   end if;
 
   if v_entitlement_id is null then
@@ -269,3 +277,4 @@ $$;
 -- 4. Insert payment_webhook_events first; a duplicate primary key means the Stripe event was already handled.
 -- 5. Do not store the full Stripe webhook payload unless a separate retention and privacy policy is approved.
 -- 6. Preserve last_stripe_event_created_at so delayed events cannot overwrite a newer entitlement state.
+-- 7. Preserve revoked when later refund lifecycle events only request manual review.

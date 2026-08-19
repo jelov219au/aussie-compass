@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { clearResumeProAccessCookie } from "@/lib/resumeProAccess";
+import { validateSameOriginMutation } from "@/lib/requestSecurity";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) {
-    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  const requestCheck = validateSameOriginMutation(request, { maxBodyBytes: 1024 });
+  if (!requestCheck.ok) {
+    return NextResponse.json({ error: requestCheck.error }, {
+      status: requestCheck.status,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   await clearResumeProAccessCookie();

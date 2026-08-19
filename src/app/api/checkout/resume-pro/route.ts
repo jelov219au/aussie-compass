@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 
 import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct, resumeProPurchaseTermsVersion } from "@/lib/commerce";
+import { validateSameOriginMutation } from "@/lib/requestSecurity";
 import { siteUrl } from "@/lib/site";
 import { assertSafeStripeEnvironment, getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
+
+const checkoutRequestContentTypes = ["application/x-www-form-urlencoded", "multipart/form-data"];
 
 function getCheckoutOrigin(request: NextRequest) {
   return process.env.VERCEL_ENV === "production" ? siteUrl : request.nextUrl.origin;
@@ -17,10 +20,16 @@ function createIntegrationIdentifier() {
 }
 
 export async function POST(request: NextRequest) {
-  const requestOrigin = request.headers.get("origin");
+  const requestCheck = validateSameOriginMutation(request, {
+    maxBodyBytes: 4 * 1024,
+    allowedContentTypes: checkoutRequestContentTypes,
+  });
 
-  if (requestOrigin && requestOrigin !== request.nextUrl.origin) {
-    return NextResponse.json({ error: "Invalid checkout origin." }, { status: 403 });
+  if (!requestCheck.ok) {
+    return NextResponse.json({ error: requestCheck.error }, {
+      status: requestCheck.status,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   let termsAccepted = false;
@@ -28,18 +37,27 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     termsAccepted = formData.get("terms_accepted") === "yes";
   } catch {
-    return NextResponse.json({ error: "Invalid checkout request." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid checkout request." }, {
+      status: 400,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   if (!termsAccepted) {
-    return NextResponse.json({ error: "Purchase terms must be acknowledged before checkout." }, { status: 400 });
+    return NextResponse.json({ error: "Purchase terms must be acknowledged before checkout." }, {
+      status: 400,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   const readiness = getPaymentReadiness();
   const allowed = process.env.VERCEL_ENV === "production" ? readiness.ready : canCreateTestCheckout();
 
   if (!allowed) {
-    return NextResponse.json({ error: "Payments are not ready in this environment." }, { status: 503 });
+    return NextResponse.json({ error: "Payments are not ready in this environment." }, {
+      status: 503,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   try {
@@ -86,6 +104,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.redirect(session.url, 303);
   } catch (error) {
     console.error("Unable to create Resume Pro Checkout Session", error instanceof Error ? error.message : "Unknown error");
-    return NextResponse.json({ error: "Checkout could not be started." }, { status: 500 });
+    return NextResponse.json({ error: "Checkout could not be started." }, {
+      status: 500,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 }

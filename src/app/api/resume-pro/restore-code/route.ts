@@ -1,20 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
+import { validateSameOriginMutation } from "@/lib/requestSecurity";
 import { createRestoreCode, getActiveResumeProEntitlement } from "@/lib/resumeProAccess";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) {
-    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  const requestCheck = validateSameOriginMutation(request, { maxBodyBytes: 1024 });
+  if (!requestCheck.ok) {
+    return NextResponse.json({ error: requestCheck.error }, {
+      status: requestCheck.status,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   const entitlement = await getActiveResumeProEntitlement();
   const store = getConfiguredEntitlementStore();
   if (!entitlement || !store) {
-    return NextResponse.json({ error: "Active Resume Pro access is required." }, { status: 401 });
+    return NextResponse.json({ error: "Active Resume Pro access is required." }, {
+      status: 401,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   const restore = createRestoreCode();

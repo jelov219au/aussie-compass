@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
+import { validateSameOriginMutation } from "@/lib/requestSecurity";
 import { setResumeProAccessCookie } from "@/lib/resumeProAccess";
 import { getVerifiedResumeProCheckout } from "@/lib/resumeProPurchase";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  if (origin && origin !== request.nextUrl.origin) {
-    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+  const requestCheck = validateSameOriginMutation(request, {
+    maxBodyBytes: 2 * 1024,
+    allowedContentTypes: ["application/x-www-form-urlencoded", "multipart/form-data"],
+  });
+  if (!requestCheck.ok) {
+    return NextResponse.json({ error: requestCheck.error }, {
+      status: requestCheck.status,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   const formData = await request.formData();
