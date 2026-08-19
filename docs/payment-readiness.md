@@ -46,7 +46,7 @@ Resume Pro is planned as a one-time AUD 19.90 product sold by an Australian sole
 - Run `npm run test:stripe-contract` to prevent accidental removal of Checkout consent, server-side price validation, dynamic payment methods or webhook signature checks.
 - Run `npm run payments:check -- --strict` inside the target deployment environment. It reports only pass/wait states and never prints credentials, connection strings, legal names or the ABN.
 - Keep `PAYMENTS_ENABLED=false` until test evidence and legal copy are reviewed.
-- Live webhook events intentionally return an error until the durable entitlement provider is implemented, preventing paid orders from being silently acknowledged without fulfillment.
+- Keep live payments disabled until the durable Neon entitlement store, live webhook secret and live-mode recovery flow are configured together and verified with a controlled purchase.
 
 ## Bookkeeping
 
@@ -62,7 +62,7 @@ The repository includes placeholders in `.env.example`. Production secrets belon
 ## Remaining actions before the first paid order
 
 1. Run the target-environment launch audit with `npm run payments:check -- --strict`. Replace the test server key with a restricted key if it is still a full `sk_test_` key, then repeat the Checkout test.
-2. In the protected Preview, complete the remaining customer-access checks: successful activation after payment, revoked-entitlement blocking, one-time recovery-code consumption, recovery-code expiry and access release on the original device.
+2. Repeat the completed protected-Preview customer-access test after any change to the webhook, entitlement schema, access cookie or recovery-code flow. Recovery-code expiry remains covered by the deterministic token test because the deployed code lasts 30 days.
 3. Add `BUSINESS_LEGAL_NAME`, `BUSINESS_ABN` and `NEXT_PUBLIC_SUPPORT_EMAIL` to Vercel without pasting the sole trader's private details into chat or source control. Confirm the purchase page shows the registered business name and legal seller as separate fields. Add `BUSINESS_TRADING_NAME` only if the displayed business name must differ from `Hoju Compass`.
 4. Confirm the ABN/GST status through the Australian Business Register and with a registered tax agent. Verify that live Managed Payments continues to show Stripe as the tax-liability party and ask how the gross sale, GST shown by Stripe, fees and payout belong in the sole trader's records.
 5. Finish the Stripe live-mode business profile, statement descriptor, customer support details and payout bank verification. Create the live restricted key, live Resume Pro Price and live webhook endpoint with the same event subscriptions verified in Preview.
@@ -86,7 +86,9 @@ The protected Preview integration was verified on 18 August 2026 without enablin
 - A full AUD 19.90 Stripe test-mode refund then delivered `charge.refunded`, `refund.created` and `refund.updated` to the protected Preview endpoint. All three signed deliveries returned HTTP 200 and the entitlement remained inaccessible in `review` after the final refund update.
 - Resending the original Checkout event returned `duplicate` and did not restore access. A separate transaction-only database regression used a different older event ID, returned `ignored_stale`, preserved the blocked state and was rolled back with zero test rows left behind.
 - A request with an invalid Stripe signature was rejected with HTTP 400 during the earlier endpoint verification.
-- The temporary Vercel automation bypass was removed, and a fresh unauthenticated request to the Preview webhook was redirected to Vercel authentication.
-- The Stripe test webhook endpoint was disabled and its URL was stripped of the bypass query value. Its signing secret remains connected to the branch-scoped Preview environment for future controlled tests.
+- On 19 August 2026, the active endpoint's signing secret was matched to the branch-scoped Preview variable and the Preview was redeployed. Stripe then resent a real paid `checkout.session.completed` event; the Preview returned HTTP 200 and Neon recorded `outcome: "processed"` with an active Resume Pro entitlement.
+- The paid session displayed the activation action only after that persisted entitlement existed. Opening it issued a signed browser session and allowed access to `/resume-pro/workspace`.
+- The workspace created a 30-day, one-time recovery code. Releasing the current device immediately blocked the workspace, the code restored access once, and a second use was rejected with `status=invalid`.
+- The temporary Vercel automation bypass was removed after the test. The Stripe test webhook endpoint was disabled, its URL was stripped of the bypass query value, and its metadata records the successful verification and revoked bypass.
 
-This record proves the Checkout-to-webhook path and durable entitlement idempotency work in test mode. Signed access-session and restore-code logic is now covered by a deterministic local security check, but the deployed customer access and recovery flow still needs its final Preview test. This is not approval to accept live payments; public seller details, GST treatment, live-mode credentials and the controlled live purchase/refund test remain required.
+This record proves the Checkout-to-webhook path, durable entitlement idempotency, signed device access, access release and one-time recovery work in test mode. Deterministic local tests additionally cover token tampering and expiry. This is not approval to accept live payments; public seller details, GST treatment, live-mode credentials and the controlled live purchase/refund test remain required.
