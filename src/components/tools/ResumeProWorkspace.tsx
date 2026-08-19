@@ -6,9 +6,16 @@ type Tone = "clear" | "warm" | "concise";
 type SavedResume = {
   name?: string;
   title?: string;
+  phone?: string;
+  email?: string;
+  location?: string;
+  link?: string;
   summary?: string;
   skills?: string;
-  experiences?: Array<{ role?: string; company?: string; details?: string }>;
+  licences?: string;
+  languages?: string;
+  experiences?: Array<{ role?: string; company?: string; period?: string; details?: string }>;
+  education?: Array<{ course?: string; school?: string; period?: string }>;
 };
 type ProDraft = {
   company: string;
@@ -53,6 +60,10 @@ function sentence(value?: string) {
   const trimmed = value?.trim();
   if (!trimmed) return "";
   return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
+}
+
+function safeFileName(value: string) {
+  return value.trim().replace(/[^a-z0-9가-힣]+/gi, "-").replace(/^-|-$/g, "").slice(0, 60) || "resume-application";
 }
 
 export function ResumeProWorkspace() {
@@ -138,6 +149,59 @@ export function ResumeProWorkspace() {
     }
   };
 
+  const downloadApplicationKit = () => {
+    const contact = [savedResume.phone, savedResume.email, savedResume.location, savedResume.link].filter(Boolean).join(" · ");
+    const experienceLines = savedResume.experiences?.filter((item) => item.role || item.company || item.details).flatMap((item) => [
+      `- ${[item.role, item.company, item.period].filter(Boolean).join(" · ") || "Experience"}`,
+      ...(item.details?.split("\n").map((line) => `  ${line.trim()}`).filter((line) => line.trim()) ?? []),
+    ]) ?? [];
+    const educationLines = savedResume.education?.filter((item) => item.course || item.school).map((item) => `- ${[item.course, item.school, item.period].filter(Boolean).join(" · ")}`) ?? [];
+    const lines = [
+      "HOJU COMPASS — RESUME PRO APPLICATION KIT",
+      `Company: ${draft.company || "Not set"}`,
+      `Role: ${draft.role || savedResume.title || "Not set"}`,
+      `Hiring manager: ${draft.hiringManager || "Hiring Manager"}`,
+      "",
+      "SUBMISSION CHECK",
+      `- Resume name: ${savedResume.name || "Check before submitting"}`,
+      `- Job-ad expressions found in resume: ${matched.length ? matched.join(", ") : "None identified"}`,
+      `- Expressions to verify against real experience: ${missing.length ? missing.join(", ") : "None identified"}`,
+      "- Confirm the company name, role, contact details, dates and qualifications.",
+      "- Add only skills and experience you genuinely have.",
+      "",
+      "RESUME SNAPSHOT",
+      `${savedResume.name || "Name not set"}${savedResume.title ? ` — ${savedResume.title}` : ""}`,
+      contact || "Contact details not set",
+      "",
+      "Professional summary",
+      savedResume.summary || "Not set",
+      "",
+      "Skills",
+      savedResume.skills || "Not set",
+      "",
+      "Licences and languages",
+      [savedResume.licences, savedResume.languages].filter(Boolean).join(" · ") || "Not set",
+      "",
+      "Experience",
+      ...(experienceLines.length ? experienceLines : ["- Not set"]),
+      "",
+      "Education",
+      ...(educationLines.length ? educationLines : ["- Not set"]),
+      "",
+      "COVER LETTER",
+      draft.coverLetter || "Not created",
+      "",
+      "This file is a personal preparation copy. Review every statement before submitting and store it securely because it may contain contact and employment details.",
+    ];
+    const url = URL.createObjectURL(new Blob([lines.join("\r\n")], { type: "text/plain;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${safeFileName(`${draft.company}-${draft.role || savedResume.title || "application"}`)}-application-kit.txt`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setMessage("이력서 요약, 공고 점검과 커버레터를 지원서 패키지로 저장했습니다.");
+  };
+
   return (
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(34rem,1.08fr)]">
       <section className="border-t border-navy/20 pt-6" aria-labelledby="pro-input-heading">
@@ -170,6 +234,10 @@ export function ResumeProWorkspace() {
           <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Cover letter draft</p><h2 id="cover-letter-heading" className="mt-2 text-xl font-semibold text-navy">커버레터 초안</h2></div><button type="button" onClick={copyCoverLetter} disabled={!draft.coverLetter} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-35">텍스트 복사</button></div>
           <label className="sr-only" htmlFor="pro-cover-letter">커버레터 초안</label>
           <textarea id="pro-cover-letter" className={`${inputClass} mt-5 min-h-[32rem] resize-y font-serif leading-7`} value={draft.coverLetter} onChange={(event) => setField("coverLetter", event.target.value)} placeholder="왼쪽에서 지원 정보와 채용 공고를 입력한 뒤 초안을 만드세요." />
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <button type="button" onClick={downloadApplicationKit} disabled={!draft.coverLetter} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-35">지원서 패키지 저장</button>
+            <span className="text-xs leading-5 text-muted">TXT 파일 · 이력서 요약, 공고 점검, 커버레터 포함</span>
+          </div>
           <p className="mt-4 text-xs leading-5 text-muted">초안은 자동 저장되며 이 브라우저 밖으로 전송되지 않습니다. 최종 제출 전 회사명, 담당자, 경력과 자격을 직접 확인하세요.</p>
         </section>
       </div>

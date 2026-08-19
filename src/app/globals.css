@@ -39,6 +39,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Keep Korean words and short phrases together instead of splitting syllables
+   at arbitrary points. Long URLs and English words can still wrap safely. */
+:where(h1, h2, h3, h4, p, li, dt, dd, blockquote) {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+:where(h1, h2, h3) {
+  text-wrap: balance;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

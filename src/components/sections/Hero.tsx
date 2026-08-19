@@ -19,7 +19,9 @@ export function Hero() {
               </p>
             </div>
             <h1 className="max-w-3xl text-4xl font-semibold leading-[1.14] tracking-[-0.035em] text-navy sm:text-5xl lg:text-6xl">
-              호주 생활,<br/><span className="font-normal text-navy-light">필요한 순간에 바로 찾으세요.</span>
+              <span className="block">호주 생활,</span>
+              <span className="block font-normal text-navy-light">필요한 순간에</span>
+              <span className="block font-normal text-navy-light">바로 찾으세요.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-muted sm:text-lg">
               {content.hero.description}
