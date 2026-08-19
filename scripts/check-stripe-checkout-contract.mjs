@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const checkout = await readFile(new URL("../src/app/api/checkout/resume-pro/route.ts", import.meta.url), "utf8");
+const checkoutForm = await readFile(new URL("../src/components/tools/ResumeProCheckoutForm.tsx", import.meta.url), "utf8");
 const webhook = await readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
 
 for (const contract of [
@@ -19,6 +20,9 @@ for (const contract of [
 
 assert.ok(!checkout.includes("payment_method_types"), "Checkout must keep Stripe dynamic payment methods enabled");
 assert.ok(!checkout.includes("automatic_tax"), "The app must not add a separate automatic-tax setting on top of Managed Payments");
+for (const notice of ["/terms", "/purchase-information", "/privacy"]) {
+  assert.ok(checkoutForm.includes(notice), `Checkout form must link the customer notice: ${notice}`);
+}
 
 for (const contract of [
   "webhooks.constructEvent",

@@ -101,7 +101,7 @@ export default function PurchaseInformationPage() {
 
           <section className="mt-10 border-l-2 border-gold bg-surface p-6 text-sm leading-7 text-muted">
             <h2 className="font-semibold text-navy">출시 전 확인 사항</h2>
-            <p className="mt-1">이 페이지는 현재 준비 상태를 투명하게 설명하기 위한 안내이며 법률·세무 자문이 아닙니다. 라이브 결제 전 판매자 정보, Managed Payments의 세금 책임 표시, 영수증 전달과 사업자의 장부·BAS 처리 방식을 등록 세무사 또는 적절한 전문가와 최종 확인해야 합니다.</p>
+            <p className="mt-1">이 페이지는 가격과 구매 절차를 알기 쉽게 설명하기 위한 안내이며 개인 상황에 대한 법률·세무 자문이 아닙니다. 결제 전에 <Link href="/terms" className="font-semibold text-navy underline decoration-gold underline-offset-4">서비스 이용 조건</Link>과 <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내</Link>도 함께 확인해 주세요.</p>
             <p className="mt-2 text-xs">구매 조건 안내 기준일: {resumeProPurchaseTermsVersion}</p>
           </section>
         </Container>

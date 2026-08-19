@@ -33,6 +33,7 @@ Run `npm run payments:check -- --strict` in the target environment. The command 
 ## 4. Final controlled test
 
 - [ ] Confirm the purchase page shows the business name, legal seller, ABN, support contact, price, digital-delivery method and ACL-compatible refund process.
+- [ ] Confirm Checkout links the versioned service terms, purchase information and privacy notice before payment.
 - [ ] Confirm Production still fails closed before the deliberate launch switch is enabled.
 - [ ] Enable Production payments for the controlled test.
 - [ ] Make one real purchase through the public customer path.
