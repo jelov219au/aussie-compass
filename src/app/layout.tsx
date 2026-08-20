@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { SiteJsonLd } from "@/components/seo/JsonLd";
+import { OrganizationJsonLd, SiteJsonLd } from "@/components/seo/JsonLd";
 import { siteName, siteUrl } from "@/lib/site";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { DomainMigrationNotice } from "@/components/layout/DomainMigrationNotice";
@@ -8,6 +8,10 @@ import "./globals.css";
 const title = "Hoju Compass | 호주 생활을 위한 실용 도구";
 const description =
   "호주 급여, 세금, Super 계산기와 한국어 생활 가이드를 한곳에서 확인하세요.";
+
+const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
+const bingSiteVerification = process.env.BING_SITE_VERIFICATION?.trim();
+const naverSiteVerification = process.env.NAVER_SITE_VERIFICATION?.trim();
 
 export const metadata: Metadata = {
   title,
@@ -32,6 +36,15 @@ export const metadata: Metadata = {
       "application/rss+xml": `${siteUrl}/feed.xml`,
     },
   },
+  verification: googleSiteVerification || bingSiteVerification || naverSiteVerification
+    ? {
+        ...(googleSiteVerification ? { google: googleSiteVerification } : {}),
+        other: {
+          ...(bingSiteVerification ? { "msvalidate.01": bingSiteVerification } : {}),
+          ...(naverSiteVerification ? { "naver-site-verification": naverSiteVerification } : {}),
+        },
+      }
+    : undefined,
 };
 
 export const viewport: Viewport = {
@@ -54,6 +67,7 @@ export default function RootLayout({
           본문으로 바로가기
         </a>
         <DomainMigrationNotice />
+        <OrganizationJsonLd />
         <SiteJsonLd />
         <div id="main-content" tabIndex={-1} className="focus:outline-none">
           {children}

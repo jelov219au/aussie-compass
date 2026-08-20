@@ -25,6 +25,7 @@ export function SiteJsonLd() {
         "@id": `${siteUrl}/#website`,
         name: siteName,
         url: siteUrl,
+        publisher: { "@id": `${siteUrl}/#organization` },
         inLanguage: "ko",
         description: "호주 급여, 세금, Super 계산기와 한국어 생활 가이드를 제공하는 실용 정보 사이트입니다.",
         potentialAction: {
@@ -34,6 +35,32 @@ export function SiteJsonLd() {
             urlTemplate: `${siteUrl}/search?q={search_term_string}`,
           },
           "query-input": "required name=search_term_string",
+        },
+      }}
+    />
+  );
+}
+
+export function OrganizationJsonLd() {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        name: siteName,
+        url: siteUrl,
+        logo: {
+          "@type": "ImageObject",
+          url: `${siteUrl}/app-icon-512`,
+          width: 512,
+          height: 512,
+        },
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "customer support",
+          email: "support@hojucompass.com",
+          availableLanguage: ["Korean", "English"],
         },
       }}
     />
@@ -86,12 +113,7 @@ export function ArticleJsonLd({ title, description, path, category, publishedAt,
         inLanguage: "ko",
         isAccessibleForFree: true,
         author: { "@type": "Organization", name: siteName, url: siteUrl },
-        publisher: {
-          "@type": "Organization",
-          name: siteName,
-          url: siteUrl,
-          logo: { "@type": "ImageObject", url: `${siteUrl}/app-icon-512` },
-        },
+        publisher: { "@id": `${siteUrl}/#organization` },
         citation: sources?.map((source) => source.href),
       }}
     />

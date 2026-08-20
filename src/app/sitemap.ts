@@ -14,10 +14,8 @@ const routes = [
   "/disclaimer",
   "/editorial-policy",
   "/help-directory",
-  "/search",
   "/glossary",
   "/install",
-  "/my-compass",
   "/data-transfer",
   "/life-admin-reminder",
   "/salary-calculator",
@@ -54,11 +52,8 @@ const routes = [
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date();
-
   const staticEntries: MetadataRoute.Sitemap = routes.map((route) => ({
     url: `${siteUrl}${route}`,
-    lastModified,
     changeFrequency: route === "" ? "weekly" : "monthly",
     priority: route === "" ? 1 : route === "/salary-calculator" ? 0.9 : 0.7,
   }));

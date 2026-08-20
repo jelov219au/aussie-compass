@@ -7,7 +7,10 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { articles } from "@/data/articles";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata=createPageMetadata({title:"호주 생활 정보 검색 | Hoju Compass",description:"비자, TFN, 급여, 이력서, 집, 교통, 세금, Super와 귀국 준비 도구·가이드를 한 번에 검색하세요.",path:"/search"});
+export const metadata = {
+  ...createPageMetadata({ title: "호주 생활 정보 검색 | Hoju Compass", description: "비자, TFN, 급여, 이력서, 집, 교통, 세금, Super와 귀국 준비 도구·가이드를 한 번에 검색하세요.", path: "/search" }),
+  robots: { index: false, follow: true },
+};
 
 const coreItems:SearchItem[]=[
   {href:"/my-compass",type:"도구",title:"나의 진행 상황",description:"이 기기에 저장된 정착·구직·저축·세금 프로젝트 모아보기",keywords:["대시보드","이어하기","저장","진행률","내 프로젝트","my compass"]},
