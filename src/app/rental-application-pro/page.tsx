@@ -7,15 +7,15 @@ import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
   title: "Rental Application Pack Pro 미리보기 | Hoju Compass",
-  description: "호주 렌트 신청 서류, 개인정보 점검, 영문 소개문과 준비 패키지를 한곳에서 만드는 Rental Application Pack Pro를 확인하세요.",
+  description: "여러 호주 렌트 지원을 추적하고 재사용 프로필, 개인정보 점검, 영문 연락 문구와 PDF 준비 패키지를 만드는 Rental Application Pack Pro를 확인하세요.",
   path: "/rental-application-pro",
 });
 
 const features = [
-  ["01", "Document readiness", "신분·지불 능력·임대 이력·레퍼런스 자료를 업로드하지 않고 준비 상태만 점검합니다."],
-  ["02", "Privacy guard", "TFN, 전체 거래내역, 불필요한 신분증 번호처럼 제출 전에 다시 확인할 정보를 표시합니다."],
-  ["03", "English note", "입주일·계약기간과 생활 패턴을 바탕으로 에이전트에게 보낼 간결한 영문 소개문을 만듭니다."],
-  ["04", "Local pack", "서류 상태와 확인 질문, 영문 소개문을 한 개의 개인 텍스트 파일로 저장합니다."],
+  ["01", "Application tracker", "여러 집 후보를 한곳에서 관리하고 인스펙션, 신청, 후속 연락과 결과까지 상태와 다음 행동을 기록합니다."],
+  ["02", "Reusable profile", "입주 인원·고용·임대 이력 같은 공통 내용을 한 번 정리하고 새 집 후보에 반복해서 활용합니다."],
+  ["03", "Privacy & documents", "집별 서류 준비 상태와 TFN·거래내역·신청 링크·보관기간 점검을 분리해서 관리합니다."],
+  ["04", "Messages & export", "신청 소개, 인스펙션 후 문의, 제출 후 확인 문구를 만들고 집별 PDF·TXT와 전체 JSON 백업을 저장합니다."],
 ];
 
 const comparison = [
@@ -23,8 +23,9 @@ const comparison = [
   ["주별 공식 임대 정보", true, true],
   ["렌트 신청 서류 상태 관리", false, true],
   ["개인정보 과다 제출 점검", false, true],
-  ["영문 신청 소개문", false, true],
-  ["집 후보별 준비 패키지 저장", false, true],
+  ["여러 집 후보·다음 행동 추적", false, true],
+  ["상황별 영문 연락 문구 3종", false, true],
+  ["집별 PDF·TXT와 전체 백업", false, true],
 ] as const;
 
 const officialSources = [
@@ -34,7 +35,7 @@ const officialSources = [
 ];
 
 function PackPreview() {
-  return <div className="border border-navy/15 bg-white p-5 shadow-[0_24px_60px_rgba(26,39,68,0.1)] sm:p-7"><div className="flex items-start justify-between border-b-2 border-navy pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">렌트 신청 준비</p><p className="mt-2 text-xl font-semibold text-navy">Carlton 후보 1</p></div><span className="font-mono text-sm text-muted">75%</span></div><div className="mt-6 grid grid-cols-3 gap-3"><div className="bg-surface p-3"><p className="text-xs text-muted">준비 완료</p><p className="mt-1 text-xl font-semibold text-navy">06</p></div><div className="bg-gold/15 p-3"><p className="text-xs text-muted">확인 필요</p><p className="mt-1 text-xl font-semibold text-navy">02</p></div><div className="bg-surface p-3"><p className="text-xs text-muted">원본 업로드</p><p className="mt-1 text-xl font-semibold text-navy">0</p></div></div><div className="mt-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">개인정보 다시 확인</p><div className="mt-3 space-y-3"><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">은행 명세서 범위 확인</p><p className="mt-1 text-xs text-muted">거래내역 없이 지불 능력을 증명할 수 있는지 질문</p></div><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">레퍼런스 동의</p><p className="mt-1 text-xs text-muted">연락처 제출 전에 당사자에게 안내</p></div></div></div><p className="mt-7 border-t border-border pt-4 text-xs leading-5 text-muted">예시 화면입니다. 신분증·Payslip·은행 서류의 실제 파일은 받지 않습니다.</p></div>;
+  return <div className="border border-navy/15 bg-white p-5 shadow-[0_24px_60px_rgba(26,39,68,0.1)] sm:p-7"><div className="flex items-start justify-between border-b-2 border-navy pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">신청 진행 대시보드</p><p className="mt-2 text-xl font-semibold text-navy">Carlton 후보 1</p></div><span className="font-mono text-sm text-muted">75%</span></div><div className="mt-6 grid grid-cols-3 gap-3"><div className="bg-surface p-3"><p className="text-xs text-muted">관리 중</p><p className="mt-1 text-xl font-semibold text-navy">04</p></div><div className="bg-gold/15 p-3"><p className="text-xs text-muted">제출</p><p className="mt-1 text-xl font-semibold text-navy">02</p></div><div className="bg-surface p-3"><p className="text-xs text-muted">다음 행동</p><p className="mt-1 text-sm font-semibold text-navy">22 Aug</p></div></div><div className="mt-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">이 집에서 남은 일</p><div className="mt-3 space-y-3"><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">은행 명세서 범위 확인</p><p className="mt-1 text-xs text-muted">거래내역 없이 지불 능력을 증명할 수 있는지 질문</p></div><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">제출 후 확인 문구</p><p className="mt-1 text-xs text-muted">신청 접수 여부와 빠진 자료 확인</p></div></div></div><p className="mt-7 border-t border-border pt-4 text-xs leading-5 text-muted">예시 화면입니다. 신분증·Payslip·은행 서류의 실제 파일은 받지 않습니다.</p></div>;
 }
 
 export default function RentalApplicationProPage() {
@@ -42,7 +43,7 @@ export default function RentalApplicationProPage() {
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "집 방문 체크리스트", path: "/property-inspection-checklist" }, { name: "Rental Application Pack Pro", path: "/rental-application-pro" }]} />
     <Header />
     <main>
-      <section className="border-b border-navy/15 py-12 sm:py-20"><Container><Link href="/property-inspection-checklist" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 집 방문 체크리스트로 돌아가기</Link><div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end"><div className="max-w-3xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Rental Application Pack Pro</p><h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">한 집에 지원할 때마다,<br /><span className="font-normal text-navy-light">안전한 준비 패키지 하나.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">필요 서류의 준비 상태를 확인하고, 과도한 개인정보 요청을 한 번 더 점검하고, 에이전트에게 보낼 영문 소개문까지 정리합니다.</p></div><aside className="border-l-2 border-gold pl-6"><p className="text-sm font-semibold text-muted">검토 중인 1회 가격</p><p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$14.90</p><p className="mt-2 text-sm leading-6 text-muted">구독 없이 반복해서 집 후보별 패키지를 만드는 방식입니다.</p></aside></div><div className="mt-10 flex flex-wrap gap-3"><Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 체크리스트 사용</Link><span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">Pro 작업 공간 출시 준비 중</span></div></Container></section>
+      <section className="border-b border-navy/15 py-12 sm:py-20"><Container><Link href="/property-inspection-checklist" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 집 방문 체크리스트로 돌아가기</Link><div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end"><div className="max-w-3xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Rental Application Pack Pro</p><h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">여러 집에 지원해도,<br /><span className="font-normal text-navy-light">준비와 연락을 놓치지 않게.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">신청자 프로필은 한 번만 정리하고, 집별 서류·개인정보·제출일·다음 행동을 추적합니다. 에이전트에게 보낼 상황별 영문 문구와 PDF 패키지도 함께 만듭니다.</p></div><aside className="border-l-2 border-gold pl-6"><p className="text-sm font-semibold text-muted">검토 중인 1회 가격</p><p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$14.90</p><p className="mt-2 text-sm leading-6 text-muted">구독 없이 최대 20개 집 후보를 현재 기기에서 반복 관리하는 방식입니다.</p></aside></div><div className="mt-10 flex flex-wrap gap-3"><Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 체크리스트 사용</Link><span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">강화 버전 검증 중 · 결제 미오픈</span></div></Container></section>
 
       <section className="py-14 sm:py-20"><Container><div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">많이 보내는 것보다, 필요한 것만</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">신청 서류가 많다고<br />꼭 유리한 것은 아니에요.</h2><p className="mt-4 text-sm leading-7 text-muted">경쟁이 치열하더라도 TFN이나 은행 로그인처럼 렌트 신청에 필요하지 않은 정보까지 보낼 이유는 없어요. 왜 필요한 정보인지, 어떻게 보관되는지 한 번 더 확인할 수 있게 구성했어요.</p></div><PackPreview /></div></Container></section>
 

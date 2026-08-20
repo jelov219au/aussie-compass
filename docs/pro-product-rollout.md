@@ -7,7 +7,7 @@ This document keeps public product labels aligned with the checkout and access s
 | Product | Public status | Workspace | Payment and access |
 | --- | --- | --- | --- |
 | Resume Pro | Live when the production readiness contract passes | Complete and protected in production | Live one-time purchase, signed-webhook entitlement, recovery and refund revocation verified on 20 August 2026 |
-| Rental Application Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
+| Rental Application Pack Pro | Enhanced feature validation | Multi-property local workspace with reusable profile, privacy checks, message templates and PDF/TXT/JSON export | No public checkout or entitlement yet |
 | Pay Evidence Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
 | EOFY Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
 | Leaving Australia Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
@@ -16,7 +16,7 @@ The homepage and Pro catalogue must derive Resume Pro's live label from the prod
 
 ## Next product: Rental Application Pack Pro
 
-Rental Application Pack Pro is the next candidate because the workspace is already implemented and its output is a preparation package rather than a tax, employment-law or migration decision.
+Rental Application Pack Pro is the next candidate because its expanded workspace now supports repeated applications rather than a single checklist. Its output remains a preparation package rather than a legal or tenancy decision.
 
 The product-isolation foundation is now in progress: Resume Pro and Rental Application Pack use separate product codes throughout webhook grants, active-entitlement lookups and restore-code consumption. The database constraint expansion must be applied and verified before any Rental checkout test is enabled.
 
