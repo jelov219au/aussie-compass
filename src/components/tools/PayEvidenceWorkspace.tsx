@@ -4,8 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 type EvidenceStatus = "missing" | "review" | "ready";
-type PayPeriod = { id: string; label: string; hours: string; expectedGross: string; payslipGross: string; bankNet: string; note: string };
-type PayDraft = { employerLabel: string; employmentType: string; sourceNote: string; periods: PayPeriod[]; evidence: Record<string, EvidenceStatus>; requestDraft: string };
+type RequestType = "first" | "followup";
+type ShiftEntry = { id: string; date: string; start: string; end: string; breakMinutes: string; rateLabel: string; hourlyRate: string; allowance: string; note: string };
+type PayPeriod = { id: string; label: string; hours: string; expectedGross: string; payslipGross: string; bankNet: string; note: string; shifts: ShiftEntry[] };
+type PayDraft = { employerLabel: string; employmentType: string; sourceNote: string; periods: PayPeriod[]; evidence: Record<string, EvidenceStatus>; requestType: RequestType; requestDraft: string };
 
 const STORAGE_KEY = "hoju-compass-pay-evidence-pro-v1";
 const evidenceItems = [
@@ -16,14 +18,36 @@ const evidenceItems = [
   { id: "basis", title: "적용 기준 근거", detail: "계약, Award·Agreement, Classification과 해당 기간 Pay guide의 출처를 기록합니다." },
   { id: "messages", title: "고용주와 주고받은 내용", detail: "질문한 날짜, 답변과 정정 약속을 시간순으로 보관합니다." },
 ] as const;
-const initialDraft: PayDraft = { employerLabel: "", employmentType: "Casual", sourceNote: "", periods: [], evidence: {}, requestDraft: "" };
+const initialDraft: PayDraft = { employerLabel: "", employmentType: "Casual", sourceNote: "", periods: [], evidence: {}, requestType: "first", requestDraft: "" };
 const statusLabels: Record<EvidenceStatus, string> = { missing: "없음·확인 전", review: "확인 필요", ready: "준비 완료" };
 const inputClass = "mt-1.5 min-h-11 w-full border border-border bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy focus:ring-2 focus:ring-navy/15";
 
-function newPeriod(): PayPeriod { return { id: crypto.randomUUID(), label: "", hours: "", expectedGross: "", payslipGross: "", bankNet: "", note: "" }; }
+function newShift(): ShiftEntry { return { id: crypto.randomUUID(), date: "", start: "", end: "", breakMinutes: "", rateLabel: "", hourlyRate: "", allowance: "", note: "" }; }
+function newPeriod(): PayPeriod { return { id: crypto.randomUUID(), label: "", hours: "", expectedGross: "", payslipGross: "", bankNet: "", note: "", shifts: [] }; }
 function safeNumber(value: string) { const number = Number(value); return Number.isFinite(number) && number >= 0 ? number : 0; }
-function difference(period: PayPeriod) { return safeNumber(period.expectedGross) - safeNumber(period.payslipGross); }
+function minutesFromTime(value: string) { const [hours, minutes] = value.split(":").map(Number); return Number.isFinite(hours) && Number.isFinite(minutes) ? hours * 60 + minutes : null; }
+function shiftHours(shift: ShiftEntry) {
+  const start = minutesFromTime(shift.start); const end = minutesFromTime(shift.end);
+  if (start === null || end === null) return 0;
+  const elapsed = end >= start ? end - start : end + 24 * 60 - start;
+  return Math.max(0, elapsed - safeNumber(shift.breakMinutes)) / 60;
+}
+function shiftExpectedGross(shift: ShiftEntry) { return shiftHours(shift) * safeNumber(shift.hourlyRate) + safeNumber(shift.allowance); }
+function periodHours(period: PayPeriod) { return period.shifts.length ? period.shifts.reduce((sum, shift) => sum + shiftHours(shift), 0) : safeNumber(period.hours); }
+function periodExpectedGross(period: PayPeriod) { return period.shifts.length ? period.shifts.reduce((sum, shift) => sum + shiftExpectedGross(shift), 0) : safeNumber(period.expectedGross); }
+function difference(period: PayPeriod) { return periodExpectedGross(period) - safeNumber(period.payslipGross); }
 function safeFileName(value: string) { return value.trim().replace(/[^a-z0-9가-힣]+/gi, "-").replace(/^-|-$/g, "").slice(0, 42) || "pay-evidence"; }
+function csvCell(value: string | number) { return `"${String(value).replaceAll('"', '""')}"`; }
+
+function normaliseDraft(value: Partial<PayDraft>): PayDraft {
+  return {
+    ...initialDraft,
+    ...value,
+    requestType: value.requestType === "followup" ? "followup" : "first",
+    periods: Array.isArray(value.periods) ? value.periods.map((period) => ({ ...newPeriod(), ...period, shifts: Array.isArray(period.shifts) ? period.shifts.map((shift) => ({ ...newShift(), ...shift })) : [] })) : [],
+    evidence: value.evidence ?? {},
+  };
+}
 
 export function PayEvidenceWorkspace() {
   const [draft, setDraft] = useState<PayDraft>(initialDraft);
@@ -31,7 +55,7 @@ export function PayEvidenceWorkspace() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    try { const saved = window.localStorage.getItem(STORAGE_KEY); if (saved) setDraft((current) => ({ ...current, ...JSON.parse(saved) })); } catch {}
+    try { const saved = window.localStorage.getItem(STORAGE_KEY); if (saved) setDraft(normaliseDraft(JSON.parse(saved))); } catch {}
     setLoaded(true);
   }, []);
   useEffect(() => {
@@ -44,17 +68,27 @@ export function PayEvidenceWorkspace() {
   const reviewCount = evidenceItems.filter((item) => draft.evidence[item.id] === "review").length;
   const estimatedDifference = useMemo(() => draft.periods.reduce((sum, period) => sum + Math.max(0, difference(period)), 0), [draft.periods]);
   const netMismatchCount = useMemo(() => draft.periods.filter((period) => period.bankNet && safeNumber(period.bankNet) > safeNumber(period.payslipGross) && !period.note.trim()).length, [draft.periods]);
+  const shiftCount = useMemo(() => draft.periods.reduce((sum, period) => sum + period.shifts.length, 0), [draft.periods]);
+  const calculatedHours = useMemo(() => draft.periods.reduce((sum, period) => sum + periodHours(period), 0), [draft.periods]);
+  const incompleteShiftCount = useMemo(() => draft.periods.flatMap((period) => period.shifts).filter((shift) => !shift.date || !shift.start || !shift.end || safeNumber(shift.hourlyRate) <= 0).length, [draft.periods]);
   const progress = Math.round((evidenceReady / evidenceItems.length) * 100);
 
   const updatePeriod = <K extends keyof PayPeriod>(id: string, key: K, value: PayPeriod[K]) => setDraft((current) => ({ ...current, periods: current.periods.map((period) => period.id === id ? { ...period, [key]: value } : period) }));
+  const updateShift = <K extends keyof ShiftEntry>(periodId: string, shiftId: string, key: K, value: ShiftEntry[K]) => setDraft((current) => ({ ...current, periods: current.periods.map((period) => period.id === periodId ? { ...period, shifts: period.shifts.map((shift) => shift.id === shiftId ? { ...shift, [key]: value } : shift) } : period) }));
   const makeRequest = () => {
     const periodNames = draft.periods.map((period) => period.label.trim()).filter(Boolean).join(", ") || "the pay periods listed in my records";
     const amountLine = estimatedDifference > 0 ? `My own calculation currently shows an estimated gross difference of A$${estimatedDifference.toFixed(2)} before tax.` : "I would like to confirm that the recorded hours and gross pay are correct.";
-    setDraft((current) => ({ ...current, requestDraft: `Subject: Request to review pay records\n\nHi Payroll/Manager,\n\nI am reviewing my time and pay records for ${periodNames}. ${amountLine}\n\nCould you please check the hours, pay rates, penalties, allowances and deductions used for these periods, and provide the relevant time and wage records if available? I can share my period-by-period calculation without sensitive bank or tax details.\n\nPlease let me know the outcome in writing and how any correction will be shown on a payslip.\n\nThank you.` }));
+    const firstRequest = `Subject: Request to review pay records\n\nHi Payroll/Manager,\n\nI am reviewing my time and pay records for ${periodNames}. ${amountLine}\n\nCould you please check the hours, pay rates, penalties, allowances and deductions used for these periods, and provide the relevant time and wage records if available? I can share my period-by-period calculation without sensitive bank or tax details.\n\nPlease let me know the outcome in writing and how any correction will be shown on a payslip.\n\nThank you.`;
+    const followupRequest = `Subject: Follow-up on pay record review\n\nHi Payroll/Manager,\n\nI am following up on my request to review the pay records for ${periodNames}. ${amountLine}\n\nCould you please confirm when the review will be completed and provide the hours, pay rates, penalties, allowances and deductions used for these periods? If a correction is required, please also confirm when it will be paid and how it will appear on the corrected payslip.\n\nI would appreciate a written response by a reasonable date so I can keep my records up to date.\n\nThank you.`;
+    setDraft((current) => ({ ...current, requestDraft: current.requestType === "followup" ? followupRequest : firstRequest }));
   };
   const copyRequest = async () => {
     if (!draft.requestDraft) return;
     try { await navigator.clipboard.writeText(draft.requestDraft); setMessage("영문 확인 요청문을 복사했습니다."); } catch { setMessage("복사할 수 없습니다. 내용을 직접 선택해 복사하세요."); }
+  };
+  const saveFile = (contents: string, fileName: string, type: string) => {
+    const url = URL.createObjectURL(new Blob([contents], { type }));
+    const anchor = document.createElement("a"); anchor.href = url; anchor.download = fileName; anchor.click(); URL.revokeObjectURL(url);
   };
   const downloadSummary = () => {
     const lines = [
@@ -65,7 +99,11 @@ export function PayEvidenceWorkspace() {
       `User-entered estimated gross difference: A$${estimatedDifference.toFixed(2)}`,
       "",
       "PAY PERIODS",
-      ...(draft.periods.length ? draft.periods.flatMap((period) => [`- ${period.label || "Untitled"} | Hours ${safeNumber(period.hours)} | Expected gross A$${safeNumber(period.expectedGross).toFixed(2)} | Payslip gross A$${safeNumber(period.payslipGross).toFixed(2)} | Bank net A$${safeNumber(period.bankNet).toFixed(2)} | Gross difference A$${difference(period).toFixed(2)}`, `  Note: ${period.note || "None"}`]) : ["- None recorded"]),
+      ...(draft.periods.length ? draft.periods.flatMap((period) => [
+        `- ${period.label || "Untitled"} | Hours ${periodHours(period).toFixed(2)} | Expected gross A$${periodExpectedGross(period).toFixed(2)} | Payslip gross A$${safeNumber(period.payslipGross).toFixed(2)} | Bank net A$${safeNumber(period.bankNet).toFixed(2)} | Gross difference A$${difference(period).toFixed(2)}`,
+        ...period.shifts.map((shift) => `  Shift ${shift.date || "Date not set"} ${shift.start || "--:--"}–${shift.end || "--:--"} | Break ${safeNumber(shift.breakMinutes)} min | Hours ${shiftHours(shift).toFixed(2)} | ${shift.rateLabel || "Rate"} A$${safeNumber(shift.hourlyRate).toFixed(2)}/h | Allowance A$${safeNumber(shift.allowance).toFixed(2)} | Expected A$${shiftExpectedGross(shift).toFixed(2)} | ${shift.note || "No note"}`),
+        `  Note: ${period.note || "None"}`,
+      ]) : ["- None recorded"]),
       "",
       "EVIDENCE READINESS",
       ...evidenceItems.map((item) => `- [${statusLabels[draft.evidence[item.id] ?? "missing"]}] ${item.title}`),
@@ -75,12 +113,27 @@ export function PayEvidenceWorkspace() {
       "",
       "This summary records user-entered figures only. It does not determine an Award, Classification, entitlement, underpayment, tax, superannuation or legal outcome. Do not include TFN, bank account, passport or visa numbers.",
     ];
-    const url = URL.createObjectURL(new Blob([lines.join("\r\n")], { type: "text/plain;charset=utf-8" }));
-    const anchor = document.createElement("a"); anchor.href = url; anchor.download = `${safeFileName(draft.employerLabel)}-pay-evidence.txt`; anchor.click(); URL.revokeObjectURL(url);
+    saveFile(lines.join("\r\n"), `${safeFileName(draft.employerLabel)}-pay-evidence.txt`, "text/plain;charset=utf-8");
     setMessage("급여기간별 기록과 증빙 상태를 텍스트 파일로 저장했습니다.");
   };
+  const downloadCsv = () => {
+    const header = ["Pay period", "Shift date", "Start", "End", "Unpaid break minutes", "Calculated hours", "Rate label", "Hourly rate AUD", "Allowance AUD", "Expected shift gross AUD", "Payslip period gross AUD", "Bank net AUD", "Period gross difference AUD", "Shift note", "Period note"];
+    const rows = draft.periods.flatMap((period) => period.shifts.length
+      ? period.shifts.map((shift) => [period.label, shift.date, shift.start, shift.end, safeNumber(shift.breakMinutes), shiftHours(shift).toFixed(2), shift.rateLabel, safeNumber(shift.hourlyRate).toFixed(2), safeNumber(shift.allowance).toFixed(2), shiftExpectedGross(shift).toFixed(2), safeNumber(period.payslipGross).toFixed(2), safeNumber(period.bankNet).toFixed(2), difference(period).toFixed(2), shift.note, period.note])
+      : [[period.label, "", "", "", "", periodHours(period).toFixed(2), "Manual period total", "", "", periodExpectedGross(period).toFixed(2), safeNumber(period.payslipGross).toFixed(2), safeNumber(period.bankNet).toFixed(2), difference(period).toFixed(2), "", period.note]]);
+    const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
+    saveFile(`\uFEFF${csv}`, `${safeFileName(draft.employerLabel)}-pay-periods.csv`, "text/csv;charset=utf-8");
+    setMessage("급여기간과 Shift 계산표를 CSV 파일로 저장했습니다.");
+  };
 
-  return <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.95fr)_minmax(32rem,1.05fr)]">
+  return <div>
+    <section className="mb-8 grid border-y border-navy/20 sm:grid-cols-2 xl:grid-cols-4" aria-label="급여 기록 요약">
+      <div className="border-b border-border px-4 py-5 sm:border-r xl:border-b-0"><p className="text-xs font-semibold text-muted">등록한 Shift</p><p className="mt-2 font-mono text-2xl text-navy">{shiftCount}개</p></div>
+      <div className="border-b border-border px-4 py-5 xl:border-b-0 xl:border-r"><p className="text-xs font-semibold text-muted">계산한 근무시간</p><p className="mt-2 font-mono text-2xl text-navy">{calculatedHours.toFixed(2)}h</p></div>
+      <div className="border-b border-border px-4 py-5 sm:border-b-0 sm:border-r"><p className="text-xs font-semibold text-muted">확인할 Gross 차이</p><p className="mt-2 font-mono text-2xl text-navy">A${estimatedDifference.toFixed(2)}</p></div>
+      <div className="px-4 py-5"><p className="text-xs font-semibold text-muted">입력 보완이 필요한 Shift</p><p className={`mt-2 font-mono text-2xl ${incompleteShiftCount ? "text-red-700" : "text-navy"}`}>{incompleteShiftCount}개</p></div>
+    </section>
+    <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.95fr)_minmax(32rem,1.05fr)]">
     <div className="space-y-8">
       <section className="border-t border-navy/20 pt-6" aria-labelledby="pay-case-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Case label</p><h2 id="pay-case-heading" className="mt-2 text-2xl font-semibold text-navy">급여 확인 기준</h2><p className="mt-3 text-sm leading-6 text-muted">회사 실명 대신 별칭을 사용할 수 있습니다. 이 화면은 적용 Award나 Classification을 선택해 주지 않습니다.</p><div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium text-navy">직장 별칭<input className={inputClass} value={draft.employerLabel} onChange={(event) => setDraft((current) => ({ ...current, employerLabel: event.target.value }))} placeholder="예: 카페 A" /></label><label className="text-sm font-medium text-navy">고용 형태 메모<select className={inputClass} value={draft.employmentType} onChange={(event) => setDraft((current) => ({ ...current, employmentType: event.target.value }))}><option>Casual</option><option>Part-time</option><option>Full-time</option><option>Contractor — status needs checking</option><option>Unsure</option></select></label><label className="text-sm font-medium text-navy sm:col-span-2">적용 기준·출처 메모<textarea className={`${inputClass} min-h-24 resize-y`} value={draft.sourceNote} onChange={(event) => setDraft((current) => ({ ...current, sourceNote: event.target.value }))} placeholder="예: Restaurant Award, Level은 아직 Fair Work PACT에서 재확인 필요" /></label></div><div className="mt-5 flex flex-wrap gap-3"><a href="https://calculate.fairwork.gov.au/" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center border border-navy px-4 text-sm font-semibold text-navy">Fair Work PACT 열기 ↗</a><Link href="/award-guide" className="inline-flex min-h-11 items-center border-b-2 border-gold px-1 text-sm font-semibold text-navy">무료 Award 가이드</Link></div></section>
 
@@ -88,11 +141,57 @@ export function PayEvidenceWorkspace() {
     </div>
 
     <div className="space-y-8">
-      <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="period-heading"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Period comparison</p><h2 id="period-heading" className="mt-2 text-xl font-semibold text-navy">급여기간별 Gross 비교</h2></div><div className="text-right"><p className="font-mono text-2xl text-navy">A${estimatedDifference.toFixed(2)}</p><p className="text-xs text-muted">양수 차이 합계 · 사용자 계산</p></div></div><p className="mt-4 border-l-2 border-gold pl-3 text-xs leading-5 text-muted">기대 Gross와 Payslip Gross만 비교합니다. 은행 입금액은 세금·공제 후 Net이므로 Gross와 직접 비교하지 마세요.</p><div className="mt-5 space-y-4">{draft.periods.map((period, index) => <article key={period.id} className="border border-border p-4"><div className="flex items-start justify-between gap-3"><p className="font-mono text-xs text-gold">PERIOD {String(index + 1).padStart(2, "0")}</p><button type="button" onClick={() => setDraft((current) => ({ ...current, periods: current.periods.filter((item) => item.id !== period.id) }))} className="min-h-9 text-xs font-medium text-muted hover:text-red-700">삭제</button></div><div className="mt-3 grid gap-3 sm:grid-cols-2"><label className="text-xs font-medium text-navy sm:col-span-2">급여기간 별칭<input className={inputClass} value={period.label} onChange={(event) => updatePeriod(period.id, "label", event.target.value)} placeholder="예: 7월 1–14일" /></label><label className="text-xs font-medium text-navy">내 기록 총 근무시간<input type="number" min="0" step="0.25" className={inputClass} value={period.hours} onChange={(event) => updatePeriod(period.id, "hours", event.target.value)} /></label><label className="text-xs font-medium text-navy">내 계산 기대 Gross A$<input type="number" min="0" step="0.01" className={inputClass} value={period.expectedGross} onChange={(event) => updatePeriod(period.id, "expectedGross", event.target.value)} /></label><label className="text-xs font-medium text-navy">Payslip Gross A$<input type="number" min="0" step="0.01" className={inputClass} value={period.payslipGross} onChange={(event) => updatePeriod(period.id, "payslipGross", event.target.value)} /></label><label className="text-xs font-medium text-navy">은행 입금 Net A$<input type="number" min="0" step="0.01" className={inputClass} value={period.bankNet} onChange={(event) => updatePeriod(period.id, "bankNet", event.target.value)} /></label><label className="text-xs font-medium text-navy sm:col-span-2">차이 근거·확인 메모<textarea className={`${inputClass} min-h-20 resize-y`} value={period.note} onChange={(event) => updatePeriod(period.id, "note", event.target.value)} placeholder="예: 토요일 penalty rate가 빠진 것으로 보여 PACT 결과와 대조 필요" /></label></div><p className={`mt-4 text-sm font-semibold ${difference(period) > 0 ? "text-red-700" : "text-muted"}`}>이 기간 Gross 차이: A${difference(period).toFixed(2)}</p></article>)}</div><button type="button" onClick={() => setDraft((current) => ({ ...current, periods: [...current.periods, newPeriod()] }))} className="mt-5 min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">+ 급여기간 추가</button></section>
+      <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="period-heading">
+        <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Period comparison</p><h2 id="period-heading" className="mt-2 text-xl font-semibold text-navy">Shift부터 급여기간까지 계산</h2></div><div className="text-right"><p className="font-mono text-2xl text-navy">A${estimatedDifference.toFixed(2)}</p><p className="text-xs text-muted">확인할 Gross 차이 합계</p></div></div>
+        <p className="mt-4 border-l-2 border-gold pl-3 text-xs leading-5 text-muted">내가 확인한 시급을 Shift별로 입력하면 근무시간과 기대 Gross를 자동으로 합산합니다. 이 계산은 Award·Classification이나 법적 미지급액을 판정하지 않습니다.</p>
+        <div className="mt-5 space-y-5">
+          {draft.periods.map((period, index) => <article key={period.id} className="border border-border p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-3"><div><p className="font-mono text-xs text-gold">PERIOD {String(index + 1).padStart(2, "0")}</p><p className="mt-1 text-xs text-muted">{period.shifts.length ? `${period.shifts.length}개 Shift 자동 계산` : "총액 직접 입력도 가능"}</p></div><button type="button" onClick={() => setDraft((current) => ({ ...current, periods: current.periods.filter((item) => item.id !== period.id) }))} className="min-h-9 text-xs font-medium text-muted hover:text-red-700">기간 삭제</button></div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <label className="text-xs font-medium text-navy sm:col-span-2">급여기간 별칭<input className={inputClass} value={period.label} onChange={(event) => updatePeriod(period.id, "label", event.target.value)} placeholder="예: 7월 1–14일" /></label>
+              {!period.shifts.length && <><label className="text-xs font-medium text-navy">총 근무시간 직접 입력<input type="number" min="0" step="0.25" className={inputClass} value={period.hours} onChange={(event) => updatePeriod(period.id, "hours", event.target.value)} /></label><label className="text-xs font-medium text-navy">기대 Gross 직접 입력 A$<input type="number" min="0" step="0.01" className={inputClass} value={period.expectedGross} onChange={(event) => updatePeriod(period.id, "expectedGross", event.target.value)} /></label></>}
+              <label className="text-xs font-medium text-navy">Payslip Gross A$<input type="number" min="0" step="0.01" className={inputClass} value={period.payslipGross} onChange={(event) => updatePeriod(period.id, "payslipGross", event.target.value)} /></label>
+              <label className="text-xs font-medium text-navy">은행 입금 Net A$<input type="number" min="0" step="0.01" className={inputClass} value={period.bankNet} onChange={(event) => updatePeriod(period.id, "bankNet", event.target.value)} /></label>
+            </div>
 
-      <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="request-heading"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Written request</p><h2 id="request-heading" className="mt-2 text-xl font-semibold text-navy">영문 급여 확인 요청문</h2></div><button type="button" onClick={copyRequest} disabled={!draft.requestDraft} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy disabled:opacity-35">텍스트 복사</button></div><button type="button" onClick={makeRequest} className="mt-5 min-h-11 bg-navy px-4 text-sm font-semibold text-white">요청문 만들기</button><label className="sr-only" htmlFor="pay-request-draft">영문 급여 확인 요청문</label><textarea id="pay-request-draft" className={`${inputClass} mt-5 min-h-72 resize-y font-serif leading-7`} value={draft.requestDraft} onChange={(event) => setDraft((current) => ({ ...current, requestDraft: event.target.value }))} placeholder="급여기간을 기록한 뒤 확인 요청문을 만드세요." /><div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={downloadSummary} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">증빙 요약 저장</button><span className="self-center text-xs text-muted">TXT 파일 · 원본 서류 미포함</span></div><p className="mt-4 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{message}</p></section>
+            <div className="mt-5 border-t border-border pt-4">
+              <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-sm font-semibold text-navy">Shift 계산표</h3><p className="mt-1 text-xs text-muted">자정을 넘긴 Shift도 종료시각을 다음 날로 계산해요.</p></div><button type="button" onClick={() => updatePeriod(period.id, "shifts", [...period.shifts, newShift()])} className="min-h-10 border-b-2 border-gold text-xs font-semibold text-navy">+ Shift 추가</button></div>
+              <div className="mt-4 space-y-3">{period.shifts.map((shift, shiftIndex) => <div key={shift.id} className="bg-surface p-4">
+                <div className="flex items-center justify-between"><p className="font-mono text-[0.68rem] text-gold">SHIFT {String(shiftIndex + 1).padStart(2, "0")}</p><button type="button" onClick={() => updatePeriod(period.id, "shifts", period.shifts.filter((item) => item.id !== shift.id))} className="min-h-8 text-xs text-muted hover:text-red-700">삭제</button></div>
+                <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <label className="text-xs font-medium text-navy">근무일<input type="date" className={inputClass} value={shift.date} onInput={(event) => updateShift(period.id, shift.id, "date", event.currentTarget.value)} /></label>
+                  <label className="text-xs font-medium text-navy">시작<input type="time" className={inputClass} value={shift.start} onInput={(event) => updateShift(period.id, shift.id, "start", event.currentTarget.value)} /></label>
+                  <label className="text-xs font-medium text-navy">종료<input type="time" className={inputClass} value={shift.end} onInput={(event) => updateShift(period.id, shift.id, "end", event.currentTarget.value)} /></label>
+                  <label className="text-xs font-medium text-navy">무급 휴게(분)<input type="number" min="0" step="1" className={inputClass} value={shift.breakMinutes} onChange={(event) => updateShift(period.id, shift.id, "breakMinutes", event.target.value)} /></label>
+                  <label className="text-xs font-medium text-navy">요율 이름<input className={inputClass} value={shift.rateLabel} onChange={(event) => updateShift(period.id, shift.id, "rateLabel", event.target.value)} placeholder="예: Saturday" /></label>
+                  <label className="text-xs font-medium text-navy">확인한 시급 A$<input type="number" min="0" step="0.01" className={inputClass} value={shift.hourlyRate} onChange={(event) => updateShift(period.id, shift.id, "hourlyRate", event.target.value)} /></label>
+                  <label className="text-xs font-medium text-navy">Allowance A$<input type="number" min="0" step="0.01" className={inputClass} value={shift.allowance} onChange={(event) => updateShift(period.id, shift.id, "allowance", event.target.value)} /></label>
+                  <label className="text-xs font-medium text-navy sm:col-span-2">근거·메모<input className={inputClass} value={shift.note} onChange={(event) => updateShift(period.id, shift.id, "note", event.target.value)} placeholder="예: Roster 캡처 보관" /></label>
+                </div>
+                <p className="mt-3 text-xs font-semibold text-navy">{shiftHours(shift).toFixed(2)}시간 · 기대 Gross A${shiftExpectedGross(shift).toFixed(2)}</p>
+              </div>)}</div>
+            </div>
 
-      <section className="bg-navy p-5 text-white sm:p-7" aria-labelledby="pay-review-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Review before sharing</p><h2 id="pay-review-heading" className="mt-2 text-xl font-semibold">현재 검토 요약</h2><p className="mt-4 text-sm leading-6 text-white/70">증빙 확인 필요 {reviewCount}개 · 급여기간 {draft.periods.length}개 · Net 차이 메모 필요 {netMismatchCount}개</p><p className="mt-3 text-xs leading-5 text-white/55">이 도구의 차이는 미지급액 판정이 아닙니다. Award·Agreement·Classification과 해당 시점의 요율은 Fair Work PACT 또는 전문가에게 확인하세요.</p></section>
+            <div className="mt-5 grid gap-3 border-t border-border pt-4 sm:grid-cols-[1fr_auto]"><label className="text-xs font-medium text-navy">이 기간 확인 메모<textarea className={`${inputClass} min-h-20 resize-y`} value={period.note} onChange={(event) => updatePeriod(period.id, "note", event.target.value)} placeholder="예: 토요일 요율이 빠진 것으로 보여 PACT 결과와 대조 필요" /></label><div className="self-end border-l-2 border-gold pl-4 text-sm"><p className="text-xs text-muted">{periodHours(period).toFixed(2)}시간 · 기대 A${periodExpectedGross(period).toFixed(2)}</p><p className={`mt-1 font-semibold ${difference(period) > 0 ? "text-red-700" : "text-navy"}`}>Gross 차이 A${difference(period).toFixed(2)}</p></div></div>
+          </article>)}
+        </div>
+        <button type="button" onClick={() => setDraft((current) => ({ ...current, periods: [...current.periods, newPeriod()] }))} className="mt-5 min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">+ 급여기간 추가</button>
+      </section>
+
+      <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="request-heading">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Written request</p><h2 id="request-heading" className="mt-2 text-xl font-semibold text-navy">상황에 맞는 영문 급여 문의</h2></div><button type="button" onClick={copyRequest} disabled={!draft.requestDraft} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy disabled:opacity-35">텍스트 복사</button></div>
+        <div className="mt-5 grid gap-2 sm:grid-cols-2" role="group" aria-label="문의 유형">
+          <button type="button" aria-pressed={draft.requestType === "first"} onClick={() => setDraft((current) => ({ ...current, requestType: "first" }))} className={`min-h-12 border px-4 text-left text-sm font-semibold ${draft.requestType === "first" ? "border-navy bg-navy text-white" : "border-border text-navy"}`}>처음 확인을 요청할 때</button>
+          <button type="button" aria-pressed={draft.requestType === "followup"} onClick={() => setDraft((current) => ({ ...current, requestType: "followup" }))} className={`min-h-12 border px-4 text-left text-sm font-semibold ${draft.requestType === "followup" ? "border-navy bg-navy text-white" : "border-border text-navy"}`}>답변이 없어 다시 물을 때</button>
+        </div>
+        <button type="button" onClick={makeRequest} className="mt-4 min-h-11 bg-navy px-4 text-sm font-semibold text-white">선택한 문의문 만들기</button>
+        <label className="sr-only" htmlFor="pay-request-draft">영문 급여 확인 요청문</label><textarea id="pay-request-draft" className={`${inputClass} mt-5 min-h-72 resize-y font-serif leading-7`} value={draft.requestDraft} onChange={(event) => setDraft((current) => ({ ...current, requestDraft: event.target.value }))} placeholder="급여기간을 기록한 뒤 문의 유형을 선택하세요." />
+        <div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={downloadSummary} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">전체 요약 TXT</button><button type="button" onClick={downloadCsv} className="min-h-11 border border-navy px-4 text-sm font-semibold text-navy">Shift 계산표 CSV</button></div>
+        <p className="mt-2 text-xs leading-5 text-muted">원본 Payslip·은행자료·TFN은 파일에 포함하지 않습니다.</p><p className="mt-4 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{message}</p>
+      </section>
+
+      <section className="bg-navy p-5 text-white sm:p-7" aria-labelledby="pay-review-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Review before sharing</p><h2 id="pay-review-heading" className="mt-2 text-xl font-semibold">보내기 전 마지막 확인</h2><p className="mt-4 text-sm leading-6 text-white/70">증빙 확인 필요 {reviewCount}개 · 급여기간 {draft.periods.length}개 · 입력 보완 Shift {incompleteShiftCount}개 · Net 차이 메모 필요 {netMismatchCount}개</p><p className="mt-3 text-xs leading-5 text-white/55">이 도구의 차이는 미지급액 판정이 아닙니다. Award·Agreement·Classification과 해당 시점의 요율은 Fair Work PACT 또는 전문가에게 확인하세요.</p></section>
+    </div>
     </div>
   </div>;
 }

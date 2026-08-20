@@ -16,7 +16,7 @@ const options: { id: Situation; label: string; detail: string }[] = [
 const recommendations = {
   job: { href: "/resume-pro", name: "Resume Pro", price: "A$19.90", description: "무료 빌더의 이력서를 바탕으로 회사별 커버레터와 공고 키워드를 점검합니다.", freeHref: "/resume-builder", freeLabel: "무료 이력서 빌더" },
   home: { href: "/rental-application-pro", name: "Rental Pack Pro", price: "A$14.90", description: "공통 프로필을 재사용해 여러 집의 준비와 다음 행동을 추적하고, 개인정보 점검과 영문 연락 문구를 정리합니다.", freeHref: "/property-inspection-checklist", freeLabel: "무료 집 방문 체크리스트" },
-  pay: { href: "/pay-evidence-pro", name: "Pay Evidence Pro", price: "A$12.90", description: "급여기간별 Gross 차이와 증빙을 정리하고 영문 확인 요청문을 만듭니다.", freeHref: "/underpayment-guide", freeLabel: "무료 미지급 급여 가이드" },
+  pay: { href: "/pay-evidence-pro", name: "Pay Evidence Pro", price: "A$9.90", description: "Shift별 시간과 기대 Gross를 계산하고 증빙, 첫 문의·재문의 영문을 한 번에 정리합니다.", freeHref: "/underpayment-guide", freeLabel: "무료 미지급 급여 가이드" },
   tax: { href: "/eofy-pro", name: "EOFY Pack Pro", price: "A$9.90", description: "소득 자료, 공제 후보와 확인 질문을 신고 전 준비 요약으로 묶습니다.", freeHref: "/tax-return-guide", freeLabel: "무료 택스 리턴 가이드" },
   leave: { href: "/leaving-australia-pro", name: "Leaving Pack Pro", price: "A$12.90", description: "출국 전후 업무와 Bond·마지막 급여·DASP 후속 확인을 추적합니다.", freeHref: "/leaving-australia-guide", freeLabel: "무료 귀국 준비 가이드" },
 } as const;
