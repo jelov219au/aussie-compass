@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type DocumentStatus = "todo" | "review" | "ready";
 type ApplicationStage = "shortlist" | "inspected" | "preparing" | "submitted" | "follow_up" | "approved" | "declined" | "withdrawn";
@@ -58,6 +58,16 @@ function createId() { return typeof crypto !== "undefined" && "randomUUID" in cr
 function safeFileName(value: string) { return value.trim().replace(/[^a-z0-9가-힣]+/gi, "-").replace(/^-|-$/g, "").slice(0, 50) || "rental-application"; }
 function formatDate(value: string) { return value ? new Date(`${value}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" }) : "Not set"; }
 function stageLabel(stage: ApplicationStage) { return stageOptions.find((option) => option.value === stage)?.label ?? "관심 목록"; }
+function nextActionStatus(value: string, stage: ApplicationStage) {
+  if (!value || ["approved", "declined", "withdrawn"].includes(stage)) return null;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const target = new Date(`${value}T00:00:00`);
+  const days = Math.round((target.getTime() - today.getTime()) / 86_400_000);
+  if (days < 0) return { label: `${Math.abs(days)}일 지남`, tone: "danger" as const };
+  if (days === 0) return { label: "오늘", tone: "danger" as const };
+  if (days <= 3) return { label: `${days}일 남음`, tone: "warning" as const };
+  return { label: formatDate(value), tone: "normal" as const };
+}
 
 function normaliseApplication(candidate: Partial<RentalApplication>, fallbackId: string): RentalApplication {
   const base = createApplication(typeof candidate.id === "string" && candidate.id ? candidate.id : fallbackId);
@@ -84,6 +94,7 @@ export function RentalApplicationWorkspace() {
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
   const [activeMessageType, setActiveMessageType] = useState<MessageType>("application");
+  const backupInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { try { const saved = window.localStorage.getItem(STORAGE_KEY); if (saved) setWorkspace(parseWorkspace(saved)); } catch {} setLoaded(true); }, []);
   useEffect(() => { if (!loaded) return; const timer = window.setTimeout(() => { try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace)); } catch {} }, 400); return () => window.clearTimeout(timer); }, [workspace, loaded]);
@@ -96,6 +107,7 @@ export function RentalApplicationWorkspace() {
   const privacyProgress = Math.round((privacyCount / privacyChecks.length) * 100);
   const submittedCount = workspace.applications.filter((item) => ["submitted", "follow_up", "approved", "declined"].includes(item.stage)).length;
   const approvedCount = workspace.applications.filter((item) => item.stage === "approved").length;
+  const activeAction = loaded ? nextActionStatus(active.nextActionDate, active.stage) : null;
 
   const updateProfile = <K extends keyof ApplicantProfile>(field: K, value: ApplicantProfile[K]) => setWorkspace((current) => ({ ...current, profile: { ...current.profile, [field]: value } }));
   const updateActive = (patch: Partial<RentalApplication>) => setWorkspace((current) => ({ ...current, applications: current.applications.map((item) => item.id === current.activeId ? { ...item, ...patch } : item) }));
@@ -136,6 +148,21 @@ export function RentalApplicationWorkspace() {
   const copyMessage = async () => { const text = active.messages[activeMessageType]; if (!text) return; try { await navigator.clipboard.writeText(text); setMessage("선택한 문구를 복사했습니다."); } catch { setMessage("브라우저 복사 권한을 확인해 주세요."); } };
   const saveBlob = (content: string, type: string, name: string) => { const url = URL.createObjectURL(new Blob([content], { type })); const anchor = document.createElement("a"); anchor.href = url; anchor.download = name; anchor.click(); URL.revokeObjectURL(url); };
   const downloadBackup = () => { saveBlob(JSON.stringify(workspace, null, 2), "application/json;charset=utf-8", `hoju-compass-rental-workspace-${new Date().toISOString().slice(0, 10)}.json`); setMessage("전체 작업 공간을 JSON으로 백업했습니다."); };
+  const restoreBackup = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const content = await file.text();
+      const candidate = JSON.parse(content) as Partial<WorkspaceState>;
+      if (candidate.version !== 2 || !Array.isArray(candidate.applications) || candidate.applications.length === 0) throw new Error("Invalid rental workspace backup");
+      const restored = parseWorkspace(content);
+      if (!window.confirm(`백업에 있는 집 후보 ${restored.applications.length}개로 현재 작업 공간을 바꿀까요? 현재 내용은 먼저 전체 백업을 권장합니다.`)) return;
+      setWorkspace(restored); setMessage(`백업에서 집 후보 ${restored.applications.length}개를 복원했습니다.`);
+    } catch {
+      setMessage("이 파일은 Rental Pack 전체 백업으로 확인되지 않습니다. 원본 JSON 파일을 선택해 주세요.");
+    } finally {
+      if (backupInputRef.current) backupInputRef.current.value = "";
+    }
+  };
   const downloadSummary = () => {
     const lines = ["HOJU COMPASS — RENTAL APPLICATION PACK", `Property: ${active.propertyLabel || "Not set"}`, `Suburb: ${active.suburb || "Not set"}`, `Weekly rent: ${active.weeklyRent ? `A$${active.weeklyRent}` : "Not set"}`, `Stage: ${stageLabel(active.stage)}`, `Move-in: ${active.moveDate || "Not set"}`, `Next action: ${active.nextActionDate || "Not set"}`, "", "DOCUMENT STATUS", ...documents.map((item) => `- [${statusLabels[active.statuses[item.id] ?? "todo"]}] ${item.title}`), "", "PRIVACY CHECK", ...privacyChecks.map(([id, title]) => `- [${active.privacyChecks[id] ? "Checked" : "Not checked"}] ${title}`), "", "ITEMS TO REVIEW", ...(reviewItems.length ? reviewItems.map((item) => `- ${item.title}: ${item.caution ?? item.detail}`) : ["- None marked"]), "", "APPLICATION NOTE", active.messages.application || "Not created", "", "Preparation summary only. Do not include TFN, bank login details or identity document numbers."];
     saveBlob(lines.join("\r\n"), "text/plain;charset=utf-8", `${safeFileName(active.propertyLabel)}-application-pack.txt`); setMessage("현재 집 후보의 TXT 패키지를 저장했습니다.");
@@ -143,9 +170,9 @@ export function RentalApplicationWorkspace() {
 
   return <div className="space-y-8">
     <section className="border-y border-navy/20 bg-white py-6" aria-labelledby="rental-dashboard-heading">
-      <div className="flex flex-wrap items-end justify-between gap-4 px-5 sm:px-7"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Application dashboard</p><h2 id="rental-dashboard-heading" className="mt-2 text-2xl font-semibold text-navy">집 후보와 신청 진행 상황</h2></div><div className="flex gap-2"><button type="button" onClick={downloadBackup} className="min-h-11 border border-border px-4 text-sm font-semibold text-navy">전체 백업</button><button type="button" onClick={addApplication} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">+ 새 집 후보</button></div></div>
+      <div className="flex flex-wrap items-end justify-between gap-4 px-5 sm:px-7"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Application dashboard</p><h2 id="rental-dashboard-heading" className="mt-2 text-2xl font-semibold text-navy">집 후보와 신청 진행 상황</h2></div><div className="flex flex-wrap gap-2"><input ref={backupInputRef} type="file" accept="application/json,.json" className="sr-only" onChange={(event) => void restoreBackup(event.target.files?.[0])} /><button type="button" onClick={() => backupInputRef.current?.click()} className="min-h-11 border border-border px-4 text-sm font-semibold text-navy">백업 복원</button><button type="button" onClick={downloadBackup} className="min-h-11 border border-border px-4 text-sm font-semibold text-navy">전체 백업</button><button type="button" onClick={addApplication} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">+ 새 집 후보</button></div></div>
       <div className="mt-6 grid gap-px bg-border sm:grid-cols-3"><div className="bg-surface px-6 py-4"><p className="text-xs text-muted">관리 중</p><p className="font-mono text-2xl text-navy">{workspace.applications.length}</p></div><div className="bg-surface px-6 py-4"><p className="text-xs text-muted">제출</p><p className="font-mono text-2xl text-navy">{submittedCount}</p></div><div className="bg-surface px-6 py-4"><p className="text-xs text-muted">승인</p><p className="font-mono text-2xl text-navy">{approvedCount}</p></div></div>
-      <div className="mt-5 flex gap-3 overflow-x-auto px-5 pb-2 sm:px-7">{workspace.applications.map((item) => { const count = documents.filter((doc) => item.statuses[doc.id] === "ready").length; const selected = item.id === active.id; return <button key={item.id} type="button" onClick={() => setWorkspace((current) => ({ ...current, activeId: item.id }))} className={`min-w-56 border p-4 text-left ${selected ? "border-navy bg-navy text-white" : "border-border bg-white text-navy"}`} aria-pressed={selected}><span className={`text-xs font-semibold ${selected ? "text-gold" : "text-muted"}`}>{stageLabel(item.stage)}</span><strong className="mt-2 block truncate">{item.propertyLabel || "이름 없는 집 후보"}</strong><span className={`mt-2 block text-xs ${selected ? "text-white/65" : "text-muted"}`}>서류 {count}/{documents.length}{item.nextActionDate ? ` · 다음 ${item.nextActionDate}` : ""}</span></button>; })}</div>
+      <div className="mt-5 flex gap-3 overflow-x-auto px-5 pb-2 sm:px-7">{workspace.applications.map((item) => { const count = documents.filter((doc) => item.statuses[doc.id] === "ready").length; const selected = item.id === active.id; const action = loaded ? nextActionStatus(item.nextActionDate, item.stage) : null; return <button key={item.id} type="button" onClick={() => setWorkspace((current) => ({ ...current, activeId: item.id }))} className={`min-w-56 border p-4 text-left ${selected ? "border-navy bg-navy text-white" : "border-border bg-white text-navy"}`} aria-pressed={selected}><span className={`text-xs font-semibold ${selected ? "text-gold" : "text-muted"}`}>{stageLabel(item.stage)}</span><strong className="mt-2 block truncate">{item.propertyLabel || "이름 없는 집 후보"}</strong><span className={`mt-2 block text-xs ${selected ? "text-white/65" : "text-muted"}`}>서류 {count}/{documents.length}</span>{action ? <span className={`mt-3 inline-flex px-2 py-1 text-xs font-semibold ${action.tone === "danger" ? "bg-[#f6dddd] text-[#8c3434]" : action.tone === "warning" ? "bg-gold/20 text-[#755b20]" : selected ? "bg-white/10 text-white" : "bg-surface text-muted"}`}>다음 행동 · {action.label}</span> : null}</button>; })}</div>
     </section>
 
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(34rem,1.08fr)]"><div className="space-y-8">
@@ -158,7 +185,7 @@ export function RentalApplicationWorkspace() {
         <label className="text-sm font-medium text-navy sm:col-span-2">집 후보 별칭<input className={inputClass} value={active.propertyLabel} onChange={(e) => updateActive({ propertyLabel: e.target.value })} placeholder="Carlton 후보 1" /></label><label className="text-sm font-medium text-navy">Suburb<input className={inputClass} value={active.suburb} onChange={(e) => updateActive({ suburb: e.target.value })} /></label><label className="text-sm font-medium text-navy">주당 렌트 (AUD)<input type="number" min="0" className={inputClass} value={active.weeklyRent} onChange={(e) => updateActive({ weeklyRent: e.target.value })} /></label>
         <label className="text-sm font-medium text-navy">진행 상태<select className={inputClass} value={active.stage} onChange={(e) => updateActive({ stage: e.target.value as ApplicationStage })}>{stageOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label><label className="text-sm font-medium text-navy">담당자 이름<input className={inputClass} value={active.agentName} onChange={(e) => updateActive({ agentName: e.target.value })} /></label>
         <label className="text-sm font-medium text-navy">희망 입주일<input type="date" className={inputClass} value={active.moveDate} onChange={(e) => updateActive({ moveDate: e.target.value })} /></label><label className="text-sm font-medium text-navy">계약기간<select className={inputClass} value={active.leaseTerm} onChange={(e) => updateActive({ leaseTerm: e.target.value })}><option>6 months</option><option>12 months</option><option>18 months</option><option>24 months</option><option>Flexible</option></select></label>
-        <label className="text-sm font-medium text-navy">신청 제출일<input type="date" className={inputClass} value={active.applicationDate} onChange={(e) => updateActive({ applicationDate: e.target.value })} /></label><label className="text-sm font-medium text-navy">다음 행동 날짜<input type="date" className={inputClass} value={active.nextActionDate} onChange={(e) => updateActive({ nextActionDate: e.target.value })} /></label><label className="text-sm font-medium text-navy sm:col-span-2">메모 (민감정보 제외)<textarea className={`${inputClass} min-h-24 resize-y`} value={active.notes} onChange={(e) => updateActive({ notes: e.target.value })} /></label>
+        <label className="text-sm font-medium text-navy">신청 제출일<input type="date" className={inputClass} value={active.applicationDate} onChange={(e) => updateActive({ applicationDate: e.target.value })} /></label><label className="text-sm font-medium text-navy">다음 행동 날짜<input type="date" className={inputClass} value={active.nextActionDate} onChange={(e) => updateActive({ nextActionDate: e.target.value })} />{activeAction ? <span className={`mt-2 block text-xs font-semibold ${activeAction.tone === "danger" ? "text-[#8c3434]" : activeAction.tone === "warning" ? "text-[#755b20]" : "text-muted"}`}>다음 행동: {activeAction.label}</span> : null}</label><label className="text-sm font-medium text-navy sm:col-span-2">메모 (민감정보 제외)<textarea className={`${inputClass} min-h-24 resize-y`} value={active.notes} onChange={(e) => updateActive({ notes: e.target.value })} /></label>
       </div></section>
 
       <section className="border border-border bg-white p-5 sm:p-7"><div className="flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Privacy guard</p><h2 className="mt-2 text-xl font-semibold text-navy">제출 전 개인정보 점검</h2></div><p className="font-mono text-2xl text-navy">{privacyProgress}%</p></div><div className="mt-5 h-1.5 bg-surface"><div className="h-full bg-gold" style={{ width: `${privacyProgress}%` }} /></div><ul className="mt-5 divide-y divide-border">{privacyChecks.map(([id, title, detail]) => <li key={id} className="py-4"><label className="flex cursor-pointer gap-3"><input type="checkbox" className="mt-1 size-4 accent-[#1a2744]" checked={Boolean(active.privacyChecks[id])} onChange={(e) => updateActive({ privacyChecks: { ...active.privacyChecks, [id]: e.target.checked } })} /><span><strong className="block text-sm text-navy">{title}</strong><span className="mt-1 block text-xs leading-5 text-muted">{detail}</span></span></label></li>)}</ul></section>

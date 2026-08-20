@@ -12,6 +12,8 @@ const contracts = [
   [workspace.includes('Reusable profile') && workspace.includes('privacyChecks'), "reusable profile and privacy checklist"],
   [workspace.includes('application:') && workspace.includes('inspection:') && workspace.includes('followUp:'), "three message templates"],
   [workspace.includes('application-pack.txt') && workspace.includes('application/json;charset=utf-8'), "per-property and whole-workspace exports"],
+  [workspace.includes('restoreBackup') && workspace.includes('백업 복원') && workspace.includes('candidate.version !== 2'), "validated whole-workspace restore"],
+  [workspace.includes('nextActionStatus') && workspace.includes('일 지남') && workspace.includes('다음 행동 ·'), "relative due-action warnings"],
   [workspace.includes('id="rental-application-print"') && printStyles.includes('#rental-application-print'), "print-to-PDF output"],
   [publicPage.includes('결제 미오픈') && publicPage.includes('최대 20개 집 후보'), "honest pre-sale public copy"],
 ];

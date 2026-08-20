@@ -35,7 +35,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Live Resume Pro one-time purchase with Stripe Checkout, signed-webhook entitlement delivery, recovery codes, refund revocation, premium layouts, cover-letter drafting, job-ad keyword checks, and saved-resume connection
 - EOFY Pack Pro product preview with an evidence register, accountant-handoff summary, annual backup concept, and free-versus-Pro boundary
 - EOFY Pack Pro local workspace for income-source readiness, deduction-candidate evidence notes, accountant questions, and a text summary without receipt uploads or refund estimates
-- Rental Application Pack Pro preview and local workspace with document readiness, privacy checks, an English introduction draft, and text-package export without document uploads
+- Rental Application Pack Pro preview and local multi-property workspace with reusable applicant details, application stages and due-action warnings, document and privacy readiness, three English contact drafts, PDF/TXT export, and JSON backup restore without document uploads
 - Leaving Australia Pack Pro preview and local workspace with ordered departure tasks, expected-payment follow-up, confirmation questions, and a text handoff without sensitive identifiers
 - Pay Evidence Pack Pro preview and local workspace with period-by-period gross comparisons, evidence readiness, an English review request, and a text handoff without source-document uploads
 - Hoju Compass Pro comparison hub with a situation-based product finder, environment-aware Resume Pro availability, transparent free-versus-paid boundaries, and clearly labelled pricing candidates for local-only prototypes
