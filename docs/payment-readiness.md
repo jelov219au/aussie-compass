@@ -26,7 +26,7 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 - Create Checkout Sessions only on the server.
 - In non-production environments, use only test keys (`rk_test_` preferred, `sk_test_` supported). In production, use only live keys (`rk_live_` preferred, `sk_live_` supported).
 - Prefer least-privilege restricted keys (`rk_test_` / `rk_live_`) and grant only the Checkout Session and Price access used by this integration. Review Stripe request logs before adding permissions.
-- Validate each configured price server-side before redirecting: Resume Pro must be active, one-time AUD 19.90; Rental Application Pack Pro must be active, one-time AUD 14.90.
+- Validate each configured price server-side before redirecting: Resume Pro must be active, one-time AUD 19.90; Rental Application Pack Pro must be active, one-time AUD 14.90; Pay Evidence Pro must be active, one-time AUD 9.90.
 - Enable Managed Payments explicitly for each Checkout Session after confirming product eligibility.
 - Add a unique, product-specific Checkout `integration_identifier` so sessions can be filtered in Stripe Workbench.
 - Verify signed Stripe webhooks before granting access.
@@ -44,6 +44,7 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 - Run `npm run test:entitlement-commands` to verify paid, unpaid, asynchronous, refund and dispute events map to the intended access state.
 - Run `npm run test:resume-pro-tokens` to verify signed-session tamper resistance, expiry, revoked-access blocking and restore-code hashing.
 - Run `npm run test:rental-pro-tokens` to apply the same signed-session and recovery-code checks to Rental Application Pack Pro.
+- Run `npm run test:pay-evidence-tokens` to apply the same signed-session, expiry and recovery-code checks to Pay Evidence Pro.
 - Run `npm run test:stripe-contract` to prevent accidental removal of Checkout consent, server-side price validation, dynamic payment methods or webhook signature checks.
 - Run `npm run payments:check -- --strict` inside the target deployment environment. It reports only pass/wait states and never prints credentials, connection strings, legal names or the ABN.
 - Keep `PAYMENTS_ENABLED=false` until test evidence and legal copy are reviewed.
@@ -62,6 +63,8 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. The registered site name `Hoju Compass` is the default customer-facing business name; `BUSINESS_TRADING_NAME` is only an optional override. `BUSINESS_LEGAL_NAME` is the underlying legal seller and must never be hardcoded. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch. The app accepts the manual `ENTITLEMENT_DB_URL` override or Vercel Neon's managed `ENTITLEMENT_DB_DATABASE_URL`; do not copy the managed connection string into a second variable.
 
 Rental Application Pack Pro additionally requires `STRIPE_RENTAL_PRO_PRICE_ID`. Its public Checkout stays unavailable unless the shared payment gates and this product-specific Price gate all pass. Adding the variable is not permission to sell: apply the Rental product-code constraint in Preview first, complete the test purchase/recovery/refund exercise, and repeat a controlled live purchase/full refund before changing its public status.
+
+Pay Evidence Pro additionally requires `STRIPE_PAY_EVIDENCE_PRO_PRICE_ID`. Its public Checkout stays unavailable unless the shared payment gates and its product-specific Price gate all pass. Adding the variable is not permission to sell: keep Production disabled until the live Price, signed webhook, durable entitlement, recovery and refund paths have each been verified.
 
 ## Post-launch owner actions
 
@@ -111,6 +114,22 @@ The protected Rental Application Pack Pro Preview integration was verified on 21
 - The success page was updated to distinguish a revoked entitlement from a webhook still being processed, and now identifies the refund or cancellation state directly.
 - Both Sandbox verification payments were fully refunded. The temporary Stripe webhook was disabled and every temporary Vercel automation bypass was revoked after the test.
 - No Production price, payment gate, webhook, entitlement or deployment setting was changed during this verification.
+
+No customer email, card detail, legal name, ABN, secret key, webhook secret, Vercel bypass value or database connection string is recorded in this verification note.
+
+## Pay Evidence Pro Preview verification record
+
+The protected Pay Evidence Pro Preview grant path was verified on 21 August 2026 without enabling Production payments:
+
+- A Stripe Sandbox product and one-time AUD 9.90 inclusive Price were created for `pay_evidence_pro` using the personal-use SaaS tax code.
+- Managed Payments test Checkout included AUD 0.90 GST inside the AUD 9.90 total and reported Stripe as the automatic-tax liability party.
+- The paid return page remained locked until a real signed `checkout.session.completed` event was delivered to the protected Preview webhook.
+- The final delivery returned HTTP 200 with `received: true`, `persisted: true` and `outcome: "processed"`.
+- Neon recorded one processed webhook event and an active `pay_evidence_pro` entitlement for the paid Checkout Session.
+- The success page then exposed the activation action, issued a signed browser session and opened `/pay-evidence-pro/workspace` with the purchased-workspace state visible.
+- The product constraint, product-isolation contract, signed-session tamper resistance, expiry, revoked-access blocking and hashed one-time recovery-code behavior passed the automated entitlement and token checks.
+- Temporary Stripe Sandbox webhook destinations were disabled after validation, bypass values were stripped from their URLs, every temporary Vercel automation bypass was revoked, and the branch-only webhook secret override was removed.
+- No Production Price, payment gate, webhook, entitlement or deployment setting was changed. Recovery UI and refund/revocation remain separate controlled Preview exercises before any Production launch.
 
 No customer email, card detail, legal name, ABN, secret key, webhook secret, Vercel bypass value or database connection string is recorded in this verification note.
 
