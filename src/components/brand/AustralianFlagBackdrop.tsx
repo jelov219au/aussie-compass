@@ -6,7 +6,7 @@ export function AustralianFlagBackdrop() {
       <svg
         viewBox="0 0 1440 760"
         preserveAspectRatio="xMidYMid slice"
-        className="australia-flag-backdrop absolute inset-0 h-full w-full"
+        className="absolute inset-0 h-full w-full"
         fill="none"
       >
         <defs>
@@ -30,7 +30,7 @@ export function AustralianFlagBackdrop() {
           <path d="M195-35v405M-55 168h510" stroke="#A94B3D" strokeOpacity="0.12" strokeWidth="28" />
         </g>
 
-        <g className="australia-background-stars" fill="#C4A035" opacity="0.28">
+        <g fill="#C4A035" opacity="0.28">
           <path transform="translate(328 514) scale(1.35)" d={starPath} />
           <path transform="translate(1120 126)" d={starPath} />
           <path transform="translate(1015 258) scale(.82)" d={starPath} />
@@ -41,7 +41,7 @@ export function AustralianFlagBackdrop() {
         <path d="M1120 126 1015 258l149 134-119 163M1164 392l116 80" stroke="#1A2744" strokeOpacity="0.07" strokeWidth="2" />
       </svg>
 
-      <div className="australia-horizon-glow absolute -bottom-32 right-[8%] h-72 w-[42rem] max-w-[80vw] rounded-[50%] bg-[#d5b965]/12 blur-3xl" />
+      <div className="absolute -bottom-32 right-[8%] h-72 w-[42rem] max-w-[80vw] rounded-[50%] bg-[#d5b965]/12 blur-3xl" />
     </div>
   );
 }
