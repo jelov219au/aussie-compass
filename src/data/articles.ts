@@ -506,6 +506,34 @@ export const articles: Article[] = [
       { label: "Product Safety Australia — Buy safe second-hand products online", href: "https://www.productsafety.gov.au/consumers/know-your-product-safety-rights/buy-safe-second-hand-products-online", summary: "중고품의 결함·사진·설명·Recall·Mandatory standard와 Seller 유형을 확인하고 고위험 제품은 전문가 점검을 고려하도록 안내합니다." },
     ],
   },
+  {
+    slug: "australia-public-holiday-pay-guide",
+    title: "공휴일에 일한다면, 수당은 이렇게 확인하세요",
+    seoTitle: "호주 공휴일 수당 확인법: Penalty Rate·Award·Payslip 체크",
+    socialTitle: "Check your Australian public holiday pay",
+    description: "공휴일이라고 모두 같은 배율을 받는 것은 아닙니다. 근무 지역, Award, 고용 형태와 직급을 확인해 내 시급을 찾는 순서를 정리했습니다.",
+    category: "급여 확인",
+    readingTime: "8분",
+    publishedAt: "2026-08-20",
+    updatedAt: "2026-08-20",
+    quickSummary: ["내가 근무하는 곳의 공휴일인지 먼저 확인하기", "Award·고용 형태·직급을 맞춘 뒤 Fair Work 계산기로 시급 확인하기", "로스터와 Payslip이 다르면 근무 기록을 모아 글로 문의하기"],
+    toolHref: "/payslip-guide",
+    toolLabel: "Payslip 항목과 함께 확인하기",
+    sections: [
+      { heading: "공휴일이라고 모두 같은 시급을 받는 것은 아닙니다", paragraphs: ["호주 공휴일 근무 수당은 업종, 적용되는 Award나 Enterprise Agreement, 고용 형태, 직급(Classification)에 따라 달라질 수 있습니다. 인터넷에서 본 ‘무조건 2배’ 같은 숫자를 바로 적용하기보다 내 근무 조건부터 맞춰보는 것이 안전합니다.", "Fair Work는 공휴일에 일한 모든 시간에 적어도 Base pay rate가 지급돼야 한다고 안내합니다. 여기에 추가 수당, 최소 근무시간, 대체 휴일 같은 조건이 붙는지는 적용되는 Award나 Agreement를 확인해야 합니다."] },
+      { heading: "첫 번째는 날짜가 아니라 근무 지역입니다", paragraphs: ["공휴일은 주와 준주에 따라 다르고, 일부 Show day나 지역 기념일은 특정 도시·지역에만 적용됩니다. 달력에 Public Holiday라고 표시돼 있어도 내가 근무하는 지역에는 해당하지 않을 수 있습니다.", "다른 주로 잠깐 출장을 간 경우에는 실제로 그날 서 있는 장소보다 평소 일을 위해 기반을 둔 지역의 공휴일이 적용될 수 있습니다. 여러 지역을 오가거나 원격으로 일한다면 고용계약과 근무 기반 지역을 함께 확인하세요."], bullets: ["Fair Work의 해당 연도 Public holidays 목록 열기", "내 근무 기반 주·준주와 지역명 확인하기", "부분 공휴일이라면 시작·종료 시각 확인하기", "RDO나 대체 공휴일이 정해졌다면 Agreement 내용 확인하기"] },
+      { heading: "내 시급을 찾으려면 네 가지 정보가 필요합니다", bullets: ["Award 또는 Enterprise Agreement 이름", "Full-time·Part-time·Casual 중 고용 형태", "직무와 업무 수준에 맞는 Classification", "공휴일에 실제로 일한 시작·종료 시간과 무급 휴식시간"], paragraphs: ["계약서에 적힌 직무명만으로 Classification이 자동으로 정해지는 것은 아닙니다. 실제로 하는 업무, 책임 범위와 필요한 자격을 Award의 분류 설명과 비교하세요. Award가 무엇인지 모르겠다면 Fair Work의 Find my award에서 업종과 업무를 기준으로 좁혀볼 수 있습니다."] },
+      { heading: "Fair Work 계산기에는 이렇게 입력하세요", paragraphs: ["Pay and Conditions Tool(PACT)에서 Pay rates를 선택한 뒤 Award, 고용 형태와 Classification을 차례로 고릅니다. 근무 날짜와 시간대를 넣으면 해당 조건의 기본 시급과 공휴일 Rate를 비교할 수 있습니다."], bullets: ["계산 결과 화면이나 PDF에 적용 날짜를 남기기", "Casual이라면 표시된 금액에 Casual loading이 어떻게 반영됐는지 보기", "최소 Shift 길이나 Evening·Overtime 조건이 따로 있는지 읽기", "회사 Enterprise Agreement가 있다면 Award 계산값만으로 결론 내리지 않기"] },
+      { heading: "공휴일 근무 요청에는 ‘합리적인지’가 중요합니다", paragraphs: ["직원은 공휴일에 쉬는 것이 기본 권리지만, 고용주는 합리적인 범위에서 근무를 요청할 수 있습니다. 직원도 합리적인 사유가 있거나 요청 자체가 합리적이지 않다면 거절할 수 있습니다.", "합리성은 업종과 업무, 개인 사정과 돌봄 책임, 고용 형태, 근무 요청을 예상할 수 있었는지, 추가 수당, 서로에게 제공된 사전 통지 기간 등을 함께 보고 판단합니다. 따라서 ‘공휴일에는 무조건 거절할 수 있다’거나 ‘로스터에 있으면 무조건 일해야 한다’고 단정하기 어렵습니다."], bullets: ["요청받은 날짜와 시간을 글로 확인하기", "어려운 사정이 있다면 가능한 한 일찍 구체적으로 알리기", "대체 근무나 시간 조정이 가능한지 함께 제안하기", "대화와 로스터 변경 내역을 보관하기"] },
+      { heading: "Payslip에서는 공휴일 시간을 따로 맞춰보세요", paragraphs: ["급여가 들어오면 같은 Pay period의 로스터와 출퇴근 기록을 옆에 두고 공휴일 근무시간이 별도 Rate로 계산됐는지 확인하세요. 총액만 보면 평일 시간이나 무급 휴식시간이 섞여 누락을 놓치기 쉽습니다."], bullets: ["공휴일 날짜와 실제 근무시간", "기본 시급과 Public holiday Rate", "최소 지급시간이 적용됐는지", "Overtime과 Public holiday 조건이 겹칠 때 적용 방식", "Gross pay, 세금 공제와 최종 입금액"] },
+      { heading: "금액이 다르면 계산 근거를 붙여 문의하세요", paragraphs: ["차이가 보이면 고용주나 Payroll 담당자에게 ‘시급이 틀렸다’고만 말하기보다 날짜, 실제 근무시간, Payslip의 Rate와 PACT에서 확인한 조건을 함께 적어 문의하세요. 계산에 사용한 Award와 Classification이 맞는지도 질문하면 수정 여부를 확인하기 쉽습니다.", "해결되지 않으면 Fair Work Ombudsman의 도움 절차를 이용할 수 있습니다. Hoju Compass의 설명은 확인 순서를 돕는 일반 정보이며, 개인의 계약이나 분쟁에 대한 법률 자문은 아닙니다."] },
+    ],
+    sources: [
+      { label: "Fair Work Ombudsman — Public holidays", href: "https://www.fairwork.gov.au/employment-conditions/public-holidays", summary: "주·준주와 일부 지역마다 공휴일이 다를 수 있다는 점, 근무 기반 지역의 공휴일 적용과 공휴일 근무·비근무 권리를 설명합니다." },
+      { label: "Fair Work Ombudsman — Public holiday penalty rates", href: "https://www.fairwork.gov.au/pay-and-wages/penalty-rates-allowances-and-other-payments/penalty-rates/public-holiday-penalty-rates", summary: "공휴일 근무에는 최소 Base pay rate가 지급돼야 하며 Award·Agreement에 추가 수당, 최소 Shift와 대체 휴일 조건이 있을 수 있음을 안내합니다." },
+      { label: "Fair Work Ombudsman — Pay and Conditions Tool", href: "https://calculate.fairwork.gov.au/", summary: "Award, 고용 형태와 Classification을 선택해 현재 적용되는 Pay rate와 Penalty rate를 확인할 수 있는 공식 계산기입니다." },
+    ],
+  },
 ];
 
 export function getArticle(slug: string) { return articles.find((article) => article.slug === slug); }
