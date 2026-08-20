@@ -49,3 +49,15 @@ Expected: a valid backup restores all candidates and the reusable profile; an in
 ## 6. Sale gate
 
 Before checkout opens, complete the scenarios above on mobile and desktop, verify print-to-PDF output, apply the product-code database migration, and pass a test purchase, access recovery, full refund and immediate entitlement-revocation exercise. Record any complaint-prone ambiguity as a release blocker rather than relying on refund wording to compensate for it.
+
+## Local verification record — 21 August 2026
+
+The current local build was exercised at desktop and 390 × 844 mobile viewports:
+
+- The public product page and workspace had no page-level horizontal overflow or browser-console errors. Candidate cards use an intentional horizontal scroller on mobile.
+- A reusable dummy profile was entered, two different property candidates were prepared, one candidate was duplicated, and property-specific fields and generated English messages remained isolated.
+- All three English messages were generated. Copy, TXT save and whole-workspace JSON backup reported successful completion.
+- Privacy and document checks updated their independent progress indicators, and the review warning appeared when required preparation remained incomplete.
+- A malformed JSON backup was rejected without changing the three candidates. A valid backup reached the explicit whole-workspace replacement confirmation; the confirmation was intentionally dismissed to preserve the test workspace.
+
+Still required before sale: visually inspect an actual print-to-PDF file, manually verify past/today/near-term native date input badges, accept and inspect a valid full restore, apply the Preview database constraint, create the dedicated Stripe test Price, and complete the test purchase/recovery/refund/revocation flow. No payment gate was opened by this local verification.

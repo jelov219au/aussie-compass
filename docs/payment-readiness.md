@@ -26,9 +26,9 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 - Create Checkout Sessions only on the server.
 - In non-production environments, use only test keys (`rk_test_` preferred, `sk_test_` supported). In production, use only live keys (`rk_live_` preferred, `sk_live_` supported).
 - Prefer least-privilege restricted keys (`rk_test_` / `rk_live_`) and grant only the Checkout Session and Price access used by this integration. Review Stripe request logs before adding permissions.
-- Validate the configured Resume Pro price server-side as active, one-time, AUD 19.90 before redirecting.
+- Validate each configured price server-side before redirecting: Resume Pro must be active, one-time AUD 19.90; Rental Application Pack Pro must be active, one-time AUD 14.90.
 - Enable Managed Payments explicitly for each Checkout Session after confirming product eligibility.
-- Add a unique Checkout `integration_identifier` so Resume Pro sessions can be filtered in Stripe Workbench.
+- Add a unique, product-specific Checkout `integration_identifier` so sessions can be filtered in Stripe Workbench.
 - Verify signed Stripe webhooks before granting access.
 - Reject oversized webhook payloads and events whose test/live mode does not match the deployment environment.
 - Store only the minimum entitlement record needed to restore access.
@@ -43,6 +43,7 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 - Run `npm run test:entitlement-ordering` before publishing payment changes.
 - Run `npm run test:entitlement-commands` to verify paid, unpaid, asynchronous, refund and dispute events map to the intended access state.
 - Run `npm run test:resume-pro-tokens` to verify signed-session tamper resistance, expiry, revoked-access blocking and restore-code hashing.
+- Run `npm run test:rental-pro-tokens` to apply the same signed-session and recovery-code checks to Rental Application Pack Pro.
 - Run `npm run test:stripe-contract` to prevent accidental removal of Checkout consent, server-side price validation, dynamic payment methods or webhook signature checks.
 - Run `npm run payments:check -- --strict` inside the target deployment environment. It reports only pass/wait states and never prints credentials, connection strings, legal names or the ABN.
 - Keep `PAYMENTS_ENABLED=false` until test evidence and legal copy are reviewed.
@@ -59,6 +60,8 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 ## Required environment contract
 
 The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. The registered site name `Hoju Compass` is the default customer-facing business name; `BUSINESS_TRADING_NAME` is only an optional override. `BUSINESS_LEGAL_NAME` is the underlying legal seller and must never be hardcoded. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch. The app accepts the manual `ENTITLEMENT_DB_URL` override or Vercel Neon's managed `ENTITLEMENT_DB_DATABASE_URL`; do not copy the managed connection string into a second variable.
+
+Rental Application Pack Pro additionally requires `STRIPE_RENTAL_PRO_PRICE_ID`. Its public Checkout stays unavailable unless the shared payment gates and this product-specific Price gate all pass. Adding the variable is not permission to sell: apply the Rental product-code constraint in Preview first, complete the test purchase/recovery/refund exercise, and repeat a controlled live purchase/full refund before changing its public status.
 
 ## Post-launch owner actions
 

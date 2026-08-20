@@ -24,6 +24,16 @@ export const payEvidenceProduct = {
 export const resumeProPurchaseTermsVersion = "2026-08-19";
 export const payEvidencePurchaseTermsVersion = "2026-08-21";
 
+export const rentalProProduct = {
+  id: "rental-application-pro",
+  name: "Rental Application Pack Pro",
+  currency: "aud",
+  priceCents: 1490,
+  billing: "one_time",
+} as const;
+
+export const rentalProPurchaseTermsVersion = "2026-08-21";
+
 export type PaymentReadiness = {
   enabled: boolean;
   stripeConfigured: boolean;
@@ -92,8 +102,20 @@ export function getPaymentReadiness(): PaymentReadiness {
   return getPaymentReadinessForPrice(process.env.STRIPE_RESUME_PRO_PRICE_ID, true);
 }
 
+export function getRentalPaymentReadiness(): PaymentReadiness {
+  return getPaymentReadinessForPrice(process.env.STRIPE_RENTAL_PRO_PRICE_ID, false);
+}
+
 export function canCreateTestCheckout() {
   const readiness = getPaymentReadiness();
+  return process.env.VERCEL_ENV !== "production"
+    && readiness.enabled
+    && readiness.stripeConfigured
+    && readiness.managedPaymentsConfigured;
+}
+
+export function canCreateRentalTestCheckout() {
+  const readiness = getRentalPaymentReadiness();
   return process.env.VERCEL_ENV !== "production"
     && readiness.enabled
     && readiness.stripeConfigured
@@ -114,4 +136,8 @@ export function canCreatePayEvidenceTestCheckout() {
     && readiness.enabled
     && readiness.stripeConfigured
     && readiness.managedPaymentsConfigured;
+}
+
+export function isRentalProLive() {
+  return process.env.VERCEL_ENV === "production" && getRentalPaymentReadiness().ready;
 }

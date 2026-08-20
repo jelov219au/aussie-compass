@@ -10,7 +10,7 @@ import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
   title: "결제·접근 문제 해결 | Hoju Compass",
-  description: "Resume Pro 결제 확인 지연, 접근 만료, 복구 코드 분실과 환불 요청을 안전하게 준비하세요.",
+  description: "Hoju Compass Pro 결제 확인 지연, 접근 만료, 복구 코드 분실과 환불 요청을 안전하게 준비하세요.",
   path: "/payment-help",
 });
 
@@ -32,7 +32,7 @@ export default function PaymentHelpPage() {
         <Container className="max-w-5xl">
           <Link href="/purchase-information" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 구매·환불 안내로 돌아가기</Link>
           <div className="mt-8 grid gap-8 border-b border-navy/20 pb-10 lg:grid-cols-[1fr_18rem] lg:items-end">
-            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">결제 문제가 생겼다면</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">무엇이 문제인지부터 차근차근 확인해요.</h1><p className="mt-5 max-w-3xl leading-7 text-muted">중복으로 결제하거나 민감한 정보를 보내지 않도록, Resume Pro 이용 문제와 환불 문의 순서를 상황별로 정리했어요.</p></div>
+            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">결제 문제가 생겼다면</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">무엇이 문제인지부터 차근차근 확인해요.</h1><p className="mt-5 max-w-3xl leading-7 text-muted">중복으로 결제하거나 민감한 정보를 보내지 않도록, 구매한 Pro 제품의 이용 문제와 환불 문의 순서를 상황별로 정리했어요.</p></div>
             <p className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted"><strong className="block text-navy">서버 제출 없음</strong>아래 선택과 문의 문구는 현재 브라우저에서만 만들어집니다.</p>
           </div>
           <section className="mt-9 bg-navy p-5 text-white sm:p-7" aria-labelledby="safety-first-heading">
@@ -40,8 +40,9 @@ export default function PaymentHelpPage() {
             <ul className="mt-4 space-y-3 text-sm leading-6 text-white/75">{warnings.map((warning) => <li key={warning}>• {warning}</li>)}</ul>
           </section>
           <div className="mt-8"><PaymentSupportHelper supportEmail={seller.email} /></div>
-          <section className="mt-8 grid gap-4 sm:grid-cols-3">
-            <Link href="/resume-pro/restore" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Access</span><strong className="mt-2 block text-navy">복구 코드 사용하기 →</strong><span className="mt-2 block text-sm leading-6 text-muted">유효한 1회용 코드가 있다면 이 기기의 접근을 복구합니다.</span></Link>
+          <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Link href="/resume-pro/restore" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Resume Access</span><strong className="mt-2 block text-navy">Resume Pro 복구 →</strong><span className="mt-2 block text-sm leading-6 text-muted">Resume Pro용 1회용 코드로 이 기기의 접근을 복구합니다.</span></Link>
+            <Link href="/rental-application-pro/restore" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Rental Access</span><strong className="mt-2 block text-navy">Rental Pack 복구 →</strong><span className="mt-2 block text-sm leading-6 text-muted">Rental Pack용 1회용 코드로 이 기기의 접근을 복구합니다.</span></Link>
             <Link href="/purchase-information" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Policy</span><strong className="mt-2 block text-navy">구매·환불 조건 보기 →</strong><span className="mt-2 block text-sm leading-6 text-muted">가격, 제공 방식, 판매자 정보와 소비자 권리를 확인합니다.</span></Link>
             <Link href="/privacy" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Data</span><strong className="mt-2 block text-navy">결제 데이터 처리 보기 →</strong><span className="mt-2 block text-sm leading-6 text-muted">Stripe와 Hoju Compass가 처리하는 정보 범위를 확인합니다.</span></Link>
           </section>
