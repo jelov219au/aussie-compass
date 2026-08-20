@@ -589,6 +589,38 @@ export const articles: Article[] = [
       { label: "Transport for NSW — Planned trackwork example", href: "https://transportnsw.info/news/2026/planned-trackwork-from-friday-17-to-sunday-19-july", summary: "계획된 선로 공사 때 T1을 포함한 여러 노선에 Replacement bus와 변경 운행이 적용될 수 있으며, 미리 경로를 확인하고 추가 시간을 두라고 안내한 실제 공지 사례입니다." },
     ],
   },
+  {
+    slug: "melbourne-home-transport-first-check-guide",
+    title: "멜번에서 집을 구할 때, Tram 노선도만 보면 놓치는 것",
+    seoTitle: "멜번 집 구하기 체크리스트: Tram·Train·Rooming House·난방 확인",
+    socialTitle: "What to check before renting in Melbourne",
+    description: "Free Tram Zone과 실제 통근 범위, 주말 공사, 야간 교통, 난방·곰팡이와 Rooming house 등록까지. 멜번 집을 고르기 전 확인할 공식 기준을 정리했습니다.",
+    category: "집 구하기",
+    readingTime: "10분",
+    publishedAt: "2026-08-20",
+    updatedAt: "2026-08-20",
+    quickSummary: ["Free Tram Zone과 내가 매일 이동할 생활권을 같은 범위로 생각하지 않기", "평일·주말·늦은 밤 경로와 Planned disruption을 각각 확인하기", "일반 Rental과 Rooming house를 구분하고 난방·곰팡이·잠금장치 기준 확인하기"],
+    toolHref: "/public-transport-guide",
+    toolLabel: "집과 통학·출퇴근 교통 비교하기",
+    sections: [
+      { heading: "이 글은 멜번 생활을 경험한 척하지 않습니다", paragraphs: ["시드니에서 직접 겪은 일을 그대로 멜번에 대입하면 지역별 차이를 놓칠 수 있습니다. 이 가이드는 Public Transport Victoria, Consumer Affairs Victoria와 Victoria Crime Statistics Agency의 현재 공식 자료를 기준으로 ‘계약 전에 확인할 사실’을 정리했습니다.", "동네의 실제 분위기, 겨울철 체감과 노선별 혼잡처럼 살아봐야 알 수 있는 부분은 앞으로 현지 거주자의 경험을 받아 별도로 표시할 예정입니다. 지금은 확인 가능한 사실과 직접 물어볼 질문에 집중합니다."] },
+      { heading: "Free Tram Zone은 멜번 전체의 무료 교통권이 아닙니다", paragraphs: ["Free Tram Zone은 Melbourne CBD 일부 구간의 Tram 이동에만 적용됩니다. 그 구역 안에서 Tram만 이용한다면 myki가 필요 없지만, Zone 밖으로 나가거나 Train·Bus를 이용하는 일상 경로에는 myki와 정상 운임이 필요합니다.", "학교·직장 주소가 CBD라고 해도 집이 Zone 밖이면 무료 구간만 보고 교통비를 판단할 수 없습니다. 후보 집에서 목적지까지 전체 경로를 넣고 걷기, 환승과 myki 적용 구간을 함께 확인하세요."], bullets: ["집과 직장·학교가 Free Tram Zone 경계 안인지 지도에서 각각 확인", "Tram에서 Train이나 Bus로 갈아타는 구간이 있는지 확인", "Zone 밖 Tram을 이용한다면 출발 전 myki Touch on", "현재 운임은 광고 글보다 PTV Fare calculator에서 확인"] },
+      { heading: "노선도보다 내가 움직일 세 가지 시간을 넣어보세요", bullets: ["평일 실제 출근·등교 시간", "평일 늦은 귀가 시간과 마지막 연결", "토요일·일요일 장보기·아르바이트·모임 시간", "역이나 정류장에서 집까지 마지막 도보", "한 구간이 끊겼을 때 사용할 두 번째 경로"], paragraphs: ["Tram 정류장이 가까워도 목적지까지 느리게 우회하거나 환승 대기가 길 수 있습니다. Train station이 가까운 집도 Station까지 가는 Bus 배차가 드물면 Door-to-door 시간은 크게 늘어납니다. 지도상의 직선거리보다 일주일에 반복할 실제 시간표를 기준으로 비교하세요."] },
+      { heading: "주말 공사와 늦은 밤 경로는 따로 봐야 합니다", paragraphs: ["PTV는 Journey planner와 Disruptions 화면에 현재·예정된 운행 변경을 표시합니다. Planned works가 있으면 Train 대신 Replacement bus를 이용하거나 정류장 위치가 달라질 수 있으므로, 계약 전 후보 지역의 주말 경로도 한 번 확인하는 편이 좋습니다.", "Night Network는 금요일과 토요일 밤에 Train·Tram·Bus의 밤샘 이동을 제공하지만 모든 평일 노선이 같은 빈도로 계속 운행된다는 뜻은 아닙니다. 내가 쓸 노선과 환승 정류장이 실제 시간대에 남아 있는지 Journey planner에서 확인하세요."], bullets: ["PTV Disruptions에서 이번 주와 예정된 공사 확인", "Replacement bus 탑승 위치와 추가 소요시간 확인", "늦은 밤 배차 간격과 환승 대기 확인", "마지막 연결을 놓쳤을 때 Ride-share 비용까지 생활비에 포함"] },
+      { heading: "멜번 집에서는 난방과 곰팡이를 사진보다 먼저 확인하세요", paragraphs: ["Victoria의 일반 Rental property는 광고하거나 Lease를 제안하기 전에 Minimum standards를 충족해야 합니다. 현재 기준에는 Main living area의 정상 작동하는 Fixed heater, 구조 때문에 생긴 곰팡이·습기 방지, 잠금장치, 환기, 전기 안전과 온수 등이 포함됩니다.", "Inspection에서는 Heater가 ‘있다’는 것에서 멈추지 말고 실제로 켜지는지, 어느 공간만 데우는지와 침실까지 온기가 닿는지 확인하세요. 창틀·붙박이장·외벽 모서리의 물자국과 냄새도 보고, 보이는 문제는 사진과 글로 남기세요."], bullets: ["Main living area Fixed heater 작동과 Energy rating", "침실 창문 틈, 결로와 곰팡이 흔적", "현관·외부문·창문의 잠금 상태", "샤워 온수와 수압, 욕실 환기", "Switchboard 안전장치와 Powerpoint 상태"] },
+      { heading: "Share house 광고가 Rooming house에 해당하는지 구분하세요", paragraphs: ["Victoria의 Rooming house는 보통 운영자가 개별 방을 빌려주고 네 명 이상이 살 수 있으며, 욕실·주방·세탁실 같은 공간을 공유하는 형태입니다. 모두가 같은 계약에 서명하는 일반 Share house와는 계약 구조가 다를 수 있습니다.", "Rooming house는 Local council 등록 대상이고 Operator에게도 별도 의무가 있습니다. 현재 Minimum standards에는 방의 잠금장치와 Powerpoint, 욕실 Privacy latch, 주방·냉장고·개인 수납, 세탁 시설, 곰팡이·습기 방지와 각 Resident room의 Fixed heater 등이 포함됩니다."], bullets: ["Consumer Affairs Victoria Public register에서 주소 확인", "Operator와 계약 상대 이름 확인", "Exclusive room인지 Shared room인지 서면으로 확인", "House rules와 Condition report 받기", "Bond·Rent 영수증과 퇴거 통지 방식 확인"] },
+      { heading: "‘안전한 동네’ 한 줄 평보다 공식 통계를 조심스럽게 보세요", paragraphs: ["Victoria Crime Statistics Agency는 LGA·Postcode·Suburb 단위로 경찰에 기록된 범죄 데이터를 제공합니다. 후보 지역을 비교할 때는 전체 숫자 하나보다 범죄 유형, 인구 대비 Rate와 여러 해의 변화를 함께 보세요.", "이 자료는 경찰에 신고되거나 기록된 사건을 보여주므로 실제로 발생한 모든 일이나 개인의 피해 가능성을 그대로 뜻하지 않습니다. CBD나 상업지역처럼 유동인구가 많은 곳은 거주인구 기준 Rate만으로 해석하기 어려울 수도 있습니다."], bullets: ["한 해의 급등보다 여러 해 추세 보기", "Property offence와 Crimes against the person을 구분", "낮과 밤에 역에서 집까지 직접 걸어보기", "가로등·늦게 여는 가게·막힌 골목과 Help point 확인", "지역 이름이나 주거 형태만으로 사람을 단정하지 않기"] },
+      { heading: "마지막 선택은 Rent가 아니라 일주일 전체 비용으로 비교하세요", bullets: ["주당 Rent와 공과금 포함 범위", "주 5일 왕복 이동시간", "myki 비용과 늦은 밤 대체 교통비", "난방비와 집의 단열·결로 상태", "세탁·냉장고·개인 수납처럼 공유생활 비용", "계약 형태와 Bond 보호 방식"], paragraphs: ["Rent가 조금 싼 집이라도 매일 환승 시간이 길고 겨울 난방비나 Ride-share 비용이 반복되면 실제 부담은 더 커질 수 있습니다. 후보 집마다 같은 항목을 적고, 돈과 시간 그리고 계약 안전성을 한 표에서 비교하세요."] },
+    ],
+    sources: [
+      { label: "Public Transport Victoria — Visiting Melbourne and Victoria", href: "https://www.ptv.vic.gov.au/more/travelling-on-the-network/visiting-melbourne-and-victoria/", summary: "Free Tram Zone의 범위, Zone 안 Tram만 이용할 때 myki가 필요 없다는 점과 Melbourne·Regional Victoria의 기본 교통 이용법을 안내합니다." },
+      { label: "Public Transport Victoria — Disruptions", href: "https://www.ptv.vic.gov.au/disruptions/disruptions-information/?n=", summary: "현재와 예정된 Train·Tram·Bus 운행 변경을 오늘, 이번 주와 전체 기간으로 나눠 확인할 수 있는 공식 화면입니다." },
+      { label: "Public Transport Victoria — Night Network", href: "https://www.ptv.vic.gov.au/getting-around/night-network/night-tram/", summary: "금요일과 토요일 밤의 Night Train·Night Tram·Night Bus 운행 방식과 해당 노선을 확인할 수 있습니다. 모든 노선의 운행 간격이 같지는 않으므로 실제 경로를 다시 검색해야 합니다." },
+      { label: "Consumer Affairs Victoria — Rental properties minimum standards", href: "https://www.consumer.vic.gov.au/housing/renting/repairs-alterations-safety-and-pets/minimum-standards/minimum-standards-for-rental-properties", summary: "Victoria Rental property의 Bathroom, Electrical safety, Heating, Locks, Mould and damp, Ventilation과 구조 안전 등 현재 Minimum standards를 설명합니다." },
+      { label: "Consumer Affairs Victoria — Rooming house minimum standards", href: "https://www.consumer.vic.gov.au/housing/renting/repairs-alterations-safety-and-pets/minimum-standards/rooming-house-minimum-standards", summary: "Rooming house의 정의와 방·욕실·주방·세탁·잠금·난방·안전 기준, Local council 등록과 기준 미충족 시 문의 방법을 안내합니다." },
+      { label: "Victoria Crime Statistics Agency — Crime by Location", href: "https://public.tableau.com/app/profile/crime.statistics.agency.victoria/viz/CrimeByLocationtool/CriminalIncidentsDashboard", summary: "Victoria 정부 Crime Statistics Agency가 제공하는 지역별 공식 시각화로 LGA·Postcode·Suburb의 기록된 Criminal incidents와 추세를 비교할 수 있습니다." },
+    ],
+  },
 ];
 
 export function getArticle(slug: string) { return articles.find((article) => article.slug === slug); }
