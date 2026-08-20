@@ -85,3 +85,7 @@ export function canCreateTestCheckout() {
     && readiness.stripeConfigured
     && readiness.managedPaymentsConfigured;
 }
+
+export function isResumeProLive() {
+  return process.env.VERCEL_ENV === "production" && getPaymentReadiness().ready;
+}

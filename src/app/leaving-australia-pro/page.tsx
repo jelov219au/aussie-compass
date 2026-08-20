@@ -5,7 +5,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { Container } from "@/components/ui/Container";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata = createPageMetadata({ title: "Leaving Australia Pack Pro 미리보기 | Hoju Compass", description: "호주 출국 전후 업무와 마지막 정산을 날짜순으로 추적하고 개인 귀국 준비 요약을 만드는 Pro 개발판입니다.", path: "/leaving-australia-pro" });
+export const metadata = createPageMetadata({ title: "Leaving Australia Pack Pro 미리보기 | Hoju Compass", description: "호주 출국 전후 업무와 마지막 정산을 날짜순으로 추적하고 개인 귀국 준비 요약을 만드는 출시 전 기능 구성을 살펴보세요.", path: "/leaving-australia-pro" });
 
 const features = [
   ["01", "Ordered departure", "출국 전과 출국 후 업무를 한 흐름에서 상태별로 관리합니다."],

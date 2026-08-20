@@ -32,14 +32,13 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Keyboard-friendly skip navigation for faster access to page content
 - Reduced-motion support that follows the visitor's device accessibility setting
 - English resume builder with Korean-to-English resume suggestions, example sentences, colour and density themes, live preview, local autosave, draft backup, ATS-friendly text copy, and print/PDF output
-- Resume Pro product preview with premium template directions, a free-versus-Pro comparison, and a clearly labelled pre-payment state
-- Resume Pro development workspace with a local-only cover-letter draft, job-ad keyword check, and saved-resume connection
+- Live Resume Pro one-time purchase with Stripe Checkout, signed-webhook entitlement delivery, recovery codes, refund revocation, premium layouts, cover-letter drafting, job-ad keyword checks, and saved-resume connection
 - EOFY Pack Pro product preview with an evidence register, accountant-handoff summary, annual backup concept, and free-versus-Pro boundary
 - EOFY Pack Pro local workspace for income-source readiness, deduction-candidate evidence notes, accountant questions, and a text summary without receipt uploads or refund estimates
 - Rental Application Pack Pro preview and local workspace with document readiness, privacy checks, an English introduction draft, and text-package export without document uploads
 - Leaving Australia Pack Pro preview and local workspace with ordered departure tasks, expected-payment follow-up, confirmation questions, and a text handoff without sensitive identifiers
 - Pay Evidence Pack Pro preview and local workspace with period-by-period gross comparisons, evidence readiness, an English review request, and a text handoff without source-document uploads
-- Hoju Compass Pro comparison hub with a situation-based product finder, transparent free-versus-paid boundaries, pricing candidates, and direct access to all development workspaces
+- Hoju Compass Pro comparison hub with a situation-based product finder, environment-aware Resume Pro availability, transparent free-versus-paid boundaries, and clearly labelled pricing candidates for local-only prototypes
 - Local-development operator workspace for campaign links, social cards, content scheduling and aggregate performance records; excluded from public tools, search, sitemap and device backups, with production routes returning 404 until admin authentication is added
 - Payment readiness contract for an Australian sole trader, with registered-business and legal-seller separation, secret-safe launch diagnostics, signed access-session tests, and payments disabled until Stripe, webhooks, entitlement storage, seller details and support are configured
 - Cost of living calculator with mixed payment frequencies, income comparison, local autosave, custom expenses, and printable results

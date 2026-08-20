@@ -5,7 +5,7 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { Container } from "@/components/ui/Container";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata = createPageMetadata({ title: "Pay Evidence Pack Pro 미리보기 | Hoju Compass", description: "근무기록과 Payslip을 급여기간별로 대조하고 증빙 요약과 영문 급여 확인 요청문을 만드는 Pro 개발판입니다.", path: "/pay-evidence-pro" });
+export const metadata = createPageMetadata({ title: "Pay Evidence Pack Pro 미리보기 | Hoju Compass", description: "근무기록과 Payslip을 급여기간별로 대조하고 증빙 요약과 영문 급여 확인 요청문을 만드는 출시 전 기능 구성을 살펴보세요.", path: "/pay-evidence-pro" });
 const features = [
   ["01", "Period ledger", "근무시간, 기대 Gross, Payslip Gross와 Net 입금액을 올바른 기준끼리 비교합니다."],
   ["02", "Evidence readiness", "근무기록·Roster·Payslip·적용 기준과 대화 기록의 준비 상태를 점검합니다."],

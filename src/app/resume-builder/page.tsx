@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ResumeBuilder } from "@/components/tools/ResumeBuilder";
 import { Container } from "@/components/ui/Container";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { isResumeProLive } from "@/lib/commerce";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -13,6 +14,8 @@ export const metadata = createPageMetadata({
 });
 
 export default function ResumeBuilderPage() {
+  const resumeProLive = isResumeProLive();
+
   return (
     <>
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "영문 이력서 빌더", path: "/resume-builder" }]} />
@@ -27,11 +30,11 @@ export default function ResumeBuilderPage() {
           </div>
           <aside className="mb-8 grid gap-5 border-y border-navy/20 py-5 sm:grid-cols-[1fr_auto] sm:items-center" aria-labelledby="resume-pro-preview-heading">
             <div>
-              <p className="text-xs font-semibold text-gold">Resume Pro 준비 중</p>
-              <h2 id="resume-pro-preview-heading" className="mt-2 text-lg font-semibold text-navy">커버레터와 회사별 지원서 묶음도 준비하고 있어요.</h2>
-              <p className="mt-1 text-sm leading-6 text-muted">이력서 만들기는 계속 무료예요. 회사마다 반복되는 지원 준비를 줄여주는 기능만 Pro로 나눌 예정입니다.</p>
+              <p className="text-xs font-semibold text-gold">{resumeProLive ? "Resume Pro 이용 가능" : "Resume Pro 출시 준비 중"}</p>
+              <h2 id="resume-pro-preview-heading" className="mt-2 text-lg font-semibold text-navy">커버레터와 회사별 지원서 묶음까지 이어서 준비할 수 있어요.</h2>
+              <p className="mt-1 text-sm leading-6 text-muted">이력서 만들기는 계속 무료예요. 회사마다 반복되는 지원 준비를 줄여주는 기능만 Resume Pro로 제공합니다.</p>
             </div>
-            <Link href="/resume-pro" className="inline-flex min-h-11 items-center justify-center border-b-2 border-gold text-sm font-semibold text-navy">Resume Pro 미리보기 <span className="ml-3" aria-hidden="true">→</span></Link>
+            <Link href="/resume-pro" className="inline-flex min-h-11 items-center justify-center border-b-2 border-gold text-sm font-semibold text-navy">{resumeProLive ? "Resume Pro 시작하기" : "Resume Pro 살펴보기"} <span className="ml-3" aria-hidden="true">→</span></Link>
           </aside>
           <ResumeBuilder />
           <section className="mt-10 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="resume-tips-heading">
