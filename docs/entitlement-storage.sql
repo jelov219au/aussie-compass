@@ -16,7 +16,7 @@ create table if not exists payment_webhook_events (
 
 create table if not exists purchase_entitlements (
   id bigint generated always as identity primary key,
-  product_code text not null check (product_code in ('resume_pro', 'rental_application_pro')),
+  product_code text not null check (product_code in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro')),
   status text not null check (status in ('active', 'revoked', 'review')),
   stripe_checkout_session_id text unique,
   stripe_payment_intent_id text unique,
@@ -55,7 +55,7 @@ alter table purchase_entitlements
 
 alter table purchase_entitlements
   add constraint purchase_entitlements_product_code_check
-  check (product_code in ('resume_pro', 'rental_application_pro'));
+  check (product_code in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro'));
 
 create index if not exists purchase_entitlements_customer_idx
   on purchase_entitlements (stripe_customer_id)

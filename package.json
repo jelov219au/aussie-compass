@@ -11,6 +11,7 @@
     "test:stripe-contract": "node scripts/check-stripe-checkout-contract.mjs",
     "test:entitlement-commands": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-entitlement-commands.mjs",
     "test:resume-pro-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-resume-pro-tokens.mjs",
+    "test:pay-evidence-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-pay-evidence-tokens.mjs",
     "test:entitlement-ordering": "node scripts/check-entitlement-ordering.mjs",
     "test:product-entitlements": "node scripts/check-product-entitlement-isolation.mjs",
     "test:accounting-contract": "node scripts/check-accounting-export-contract.mjs",

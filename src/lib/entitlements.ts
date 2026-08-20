@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 export const supportedProductCodes = [
   "resume_pro",
   "rental_application_pro",
+  "pay_evidence_pro",
 ] as const;
 
 export type ProductCode = (typeof supportedProductCodes)[number];

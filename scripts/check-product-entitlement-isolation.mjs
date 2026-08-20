@@ -5,7 +5,7 @@ const entitlements = await readFile(new URL("../src/lib/entitlements.ts", import
 const entitlementStore = await readFile(new URL("../src/lib/neonEntitlementStore.ts", import.meta.url), "utf8");
 const storageContract = await readFile(new URL("../docs/entitlement-storage.sql", import.meta.url), "utf8");
 
-for (const productCode of ["resume_pro", "rental_application_pro"]) {
+for (const productCode of ["resume_pro", "rental_application_pro", "pay_evidence_pro"]) {
   assert.ok(entitlements.includes(`"${productCode}"`), `Supported product code is missing: ${productCode}`);
   assert.ok(storageContract.includes(`'${productCode}'`), `Database product constraint is missing: ${productCode}`);
 }

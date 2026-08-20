@@ -13,7 +13,16 @@ export const resumeProProduct = {
   billing: "one_time",
 } as const;
 
+export const payEvidenceProduct = {
+  id: "pay-evidence-pro",
+  name: "Pay Evidence Pro",
+  currency: "aud",
+  priceCents: 990,
+  billing: "one_time",
+} as const;
+
 export const resumeProPurchaseTermsVersion = "2026-08-19";
+export const payEvidencePurchaseTermsVersion = "2026-08-21";
 
 export type PaymentReadiness = {
   enabled: boolean;
@@ -29,11 +38,11 @@ export type PaymentReadiness = {
 
 let hasLoggedIncompleteProductionReadiness = false;
 
-export function getPaymentReadiness(): PaymentReadiness {
+function getPaymentReadinessForPrice(priceId: string | undefined, logIncompleteProductionReadiness: boolean): PaymentReadiness {
   const enabled = process.env.PAYMENTS_ENABLED === "true";
   const stripeMode = getStripeSecretMode();
   const expectedStripeMode = process.env.VERCEL_ENV === "production" ? "live" : "test";
-  const stripePriceConfigured = Boolean(process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_"));
+  const stripePriceConfigured = Boolean(priceId?.trim().startsWith("price_"));
   const stripeConfigured = stripeMode === expectedStripeMode && stripePriceConfigured;
   const managedPaymentsConfigured = process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true";
   const webhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_"));
@@ -58,6 +67,7 @@ export function getPaymentReadiness(): PaymentReadiness {
     enabled
     && process.env.VERCEL_ENV === "production"
     && !ready
+    && logIncompleteProductionReadiness
     && !hasLoggedIncompleteProductionReadiness
   ) {
     hasLoggedIncompleteProductionReadiness = true;
@@ -78,6 +88,10 @@ export function getPaymentReadiness(): PaymentReadiness {
   return { enabled, stripeConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, ready };
 }
 
+export function getPaymentReadiness(): PaymentReadiness {
+  return getPaymentReadinessForPrice(process.env.STRIPE_RESUME_PRO_PRICE_ID, true);
+}
+
 export function canCreateTestCheckout() {
   const readiness = getPaymentReadiness();
   return process.env.VERCEL_ENV !== "production"
@@ -88,4 +102,16 @@ export function canCreateTestCheckout() {
 
 export function isResumeProLive() {
   return process.env.VERCEL_ENV === "production" && getPaymentReadiness().ready;
+}
+
+export function getPayEvidencePaymentReadiness(): PaymentReadiness {
+  return getPaymentReadinessForPrice(process.env.STRIPE_PAY_EVIDENCE_PRO_PRICE_ID, false);
+}
+
+export function canCreatePayEvidenceTestCheckout() {
+  const readiness = getPayEvidencePaymentReadiness();
+  return process.env.VERCEL_ENV !== "production"
+    && readiness.enabled
+    && readiness.stripeConfigured
+    && readiness.managedPaymentsConfigured;
 }
