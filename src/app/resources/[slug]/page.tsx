@@ -7,7 +7,15 @@ import { PageShareButton } from "@/components/pwa/PageShareButton";
 import { ArticleReadingNav } from "@/components/resources/ArticleReadingNav";
 import { Container } from "@/components/ui/Container";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
-import { articles, getArticle, getRelatedArticles } from "@/data/articles";
+import {
+  articleContentTypeLabels,
+  articleRegionLabels,
+  articles,
+  getArticle,
+  getArticleContentType,
+  getArticleRegion,
+  getRelatedArticles,
+} from "@/data/articles";
 import { createPageMetadata } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -64,6 +72,14 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           </Link>
           <article className="mx-auto mt-5 max-w-4xl">
             <header className="border-t-2 border-navy pt-7">
+              <div className="mb-5 flex flex-wrap gap-2">
+                <span className="border border-border bg-white/60 px-3 py-1.5 text-xs font-semibold text-navy">
+                  {articleRegionLabels[getArticleRegion(article)]}
+                </span>
+                <span className="border border-gold/50 bg-[#f7f0d9] px-3 py-1.5 text-xs font-semibold text-navy">
+                  {articleContentTypeLabels[getArticleContentType(article)]}
+                </span>
+              </div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">
                 {article.category} · 읽는 시간 {article.readingTime} · <time dateTime={article.updatedAt ?? article.publishedAt}>{article.updatedAt ? "업데이트" : "발행"} {(article.updatedAt ?? article.publishedAt).replaceAll("-", ".")}</time>
               </p>

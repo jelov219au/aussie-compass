@@ -5,6 +5,8 @@ export type Article = {
   socialTitle: string;
   description: string;
   category: string;
+  region?: ArticleRegionId;
+  contentType?: ArticleContentTypeId;
   readingTime: string;
   publishedAt: string;
   updatedAt?: string;
@@ -23,6 +25,33 @@ export const articleTopicCategories: Record<ArticleTopicId, string[]> = {
   home: ["집 구하기", "임대 입주", "차량 구매"],
   money: ["저축과 생활비", "생활비", "공과금", "소비자 권리"],
 };
+
+export type ArticleRegionId = "australia" | "nsw" | "vic" | "qld" | "wa" | "sa" | "tas";
+export type ArticleContentTypeId = "official" | "experience" | "community";
+
+export const articleRegionLabels: Record<ArticleRegionId, string> = {
+  australia: "호주 공통",
+  nsw: "NSW · 시드니",
+  vic: "VIC · 멜번",
+  qld: "QLD · 브리즈번",
+  wa: "WA · 퍼스",
+  sa: "SA · 애들레이드",
+  tas: "TAS · 호바트",
+};
+
+export const articleContentTypeLabels: Record<ArticleContentTypeId, string> = {
+  official: "공식 자료로 확인한 글",
+  experience: "직접 겪은 이야기",
+  community: "현지 생활자가 들려준 경험",
+};
+
+export function getArticleRegion(article: Article): ArticleRegionId {
+  return article.region ?? "australia";
+}
+
+export function getArticleContentType(article: Article): ArticleContentTypeId {
+  return article.contentType ?? "official";
+}
 
 export const articles: Article[] = [
   {
@@ -541,6 +570,8 @@ export const articles: Article[] = [
     socialTitle: "What share house photos never show you",
     description: "광각 사진과 밝은 조명 뒤에 가려진 방 크기, 냄새, 소음과 생활 규칙까지. 처음 집을 볼 때 직접 확인해야 할 순서를 경험과 공식 기준으로 정리했습니다.",
     category: "집 구하기",
+    region: "nsw",
+    contentType: "experience",
     readingTime: "9분",
     publishedAt: "2026-08-20",
     updatedAt: "2026-08-20",
@@ -569,6 +600,8 @@ export const articles: Article[] = [
     socialTitle: "A Sydney commute can change completely on weekends",
     description: "역과 직선거리만 보고 집을 고르면 주말 선로 공사와 대체버스에서 예상 밖의 시간을 쓸 수 있습니다. 계약 전 실제 Door-to-door 이동을 확인하는 방법입니다.",
     category: "집 구하기",
+    region: "nsw",
+    contentType: "experience",
     readingTime: "8분",
     publishedAt: "2026-08-20",
     updatedAt: "2026-08-20",
@@ -596,6 +629,8 @@ export const articles: Article[] = [
     socialTitle: "What to check before renting in Melbourne",
     description: "Free Tram Zone과 실제 통근 범위, 주말 공사, 야간 교통, 난방·곰팡이와 Rooming house 등록까지. 멜번 집을 고르기 전 확인할 공식 기준을 정리했습니다.",
     category: "집 구하기",
+    region: "vic",
+    contentType: "official",
     readingTime: "10분",
     publishedAt: "2026-08-20",
     updatedAt: "2026-08-20",

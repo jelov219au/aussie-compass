@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { articleTopicCategories, type Article, type ArticleTopicId } from "@/data/articles";
+import {
+  articleContentTypeLabels,
+  articleRegionLabels,
+  articleTopicCategories,
+  getArticleContentType,
+  getArticleRegion,
+  type Article,
+  type ArticleRegionId,
+  type ArticleTopicId,
+} from "@/data/articles";
 import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory } from "@/lib/articleProgress";
 
 const filters = [
@@ -14,6 +23,7 @@ const filters = [
 ] as const;
 
 type FilterId = (typeof filters)[number]["id"];
+type RegionFilterId = "all" | ArticleRegionId;
 
 function searchableText(article: Article) {
   const sectionText = article.sections.flatMap((section) => [
@@ -29,6 +39,7 @@ function searchableText(article: Article) {
 
 export function ResourcesDirectory({ articles }: { articles: Article[] }) {
   const [active, setActive] = useState<FilterId>("all");
+  const [activeRegion, setActiveRegion] = useState<RegionFilterId>("all");
   const [query, setQuery] = useState("");
   const [readHrefs, setReadHrefs] = useState<Set<string>>(new Set());
 
@@ -49,15 +60,29 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
     return articles.filter((article) => {
       const matchesCategory =
         active === "all" || articleTopicCategories[active as ArticleTopicId].includes(article.category);
+      const matchesRegion = activeRegion === "all" || getArticleRegion(article) === activeRegion;
       const matchesQuery =
         normalizedQuery.length === 0 || searchableText(article).includes(normalizedQuery);
 
-      return matchesCategory && matchesQuery;
+      return matchesCategory && matchesRegion && matchesQuery;
     });
-  }, [active, articles, query]);
+  }, [active, activeRegion, articles, query]);
+
+  const regionFilters = useMemo(() => {
+    const counts = articles.reduce((result, article) => {
+      const region = getArticleRegion(article);
+      result.set(region, (result.get(region) ?? 0) + 1);
+      return result;
+    }, new Map<ArticleRegionId, number>());
+
+    return (["australia", "nsw", "vic"] as ArticleRegionId[])
+      .filter((region) => counts.has(region))
+      .map((region) => ({ id: region, label: articleRegionLabels[region], count: counts.get(region) ?? 0 }));
+  }, [articles]);
 
   const reset = () => {
     setActive("all");
+    setActiveRegion("all");
     setQuery("");
   };
 
@@ -88,6 +113,32 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
               </button>
             ))}
           </div>
+          <div className="mt-4 flex items-center gap-3 overflow-x-auto border-t border-border/70 pt-4" role="group" aria-label="자료 지역 필터">
+            <span className="shrink-0 text-xs font-semibold text-muted">지역</span>
+            <button
+              type="button"
+              aria-pressed={activeRegion === "all"}
+              onClick={() => setActiveRegion("all")}
+              className={`min-h-9 shrink-0 border px-3 text-xs font-semibold transition ${
+                activeRegion === "all" ? "border-navy bg-navy text-white" : "border-border bg-white/50 text-muted hover:border-navy hover:text-navy"
+              }`}
+            >
+              전체 {articles.length}
+            </button>
+            {regionFilters.map((filter) => (
+              <button
+                key={filter.id}
+                type="button"
+                aria-pressed={activeRegion === filter.id}
+                onClick={() => setActiveRegion(filter.id)}
+                className={`min-h-9 shrink-0 border px-3 text-xs font-semibold transition ${
+                  activeRegion === filter.id ? "border-navy bg-navy text-white" : "border-border bg-white/50 text-muted hover:border-navy hover:text-navy"
+                }`}
+              >
+                {filter.label} {filter.count}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div>
@@ -114,7 +165,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
         <p className="text-sm text-muted" aria-live="polite">
           <strong className="font-semibold text-navy">{visible.length}개</strong>의 자료
         </p>
-        {(active !== "all" || query) && (
+        {(active !== "all" || activeRegion !== "all" || query) && (
           <button type="button" onClick={reset} className="min-h-11 text-sm font-semibold text-navy underline decoration-gold underline-offset-4">
             필터 초기화
           </button>
@@ -138,6 +189,14 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
                     </p>
                     <span className="font-mono text-xs text-muted/70">
                       {String(index + 1).padStart(2, "0")} / {String(visible.length).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <span className="border border-border bg-white/60 px-2.5 py-1 text-[0.68rem] font-semibold text-navy">
+                      {articleRegionLabels[getArticleRegion(article)]}
+                    </span>
+                    <span className="border border-gold/50 bg-[#f7f0d9] px-2.5 py-1 text-[0.68rem] font-semibold text-navy">
+                      {articleContentTypeLabels[getArticleContentType(article)]}
                     </span>
                   </div>
                   <h3 className="mt-5 max-w-xl text-xl font-semibold leading-8 tracking-tight text-navy sm:text-2xl">
