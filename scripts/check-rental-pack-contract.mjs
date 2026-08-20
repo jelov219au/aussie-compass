@@ -4,6 +4,7 @@ import process from "node:process";
 const workspace = await readFile(new URL("../src/components/tools/RentalApplicationWorkspace.tsx", import.meta.url), "utf8");
 const publicPage = await readFile(new URL("../src/app/rental-application-pro/page.tsx", import.meta.url), "utf8");
 const printStyles = await readFile(new URL("../src/app/globals.css", import.meta.url), "utf8");
+const jurisdictions = await readFile(new URL("../src/data/rentalJurisdictions.ts", import.meta.url), "utf8");
 
 const contracts = [
   [workspace.includes('version: 2'), "versioned local workspace"],
@@ -14,6 +15,7 @@ const contracts = [
   [workspace.includes('application-pack.txt') && workspace.includes('application/json;charset=utf-8'), "per-property and whole-workspace exports"],
   [workspace.includes('restoreBackup') && workspace.includes('백업 복원') && workspace.includes('candidate.version !== 2'), "validated whole-workspace restore"],
   [workspace.includes('nextActionStatus') && workspace.includes('일 지남') && workspace.includes('다음 행동 ·'), "relative due-action warnings"],
+  [workspace.includes('activeJurisdiction') && jurisdictions.includes('["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"]'), "eight-jurisdiction official guidance"],
   [workspace.includes('id="rental-application-print"') && printStyles.includes('#rental-application-print'), "print-to-PDF output"],
   [publicPage.includes('결제 미오픈') && publicPage.includes('최대 20개 집 후보'), "honest pre-sale public copy"],
 ];

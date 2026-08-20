@@ -16,8 +16,8 @@ export const metadata = createPageMetadata({
 const features = [
   ["01", "Application tracker", "여러 집 후보를 한곳에서 관리하고 인스펙션, 신청, 후속 연락과 결과까지 상태와 다음 행동을 기록합니다."],
   ["02", "Reusable profile", "입주 인원·고용·임대 이력 같은 공통 내용을 한 번 정리하고 새 집 후보에 반복해서 활용합니다."],
-  ["03", "Privacy & documents", "집별 서류 준비 상태와 TFN·거래내역·신청 링크·보관기간 점검을 분리해서 관리합니다."],
-  ["04", "Messages & export", "신청 소개, 인스펙션 후 문의, 제출 후 확인 문구를 만들고 집별 PDF·TXT와 전체 JSON 백업을 저장합니다."],
+  ["03", "State & privacy", "집마다 주·준주 공식 신청 안내를 연결하고 TFN·거래내역·신청 링크·보관기간을 점검합니다."],
+  ["04", "Messages & export", "신청 소개, 인스펙션 후 문의, 제출 후 확인 문구와 관할 체크를 PDF·TXT·JSON으로 저장합니다."],
 ];
 
 const comparison = [
@@ -26,6 +26,7 @@ const comparison = [
   ["렌트 신청 서류 상태 관리", false, true],
   ["개인정보 과다 제출 점검", false, true],
   ["여러 집 후보·다음 행동 추적", false, true],
+  ["집 후보별 8개 주·준주 공식 신청 안내", false, true],
   ["상황별 영문 연락 문구 3종", false, true],
   ["집별 PDF·TXT와 전체 백업", false, true],
 ] as const;
