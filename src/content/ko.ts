@@ -12,7 +12,7 @@ export const ko: SiteContent = {
     exploreTools: "도구 찾기",
   },
   hero: {
-    label: "낯선 호주 생활에 필요한 안내",
+    label: "먼저 겪어본 사람이 건네는 호주 생활 안내",
     heading: "호주 생활과 직장 생활, 더 이상 혼자 헤매지 마세요.",
     description:
       "비자와 첫 정착부터 급여, 집, 세금, 귀국 준비까지. 복잡한 공식 정보는 쉽게 풀고, 지금 해볼 일은 바로 쓸 수 있는 도구로 준비했어요.",

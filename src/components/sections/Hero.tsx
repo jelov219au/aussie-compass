@@ -29,6 +29,16 @@ export function Hero() {
               {content.hero.description}
             </p>
 
+            <div className="mt-6 max-w-2xl border-l-2 border-gold/70 pl-5 sm:pl-6">
+              <p className="text-xs font-semibold tracking-[0.14em] text-[#9e593b]">Hoju Compass를 만든 이유</p>
+              <p className="mt-3 text-sm leading-7 text-navy-light sm:text-[0.98rem] sm:leading-7">
+                처음 워킹홀리데이를 준비할 때는 필요한 정보를 찾느라 유튜브 브이로그와 블로그를 오가며 참 많은 시간을 썼습니다. 막상 호주에서는 Payslip을 받지 못하고 받아야 할 수당이 빠지거나, 갑자기 Shift가 줄고 살던 집에서 급히 나와 새 집을 찾아야 하는 일도 겪었어요.
+              </p>
+              <p className="mt-3 text-sm leading-7 text-navy-light sm:text-[0.98rem] sm:leading-7">
+                그때마다 ‘미리 알았더라면 조금 덜 막막했을 텐데’라는 생각이 들었습니다. 같은 어려움을 겪는 사람이 한 명이라도 줄고, 문제가 생겼을 때 바로 확인할 곳이 있기를 바라며 Hoju Compass를 만들었습니다.
+              </p>
+            </div>
+
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Button href="#route-finder">
                 {content.hero.primaryCta}
