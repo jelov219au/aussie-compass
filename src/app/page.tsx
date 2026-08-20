@@ -8,6 +8,7 @@ import { PersonalRouteFinder } from "@/components/sections/PersonalRouteFinder";
 import { PremiumToolsSection } from "@/components/sections/PremiumToolsSection";
 import { HomeSearch } from "@/components/sections/HomeSearch";
 import { HomeTrustBar } from "@/components/sections/HomeTrustBar";
+import { ExperienceStoriesSection } from "@/components/sections/ExperienceStoriesSection";
 
 export default function HomePage() {
   return (
@@ -19,6 +20,7 @@ export default function HomePage() {
         <ToolsSection />
         <ReturnVisitSection />
         <PersonalRouteFinder />
+        <ExperienceStoriesSection />
         <ArticlesSection />
         <HomeTrustBar />
         <PremiumToolsSection />
