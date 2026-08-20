@@ -8,8 +8,8 @@ export type SearchItem = { href: string; type: "도구" | "가이드" | "자료"
 const suggestions = ["TFN", "Bond", "전기 요금", "세후 급여", "영문 이력서", "택스 리턴", "Super 환급", "중고거래", "통역", "교통"];
 const normalize = (value: string) => value.toLocaleLowerCase("ko-KR").replace(/\s+/g, "").replace(/[·/–—-]/g, "");
 
-export function SiteSearch({ items }: { items: SearchItem[] }) {
-  const [query, setQuery] = useState("");
+export function SiteSearch({ items, initialQuery = "" }: { items: SearchItem[]; initialQuery?: string }) {
+  const [query, setQuery] = useState(initialQuery);
   const normalized = normalize(query.trim());
   const results = useMemo(() => {
     if (!normalized) return items;

@@ -6,6 +6,8 @@ import { ArticlesSection } from "@/components/sections/ArticlesSection";
 import { ReturnVisitSection } from "@/components/sections/ReturnVisitSection";
 import { PersonalRouteFinder } from "@/components/sections/PersonalRouteFinder";
 import { PremiumToolsSection } from "@/components/sections/PremiumToolsSection";
+import { HomeSearch } from "@/components/sections/HomeSearch";
+import { HomeTrustBar } from "@/components/sections/HomeTrustBar";
 
 export default function HomePage() {
   return (
@@ -13,10 +15,12 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
+        <HomeSearch />
         <ToolsSection />
         <ReturnVisitSection />
         <PersonalRouteFinder />
         <ArticlesSection />
+        <HomeTrustBar />
         <PremiumToolsSection />
       </main>
       <Footer />
