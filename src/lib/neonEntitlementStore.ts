@@ -141,6 +141,30 @@ async function findActiveByCheckoutSession(checkoutSessionId: string, productCod
   return rows[0] ? toEntitlementRecord(rows[0]) : null;
 }
 
+async function findByCheckoutSession(checkoutSessionId: string, productCode: ProductCode) {
+  if (!/^cs_(?:test|live)_[A-Za-z0-9]+$/.test(checkoutSessionId)) return null;
+
+  const sql = neon(getConnectionString());
+  const rows = await sql`
+    select
+      id,
+      product_code,
+      status,
+      stripe_checkout_session_id,
+      stripe_payment_intent_id,
+      stripe_charge_id,
+      stripe_customer_id,
+      granted_at,
+      revoked_at
+    from purchase_entitlements
+    where stripe_checkout_session_id = ${checkoutSessionId}
+      and product_code = ${productCode}
+    limit 1
+  ` as EntitlementRow[];
+
+  return rows[0] ? toEntitlementRecord(rows[0]) : null;
+}
+
 async function findActiveById(entitlementId: string, productCode: ProductCode) {
   if (!/^\d+$/.test(entitlementId)) return null;
 
@@ -203,6 +227,7 @@ async function createRestoreTokenHash(input: {
 export const neonEntitlementStore: EntitlementStore = {
   applyStripeEvent,
   consumeRestoreTokenHash,
+  findByCheckoutSession,
   findActiveByCheckoutSession,
   findActiveById,
   createRestoreTokenHash,
