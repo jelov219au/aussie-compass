@@ -75,7 +75,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
       return result;
     }, new Map<ArticleRegionId, number>());
 
-    return (["australia", "nsw", "vic"] as ArticleRegionId[])
+    return (["australia", "nsw", "vic", "qld", "wa", "sa", "tas"] as ArticleRegionId[])
       .filter((region) => counts.has(region))
       .map((region) => ({ id: region, label: articleRegionLabels[region], count: counts.get(region) ?? 0 }));
   }, [articles]);
