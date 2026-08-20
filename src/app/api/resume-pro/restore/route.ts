@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.redirect(new URL("/resume-pro/restore?status=invalid", request.url), 303);
   }
 
-  const entitlement = await store.consumeRestoreTokenHash(hashRestoreCode(code));
+  const entitlement = await store.consumeRestoreTokenHash(hashRestoreCode(code), "resume_pro");
   if (!entitlement || entitlement.productCode !== "resume_pro" || entitlement.status !== "active") {
     return NextResponse.redirect(new URL("/resume-pro/restore?status=invalid", request.url), 303);
   }

@@ -7,13 +7,14 @@ import type {
   EntitlementCommand,
   EntitlementRecord,
   EntitlementStore,
+  ProductCode,
   StripeEventReceipt,
 } from "@/lib/entitlements";
 
 type EntitlementRow = {
   outcome?: "processed" | "duplicate" | "ignored_stale";
   id: string | number | bigint;
-  product_code: "resume_pro";
+  product_code: ProductCode;
   status: "active" | "revoked" | "review";
   stripe_checkout_session_id: string | null;
   stripe_payment_intent_id: string | null;
@@ -82,7 +83,7 @@ async function applyStripeEvent(input: {
   } as const;
 }
 
-async function consumeRestoreTokenHash(tokenHash: string) {
+async function consumeRestoreTokenHash(tokenHash: string, productCode: ProductCode) {
   if (!/^[a-f0-9]{64}$/i.test(tokenHash)) return null;
 
   const sql = neon(getConnectionString());
@@ -93,6 +94,9 @@ async function consumeRestoreTokenHash(tokenHash: string) {
       where token_hash = ${tokenHash.toLowerCase()}
         and used_at is null
         and expires_at > now()
+        and entitlement_id in (
+          select id from purchase_entitlements where product_code = ${productCode}
+        )
       returning entitlement_id
     )
     select
@@ -112,7 +116,7 @@ async function consumeRestoreTokenHash(tokenHash: string) {
   return rows[0] ? toEntitlementRecord(rows[0]) : null;
 }
 
-async function findActiveByCheckoutSession(checkoutSessionId: string) {
+async function findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode) {
   if (!/^cs_(?:test|live)_[A-Za-z0-9]+$/.test(checkoutSessionId)) return null;
 
   const sql = neon(getConnectionString());
@@ -129,7 +133,7 @@ async function findActiveByCheckoutSession(checkoutSessionId: string) {
       revoked_at
     from purchase_entitlements
     where stripe_checkout_session_id = ${checkoutSessionId}
-      and product_code = 'resume_pro'
+      and product_code = ${productCode}
       and status = 'active'
     limit 1
   ` as EntitlementRow[];
@@ -137,7 +141,7 @@ async function findActiveByCheckoutSession(checkoutSessionId: string) {
   return rows[0] ? toEntitlementRecord(rows[0]) : null;
 }
 
-async function findActiveById(entitlementId: string) {
+async function findActiveById(entitlementId: string, productCode: ProductCode) {
   if (!/^\d+$/.test(entitlementId)) return null;
 
   const sql = neon(getConnectionString());
@@ -154,7 +158,7 @@ async function findActiveById(entitlementId: string) {
       revoked_at
     from purchase_entitlements
     where id = ${entitlementId}
-      and product_code = 'resume_pro'
+      and product_code = ${productCode}
       and status = 'active'
     limit 1
   ` as EntitlementRow[];
@@ -164,6 +168,7 @@ async function findActiveById(entitlementId: string) {
 
 async function createRestoreTokenHash(input: {
   entitlementId: string;
+  productCode: ProductCode;
   tokenHash: string;
   expiresAt: Date;
 }) {
@@ -177,7 +182,7 @@ async function createRestoreTokenHash(input: {
       select id
       from purchase_entitlements
       where id = ${input.entitlementId}
-        and product_code = 'resume_pro'
+        and product_code = ${input.productCode}
         and status = 'active'
     ), invalidated as (
       update purchase_restore_tokens

@@ -1,12 +1,23 @@
 import type Stripe from "stripe";
 
+export const supportedProductCodes = [
+  "resume_pro",
+  "rental_application_pro",
+] as const;
+
+export type ProductCode = (typeof supportedProductCodes)[number];
+
+export function isProductCode(value: string | null | undefined): value is ProductCode {
+  return supportedProductCodes.includes(value as ProductCode);
+}
+
 export type EntitlementAction = "grant" | "revoke" | "review";
 
 export type EntitlementCommand = {
   action: EntitlementAction;
   eventId: string;
   eventType: Stripe.Event.Type;
-  productCode?: "resume_pro";
+  productCode?: ProductCode;
   checkoutSessionId?: string;
   paymentIntentId?: string;
   chargeId?: string;
@@ -24,7 +35,7 @@ export type StripeEventReceipt = {
 
 export type EntitlementRecord = {
   id: string;
-  productCode: "resume_pro";
+  productCode: ProductCode;
   status: "active" | "revoked" | "review";
   checkoutSessionId?: string;
   paymentIntentId?: string;
@@ -43,14 +54,15 @@ export interface EntitlementStore {
     entitlement?: EntitlementRecord;
   }>;
 
-  consumeRestoreTokenHash(tokenHash: string): Promise<EntitlementRecord | null>;
+  consumeRestoreTokenHash(tokenHash: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
 
-  findActiveByCheckoutSession(checkoutSessionId: string): Promise<EntitlementRecord | null>;
+  findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
 
-  findActiveById(entitlementId: string): Promise<EntitlementRecord | null>;
+  findActiveById(entitlementId: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
 
   createRestoreTokenHash(input: {
     entitlementId: string;
+    productCode: ProductCode;
     tokenHash: string;
     expiresAt: Date;
   }): Promise<void>;
@@ -62,7 +74,8 @@ function expandableId(value: string | { id: string } | null | undefined) {
 }
 
 function checkoutCommand(event: Stripe.Event, session: Stripe.Checkout.Session): EntitlementCommand | null {
-  if (session.metadata?.product_code !== "resume_pro") return null;
+  const productCode = session.metadata?.product_code;
+  if (!isProductCode(productCode)) return null;
 
   const paymentIntentId = expandableId(session.payment_intent);
   const customerId = expandableId(session.customer);
@@ -84,7 +97,7 @@ function checkoutCommand(event: Stripe.Event, session: Stripe.Checkout.Session):
     action,
     eventId: event.id,
     eventType: event.type,
-    productCode: "resume_pro",
+    productCode,
     checkoutSessionId: session.id,
     paymentIntentId,
     customerId,

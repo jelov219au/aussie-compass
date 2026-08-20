@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.redirect(new URL("/resume-pro/success?status=unavailable", request.url), 303);
   }
 
-  const entitlement = await store.findActiveByCheckoutSession(session.id);
+  const entitlement = await store.findActiveByCheckoutSession(session.id, "resume_pro");
   if (!entitlement) {
     return NextResponse.redirect(new URL(`/resume-pro/success?session_id=${encodeURIComponent(session.id)}&status=pending`, request.url), 303);
   }

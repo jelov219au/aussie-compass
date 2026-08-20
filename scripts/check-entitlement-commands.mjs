@@ -26,10 +26,32 @@ assert.deepEqual(getEntitlementCommand(stripeEvent("checkout.session.completed",
   reason: "checkout_paid",
 });
 
+assert.deepEqual(
+  getEntitlementCommand(stripeEvent("checkout.session.completed", {
+    ...paidSession,
+    id: "cs_test_rental_paid",
+    metadata: { product_code: "rental_application_pro" },
+    payment_intent: "pi_rental_paid",
+    customer: "cus_rental_paid",
+  }, "evt_rental_checkout_completed")),
+  {
+    action: "grant",
+    eventId: "evt_rental_checkout_completed",
+    eventType: "checkout.session.completed",
+    productCode: "rental_application_pro",
+    checkoutSessionId: "cs_test_rental_paid",
+    paymentIntentId: "pi_rental_paid",
+    customerId: "cus_rental_paid",
+    referenceId: "cs_test_rental_paid",
+    reason: "checkout_paid",
+  },
+  "a Rental Application purchase must receive only its own product entitlement",
+);
+
 assert.equal(
   getEntitlementCommand(stripeEvent("checkout.session.completed", { ...paidSession, metadata: { product_code: "other" } })),
   null,
-  "unrelated products must never receive Resume Pro access",
+  "unknown products must never receive a paid-product entitlement",
 );
 assert.equal(
   getEntitlementCommand(stripeEvent("checkout.session.completed", { ...paidSession, payment_status: "unpaid" }))?.action,

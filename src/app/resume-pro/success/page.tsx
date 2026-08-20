@@ -32,7 +32,7 @@ export default async function ResumeProSuccessPage({ searchParams }: Props) {
       paid = true;
       testMode = !session.livemode;
       const store = getConfiguredEntitlementStore();
-      entitlementActive = Boolean(await store?.findActiveByCheckoutSession(session.id));
+      entitlementActive = Boolean(await store?.findActiveByCheckoutSession(session.id, "resume_pro"));
     }
   }
 

@@ -1,4 +1,4 @@
--- Hoju Compass Resume Pro entitlement storage contract.
+-- Hoju Compass paid-product entitlement storage contract.
 -- This is provider-neutral PostgreSQL DDL and is not connected to any live database.
 -- Apply a Stripe event and its entitlement change in one database transaction.
 
@@ -16,7 +16,7 @@ create table if not exists payment_webhook_events (
 
 create table if not exists purchase_entitlements (
   id bigint generated always as identity primary key,
-  product_code text not null check (product_code in ('resume_pro')),
+  product_code text not null check (product_code in ('resume_pro', 'rental_application_pro')),
   status text not null check (status in ('active', 'revoked', 'review')),
   stripe_checkout_session_id text unique,
   stripe_payment_intent_id text unique,
@@ -48,6 +48,14 @@ where entitlement.last_stripe_event_id = event.stripe_event_id
 
 alter table purchase_entitlements
   alter column last_stripe_event_created_at set not null;
+
+-- Idempotent expansion for databases created when Resume Pro was the only product.
+alter table purchase_entitlements
+  drop constraint if exists purchase_entitlements_product_code_check;
+
+alter table purchase_entitlements
+  add constraint purchase_entitlements_product_code_check
+  check (product_code in ('resume_pro', 'rental_application_pro'));
 
 create index if not exists purchase_entitlements_customer_idx
   on purchase_entitlements (stripe_customer_id)

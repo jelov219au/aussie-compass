@@ -66,7 +66,7 @@ export async function getActiveResumeProEntitlement() {
   const cookieStore = await cookies();
   const payload = decodeAccessToken(cookieStore.get(accessCookieName)?.value);
   if (!payload) return null;
-  return store.findActiveById(payload.entitlementId);
+  return store.findActiveById(payload.entitlementId, "resume_pro");
 }
 
 export function createRestoreCode() {

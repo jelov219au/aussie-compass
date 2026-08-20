@@ -18,10 +18,12 @@ The homepage and Pro catalogue must derive Resume Pro's live label from the prod
 
 Rental Application Pack Pro is the next candidate because the workspace is already implemented and its output is a preparation package rather than a tax, employment-law or migration decision.
 
+The product-isolation foundation is now in progress: Resume Pro and Rental Application Pack use separate product codes throughout webhook grants, active-entitlement lookups and restore-code consumption. The database constraint expansion must be applied and verified before any Rental checkout test is enabled.
+
 Before public sale:
 
 1. Confirm the final product name, one-time price, included access period and refund wording.
-2. Generalise the entitlement model so each purchase is bound to an explicit product identifier rather than inheriting Resume Pro rules.
+2. Apply and verify the prepared product-code constraint expansion in the entitlement database.
 3. Add a dedicated Stripe Product and one-time Price, then validate its currency, amount and active state on the server.
 4. Create checkout only from the server, reuse the Managed Payments and seller-detail safeguards, and store the purchase-terms version.
 5. Protect the production workspace with the matching active entitlement. Keep the local-only gate until this is complete.

@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
   const restore = createRestoreCode();
   await store.createRestoreTokenHash({
     entitlementId: entitlement.id,
+    productCode: "resume_pro",
     tokenHash: restore.tokenHash,
     expiresAt: restore.expiresAt,
   });
