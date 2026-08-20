@@ -39,9 +39,6 @@ export function ExperienceStoriesSection() {
             <p className="mt-5 max-w-md text-sm leading-7 text-white/70 sm:text-base">
               공식 안내만으로는 알기 어려운 생활의 빈틈을 실제 경험에서 꺼내고, 지금도 확인할 수 있는 공식 자료로 다시 점검했습니다.
             </p>
-            <p className="mt-8 border-l border-gold/70 pl-4 text-xs leading-6 text-white/55">
-              개인의 직장·거주지·일정은 알아볼 수 없도록 덜어냈어요. 지역과 사람을 단정하는 표현도 공식 자료에 맞춰 바로잡았습니다.
-            </p>
           </div>
 
           <ol className="divide-y divide-navy/15 overflow-hidden bg-white text-navy">
