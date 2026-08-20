@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Container } from "@/components/ui/Container";
 import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory } from "@/lib/articleProgress";
 
@@ -65,8 +65,8 @@ export function ReturnVisitSection() {
             </div>
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
-            <Link href="/my-compass" className="inline-flex min-h-11 items-center text-navy">이어서 보기 →</Link>
-            <Link href="/install" className="inline-flex min-h-11 items-center text-muted hover:text-navy">홈 화면에 추가</Link>
+            <TrackedLink href="/my-compass" eventName="Home Navigation" properties={{ section: "return_visit", destination: "my_compass" }} className="inline-flex min-h-11 items-center text-navy">이어서 보기 →</TrackedLink>
+            <TrackedLink href="/install" eventName="Home Navigation" properties={{ section: "return_visit", destination: "install" }} className="inline-flex min-h-11 items-center text-muted hover:text-navy">홈 화면에 추가</TrackedLink>
           </div>
         </div>
       </Container>

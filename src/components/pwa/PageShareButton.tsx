@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { track } from "@vercel/analytics";
 
 type Bookmark = { href: string; title: string; savedAt: string };
 const bookmarkKey = "aussie-compass-bookmarks-v1";
@@ -19,15 +20,18 @@ export function PageShareButton() {
     try {
       if (navigator.share) {
         await navigator.share(shareData);
+        track("Page Shared", { content: "resource", method: "native" });
         setStatus("공유 메뉴를 열었습니다.");
       } else {
         await navigator.clipboard.writeText(window.location.href);
+        track("Page Shared", { content: "resource", method: "clipboard" });
         setStatus("링크를 복사했습니다.");
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
       try {
         await navigator.clipboard.writeText(window.location.href);
+        track("Page Shared", { content: "resource", method: "clipboard_fallback" });
         setStatus("링크를 복사했습니다.");
       } catch {
         setStatus("주소창의 링크를 복사해 공유해 주세요.");
@@ -41,10 +45,12 @@ export function PageShareButton() {
       const href = window.location.pathname;
       if (bookmarks.some((item) => item.href === href)) {
         localStorage.setItem(bookmarkKey, JSON.stringify(bookmarks.filter((item) => item.href !== href)));
+        track("Page Saved", { content: "resource", action: "removed" });
         setSaved(false); setStatus("저장한 페이지에서 제거했습니다.");
       } else {
         const title = document.title.replace(/\s*\|\s*Hoju Compass.*$/i, "");
         localStorage.setItem(bookmarkKey, JSON.stringify([{ href, title, savedAt: new Date().toISOString() }, ...bookmarks].slice(0, 30)));
+        track("Page Saved", { content: "resource", action: "added" });
         setSaved(true); setStatus("나의 진행 화면에 저장했습니다.");
       }
     } catch { setStatus("이 브라우저에서는 페이지를 저장할 수 없습니다."); }

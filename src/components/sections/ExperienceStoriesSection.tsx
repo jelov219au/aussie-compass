@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Container } from "@/components/ui/Container";
 
 const stories = [
@@ -9,6 +9,7 @@ const stories = [
     description: "방이 넓어 보이는 사진보다, 문을 열었을 때의 냄새와 창문을 닫았을 때의 소리가 더 오래 남습니다.",
     points: ["광각 사진과 실제 방 크기", "샤워 수압·냉장고 자리·세탁 규칙", "밤 귀갓길과 실제 거리 분위기"],
     href: "/resources/australia-sharehouse-photo-vs-reality-checklist",
+    analyticsId: "sharehouse_reality",
     linkLabel: "집 보러 가기 전에 읽기",
     accent: "bg-[#dce8e3]",
   },
@@ -19,6 +20,7 @@ const stories = [
     description: "Train이 가까운 집도 Trackwork가 시작되면 대체버스의 우회와 긴 환승 대기를 만나게 됩니다.",
     points: ["출근·귀가·주말 시간대별 검색", "Trackwork와 Replacement bus", "월세와 함께 계산하는 이동시간"],
     href: "/resources/sydney-weekend-commute-reality-check",
+    analyticsId: "weekend_commute",
     linkLabel: "계약 전에 교통 확인하기",
     accent: "bg-[#eee4cf]",
   },
@@ -60,9 +62,9 @@ export function ExperienceStoriesSection() {
                       </li>
                     ))}
                   </ul>
-                  <Link href={story.href} className="mt-6 inline-flex min-h-11 items-center text-sm font-semibold underline decoration-gold decoration-2 underline-offset-4">
+                  <TrackedLink href={story.href} eventName="Home Navigation" properties={{ section: "experience_stories", destination: story.analyticsId }} className="mt-6 inline-flex min-h-11 items-center text-sm font-semibold underline decoration-gold decoration-2 underline-offset-4">
                     {story.linkLabel} →
-                  </Link>
+                  </TrackedLink>
                 </div>
               </li>
             ))}

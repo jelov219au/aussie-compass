@@ -4,7 +4,7 @@ import Link from "next/link";
 import { track } from "@vercel/analytics";
 import type { ReactNode } from "react";
 
-type AnalyticsValue = string | number | boolean | null;
+export type AnalyticsValue = string | number | boolean | null;
 
 export function TrackedLink({
   href,

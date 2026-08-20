@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { track } from "@vercel/analytics";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -22,12 +23,14 @@ export function InstallAppButton() {
 
   async function install() {
     if (!promptEvent) {
+      track("App Install", { entry: "install_page", outcome: "manual_instructions" });
       setMessage("아래에서 사용 중인 기기의 설치 방법을 확인해 주세요.");
       document.getElementById("manual-install")?.scrollIntoView({ behavior: "smooth" });
       return;
     }
     await promptEvent.prompt();
     const choice = await promptEvent.userChoice;
+    track("App Install", { entry: "install_page", outcome: choice.outcome });
     setMessage(choice.outcome === "accepted" ? "홈 화면에 추가하고 있습니다." : "나중에 다시 설치할 수 있습니다.");
     setPromptEvent(null);
   }

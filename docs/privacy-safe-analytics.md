@@ -8,15 +8,21 @@ Hoju Compass uses Vercel Web Analytics for aggregate product decisions without a
 - A homepage search sends only a predefined topic such as `tax`, `pay`, `housing`, or `other`.
 - Search text, calculator inputs, resume content, email addresses, payment IDs, local storage, and checklist details are never included in custom events.
 - Navigation events contain only an allowlisted internal destination and a homepage section or route category.
+- Share, save, install, and checkout events contain only a broad content or product category and the completed action. They never contain document content, page titles, payment values, or identifiers.
 
 ## Events
 
 | Event | Properties | Decision it supports |
 | --- | --- | --- |
 | `Home Search` | `topic`, `entry` | Which subject areas need more prominent tools or guides |
-| `Home Navigation` | `section`, `destination` | Which essential homepage cards people use |
+| `Home Navigation` | `section`, `destination` | Which homepage entry points people use |
 | `Route Plan Saved` | `stage`, `concern` | Which situations most often become a saved plan |
 | `Route Recommendation Opened` | `destination`, `route` | Which recommendations work for each broad situation |
+| `Pro Interest` | `product`, `entry` | Which homepage offer earns enough interest to improve next |
+| `Page Shared` | `content`, `method` | Whether readers find resource guides useful enough to share |
+| `Page Saved` | `content`, `action` | Whether readers use the local return-visit workflow |
+| `App Install` | `entry`, `outcome` | Whether the install page leads to a prompt or manual instructions |
+| `Checkout Started` | `product`, `mode` | Whether product interest becomes a Stripe checkout attempt |
 
 The properties are deliberately limited to two per event so their meaning stays stable and compatible with the standard Vercel custom-event limits.
 
