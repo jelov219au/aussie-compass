@@ -1,19 +1,23 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTypeScript from "eslint-config-next/typescript";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTypeScript,
   {
-    ignores: [".next/**", "node_modules/**", "next-env.d.ts"],
+    rules: {
+      // Local-first tools restore browser-only state after hydration.
+      "react-hooks/set-state-in-effect": "off",
+    },
   },
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-];
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "node_modules/**",
+    "next-env.d.ts",
+  ]),
+]);
 
 export default eslintConfig;

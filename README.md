@@ -7,6 +7,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Landing Page
 - Integrated Salary Calculator with 2025–26 and 2026–27 tax years, resident and Working Holiday Maker tax profiles, hourly, annual salary and super-inclusive package inputs, adjustable working weeks, salary comparison, locally saved calculation settings, shareable calculation links, and copyable or printable pay results (12% Super)
 - Korean-first landing page
+- Cookie-free aggregate page analytics with query-string redaction and topic-only homepage interaction events
 - Stage-based working-holiday journey navigation from arrival preparation through annual tasks, plus situation filters in the tools directory
 - Two-choice personal route finder that recommends three context-aware next steps, saves them as a checkable personal plan, and surfaces progress in My Compass
 - Privacy-safe route sharing with stage/concern-only URLs and downloadable seven-day calendar check-in reminders

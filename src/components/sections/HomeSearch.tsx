@@ -1,20 +1,43 @@
-import Link from "next/link";
+"use client";
+
+import { track } from "@vercel/analytics";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Container } from "@/components/ui/Container";
 
 const popularSearches = [
-  "TFN",
-  "세후 급여",
-  "집 구하기",
-  "영문 이력서",
-  "택스 리턴",
-  "Super 환급",
+  { label: "TFN", topic: "tax" },
+  { label: "세후 급여", topic: "pay" },
+  { label: "집 구하기", topic: "housing" },
+  { label: "영문 이력서", topic: "jobs" },
+  { label: "택스 리턴", topic: "tax" },
+  { label: "Super 환급", topic: "super" },
 ];
+
+const searchTopics = [
+  { topic: "tax", terms: ["세금", "택스", "tax", "tfn", "ato", "bas", "gst", "공제", "환급"] },
+  { topic: "pay", terms: ["급여", "월급", "시급", "연봉", "임금", "salary", "wage", "payslip", "최저임금"] },
+  { topic: "super", terms: ["super", "연금", "dasp"] },
+  { topic: "housing", terms: ["집", "주거", "렌트", "쉐어", "보증금", "rent", "bond", "inspection"] },
+  { topic: "jobs", terms: ["취업", "구직", "이력서", "면접", "일자리", "resume", "job", "career", "award"] },
+  { topic: "arrival", terms: ["도착", "정착", "은행", "유심", "교통", "운전", "bank", "sim", "licence"] },
+  { topic: "visa", terms: ["비자", "워홀", "학생", "visa", "working holiday"] },
+  { topic: "safety", terms: ["사기", "안전", "응급", "도움", "체불", "scam", "emergency", "underpayment"] },
+  { topic: "leaving", terms: ["귀국", "출국", "퇴거", "leaving", "departure"] },
+] as const;
+
+function classifySearch(value: string) {
+  const normalized = value.trim().toLocaleLowerCase("ko-KR");
+  return searchTopics.find(({ terms }) => terms.some((term) => normalized.includes(term)))?.topic ?? "other";
+}
 
 export function HomeSearch() {
   return (
     <section className="border-b border-border bg-white" aria-labelledby="home-search-heading">
       <Container className="py-7 sm:py-8">
-        <form action="/search" method="get" className="grid gap-4 lg:grid-cols-[minmax(14rem,0.55fr)_minmax(0,1.45fr)] lg:items-end lg:gap-8">
+        <form action="/search" method="get" onSubmit={(event) => {
+          const query = new FormData(event.currentTarget).get("q");
+          track("Home Search", { topic: classifySearch(typeof query === "string" ? query : ""), entry: "free_text" });
+        }} className="grid gap-4 lg:grid-cols-[minmax(14rem,0.55fr)_minmax(0,1.45fr)] lg:items-end lg:gap-8">
           <div>
             <p className="text-xs font-semibold tracking-[0.14em] text-gold">바로 찾아보기</p>
             <h2 id="home-search-heading" className="mt-2 text-xl font-semibold tracking-tight text-navy sm:text-2xl">
@@ -39,14 +62,16 @@ export function HomeSearch() {
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
               <span className="text-xs text-muted">많이 찾는 주제</span>
-              {popularSearches.map((query) => (
-                <Link
-                  key={query}
-                  href={`/search?q=${encodeURIComponent(query)}`}
+              {popularSearches.map(({ label, topic }) => (
+                <TrackedLink
+                  key={label}
+                  href={`/search?q=${encodeURIComponent(label)}`}
+                  eventName="Home Search"
+                  properties={{ topic, entry: "popular" }}
                   className="inline-flex min-h-8 items-center border-b border-border text-xs font-semibold text-navy transition hover:border-gold"
                 >
-                  {query}
-                </Link>
+                  {label}
+                </TrackedLink>
               ))}
             </div>
           </div>

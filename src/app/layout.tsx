@@ -3,6 +3,7 @@ import { OrganizationJsonLd, SiteJsonLd } from "@/components/seo/JsonLd";
 import { siteName, siteUrl } from "@/lib/site";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { DomainMigrationNotice } from "@/components/layout/DomainMigrationNotice";
+import { PrivacyFriendlyAnalytics } from "@/components/analytics/PrivacyFriendlyAnalytics";
 import "./globals.css";
 
 const title = "Hoju Compass | 호주 생활을 위한 실용 도구";
@@ -69,6 +70,7 @@ export default function RootLayout({
         <DomainMigrationNotice />
         <OrganizationJsonLd />
         <SiteJsonLd />
+        <PrivacyFriendlyAnalytics />
         <div id="main-content" tabIndex={-1} className="focus:outline-none">
           {children}
         </div>

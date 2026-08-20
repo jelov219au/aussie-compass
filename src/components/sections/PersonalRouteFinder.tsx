@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import { Container } from "@/components/ui/Container";
 
 type StageId = "prepare" | "arrive" | "live" | "depart";
@@ -123,6 +124,7 @@ export function PersonalRouteFinder() {
   const saveCurrentPlan = () => {
     if (!stageLabel || !concernLabel) return;
     setPlan({ stage, concern, stageLabel, concernLabel, steps: currentSteps, completed: [], savedAt: new Date().toISOString() });
+    track("Route Plan Saved", { stage, concern });
     window.dispatchEvent(new Event("storage"));
   };
 
@@ -187,7 +189,7 @@ export function PersonalRouteFinder() {
 
       <div className="self-start rounded-3xl bg-navy p-6 text-white sm:p-8" aria-live="polite">
         <div className="flex items-end justify-between gap-4 border-b border-white/15 pb-5"><div><p className="text-xs font-semibold text-gold">이 순서로 시작해보세요</p><h3 className="mt-2 text-2xl font-semibold">{stageLabel} · {concernLabel}</h3></div><span className="shrink-0 text-xs text-white/45">{matchesCurrentPlan ? `${completedCount}/3 완료` : "먼저 볼 3가지"}</span></div>
-        <ol>{recommendations.map((tool, index) => { const done = Boolean(matchesCurrentPlan && plan?.completed.includes(tool.href)); return <li key={tool.href} className="border-b border-white/15"><div className="grid sm:grid-cols-[1fr_auto] sm:items-center"><Link href={tool.href} className="group grid gap-3 py-6 sm:grid-cols-[2rem_1fr_auto] sm:items-center"><span className="font-mono text-xs text-gold">0{index + 1}</span><span><strong className={`block text-lg text-white ${done ? "line-through decoration-gold/70" : ""}`}>{tool.title}</strong><span className="mt-1 block text-sm leading-6 text-white/60">{tool.description}</span></span><span className="text-xl text-gold transition group-hover:translate-x-1" aria-hidden="true">→</span></Link>{matchesCurrentPlan && <button type="button" aria-pressed={done} onClick={() => toggleCompleted(tool.href)} className={`mb-4 ml-8 inline-flex min-h-10 items-center justify-center border px-3 text-xs font-semibold sm:mb-0 sm:ml-4 ${done ? "border-gold bg-gold text-navy" : "border-white/25 text-white hover:border-gold"}`}>{done ? "완료됨" : "완료 표시"}</button>}</div></li>; })}</ol>
+        <ol>{recommendations.map((tool, index) => { const done = Boolean(matchesCurrentPlan && plan?.completed.includes(tool.href)); return <li key={tool.href} className="border-b border-white/15"><div className="grid sm:grid-cols-[1fr_auto] sm:items-center"><Link href={tool.href} onClick={() => track("Route Recommendation Opened", { destination: tool.href.slice(1), route: `${stage}_${concern}` })} className="group grid gap-3 py-6 sm:grid-cols-[2rem_1fr_auto] sm:items-center"><span className="font-mono text-xs text-gold">0{index + 1}</span><span><strong className={`block text-lg text-white ${done ? "line-through decoration-gold/70" : ""}`}>{tool.title}</strong><span className="mt-1 block text-sm leading-6 text-white/60">{tool.description}</span></span><span className="text-xl text-gold transition group-hover:translate-x-1" aria-hidden="true">→</span></Link>{matchesCurrentPlan && <button type="button" aria-pressed={done} onClick={() => toggleCompleted(tool.href)} className={`mb-4 ml-8 inline-flex min-h-10 items-center justify-center border px-3 text-xs font-semibold sm:mb-0 sm:ml-4 ${done ? "border-gold bg-gold text-navy" : "border-white/25 text-white hover:border-gold"}`}>{done ? "완료됨" : "완료 표시"}</button>}</div></li>; })}</ol>
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3"><button type="button" disabled={matchesCurrentPlan} onClick={saveCurrentPlan} className="inline-flex min-h-11 items-center rounded-full bg-gold px-5 text-sm font-semibold text-navy disabled:cursor-default disabled:bg-white/10 disabled:text-white/55">{matchesCurrentPlan ? "나의 계획에 저장됨" : plan ? "현재 추천으로 계획 바꾸기" : "3단계 계획으로 저장"}</button><Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-semibold text-white">전체 도구 보기 →</Link></div>
         <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2"><button type="button" onClick={shareRecommendations} className="inline-flex min-h-10 items-center text-sm font-semibold text-white/75 hover:text-white">추천 경로 공유 ↗</button>{matchesCurrentPlan && <button type="button" onClick={downloadReminder} className="inline-flex min-h-10 items-center text-sm font-semibold text-white/75 hover:text-white">7일 뒤 점검 알림 +</button>}</div>
         {actionMessage && <p className="mt-3 text-xs leading-5 text-white/60" role="status" aria-live="polite">{actionMessage}</p>}
