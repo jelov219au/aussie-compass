@@ -752,6 +752,38 @@ export const articles: Article[] = [
       { label: "Queensland Police Service — Maps and statistics", href: "https://www.police.qld.gov.au/maps-and-statistics", summary: "Queensland의 최근 5년 범죄 유형을 확인할 수 있는 QPS Online crime map과 장기 Trend data로 연결되는 공식 페이지예요." },
     ],
   },
+  {
+    slug: "korea-working-holiday-visa-2026-fact-check",
+    title: "한국 워홀 비자가 제한됐을까? 2026년 공식 변경 팩트체크",
+    seoTitle: "호주 한국 워홀 비자 제한 사실일까? 2026년 35세 확대·처리 지연 정리",
+    socialTitle: "Is Australia limiting Korean working holiday visas?",
+    description: "한국인은 추첨 대상인지, 2026년 35세 확대와 처리 지연은 무엇인지 Home Affairs 공식 자료로 구분해 확인해요.",
+    category: "비자",
+    contentType: "official",
+    readingTime: "8분",
+    publishedAt: "2026-08-21",
+    updatedAt: "2026-08-21",
+    quickSummary: ["한국 여권 소지자는 subclass 417 대상이며 현재 462 국가별 상한·추첨 대상이 아니에요", "2026년 7월 1일부터 첫 417 비자를 18–35세에 신청할 수 있어요", "신청량 증가로 처리가 늦어질 수 있으므로 승인 전 여행을 확정하지 마세요"],
+    toolHref: "/resume-builder",
+    toolLabel: "입국·구직 전 무료 영문 이력서 준비하기",
+    sections: [
+      { heading: "결론부터 말하면 한국인 워홀 발급 제한 발표는 확인되지 않았어요", paragraphs: ["2026년 8월 21일 Home Affairs 공식 안내를 기준으로, 한국 여권 소지자의 Working Holiday 비자 발급 수를 새로 줄이거나 추첨제로 바꿨다는 발표는 확인되지 않아요. 온라인에서 말하는 ‘국가별 마감’은 주로 Work and Holiday subclass 462의 연간 상한이나 Ballot을 가리켜요.", "한국은 Working Holiday subclass 417 대상이므로 중국·인도·베트남 등에 적용되는 462 Ballot과 구분해야 해요. 비슷한 이름의 두 비자 제도를 섞으면 한국인 신청도 닫혔다고 오해하기 쉬워요."] },
+      { heading: "한국인은 2026년 7월부터 만 35세까지 신청할 수 있어요", paragraphs: ["Home Affairs는 2026년 7월 1일부터 Republic of Korea 여권 소지자의 417 신청 가능 연령을 18–35세로 확대했어요. 해당 신청자는 36번째 생일 전날 오후 11시 59분(AEST)까지 신청할 수 있어요.", "연령 확대는 비자 승인 보장이 아니에요. 여권, 자금, 건강·신원과 이전 비자 등 본인에게 적용되는 요건은 신청 화면과 최신 공식 안내에서 다시 확인해야 해요."] },
+      { heading: "발급 제한과 처리 지연은 다른 말이에요", paragraphs: ["Home Affairs는 현재 417과 462 신청량이 많아 일부 신청의 최종 처리가 평소보다 오래 걸릴 수 있다고 안내해요. 추가 자료가 필요하면 신청자나 등록된 대리인에게 연락하며 결과는 서면으로 통지해요.", "처리가 늦다는 안내만으로 발급 수를 제한한다고 해석할 수는 없어요. 승인 통지를 받기 전에는 환불이 어려운 항공권·숙소·퇴사일을 확정하지 말고, ImmiAccount에서 요청 자료와 상태를 확인하세요."] },
+      { heading: "가장 최근 상세 통계에서는 한국이 주요 417 국가였어요", paragraphs: ["현재 공개된 가장 최근 상세 WHM 보고서인 2025년 6월 자료에서 한국인의 첫 417 발급은 12,374건이었어요. 같은 보고서에서 2025년 6월까지 6개월간 첫 417 발급은 전년 같은 기간보다 1.2% 증가했고, 결정된 첫 417의 승인율은 99.8%였어요.", "이 수치는 과거 집계이며 2026년 개별 신청의 결과나 처리기간을 보장하지 않아요. 현재 신청 상태는 통계가 아니라 본인의 ImmiAccount와 Home Affairs 통지로 확인해야 해요."] },
+      { heading: "입국보다 먼저 ‘어떤 일자리로 이동할지’를 준비하세요", paragraphs: ["영어가 익숙하지 않으면 지인 소개나 한국어로 면접할 수 있는 일자리가 현실적인 첫 선택일 수 있어요. 간단한 Resume만 요구하고 Cover Letter를 받지 않는 직장도 많아요. 이 경우 문서를 화려하게 만드는 것보다 시급, Casual·Part-time 구분, Super, 근무시간 기록과 Payslip 제공 여부를 확인하는 일이 먼저예요.", "한국인 고용주인지 현지 회사인지와 관계없이 호주 최저임금, 적용 Award와 Payslip 의무는 달라지지 않아요. 면접에서 제시된 시급이 합법적인지 모호하다면 바로 수락하기 전에 무료 급여 계산기와 Fair Work의 Pay and Conditions Tool로 확인하세요."] },
+      { heading: "Resume와 Cover Letter가 모든 사람의 첫 과제는 아니에요", paragraphs: ["아직 지원할 공고가 없고 당장 생계형 일자리를 찾는 단계라면 유료 도구보다 무료 Resume 초안, 최저임금 확인과 첫 Payslip 점검이 더 중요해요. Cover Letter를 거의 받지 않는 일자리라면 만들지 않아도 괜찮아요.", "반대로 한국에서 쌓은 경력이 있고 Office, Trade, Professional 직무나 체계적인 채용 절차가 있는 회사로 옮기려는 사람은 ‘영어를 예쁘게 쓰는 것’보다 실제 경력을 공고의 요구조건과 근거 있게 연결하는 준비가 필요해요. 지원할 공고가 정해졌을 때만 추가 도구가 시간을 줄이는지 판단하세요."] },
+      { heading: "비자 조건과 직장 조건을 따로 확인하세요", paragraphs: ["417 비자를 받았다고 같은 고용주에게 제한 없이 계속 일할 수 있다는 뜻은 아니에요. 일반적으로 condition 8547에 따라 한 고용주와 최대 6개월 근무 제한이 적용되지만, 다른 장소 근무나 농업·관광·Hospitality·Health 등 현재 예외가 적용되는 경우가 있어요.", "예외나 허가 요건은 바뀔 수 있으므로 직장을 옮기거나 6개월을 넘기기 전에 VEVO, 비자 승인서와 Home Affairs의 최신 8547 안내를 확인하세요. 고용주 설명만으로 비자 조건을 판단하지 마세요."] },
+      { heading: "내 상황에 맞는 다음 단계", bullets: ["비자 신청 전: 417 자격과 연령을 Home Affairs에서 직접 확인", "신청 후: ImmiAccount 요청 자료와 서면 승인 전 여행 확정 주의", "첫 한인잡 면접 전: 시급·고용형태·Super·Payslip·Trial shift 조건 질문", "첫 급여 후: 근무기록과 Payslip을 비교하고 Award·최저임금 확인", "정식 회사 지원 전: 실제 공고와 한국 경력을 먼저 정리한 뒤 Resume 도구 선택"], paragraphs: ["이 글은 일반 정보이며 비자·법률·세무 조언이 아니에요. 개인 신청이나 고용 분쟁은 Home Affairs, Fair Work Ombudsman 또는 등록된 전문가에게 확인하세요."] },
+    ],
+    sources: [
+      { label: "Department of Home Affairs — WHM latest news", href: "https://immi.homeaffairs.gov.au/what-we-do/whm-program/latest-news", summary: "한국 등 417 신청 연령의 35세 확대, 현재 신청량 증가에 따른 처리 지연과 승인 전 여행 확정 주의를 안내해요." },
+      { label: "Department of Home Affairs — Status of country caps", href: "https://immi.homeaffairs.gov.au/what-we-do/whm-program/status-of-country-caps", summary: "Subclass 462의 국가별 연간 상한과 중국·인도·베트남 Ballot을 보여주며 417 대상 한국과 구분할 수 있어요." },
+      { label: "Department of Home Affairs — WHM program report June 2025", href: "https://www.homeaffairs.gov.au/research-and-stats/files/working-holiday-report-june-25.PDF", summary: "한국인의 첫 417 발급 건수, 417 발급 변화와 결정된 신청의 승인율을 포함한 최근 상세 공식 통계예요." },
+      { label: "Department of Home Affairs — 6 month work limitation", href: "https://immi.homeaffairs.gov.au/what-we-do/whm-program/specified-work-conditions/6-month-work-limitation", summary: "Condition 8547의 같은 고용주 6개월 제한, 현재 예외와 허가 요청 절차를 설명해요." },
+      { label: "Fair Work Ombudsman — Minimum wages", href: "https://www.fairwork.gov.au/pay-and-wages/minimum-wages", summary: "National Minimum Wage, Award minimum rates와 Pay and Conditions Tool을 확인하는 공식 출발점이에요." },
+    ],
+  },
 ];
 
 export function getArticle(slug: string) { return articles.find((article) => article.slug === slug); }
