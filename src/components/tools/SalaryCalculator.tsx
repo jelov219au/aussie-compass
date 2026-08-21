@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-// 2026-27 SG rate. Last reviewed: 2026-08-21.\n// Super is estimated from gross pay for simplicity; actual SG generally uses ordinary time earnings (OTE).\nconst SUPER_RATE = 0.12;\nconst SUPER_GUIDANCE_URL =\n  "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/quarterly-super-to-30-june-2026/how-much-super-to-pay";
+// 2026-27 SG rate. Last reviewed: 2026-08-21.
+// Super is estimated from gross pay for simplicity; actual SG generally uses ordinary time earnings (OTE).
+const SUPER_RATE = 0.12;
+const SUPER_GUIDANCE_URL =
+  "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/quarterly-super-to-30-june-2026/how-much-super-to-pay";
 const MEDICARE_LEVY_RATE = 0.02;
 const PERMANENT_MINIMUM_RATE = 26.44;
 const CASUAL_MINIMUM_RATE = 33.05;
