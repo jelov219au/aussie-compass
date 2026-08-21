@@ -35,7 +35,7 @@ export function ResumeProCheckoutForm({ testMode }: { testMode: boolean }) {
         disabled={!accepted}
         className="mt-4 inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy enabled:hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
       >
-        {testMode ? "테스트 결제 시작" : "A$19.90 결제하기"}
+        {testMode ? "테스트 결제 시작" : "A$19.90에 이번 지원 준비하기"}
       </button>
     </form>
   );

@@ -32,10 +32,10 @@ export function Hero() {
             <div className="mt-6 max-w-2xl border-l-2 border-gold/70 pl-5 sm:pl-6">
               <p className="text-xs font-semibold tracking-[0.14em] text-[#9e593b]">Hoju Compass를 만든 이유</p>
               <p className="mt-3 text-sm leading-7 text-navy-light sm:text-[0.98rem] sm:leading-7">
-                처음 워킹홀리데이를 준비할 때는 필요한 정보를 찾느라 유튜브 브이로그와 블로그를 오가며 참 많은 시간을 썼습니다. 막상 호주에서는 Payslip을 받지 못하고 받아야 할 수당이 빠지거나, 갑자기 Shift가 줄고 살던 집에서 급히 나와 새 집을 찾아야 하는 일도 겪었어요.
+                호주 생활 정보를 찾다 보면 정부 사이트와 여러 안내 글을 계속 오가게 돼요. 검색 결과는 많아도 내 상황에서 무엇부터 해야 하는지 바로 알기 어려울 때가 있고요.
               </p>
               <p className="mt-3 text-sm leading-7 text-navy-light sm:text-[0.98rem] sm:leading-7">
-                그때마다 ‘미리 알았더라면 조금 덜 막막했을 텐데’라는 생각이 들었습니다. 같은 어려움을 겪는 사람이 한 명이라도 줄고, 문제가 생겼을 때 바로 확인할 곳이 있기를 바라며 Hoju Compass를 만들었습니다.
+                Hoju Compass는 그 시간을 줄이려고 만들었어요. 꼭 알아야 할 내용은 쉽게 풀고, 계산하거나 기록할 일은 바로 해볼 수 있는 도구로 정리해요. 규정과 금액에는 다시 확인할 수 있는 공식 출처도 함께 남겨요.
               </p>
             </div>
 
@@ -48,7 +48,7 @@ export function Hero() {
               </Button>
             </div>
 
-            <p className="mt-10 border-t border-navy/10 pt-5 text-xs leading-6 text-muted">먼저 둘러보기만 해도 괜찮아요. 회원가입은 필요 없고, 입력한 내용은 별도 안내가 없는 한 이 기기에만 남습니다.</p>
+            <p className="mt-10 border-t border-navy/10 pt-5 text-xs leading-6 text-muted">먼저 둘러보기만 해도 괜찮아요. 회원가입은 필요 없고, 입력한 내용은 별도 안내가 없는 한 이 기기에만 남아요.</p>
           </div>
 
           <AustralianSky />
