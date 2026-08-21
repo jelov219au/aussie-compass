@@ -32,11 +32,13 @@ function nextAction(row: ResumeProPerformanceRow, connected: { vercel: boolean; 
   return "구매가 나온 경로예요. 같은 상황의 글과 CTA에 넓혀볼 수 있어요.";
 }
 
-type Props = { searchParams: Promise<{ days?: string | string[] }> };
+type Props = { searchParams: Promise<{ days?: string | string[]; connection?: string | string[] }> };
 
 export default async function ResumeProPerformancePage({ searchParams }: Props) {
   requireLocalOperatorAccess();
-  const rawDays = (await searchParams).days;
+  const query = await searchParams;
+  const rawDays = query.days;
+  const connection = Array.isArray(query.connection) ? query.connection[0] : query.connection;
   const dayText = Array.isArray(rawDays) ? rawDays[0] : rawDays;
   const days = dayText === "7" || dayText === "90" ? Number(dayText) as 7 | 90 : 30;
   const report = await getResumeProPerformance(days);
@@ -84,6 +86,28 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
               <p className="mt-2 text-sm leading-6 text-muted">{report.stripe.message}</p>
             </div>
           </section>
+
+          {(!connected.vercel || !connected.stripe) && (
+            <section className="mt-8 border border-navy/15 bg-white p-5 sm:p-6" aria-labelledby="connection-heading">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">이 컴퓨터에서만</p>
+              <h2 id="connection-heading" className="mt-2 text-xl font-semibold text-navy">성과 데이터 연결</h2>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">Vercel 토큰과 Stripe 읽기 전용 제한 키를 이 컴퓨터의 Git 제외 설정에 저장합니다. 키 값은 화면에 다시 표시하지 않습니다.</p>
+              {connection === "invalid" && <p className="mt-4 border-l-2 border-red-500 bg-red-50 p-3 text-sm text-red-900" role="alert">키 형식을 확인해 주세요. Stripe 키는 읽기 전용 제한 키여야 합니다.</p>}
+              {connection === "saved" && <p className="mt-4 border-l-2 border-gold bg-surface p-3 text-sm text-navy" role="status">연결 정보를 저장했습니다. 위 상태가 계속 ‘연결 필요’라면 키 권한을 확인해 주세요.</p>}
+              <form action="/api/resume-pro-performance/connection" method="post" className="mt-5 grid gap-4 lg:grid-cols-2">
+                <label className="text-sm font-semibold text-navy">Vercel 접근 토큰
+                  <input type="password" name="vercel_token" minLength={20} maxLength={512} autoComplete="off" spellCheck={false} className="mt-2 min-h-11 w-full border border-border bg-surface px-3 text-sm font-normal outline-none focus:border-gold" />
+                </label>
+                <label className="text-sm font-semibold text-navy">Vercel 팀 ID
+                  <input type="password" name="vercel_team_id" maxLength={128} pattern="team_[A-Za-z0-9]+" autoComplete="off" spellCheck={false} className="mt-2 min-h-11 w-full border border-border bg-surface px-3 text-sm font-normal outline-none focus:border-gold" />
+                </label>
+                <label className="text-sm font-semibold text-navy">Stripe 읽기 전용 제한 키
+                  <input type="password" name="stripe_accounting_key" minLength={20} maxLength={512} pattern="rk_(test|live)_[A-Za-z0-9]+" autoComplete="off" spellCheck={false} className="mt-2 min-h-11 w-full border border-border bg-surface px-3 text-sm font-normal outline-none focus:border-gold" />
+                </label>
+                <button type="submit" className="min-h-11 bg-navy px-5 py-2 text-sm font-semibold text-white lg:col-span-2 lg:w-fit">이 컴퓨터에 연결하기</button>
+              </form>
+            </section>
+          )}
 
           <section className="mt-8" aria-labelledby="funnel-summary-heading">
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-navy/20 pb-5">
