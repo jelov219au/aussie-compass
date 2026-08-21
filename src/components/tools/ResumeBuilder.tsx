@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { track } from "@vercel/analytics";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 
 type Experience = { id: string; role: string; company: string; period: string; details: string };
 type Education = { id: string; course: string; school: string; period: string };
@@ -71,7 +73,7 @@ function moveItem<T>(items: T[], from: number, to: number) {
   return next;
 }
 
-export function ResumeBuilder() {
+export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
   const [resume, setResume] = useState<ResumeData>(emptyResume);
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -79,6 +81,7 @@ export function ResumeBuilder() {
   const [koreanDraft, setKoreanDraft] = useState("");
   const [englishSuggestion, setEnglishSuggestion] = useState("");
   const importInputRef = useRef<HTMLInputElement>(null);
+  const completionTrackedRef = useRef(false);
 
   useEffect(() => {
     try {
@@ -109,6 +112,7 @@ export function ResumeBuilder() {
   const languages = useMemo(() => resume.languages.split(",").map((item) => item.trim()).filter(Boolean), [resume.languages]);
   const activeAccent = accentOptions.find((option) => option.id === resume.accent) ?? accentOptions[0];
   const completedEssentials = [resume.name, resume.title, resume.phone, resume.email, resume.summary, resume.experiences[0]?.role, resume.skills].filter(Boolean).length;
+  const resumeReady = completedEssentials === 7;
   const setField = (field: keyof Omit<ResumeData, "experiences" | "education">, value: string) =>
     setResume((current) => ({ ...current, [field]: value }));
 
@@ -218,6 +222,17 @@ export function ResumeBuilder() {
     setActionMessage(target === "summary" ? "Professional summary에 추가했습니다." : "첫 번째 경력의 주요 성과에 추가했습니다.");
   };
 
+  useEffect(() => {
+    if (!resumeReady || completionTrackedRef.current) return;
+    completionTrackedRef.current = true;
+    track("Resume Builder Completed", { product: "resume_builder", essentials: 7 });
+  }, [resumeReady]);
+
+  const saveAsPdf = (entry: "completion_choice" | "builder_actions") => {
+    track("Resume Export Started", { format: "pdf", entry });
+    window.print();
+  };
+
   return (
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(620px,1.1fr)]">
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-form-heading">
@@ -304,8 +319,24 @@ export function ResumeBuilder() {
         <fieldset className="mt-8"><legend className="text-base font-semibold text-navy">자격증 및 라이선스 <span className="font-normal text-muted">(선택)</span></legend><label className="sr-only" htmlFor="resume-licences">자격증 및 라이선스</label><textarea id="resume-licences" className={`${inputClass} min-h-24 resize-y`} value={resume.licences} onChange={(e) => setField("licences", e.target.value)} placeholder={"NSW Responsible Service of Alcohol (RSA)\nWhite Card"} /></fieldset>
         <fieldset className="mt-8"><legend className="text-base font-semibold text-navy">언어 <span className="font-normal text-muted">(선택)</span></legend><label className="mt-2 block text-sm text-muted">쉼표로 구분해 입력하세요<input className={inputClass} value={resume.languages} onChange={(e) => setField("languages", e.target.value)} placeholder="Korean (Native), English (Professional)" /></label></fieldset>
         <label className="mt-6 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-border px-4 py-2 text-sm text-navy"><input type="checkbox" checked={resume.showReferences} onChange={(e) => setResume((current) => ({ ...current, showReferences: e.target.checked }))} className="h-4 w-4 accent-navy" />References available upon request 문구 포함</label>
+        {resumeReady && <section className="mt-8 border border-gold/50 bg-gold/5 p-5 sm:p-6" aria-labelledby="resume-next-step-heading">
+          <p className="text-xs font-semibold tracking-[0.14em] text-gold">기본 이력서 준비 완료</p>
+          <h2 id="resume-next-step-heading" className="mt-2 text-xl font-semibold text-navy">이제 어떻게 준비할까요?</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">지금 만든 이력서는 무료로 저장할 수 있어요. 지원할 공고가 있다면 같은 내용을 다시 쓰지 않고 회사에 맞춰 이어서 준비할 수도 있고요.</p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <button type="button" onClick={() => saveAsPdf("completion_choice")} className="flex min-h-24 flex-col items-start justify-center bg-navy px-5 py-4 text-left text-white hover:bg-navy-light">
+              <strong className="text-base">무료 PDF로 저장하기</strong>
+              <span className="mt-1 text-xs leading-5 text-white/65">인쇄 창에서 PDF 저장을 선택하세요.</span>
+            </button>
+            <TrackedLink href="/resume-pro?from=resume-builder-complete" eventName="Pro Interest" properties={{ product: "resume_pro", entry: "resume_builder_complete" }} className="flex min-h-24 flex-col items-start justify-center border border-navy bg-white px-5 py-4 text-left text-navy hover:bg-surface">
+              <strong className="text-base">{resumeProLive ? "지원할 공고에 맞게 다듬기" : "공고 맞춤 준비 방식 보기"}</strong>
+              <span className="mt-1 text-xs leading-5 text-muted">이력서·커버레터와 빠진 항목을 함께 확인해요.</span>
+            </TrackedLink>
+          </div>
+          <p className="mt-4 text-xs leading-5 text-muted">무료 이력서는 그대로 이용할 수 있어요. Resume Pro는 경력을 새로 만들거나 취업 결과를 보장하는 기능이 아니에요.</p>
+        </section>}
         <div className="mt-8 flex flex-wrap gap-3 border-t border-border pt-6">
-          <button type="button" onClick={() => window.print()} className="min-h-12 rounded-lg bg-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-navy-light">인쇄 · PDF 저장</button>
+          {!resumeReady && <button type="button" onClick={() => saveAsPdf("builder_actions")} className="min-h-12 rounded-lg bg-navy px-5 py-2.5 text-sm font-semibold text-white hover:bg-navy-light">인쇄 · PDF 저장</button>}
           <button type="button" onClick={copyTextResume} className="min-h-12 rounded-lg border border-navy px-5 py-2.5 text-sm font-semibold text-navy hover:bg-surface">텍스트 복사</button>
           <button type="button" onClick={exportDraft} className="min-h-12 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-navy hover:bg-surface">작성본 백업</button>
           <button type="button" onClick={() => importInputRef.current?.click()} className="min-h-12 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-navy hover:bg-surface">백업 불러오기</button>
