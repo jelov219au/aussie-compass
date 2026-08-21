@@ -2,6 +2,7 @@ import "server-only";
 
 import Stripe from "stripe";
 import { resumeProProduct } from "@/lib/commerce";
+import { getLocalOperatorConnectionValue } from "@/lib/localOperatorConnection";
 import { normalizeResumeProEntry, type ResumeProEntry } from "@/lib/resumeProAttribution";
 
 export type ResumeProPerformanceRow = {
@@ -83,9 +84,11 @@ async function fetchVercelEvent(params: {
 }
 
 async function loadVercelTotals(since: string, until: string) {
-  const token = process.env.VERCEL_TOKEN?.trim();
-  const projectId = process.env.VERCEL_PROJECT_ID?.trim();
-  const teamId = process.env.VERCEL_TEAM_ID?.trim();
+  const [token, projectId, teamId] = await Promise.all([
+    getLocalOperatorConnectionValue("VERCEL_TOKEN"),
+    getLocalOperatorConnectionValue("VERCEL_PROJECT_ID"),
+    getLocalOperatorConnectionValue("VERCEL_TEAM_ID"),
+  ]);
 
   if (!token || !projectId) {
     return {
@@ -115,7 +118,7 @@ async function loadVercelTotals(since: string, until: string) {
 }
 
 async function loadStripeTotals(sinceDate: Date) {
-  const key = process.env.STRIPE_ACCOUNTING_KEY?.trim();
+  const key = await getLocalOperatorConnectionValue("STRIPE_ACCOUNTING_KEY");
   if (!key?.startsWith("rk_test_") && !key?.startsWith("rk_live_")) {
     return {
       state: { connected: false, message: "Checkout Sessions 읽기 권한만 가진 STRIPE_ACCOUNTING_KEY를 연결하면 구매와 매출을 불러옵니다." },
