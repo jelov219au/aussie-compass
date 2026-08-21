@@ -28,15 +28,7 @@ export default function ResumeBuilderPage() {
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 영문 이력서 빌더</h1>
             <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">경험과 강점을 먼저 한국어로 적어도 괜찮아요. 영문 예시를 참고해 문장을 다듬고, 마음에 드는 색상과 레이아웃으로 정리해보세요. 입력한 내용은 이 브라우저에만 남습니다.</p>
           </div>
-          <aside className="mb-8 grid gap-5 border-y border-navy/20 py-5 sm:grid-cols-[1fr_auto] sm:items-center" aria-labelledby="resume-pro-preview-heading">
-            <div>
-              <p className="text-xs font-semibold text-gold">{resumeProLive ? "Resume Pro 이용 가능" : "Resume Pro 출시 준비 중"}</p>
-              <h2 id="resume-pro-preview-heading" className="mt-2 text-lg font-semibold text-navy">커버레터와 회사별 지원서 묶음까지 이어서 준비할 수 있어요.</h2>
-              <p className="mt-1 text-sm leading-6 text-muted">이력서 만들기는 계속 무료예요. 회사마다 반복되는 지원 준비를 줄여주는 기능만 Resume Pro로 제공합니다.</p>
-            </div>
-            <Link href="/resume-pro" className="inline-flex min-h-11 items-center justify-center border-b-2 border-gold text-sm font-semibold text-navy">{resumeProLive ? "Resume Pro 시작하기" : "Resume Pro 살펴보기"} <span className="ml-3" aria-hidden="true">→</span></Link>
-          </aside>
-          <ResumeBuilder />
+          <ResumeBuilder resumeProLive={resumeProLive} />
           <section className="mt-10 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="resume-tips-heading">
             <h2 id="resume-tips-heading" className="text-xl font-semibold text-navy">작성할 때 기억하세요</h2>
             <ul className="mt-4 grid gap-3 text-sm leading-6 text-muted md:grid-cols-3">
