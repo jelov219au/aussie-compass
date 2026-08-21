@@ -138,6 +138,25 @@ The protected Pay Evidence Pro Preview grant path was verified on 21 August 2026
 
 No customer email, card detail, legal name, ABN, secret key, webhook secret, Vercel bypass value or database connection string is recorded in this verification note.
 
+## Car Buy Pack Pro Preview verification record
+
+The protected Car Buy Pack Pro Preview grant path was verified on 21 August 2026 without enabling Production payments:
+
+- A Stripe Sandbox product and one-time AUD 14.90 inclusive Price were created for `car_buy_pro` using the personal-use SaaS tax code.
+- Managed Payments test Checkout included AUD 1.35 GST inside the AUD 14.90 total and reported Stripe as the automatic-tax liability party.
+- Preview protection initially returned HTTP 401 to Stripe. A temporary protected-Preview verification endpoint and automation bypass were used only long enough to deliver the signed Checkout event with HTTP 200.
+- Neon recorded the active `car_buy_pro` entitlement, the paid return page exposed the activation action, and the signed browser session opened `/car-buy-pro/workspace`.
+- Releasing the current device blocked direct workspace access. A 30-day one-time recovery code restored access once and a second use was rejected.
+- Troubleshooting created three Sandbox payments. All three were fully refunded; no real money moved.
+- Refund lifecycle events for the active entitlement returned HTTP 200, changed its state to `revoked`, and redirected the existing workspace session to `access=required`.
+- Two earlier refunded sessions had no stored grant because their original Checkout webhooks had been blocked by Preview protection. The handler now records those verified refund or dispute events as `ignored_unmatched`, returns HTTP 200 and never creates access from a refund event alone.
+- Manual redelivery confirmed the unmatched-event fix with HTTP 200. The protected Preview remained closed after the refund and no unmatched entitlement was created.
+- The temporary Stripe webhook destination was disabled, its bypass value was removed, and the temporary Vercel automation bypass was revoked.
+- The Preview-only `STRIPE_CAR_BUY_PRO_PRICE_ID` variable was removed and the branch was redeployed. The product page now shows that the workspace is still in launch preparation and that actual payment is unavailable.
+- Production remained unchanged; `/car-buy-pro` is not published there and no Production Price, payment gate, webhook, entitlement or deployment setting was changed.
+
+No customer email, card detail, vehicle identifier, seller detail, legal name, ABN, secret key, webhook secret, Vercel bypass value or database connection string is recorded in this verification note.
+
 ## Live verification record
 
 The public Production integration was verified on 20 August 2026:
