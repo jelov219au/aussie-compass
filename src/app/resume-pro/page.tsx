@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { ResumeProVisitTracker } from "@/components/analytics/ResumeProVisitTracker";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { ResumeProCheckoutForm } from "@/components/tools/ResumeProCheckoutForm";
 import { Container } from "@/components/ui/Container";
 import { canCreateTestCheckout, getPaymentReadiness } from "@/lib/commerce";
+import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -77,16 +79,18 @@ function TemplatePreview({ variant, label }: { variant: "editorial" | "split" | 
   );
 }
 
-type Props = { searchParams: Promise<{ access?: string; checkout?: string }> };
+type Props = { searchParams: Promise<{ access?: string; checkout?: string; from?: string | string[] }> };
 
 export default async function ResumeProPage({ searchParams }: Props) {
-  const { access, checkout } = await searchParams;
+  const { access, checkout, from } = await searchParams;
   const paymentReadiness = getPaymentReadiness();
   const testCheckoutAvailable = canCreateTestCheckout();
   const checkoutAvailable = paymentReadiness.ready || testCheckoutAvailable;
+  const entry = normalizeResumeProEntry(from);
 
   return (
     <>
+      <ResumeProVisitTracker entry={entry} checkoutAvailable={checkoutAvailable} />
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "영문 이력서 빌더", path: "/resume-builder" }, { name: "Resume Pro", path: "/resume-pro" }]} />
       <Header />
       <main>
@@ -132,7 +136,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">결제 기능 준비 중</span>
               )}
             </div>
-            {checkoutAvailable && <div className="mt-5"><ResumeProCheckoutForm testMode={testCheckoutAvailable} /></div>}
+            {checkoutAvailable && <div className="mt-5"><ResumeProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
             <p className="mt-4 text-xs leading-5 text-muted">
               {testCheckoutAvailable
                 ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다. 테스트 이용권과 결제 처리 기술 기록만 생성됩니다."
