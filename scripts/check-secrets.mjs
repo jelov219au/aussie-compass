@@ -28,6 +28,10 @@ const patterns = [
     label: "Vercel automation bypass environment value",
     expression: /VERCEL_AUTOMATION_BYPASS_SECRET\s*=\s*[A-Za-z0-9_-]{16,}/g,
   },
+  {
+    label: "Zoho SMTP application password",
+    expression: /ZOHO_SMTP_APP_PASSWORD\s*=\s*[^\s#]{8,}/g,
+  },
 ];
 
 const findings = [];

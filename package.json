@@ -13,6 +13,7 @@
     "test:resume-pro-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-resume-pro-tokens.mjs",
     "test:entitlement-ordering": "node scripts/check-entitlement-ordering.mjs",
     "test:product-entitlements": "node scripts/check-product-entitlement-isolation.mjs",
+    "test:payment-alerts": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-payment-alerts.mjs",
     "test:accounting-contract": "node scripts/check-accounting-export-contract.mjs",
     "accounting:export": "node scripts/export-stripe-accounting.mjs",
     "accounting:merge": "node scripts/merge-stripe-accounting.mjs",
@@ -22,6 +23,7 @@
     "@neondatabase/serverless": "^1.1.0",
     "@vercel/analytics": "^2.0.1",
     "next": "^16.3.1",
+    "nodemailer": "^9.0.5",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "stripe": "^22.5.0"
@@ -29,6 +31,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.8",
     "@types/node": "^22.15.21",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "eslint": "^9.27.0",
