@@ -1,10 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { track } from "@vercel/analytics";
 
 import { jobMoveSurveyQuestions, type JobMoveSurveyAnswers, type JobMoveSurveyQuestionId } from "@/lib/jobMoveSurvey";
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
+
+const pilotEmailHref = `mailto:support@hojucompass.com?subject=${encodeURIComponent("[Job Move Pro 무료 테스트 신청]")}&body=${encodeURIComponent([
+  "지원하려는 직무:",
+  "",
+  "채용공고 링크:",
+  "",
+  "최근 관련 경력 한 줄:",
+  "",
+  "지원 마감일(알고 있다면):",
+  "",
+  "여권, TFN, 비자번호, 주소, 생년월일 또는 이력서 원문은 보내지 마세요.",
+].join("\n"))}`;
 
 export function JobMoveSurveyForm() {
   const startedAt = useRef<number | null>(null);
@@ -46,6 +59,7 @@ export function JobMoveSurveyForm() {
       });
       const result = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(result.error || "응답 전송에 실패했습니다.");
+      track("Job Move Survey Completed", { entry: "public_survey" });
       setState("success");
     } catch (error) {
       setState("error");
@@ -54,12 +68,39 @@ export function JobMoveSurveyForm() {
   }
 
   if (state === "success") {
+    const highIntent = answers.purchaseLikelihood?.startsWith("7–8점") || answers.purchaseLikelihood?.startsWith("9–10점");
+
     return (
-      <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-7 text-center sm:p-10" aria-live="polite">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Response received</p>
-        <h2 className="mt-3 text-2xl font-semibold text-navy">응답해주셔서 감사합니다.</h2>
-        <p className="mt-3 text-sm leading-7 text-muted">제출된 답변은 제품 방향을 결정하는 통계 목적으로만 검토합니다.</p>
-      </section>
+      <div className="space-y-5" aria-live="polite">
+        <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-7 text-center sm:p-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Response received</p>
+          <h2 className="mt-3 text-2xl font-semibold text-navy">응답해주셔서 감사합니다.</h2>
+          <p className="mt-3 text-sm leading-7 text-muted">제출된 답변은 제품 방향을 결정하는 통계 목적으로만 검토합니다.</p>
+        </section>
+
+        {highIntent ? (
+          <section className="rounded-2xl bg-navy p-6 text-white sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Free pilot · 3명</p>
+            <h2 className="mt-3 text-2xl font-semibold">실제 채용공고 1개를 무료로 진단받아보세요.</h2>
+            <p className="mt-3 text-sm leading-7 text-white/70">공고의 핵심 요구조건, 현재 경력에서 쓸 수 있는 근거, 부족한 근거와 맞춤 면접 질문을 1페이지로 정리해드립니다. 판매나 결제 요청은 없습니다.</p>
+            <ul className="mt-5 grid gap-2 text-sm text-white/80 sm:grid-cols-2">
+              <li>• 핵심 요구조건 5개</li>
+              <li>• 사용할 수 있는 경력 근거 3개</li>
+              <li>• 보완할 근거 2개</li>
+              <li>• 맞춤 면접 질문 3개</li>
+            </ul>
+            <a href={pilotEmailHref} onClick={() => track("Job Move Pilot Requested", { entry: "survey_high_intent" })} className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-gold px-5 py-3 text-center font-semibold text-navy sm:w-auto">무료 테스트 신청 이메일 열기</a>
+            <p className="mt-4 text-xs leading-5 text-white/55">이메일 앱이 열리면 직무, 공개 채용공고 링크와 관련 경력 한 줄만 입력하세요. 이력서 원문이나 민감정보는 보내지 마세요.</p>
+          </section>
+        ) : (
+          <section className="rounded-2xl border border-border bg-white p-6 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Product preview</p>
+            <h2 className="mt-3 text-xl font-semibold text-navy">어떤 결과물이 나오는지 먼저 확인하세요.</h2>
+            <p className="mt-3 text-sm leading-7 text-muted">가상의 경력과 채용공고로 만든 Evidence Pack 샘플을 볼 수 있습니다.</p>
+            <a href="/job-move-pro-research-preview" onClick={() => track("Job Move Evidence Preview Opened", { entry: "survey_complete" })} className="mt-5 inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Evidence Pack 샘플 보기 →</a>
+          </section>
+        )}
+      </div>
     );
   }
 
