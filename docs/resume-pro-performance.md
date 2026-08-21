@@ -15,7 +15,12 @@ admin authentication exists.
 
 ## Local setup
 
-Copy these values into an ignored local environment file. Never commit them.
+Open the local report and use its `성과 데이터 연결` form. The form is
+available only on a loopback development address, accepts same-origin posts
+only, and stores the values in the ignored `.env.local` file without showing
+them again. Never commit that file.
+
+The same values can be added manually when needed:
 
 ```text
 VERCEL_TOKEN=
@@ -31,8 +36,9 @@ access token for the account or team that owns the project.
 real sales or `rk_test_` for test data) with read access to Checkout Sessions.
 Do not reuse the checkout write key. Apply an IP access policy when practical.
 
-Restart the local development server after changing environment values, then
-open `/resume-pro-performance`. The report supports 7, 30 and 90 day windows.
+The current project-scoped Vercel reporting token expires on 2026-11-19. Replace
+it through the same local form before then. The report supports 7, 30 and 90
+day windows.
 
 ## Reading the funnel
 
