@@ -66,6 +66,8 @@ Rental Application Pack Pro additionally requires `STRIPE_RENTAL_PRO_PRICE_ID`. 
 
 Pay Evidence Pro additionally requires `STRIPE_PAY_EVIDENCE_PRO_PRICE_ID`. Its public Checkout stays unavailable unless the shared payment gates and its product-specific Price gate all pass. Adding the variable is not permission to sell: keep Production disabled until the live Price, signed webhook, durable entitlement, recovery and refund paths have each been verified.
 
+Car Buy Pack Pro additionally requires `STRIPE_CAR_BUY_PRO_PRICE_ID`. Its Checkout remains closed while that variable is absent. Before adding it, apply the `car_buy_pro` entitlement constraint in Preview, then verify one test purchase, access activation, one-time recovery and full-refund revocation. Production sale is a separate approval after those checks pass.
+
 ## Post-launch owner actions
 
 1. Run the target-environment launch audit with `npm run payments:check -- --strict` after any payment-setting change. Replace the full live key with a least-privilege restricted key when its required Checkout and Price permissions are confirmed.

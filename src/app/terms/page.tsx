@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { Container } from "@/components/ui/Container";
-import { payEvidenceProduct, payEvidencePurchaseTermsVersion, rentalProProduct, rentalProPurchaseTermsVersion, resumeProProduct, resumeProPurchaseTermsVersion } from "@/lib/commerce";
+import { carBuyProProduct, carBuyProPurchaseTermsVersion, payEvidenceProduct, payEvidencePurchaseTermsVersion, rentalProProduct, rentalProPurchaseTermsVersion, resumeProProduct, resumeProPurchaseTermsVersion } from "@/lib/commerce";
 import { getPublicSellerDetails } from "@/lib/publicSeller";
 import { createPageMetadata } from "@/lib/site";
 
@@ -27,6 +27,7 @@ export default function TermsPage() {
   const resumePrice = `A$${(resumeProProduct.priceCents / 100).toFixed(2)}`;
   const payPrice = `A$${(payEvidenceProduct.priceCents / 100).toFixed(2)}`;
   const rentalPrice = `A$${(rentalProProduct.priceCents / 100).toFixed(2)}`;
+  const carBuyPrice = `A$${(carBuyProProduct.priceCents / 100).toFixed(2)}`;
 
   return (
     <>
@@ -44,16 +45,17 @@ export default function TermsPage() {
             </div>
             <aside className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted">
               <strong className="block text-navy">현재 적용 버전</strong>
-              <span className="mt-1 block">Resume {resumeProPurchaseTermsVersion}</span><span className="block">Pay {payEvidencePurchaseTermsVersion}</span><span className="block">Rental {rentalProPurchaseTermsVersion}</span>
+              <span className="mt-1 block">Resume {resumeProPurchaseTermsVersion}</span><span className="block">Pay {payEvidencePurchaseTermsVersion}</span><span className="block">Rental {rentalProPurchaseTermsVersion}</span><span className="block">Car Buy {carBuyProPurchaseTermsVersion}</span>
               <span className="mt-2 block text-xs">결제할 때 확인한 버전이 구매 기록에 함께 남습니다.</span>
             </aside>
           </div>
 
-          <section className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-5" aria-label="핵심 이용 조건">
+          <section className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3" aria-label="핵심 이용 조건">
             <article className="border-t-2 border-gold bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Free tools</p><h2 className="mt-3 text-xl font-semibold text-navy">무료 도구는 계속 무료</h2><p className="mt-2 text-sm leading-6 text-muted">기본 이력서 작성, 계산기와 체크리스트는 별도의 결제 없이 이용할 수 있습니다.</p></article>
             <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Resume Pro</p><h2 className="mt-3 text-xl font-semibold text-navy">{resumePrice} AUD 1회 결제</h2><p className="mt-2 text-sm leading-6 text-muted">자동 갱신 구독이 아니며 실제 총액과 세금 표시는 Stripe 결제 화면에서 최종 확인합니다.</p></article>
             <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Pay Evidence Pro</p><h2 className="mt-3 text-xl font-semibold text-navy">{payPrice} AUD 1회 결제</h2><p className="mt-2 text-sm leading-6 text-muted">직접 입력한 급여 기록을 정리하는 브라우저 기반 도구이며 법적 미지급액 판정 서비스가 아닙니다.</p></article>
             <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Rental Pack Pro</p><h2 className="mt-3 text-xl font-semibold text-navy">{rentalPrice} AUD 1회 결제</h2><p className="mt-2 text-sm leading-6 text-muted">여러 집의 렌트 신청 준비를 정리하는 브라우저 기반 도구이며 임대 승인을 보장하지 않습니다.</p></article>
+            <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Car Buy Pack Pro</p><h2 className="mt-3 text-xl font-semibold text-navy">{carBuyPrice} AUD 1회 결제</h2><p className="mt-2 text-sm leading-6 text-muted">중고차 첫해 비용과 구매 전 확인을 정리하는 브라우저 기반 도구이며 차량 상태나 적정 가격을 판정하지 않습니다.</p></article>
             <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Consumer rights</p><h2 className="mt-3 text-xl font-semibold text-navy">법에서 보장하는 권리는 그대로</h2><p className="mt-2 text-sm leading-6 text-muted">이 조건은 Australian Consumer Law에 따른 소비자 보장 권리를 제한하지 않습니다.</p></article>
           </section>
 
@@ -69,6 +71,7 @@ export default function TermsPage() {
                 <p>Resume Pro는 프리미엄 이력서 레이아웃, 커버레터 작성 도구, 채용 공고 표현 점검과 회사별 지원서 정리를 제공하는 브라우저 기반 디지털 작업 공간입니다.</p>
                 <p>Pay Evidence Pro는 사용자가 확인한 근무시간과 시급을 계산하고 Payslip 차이, 증빙 준비 상태와 영문 문의 초안을 정리하는 브라우저 기반 디지털 작업 공간입니다. Award·Classification을 선택하거나 법적 미지급액을 판정하지 않습니다.</p>
                 <p>Rental Application Pack Pro는 여러 집의 신청 단계·서류·개인정보 점검·다음 행동을 관리하고 상황별 영문 연락 문구와 PDF/TXT 준비본을 만드는 브라우저 기반 디지털 작업 공간입니다. 임대 승인, 에이전트 응답 또는 법률적 적합성을 보장하지 않습니다.</p>
+                <p>Car Buy Pack Pro는 사용자가 입력한 중고차 후보의 첫해 예상 비용, 구매 전 확인 상태, 판매자 질문과 결정 요약을 정리하는 브라우저 기반 디지털 작업 공간입니다. 차량 가치 평가, 기계 검사, 금융·보험 추천 또는 법률 자문을 제공하지 않습니다.</p>
                 <p>채용 합격, 면접 기회, 고용주 응답 또는 특정 결과를 보장하지 않습니다. 사용자는 생성된 문장을 자신의 실제 경험과 지원 직무에 맞게 확인하고 수정해야 합니다.</p>
               </div>
             </section>
@@ -76,7 +79,7 @@ export default function TermsPage() {
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
               <div><p className="font-mono text-xs text-gold">03 / PAYMENT</p><h2 className="mt-2 text-xl font-semibold text-navy">결제와 제공 방식</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
-                <p>Resume Pro는 {resumePrice} AUD, Pay Evidence Pro는 {payPrice} AUD, Rental Application Pack Pro는 {rentalPrice} AUD의 1회 결제 상품입니다. 결제 전에 Stripe 화면에서 구매 상품, 최종 금액, 결제수단과 인보이스 정보를 확인할 수 있으며 Hoju Compass는 전체 카드번호나 CVC를 직접 받지 않습니다.</p>
+                <p>Resume Pro는 {resumePrice} AUD, Pay Evidence Pro는 {payPrice} AUD, Rental Application Pack Pro와 Car Buy Pack Pro는 각각 {rentalPrice} AUD와 {carBuyPrice} AUD의 1회 결제 상품입니다. 결제 전에 Stripe 화면에서 구매 상품, 최종 금액, 결제수단과 인보이스 정보를 확인할 수 있으며 Hoju Compass는 전체 카드번호나 CVC를 직접 받지 않습니다.</p>
                 <p>결제가 확인되면 현재 기기에 30일짜리 접근 세션을 발급합니다. 30일은 구매 이용권의 소멸일이 아니라 이 기기의 로그인 확인 기간이며, 활성 이용권은 복구 절차를 통해 다시 확인할 수 있습니다.</p>
                 <p>새 기기로 옮길 때 사용하는 복구 코드는 발급 후 30일 안에 한 번만 사용할 수 있습니다. 새 코드를 만들면 이전에 사용하지 않은 코드는 무효화됩니다.</p>
                 <Link href="/purchase-information" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">가격·제공·환불 안내 자세히 보기 →</Link>
@@ -86,7 +89,7 @@ export default function TermsPage() {
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
               <div><p className="font-mono text-xs text-gold">04 / YOUR DATA</p><h2 className="mt-2 text-xl font-semibold text-navy">작성 내용과 백업</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
-                <p>이력서·커버레터·근무시간·급여 계산·Rental Pack의 프로필·집 후보·영문 문구는 별도 안내가 없는 한 현재 브라우저에서 처리됩니다. 결제 이용권 데이터베이스에는 작업 공간의 문서 원문을 저장하지 않습니다.</p>
+                <p>이력서·커버레터·근무시간·급여 계산·Rental Pack의 프로필·집 후보·영문 문구와 Car Buy Pack의 차량 별칭·비용·확인 메모는 별도 안내가 없는 한 현재 브라우저에서 처리됩니다. 결제 이용권 데이터베이스에는 작업 공간의 문서 원문을 저장하지 않습니다.</p>
                 <p>브라우저 사이트 데이터를 지우거나 기기를 바꾸면 로컬 작성 내용이 사라질 수 있습니다. 중요한 지원서는 PDF 또는 백업 파일로 직접 보관해 주세요.</p>
                 <Link href="/privacy" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내 보기 →</Link>
               </div>

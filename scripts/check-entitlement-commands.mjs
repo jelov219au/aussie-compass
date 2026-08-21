@@ -49,6 +49,16 @@ assert.deepEqual(
 );
 
 assert.equal(
+  getEntitlementCommand(stripeEvent("checkout.session.completed", {
+    ...paidSession,
+    id: "cs_test_car_buy_paid",
+    metadata: { product_code: "car_buy_pro" },
+  }))?.productCode,
+  "car_buy_pro",
+  "a Car Buy Pack purchase must receive only its own product entitlement",
+);
+
+assert.equal(
   getEntitlementCommand(stripeEvent("checkout.session.completed", { ...paidSession, metadata: { product_code: "other" } })),
   null,
   "unknown products must never receive a paid-product entitlement",

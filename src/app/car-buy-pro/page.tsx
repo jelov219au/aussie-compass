@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { CarBuyProCheckoutForm } from "@/components/tools/CarBuyProCheckoutForm";
 import { Container } from "@/components/ui/Container";
+import { canCreateCarBuyProTestCheckout, getCarBuyProPaymentReadiness } from "@/lib/commerce";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -36,15 +38,27 @@ function DecisionPreview() {
   </div>;
 }
 
-export default function CarBuyProPage() {
+type Props = { searchParams: Promise<{ access?: string; checkout?: string }> };
+
+export default async function CarBuyProPage({ searchParams }: Props) {
+  const { access, checkout } = await searchParams;
+  const readiness = getCarBuyProPaymentReadiness();
+  const testCheckoutAvailable = canCreateCarBuyProTestCheckout();
+  const checkoutAvailable = process.env.VERCEL_ENV === "production" ? readiness.ready : testCheckoutAvailable;
   return <>
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "중고차 비교", path: "/used-car-comparison" }, { name: "Car Buy Pack Pro", path: "/car-buy-pro" }]} />
     <Header />
     <main>
       <section className="border-b border-navy/15 py-12 sm:py-20"><Container>
         <Link href="/used-car-comparison" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 중고차 비교표로 돌아가기</Link>
+        {access === "required" && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">이 기기의 Car Buy Pack Pro 접근이 만료됐거나 확인되지 않았습니다. 결제 완료 화면에서 다시 열거나 이용권 복구를 사용해 주세요.</div>}
+        {access === "released" && <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">이 기기의 접근을 안전하게 해제했습니다. 구매 이용권은 유지됩니다.</div>}
+        {checkout === "cancelled" && <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">결제가 취소됐습니다. 청구되지 않았으며 준비가 되면 다시 시작할 수 있습니다.</div>}
         <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end"><div className="max-w-3xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Car Buy Pack Pro · 개발 프리뷰</p><h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">싼 차를 고르는 것보다,<br /><span className="font-normal text-navy-light">잘못 살 가능성을 줄여요.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">차량 가격만 보고 서두르지 않도록 첫해 비용과 구매 직전 확인을 같은 화면에 모았어요. 아직 확인하지 못한 내용은 판매자에게 보낼 영어 질문으로 바로 정리할 수 있어요.</p></div><aside className="border-l-2 border-gold pl-6"><p className="text-sm font-semibold text-muted">검토 중인 1회 가격</p><p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$14.90</p><p className="mt-2 text-sm leading-6 text-muted">한 번의 차량 구매 결정을 정리하는 방식이며 구독은 없어요.</p></aside></div>
-        <div className="mt-10 flex flex-wrap gap-3"><Link href="/used-car-comparison" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 비교표 사용</Link><span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">Pro 작업 공간 출시 준비 중</span></div>
+        <div className="mt-10 flex flex-wrap gap-3"><Link href="/used-car-comparison" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 비교표 사용</Link><span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">{checkoutAvailable ? "Pro 작업 공간 이용 가능" : "Pro 작업 공간 출시 준비 중"}</span></div>
+        {checkoutAvailable && <div className="mt-5"><CarBuyProCheckoutForm testMode={testCheckoutAvailable} /></div>}
+        <p className="mt-4 text-xs leading-5 text-muted">{testCheckoutAvailable ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다." : checkoutAvailable ? "결제는 Stripe의 보안 결제 페이지에서 진행되며 완료 뒤 작업 공간을 열 수 있어요." : "현재는 상품 안내와 기능 검증 단계이며 실제 결제는 진행되지 않습니다."}</p>
+        <Link href="/car-buy-pro/restore" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-navy">이미 구매했다면 이용권 복구하기 →</Link>
       </Container></section>
 
       <section className="py-14 sm:py-20"><Container><div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">구매가 밖의 숫자까지</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">싸게 보이는 차가<br />정말 덜 드는 차인지 확인해요.</h2><p className="mt-4 text-sm leading-7 text-muted">보험, Rego, 이전 비용과 바로 필요한 수리까지 넣으면 후보의 순서가 달라질 수 있어요. 계산 결과가 차량 가치를 판정하지는 않지만, 내가 감당할 지출을 놓치지 않게 도와줘요.</p></div><DecisionPreview /></div></Container></section>

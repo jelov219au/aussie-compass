@@ -21,8 +21,17 @@ export const payEvidenceProduct = {
   billing: "one_time",
 } as const;
 
+export const carBuyProProduct = {
+  id: "car-buy-pro",
+  name: "Car Buy Pack Pro",
+  currency: "aud",
+  priceCents: 1490,
+  billing: "one_time",
+} as const;
+
 export const resumeProPurchaseTermsVersion = "2026-08-19";
 export const payEvidencePurchaseTermsVersion = "2026-08-21";
+export const carBuyProPurchaseTermsVersion = "2026-08-21";
 
 export const rentalProProduct = {
   id: "rental-application-pro",
@@ -132,6 +141,18 @@ export function getPayEvidencePaymentReadiness(): PaymentReadiness {
 
 export function canCreatePayEvidenceTestCheckout() {
   const readiness = getPayEvidencePaymentReadiness();
+  return process.env.VERCEL_ENV !== "production"
+    && readiness.enabled
+    && readiness.stripeConfigured
+    && readiness.managedPaymentsConfigured;
+}
+
+export function getCarBuyProPaymentReadiness(): PaymentReadiness {
+  return getPaymentReadinessForPrice(process.env.STRIPE_CAR_BUY_PRO_PRICE_ID, false);
+}
+
+export function canCreateCarBuyProTestCheckout() {
+  const readiness = getCarBuyProPaymentReadiness();
   return process.env.VERCEL_ENV !== "production"
     && readiness.enabled
     && readiness.stripeConfigured
