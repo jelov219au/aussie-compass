@@ -128,8 +128,11 @@ The protected Pay Evidence Pro Preview grant path was verified on 21 August 2026
 - Neon recorded one processed webhook event and an active `pay_evidence_pro` entitlement for the paid Checkout Session.
 - The success page then exposed the activation action, issued a signed browser session and opened `/pay-evidence-pro/workspace` with the purchased-workspace state visible.
 - The product constraint, product-isolation contract, signed-session tamper resistance, expiry, revoked-access blocking and hashed one-time recovery-code behavior passed the automated entitlement and token checks.
+- A 30-day, one-time recovery code restored access after the original device session was released, and a second use of the same code was rejected.
+- A full AUD 9.90 Sandbox refund delivered `refund.created`, `charge.refunded` and `refund.updated`; all three events were processed without failure and the charge event changed the `pay_evidence_pro` entitlement to `revoked`.
+- The existing workspace session then redirected to `access=required`, confirming that refunded access could not continue.
 - Temporary Stripe Sandbox webhook destinations were disabled after validation, bypass values were stripped from their URLs, every temporary Vercel automation bypass was revoked, and the branch-only webhook secret override was removed.
-- No Production Price, payment gate, webhook, entitlement or deployment setting was changed. Recovery UI and refund/revocation remain separate controlled Preview exercises before any Production launch.
+- No Production Price, payment gate, webhook, entitlement or deployment setting was changed.
 
 No customer email, card detail, legal name, ABN, secret key, webhook secret, Vercel bypass value or database connection string is recorded in this verification note.
 
