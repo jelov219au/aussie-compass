@@ -6,7 +6,7 @@ const stories = [
     number: "01",
     category: "집을 보러 가는 날",
     title: "사진이 보여주지 않는 집의 생활감",
-    description: "방이 넓어 보이는 사진보다, 문을 열었을 때의 냄새와 창문을 닫았을 때의 소리가 더 오래 남습니다.",
+    description: "사진에서는 넓어 보였던 방도 직접 가보면 냄새나 소음 때문에 다르게 느껴질 수 있어요.",
     points: ["광각 사진과 실제 방 크기", "샤워 수압·냉장고 자리·세탁 규칙", "밤 귀갓길과 실제 거리 분위기"],
     href: "/resources/australia-sharehouse-photo-vs-reality-checklist",
     analyticsId: "sharehouse_reality",
@@ -17,7 +17,7 @@ const stories = [
     number: "02",
     category: "집과 교통을 함께 볼 때",
     title: "평일 40분이 주말 2시간이 되는 이유",
-    description: "Train이 가까운 집도 Trackwork가 시작되면 대체버스의 우회와 긴 환승 대기를 만나게 됩니다.",
+    description: "Train이 가까운 집도 주말 Trackwork가 시작되면 이동시간이 생각보다 길어질 수 있어요.",
     points: ["출근·귀가·주말 시간대별 검색", "Trackwork와 Replacement bus", "월세와 함께 계산하는 이동시간"],
     href: "/resources/sydney-weekend-commute-reality-check",
     analyticsId: "weekend_commute",
@@ -32,12 +32,12 @@ export function ExperienceStoriesSection() {
       <Container>
         <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:gap-14">
           <div className="lg:pt-2">
-            <p className="text-xs font-semibold tracking-[0.16em] text-gold">직접 살아보니 먼저 보였던 것</p>
+            <p className="text-xs font-semibold tracking-[0.16em] text-gold">생활에서 놓치기 쉬운 부분</p>
             <h2 id="experience-stories-heading" className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-              사진과 지도 밖에서<br className="hidden sm:block" /> 배운 이야기도 담았어요.
+              사진과 지도만 봐서는<br className="hidden sm:block" /> 알기 어려운 것도 담았어요.
             </h2>
             <p className="mt-5 max-w-md text-sm leading-7 text-white/70 sm:text-base">
-              공식 안내만으로는 알기 어려운 생활의 빈틈을 실제 경험에서 꺼내고, 지금도 확인할 수 있는 공식 자료로 다시 점검했습니다.
+              공식 안내에 잘 나오지 않는 생활의 세부는 확인할 질문으로 바꾸고, 규정과 수치는 공식 자료와 함께 정리했어요.
             </p>
           </div>
 

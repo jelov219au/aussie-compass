@@ -6,16 +6,16 @@ import { Container } from "@/components/ui/Container";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "Rental Application Pack Pro 미리보기 | Hoju Compass",
-  description: "호주 렌트 신청 서류, 개인정보 점검, 영문 소개문과 준비 패키지를 한곳에서 만드는 Rental Application Pack Pro를 확인하세요.",
+  title: "여러 호주 렌트 신청을 놓치지 않게 | Rental Pack Pro",
+  description: "마음에 드는 집을 찾았을 때 준비가 늦어지지 않도록 집별 서류, 제출일, 다음 행동, 개인정보와 영문 연락을 한곳에 정리하세요.",
   path: "/rental-application-pro",
 });
 
 const features = [
-  ["01", "Document readiness", "신분·지불 능력·임대 이력·레퍼런스 자료를 업로드하지 않고 준비 상태만 점검합니다."],
-  ["02", "Privacy guard", "TFN, 전체 거래내역, 불필요한 신분증 번호처럼 제출 전에 다시 확인할 정보를 표시합니다."],
-  ["03", "English note", "입주일·계약기간과 생활 패턴을 바탕으로 에이전트에게 보낼 간결한 영문 소개문을 만듭니다."],
-  ["04", "Local pack", "서류 상태와 확인 질문, 영문 소개문을 한 개의 개인 텍스트 파일로 저장합니다."],
+  ["01", "Document readiness", "신분·지불 능력·임대 이력·레퍼런스 자료를 올리지 않고, 빠진 준비가 없는지 확인해요."],
+  ["02", "Privacy guard", "TFN, 전체 거래내역이나 불필요한 신분증 번호를 보내기 전에 한 번 더 확인해요."],
+  ["03", "English note", "입주일·계약기간과 생활 패턴을 바탕으로 에이전트에게 보낼 짧은 영문 소개문을 만들어요."],
+  ["04", "Local pack", "서류 상태와 확인 질문, 영문 소개문을 내 기기에 한 개의 정리본으로 저장해요."],
 ];
 
 const comparison = [

@@ -5,13 +5,13 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { Container } from "@/components/ui/Container";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata = createPageMetadata({ title: "Leaving Australia Pack Pro 미리보기 | Hoju Compass", description: "호주 출국 전후 업무와 마지막 정산을 날짜순으로 추적하고 개인 귀국 준비 요약을 만드는 출시 전 기능 구성을 살펴보세요.", path: "/leaving-australia-pro" });
+export const metadata = createPageMetadata({ title: "출국 뒤에도 남는 정산을 끝까지 | Leaving Australia Pack Pro", description: "호주 출국 전후 해야 할 일과 Bond, 마지막 급여, 세금, DASP를 받을 때까지 확인할 날짜를 한곳에 정리하세요.", path: "/leaving-australia-pro" });
 
 const features = [
-  ["01", "Ordered departure", "출국 전과 출국 후 업무를 한 흐름에서 상태별로 관리합니다."],
-  ["02", "Settlement tracker", "Bond, 마지막 급여, 공과금 환급과 DASP의 확인 예정일을 기록합니다."],
-  ["03", "Question handoff", "ATO, Super 펀드, 세무사 또는 기관에 확인할 질문을 따로 모읍니다."],
-  ["04", "Local summary", "민감한 번호와 원본 파일 없이 개인 인계 요약을 저장합니다."],
+  ["01", "Ordered departure", "퇴사·퇴거·계정 정리는 출국 전에, 남은 확인은 출국 뒤 일정으로 나눠 관리해요."],
+  ["02", "Settlement tracker", "Bond, 마지막 급여, 공과금 환급과 DASP를 언제 다시 확인할지 날짜를 남겨요."],
+  ["03", "Question handoff", "ATO, Super 펀드, 세무사나 기관에 물어볼 내용을 잊기 전에 따로 모아요."],
+  ["04", "Local summary", "민감한 번호와 원본 파일 없이 귀국 뒤에도 이어볼 수 있는 개인 요약을 저장해요."],
 ] as const;
 
 const sources = [

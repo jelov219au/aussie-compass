@@ -12,13 +12,13 @@ export const ko: SiteContent = {
     exploreTools: "도구 찾기",
   },
   hero: {
-    label: "먼저 겪어본 사람이 건네는 호주 생활 안내",
+    label: "호주 생활에 필요한 정보를 한곳에",
     heading: "호주 생활과 직장 생활, 더 이상 혼자 헤매지 마세요.",
     description:
-      "비자와 첫 정착부터 급여, 집, 세금, 귀국 준비까지. 복잡한 공식 정보는 쉽게 풀고, 지금 해볼 일은 바로 쓸 수 있는 도구로 준비했어요.",
+      "비자와 첫 정착부터 급여, 집, 세금, 귀국 준비까지. 흩어진 공식 정보는 쉽게 풀어 정리하고, 지금 필요한 일은 바로 써볼 수 있는 도구로 만들었어요.",
     primaryCta: "지금 내 상황 골라보기",
     secondaryCta: "도구부터 둘러보기",
-    trust: "쉽고 명확하며 실제 생활에 도움이 되는 정보를 제공합니다.",
+    trust: "어려운 공식 정보는 쉽게 풀고, 직접 확인할 수 있는 출처를 함께 남겨요.",
   },
   tools: {
     heading: "호주 생활에 필요한 실용 도구",
@@ -34,7 +34,7 @@ export const ko: SiteContent = {
       },
       {
         title: "간단한 정보 입력",
-        description: "복잡한 용어 없이 몇 가지 정보만 입력하면 됩니다.",
+        description: "복잡한 용어 없이 몇 가지 정보만 입력하면 돼요.",
       },
       {
         title: "명확한 결과 확인",
@@ -44,21 +44,21 @@ export const ko: SiteContent = {
   },
   articles: {
     heading: "준비 중인 실용 가이드",
-    comingSoonLabel: "곧 공개됩니다",
+    comingSoonLabel: "곧 공개해요",
   },
   email: {
     heading: "호주 생활 가이드 소식 받기",
-    description: "새로운 도구와 체크리스트가 준비되면 알려드릴게요. 불필요한 메일은 보내지 않습니다.",
+    description: "새로운 도구와 체크리스트가 준비되면 알려드릴게요. 필요 없는 메일은 보내지 않아요.",
     placeholder: "이메일 주소",
     button: "소식 신청하기",
-    successMessage: "감사합니다. 이메일 구독 기능은 곧 시작됩니다.",
+    successMessage: "고마워요. 이메일 구독 기능은 곧 시작할게요.",
     invalidMessage: "올바른 이메일 주소를 입력해 주세요.",
     addressLabel: "이메일 주소",
   },
   about: {
     heading: "Hoju Compass 소개",
     description:
-      "Hoju Compass는 호주에 거주하는 한국어 사용자가 급여, 세금, 직장과 일상생활 정보를 더 쉽게 이해하도록 돕는 실용적인 도구와 가이드를 만듭니다.",
+      "Hoju Compass는 호주 생활에 필요한 공식 정보를 한국어로 쉽게 풀고, 급여·세금·직장·집 문제를 직접 정리해볼 수 있는 도구를 만들어요. 개인 경험을 정답처럼 말하기보다, 누구나 다시 확인할 수 있는 출처를 함께 남겨요.",
   },
   footer: {
     privacy: "개인정보 보호",
