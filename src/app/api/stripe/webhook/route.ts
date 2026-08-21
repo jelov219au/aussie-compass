@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 
 import { getEntitlementCommand } from "@/lib/entitlements";
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
+import { paymentAlertsConfigured, sendStripeOperatorAlert } from "@/lib/paymentAlerts";
 import { getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -95,6 +96,27 @@ export async function POST(request: NextRequest) {
       outcome: result.outcome,
       entitlementAction: entitlementCommand.action,
     });
+
+    if (result.outcome === "processed" && paymentAlertsConfigured()) {
+      after(async () => {
+        try {
+          const notification = await sendStripeOperatorAlert(event);
+          console.info("Handled Stripe operator alert", {
+            eventId: event.id,
+            type: event.type,
+            outcome: notification.outcome,
+          });
+        } catch (error) {
+          // Entitlement delivery must stay independent from an operator email outage.
+          console.error("Unable to send Stripe operator alert", {
+            eventId: event.id,
+            type: event.type,
+            message: error instanceof Error ? error.message : "Unknown error",
+          });
+        }
+      });
+    }
+
     return webhookResponse({ received: true, testOnly: !event.livemode, persisted: true, outcome: result.outcome });
   } catch (error) {
     console.error("Unable to persist Stripe entitlement event", {
