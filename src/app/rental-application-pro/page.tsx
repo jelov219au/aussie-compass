@@ -8,16 +8,16 @@ import { canCreateRentalTestCheckout, getRentalPaymentReadiness } from "@/lib/co
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "Rental Application Pack Pro 미리보기 | Hoju Compass",
-  description: "여러 호주 렌트 지원을 추적하고 재사용 프로필, 개인정보 점검, 영문 연락 문구와 PDF 준비 패키지를 만드는 Rental Application Pack Pro를 확인하세요.",
+  title: "여러 호주 렌트 신청을 놓치지 않게 | Rental Pack Pro",
+  description: "마음에 드는 집을 찾았을 때 준비가 늦어지지 않도록 집별 서류, 제출일, 다음 행동, 개인정보와 영문 연락을 한곳에 정리하세요.",
   path: "/rental-application-pro",
 });
 
 const features = [
-  ["01", "Application tracker", "여러 집 후보를 한곳에서 관리하고 인스펙션, 신청, 후속 연락과 결과까지 상태와 다음 행동을 기록합니다."],
-  ["02", "Reusable profile", "입주 인원·고용·임대 이력 같은 공통 내용을 한 번 정리하고 새 집 후보에 반복해서 활용합니다."],
-  ["03", "State & privacy", "집마다 주·준주 공식 신청 안내를 연결하고 TFN·거래내역·신청 링크·보관기간을 점검합니다."],
-  ["04", "Messages & export", "신청 소개, 인스펙션 후 문의, 제출 후 확인 문구와 관할 체크를 PDF·TXT·JSON으로 저장합니다."],
+  ["01", "Application tracker", "집마다 서류, 제출일과 다음 연락 날짜를 따로 적어두고 최대 20개 후보를 놓치지 않게 관리해요."],
+  ["02", "Reusable profile", "입주 인원·고용·임대 이력 같은 공통 내용은 한 번만 적고 새 집에 지원할 때 다시 사용해요."],
+  ["03", "State & privacy", "TFN이나 은행 로그인처럼 필요하지 않은 정보를 보내기 전에 주별 공식 안내와 함께 점검해요."],
+  ["04", "Messages & export", "신청 소개, 인스펙션 후 문의와 제출 확인 문구를 준비하고 집별 정리본으로 저장해요."],
 ];
 
 const comparison = [

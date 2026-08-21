@@ -13,7 +13,7 @@ export function PayEvidenceCheckoutForm({ testMode }: { testMode: boolean }) {
         <span>{testMode ? "실제 청구가 없는 Stripe 테스트임을 확인했습니다." : "A$9.90 1회 결제와 디지털 제공·이용·환불 조건을 확인했습니다."}</span>
       </label>
       <p className="ml-8 mt-2 text-xs leading-5 text-muted">결제 전에 <Link href="/terms" className="font-semibold text-navy underline decoration-gold underline-offset-4">서비스 이용 조건</Link>, <Link href="/purchase-information" className="font-semibold text-navy underline decoration-gold underline-offset-4">구매·환불 안내</Link>와 <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">결제 데이터 처리 안내</Link>를 확인해 주세요.</p>
-      <button type="submit" disabled={!accepted} className="mt-4 inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy enabled:hover:bg-white disabled:cursor-not-allowed disabled:opacity-45">{testMode ? "테스트 결제 시작" : "A$9.90 결제하기"}</button>
+      <button type="submit" disabled={!accepted} className="mt-4 inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy enabled:hover:bg-white disabled:cursor-not-allowed disabled:opacity-45">{testMode ? "테스트 결제 시작" : "A$9.90에 급여 차이 정리하기"}</button>
     </form>
   );
 }

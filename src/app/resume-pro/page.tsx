@@ -8,8 +8,8 @@ import { canCreateTestCheckout, getPaymentReadiness } from "@/lib/commerce";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "Resume Pro | Hoju Compass",
-  description: "프리미엄 이력서 디자인, 커버레터, 채용 공고 키워드 점검을 한곳에서 준비하세요.",
+  title: "호주 취업 공고별 이력서·커버레터 준비 | Resume Pro",
+  description: "지원하고 싶은 호주 취업 공고에 맞춰 실제 경력을 점검하고, 회사별 이력서와 커버레터를 한 묶음으로 준비하세요.",
   path: "/resume-pro",
 });
 
@@ -17,26 +17,26 @@ const features = [
   {
     number: "01",
     eyebrow: "Premium layouts",
-    title: "직무에 맞게 고르는 프리미엄 디자인",
-    description: "Hospitality, Office, Trade 등 지원 환경에 맞춘 ATS 친화형 레이아웃과 색상·간격 설정을 제공합니다.",
+    title: "채용 담당자가 필요한 내용을 빨리 찾게",
+    description: "Hospitality, Office, Trade 등 지원 환경에 맞춰 경력과 강점이 먼저 읽히는 레이아웃을 골라요.",
   },
   {
     number: "02",
     eyebrow: "Cover letter",
-    title: "이력서와 연결되는 커버레터",
-    description: "이력서에 이미 적은 경력과 강점을 다시 입력하지 않고, 지원 회사와 직무에 맞게 정리합니다.",
+    title: "내 경력을 다시 쓰지 않아도 되는 커버레터",
+    description: "이력서에 적어둔 실제 경력과 강점을 불러와 지원 회사와 직무에 맞게 정리해요.",
   },
   {
     number: "03",
     eyebrow: "Job match",
-    title: "채용 공고 핵심 표현 점검",
-    description: "공고에서 자주 쓰인 표현과 자격 요건을 확인하고 이력서에서 빠뜨린 내용을 직접 점검할 수 있게 돕습니다.",
+    title: "공고에서 놓친 요구사항 확인",
+    description: "공고에 반복되는 표현과 자격 요건을 찾아보고, 내 이력서에서 빠뜨린 내용이 없는지 직접 확인해요.",
   },
   {
     number: "04",
     eyebrow: "Application kit",
-    title: "지원서 한 묶음으로 내보내기",
-    description: "이력서, 커버레터, 일반 텍스트, 제출 전 체크리스트를 회사별 지원 패키지로 정리합니다.",
+    title: "제출할 파일을 회사별로 한 묶음에",
+    description: "이력서, 커버레터, 일반 텍스트와 제출 전 체크리스트를 이번 지원에 맞춰 함께 정리해요.",
   },
 ];
 
@@ -111,8 +111,13 @@ export default async function ResumeProPage({ searchParams }: Props) {
             <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
               <div className="max-w-3xl">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro</p>
-                <h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">이력서 한 장에서,<br /><span className="font-normal text-navy-light">지원 준비 전체로.</span></h1>
-                <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">무료 빌더에서 작성한 내용을 바탕으로 회사별 커버레터, 공고 점검, 프리미엄 디자인과 지원서 묶음을 한곳에서 준비할 수 있어요.</p>
+                <h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">지원하고 싶은 공고를 찾았다면,<br /><span className="font-normal text-navy-light">이제 제출할 준비를 끝내세요.</span></h1>
+                <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">무료 빌더에 적어둔 실제 경력을 바탕으로 공고에서 빠뜨린 내용은 없는지 확인하고, 회사별 이력서와 커버레터를 한 묶음으로 준비해요.</p>
+                <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-navy/70">
+                  <li>실제로 한 경험만 사용</li>
+                  <li>취업 결과를 과장하지 않음</li>
+                  <li>구독 없는 1회 결제</li>
+                </ul>
               </div>
               <aside className="border-l-2 border-gold pl-6">
                 <p className="text-sm font-semibold text-muted">Resume Pro 1회 이용권</p>
@@ -121,7 +126,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
               </aside>
             </div>
             <div className="mt-10 flex flex-wrap items-start gap-3">
-              <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">무료 이력서 먼저 만들기</Link>
+              <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">이력서가 없다면 무료로 먼저 만들기</Link>
               <span className="inline-flex min-h-12 items-center justify-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted">{checkoutAvailable ? "Pro 작업 공간 이용 가능" : "Pro 작업 공간 출시 준비 중"}</span>
               {!checkoutAvailable && (
                 <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">결제 기능 준비 중</span>

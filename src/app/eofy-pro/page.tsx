@@ -6,16 +6,16 @@ import { Container } from "@/components/ui/Container";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "EOFY Pack Pro 미리보기 | Hoju Compass",
-  description: "호주 택스 리턴 준비 자료를 체크리스트, 증빙 목록과 회계사 전달용 요약으로 정리하는 EOFY Pack Pro를 확인하세요.",
+  title: "흩어진 택스 리턴 자료를 신고 전 요약으로 | EOFY Pack Pro",
+  description: "호주 택스 리턴 전에 소득 자료, 공제 증빙과 세무사에게 물어볼 내용을 한눈에 볼 수 있는 준비 요약으로 정리하세요.",
   path: "/eofy-pro",
 });
 
 const features = [
-  ["01", "Evidence register", "공제 후보별 금액, 날짜, 업무 관련성 메모와 증빙 보유 여부를 한곳에 기록합니다."],
-  ["02", "Income cross-check", "Income statement, 은행 이자, 정부 지급금 등 확인해야 할 소득 출처를 빠짐없이 점검합니다."],
-  ["03", "Accountant handoff", "회계사에게 물어볼 질문과 확인이 필요한 항목만 간결한 전달용 요약으로 묶습니다."],
-  ["04", "Year archive", "민감한 원본 파일을 업로드하지 않고 올해 준비 기록을 개인 백업 파일로 보관합니다."],
+  ["01", "Evidence register", "공제 후보별 금액과 날짜, 업무 관련성 메모, 증빙이 있는지를 한곳에 적어둬요."],
+  ["02", "Income cross-check", "Income statement, 은행 이자, 정부 지급금 등 확인할 소득 출처를 하나씩 점검해요."],
+  ["03", "Accountant handoff", "세무사에게 물어볼 질문과 확인이 필요한 항목만 짧은 전달용 요약으로 모아요."],
+  ["04", "Year archive", "TFN과 영수증 원본을 올리지 않고 올해 준비 기록만 개인 백업 파일로 보관해요."],
 ];
 
 const comparison = [

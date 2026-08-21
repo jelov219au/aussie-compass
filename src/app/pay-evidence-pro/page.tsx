@@ -7,12 +7,12 @@ import { Container } from "@/components/ui/Container";
 import { canCreatePayEvidenceTestCheckout, getPayEvidencePaymentReadiness } from "@/lib/commerce";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata = createPageMetadata({ title: "Pay Evidence Pack Pro 미리보기 | Hoju Compass", description: "근무기록과 Payslip을 급여기간별로 대조하고 증빙 요약과 영문 급여 확인 요청문을 만드는 출시 전 기능 구성을 살펴보세요.", path: "/pay-evidence-pro" });
+export const metadata = createPageMetadata({ title: "급여가 이상할 때 확인할 기록부터 | Pay Evidence Pro", description: "급여가 이상하다는 느낌을 근무시간, Payslip, 입금액, 증빙표와 고용주에게 보낼 영문 문의문으로 정리하세요.", path: "/pay-evidence-pro" });
 const features = [
-  ["01", "Shift calculator", "시작·종료·무급 휴게·확인한 시급을 넣어 Shift별 시간과 기대 Gross를 계산합니다."],
-  ["02", "Period check", "Shift 합계, Payslip Gross와 실제 Net 입금액을 섞지 않고 급여기간별로 비교합니다."],
-  ["03", "Evidence & message", "증빙 준비 상태를 점검하고 첫 문의와 재문의에 맞는 영문 요청문을 만듭니다."],
-  ["04", "TXT & CSV export", "원본 서류를 올리지 않고 계산표와 전달용 요약을 개인 파일로 저장합니다."],
+  ["01", "Shift calculator", "시작·종료·무급 휴게와 확인한 시급을 넣어 내가 일한 시간과 기대 Gross를 계산해요."],
+  ["02", "Period check", "Shift 합계, Payslip Gross와 실제 입금액을 급여기간별로 나눠 어디서 차이가 생겼는지 확인해요."],
+  ["03", "Evidence & message", "로스터와 Payslip 등 가지고 있는 증빙을 점검하고 첫 문의·재문의 영문을 만들어요."],
+  ["04", "TXT & CSV export", "원본 급여자료를 올리지 않고 계산표와 고용주에게 전달할 요약을 개인 파일로 저장해요."],
 ] as const;
 const sources = [
   { label: "Fair Work", title: "Pay slips와 기록 의무", href: "https://www.fairwork.gov.au/tools-and-resources/fact-sheets/rights-and-obligations/record-keeping-pay-slips", body: "Pay slip 필수 정보, 급여·근무시간 기록과 직원의 기록 열람 범위를 확인합니다." },

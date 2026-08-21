@@ -7,15 +7,15 @@ import { Container } from "@/components/ui/Container";
 import { isResumeProLive } from "@/lib/commerce";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata = createPageMetadata({ title: "Hoju Compass Pro 도구 비교 | Hoju Compass", description: "현재 이용 가능한 Resume Pro와 준비 중인 Rental, 급여 증빙, EOFY, 귀국 준비 도구의 기능·가격·무료 대안을 비교하세요.", path: "/pro" });
+export const metadata = createPageMetadata({ title: "취업·렌트·급여·세금 준비 도구 비교 | Hoju Compass Pro", description: "호주 취업 지원, 렌트 신청, 급여 확인, 택스 리턴과 귀국 정리에서 반복 작업을 줄이고 바로 쓸 결과물을 만드는 Pro 도구를 비교하세요.", path: "/pro" });
 
 function getProducts(resumeProLive: boolean) {
   return [
-    { index: "01", href: "/resume-pro", label: "구직 준비", name: "Resume Pro", price: "A$19.90", status: resumeProLive ? "현재 이용 가능" : "결제 설정 확인 중", outcome: "회사별 커버레터·공고 키워드 점검", free: "무료 이력서 작성·PDF", freeHref: "/resume-builder" },
-    { index: "02", href: "/rental-application-pro", label: "집 구하기", name: "Rental Pack Pro", price: "A$14.90", status: "강화 버전 검증 중", outcome: "여러 집 진행 추적·서류·개인정보·영문 연락", free: "무료 집 방문·계약 체크", freeHref: "/property-inspection-checklist" },
-    { index: "03", href: "/pay-evidence-pro", label: "급여 확인", name: "Pay Evidence Pro", price: "A$9.90", status: "기능 검증 중", outcome: "Shift 계산·Gross 차이·증빙·영문 문의", free: "무료 급여 문제 대응 순서", freeHref: "/underpayment-guide" },
-    { index: "04", href: "/eofy-pro", label: "세금 준비", name: "EOFY Pack Pro", price: "A$9.90", status: "기능 검증 중", outcome: "소득·공제 후보·회계사 전달 요약", free: "무료 택스 리턴 정보", freeHref: "/tax-return-guide" },
-    { index: "05", href: "/leaving-australia-pro", label: "귀국 준비", name: "Leaving Pack Pro", price: "A$12.90", status: "기능 검증 중", outcome: "출국 업무·마지막 정산·질문 인계", free: "무료 귀국·DASP 가이드", freeHref: "/leaving-australia-guide" },
+    { index: "01", href: "/resume-pro", label: "구직 준비", name: "Resume Pro", price: "A$19.90", status: resumeProLive ? "현재 이용 가능" : "결제 설정 확인 중", outcome: "지원 공고별 이력서·커버레터·제출 전 점검", free: "무료 이력서 작성·PDF", freeHref: "/resume-builder" },
+    { index: "02", href: "/rental-application-pro", label: "집 구하기", name: "Rental Pack Pro", price: "A$14.90", status: "강화 버전 검증 중", outcome: "집별 신청 서류·마감일·영문 연락·개인정보 점검", free: "무료 집 방문·계약 체크", freeHref: "/property-inspection-checklist" },
+    { index: "03", href: "/pay-evidence-pro", label: "급여 확인", name: "Pay Evidence Pro", price: "A$9.90", status: "기능 검증 중", outcome: "근무시간·Payslip 차이·증빙표·영문 문의문", free: "무료 급여 문제 대응 순서", freeHref: "/underpayment-guide" },
+    { index: "04", href: "/eofy-pro", label: "세금 준비", name: "EOFY Pack Pro", price: "A$9.90", status: "기능 검증 중", outcome: "흩어진 소득·공제 자료와 세무사 질문 요약", free: "무료 택스 리턴 정보", freeHref: "/tax-return-guide" },
+    { index: "05", href: "/leaving-australia-pro", label: "귀국 준비", name: "Leaving Pack Pro", price: "A$12.90", status: "기능 검증 중", outcome: "Bond·마지막 급여·세금·DASP 후속 확인", free: "무료 귀국·DASP 가이드", freeHref: "/leaving-australia-guide" },
   ] as const;
 }
 
