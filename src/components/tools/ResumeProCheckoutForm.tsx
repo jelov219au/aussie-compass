@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { track } from "@vercel/analytics";
+import type { ResumeProEntry } from "@/lib/resumeProAttribution";
 
-export function ResumeProCheckoutForm({ testMode }: { testMode: boolean }) {
+export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; entry: ResumeProEntry }) {
   const [accepted, setAccepted] = useState(false);
 
   return (
-    <form action="/api/checkout/resume-pro" method="post" onSubmit={() => track("Checkout Started", { product: "resume_pro", mode: testMode ? "test" : "live" })} className="w-full max-w-xl border border-navy/15 bg-white p-4 sm:p-5">
+    <form action="/api/checkout/resume-pro" method="post" onSubmit={() => track("Checkout Started", { product: "resume_pro", entry })} className="w-full max-w-xl border border-navy/15 bg-white p-4 sm:p-5">
+      <input type="hidden" name="source" value={entry} />
       <label className="flex cursor-pointer items-start gap-3 text-sm leading-6 text-navy">
         <input
           type="checkbox"

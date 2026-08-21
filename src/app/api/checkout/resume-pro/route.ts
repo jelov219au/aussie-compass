@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 
 import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct, resumeProPurchaseTermsVersion } from "@/lib/commerce";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
+import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
 import { siteUrl } from "@/lib/site";
 import { assertSafeStripeEnvironment, getStripe } from "@/lib/stripe";
 
@@ -33,9 +34,11 @@ export async function POST(request: NextRequest) {
   }
 
   let termsAccepted = false;
+  let acquisitionSource = normalizeResumeProEntry(null);
   try {
     const formData = await request.formData();
     termsAccepted = formData.get("terms_accepted") === "yes";
+    acquisitionSource = normalizeResumeProEntry(formData.get("source"));
   } catch {
     return NextResponse.json({ error: "Invalid checkout request." }, {
       status: 400,
@@ -92,9 +95,10 @@ export async function POST(request: NextRequest) {
         billing_model: "one_time",
         entitlement_version: "1",
         purchase_terms_version: resumeProPurchaseTermsVersion,
+        acquisition_source: acquisitionSource,
       },
       success_url: `${origin}/resume-pro/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/resume-pro?checkout=cancelled`,
+      cancel_url: `${origin}/resume-pro?checkout=cancelled&from=${encodeURIComponent(acquisitionSource)}`,
     });
 
     if (!session.url) {

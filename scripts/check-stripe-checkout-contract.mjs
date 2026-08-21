@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 
 const checkout = await readFile(new URL("../src/app/api/checkout/resume-pro/route.ts", import.meta.url), "utf8");
 const checkoutForm = await readFile(new URL("../src/components/tools/ResumeProCheckoutForm.tsx", import.meta.url), "utf8");
+const attribution = await readFile(new URL("../src/lib/resumeProAttribution.ts", import.meta.url), "utf8");
 const webhook = await readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
 const purchaseVerification = await readFile(new URL("../src/lib/resumeProPurchase.ts", import.meta.url), "utf8");
 const entitlementStore = await readFile(new URL("../src/lib/neonEntitlementStore.ts", import.meta.url), "utf8");
@@ -17,8 +18,15 @@ for (const contract of [
   "price.type === \"one_time\"",
   "price.unit_amount === resumeProProduct.priceCents",
   "managed_payments: { enabled: true }",
+  "acquisition_source",
+  "normalizeResumeProEntry",
 ]) {
   assert.ok(checkout.includes(contract), `Checkout safety contract is missing: ${contract}`);
+}
+
+assert.ok(checkoutForm.includes('name="source"'), "Resume Pro Checkout must submit its allowlisted acquisition source");
+for (const entry of ["article-job-search-plan", "article-achievement-examples", "resume-builder-complete"]) {
+  assert.ok(attribution.includes(entry), `Resume Pro acquisition allowlist is missing: ${entry}`);
 }
 
 assert.ok(!checkout.includes("payment_method_types"), "Checkout must keep Stripe dynamic payment methods enabled");
