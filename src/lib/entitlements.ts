@@ -52,7 +52,7 @@ export interface EntitlementStore {
     receipt: StripeEventReceipt;
     command: EntitlementCommand;
   }): Promise<{
-    outcome: "processed" | "duplicate" | "ignored_stale";
+    outcome: "processed" | "duplicate" | "ignored_stale" | "ignored_unmatched";
     entitlement?: EntitlementRecord;
   }>;
 

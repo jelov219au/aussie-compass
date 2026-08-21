@@ -76,6 +76,9 @@ for (const contract of [
   "p_stripe_created_at = v_last_event_created_at",
   "v_current_status = 'revoked' and p_action = 'review'",
   "ignored_stale",
+  "ignored_unmatched",
+  "failure_code = 'unmatched_reference'",
+  "Never create an",
 ]) {
   assert.ok(sql.includes(contract), `SQL contract is missing: ${contract}`);
 }

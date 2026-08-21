@@ -12,6 +12,7 @@ const carBuyCheckoutForm = await readFile(new URL("../src/components/tools/CarBu
 const webhook = await readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
 const purchaseVerification = await readFile(new URL("../src/lib/resumeProPurchase.ts", import.meta.url), "utf8");
 const entitlementStore = await readFile(new URL("../src/lib/neonEntitlementStore.ts", import.meta.url), "utf8");
+const entitlementTypes = await readFile(new URL("../src/lib/entitlements.ts", import.meta.url), "utf8");
 const requestSecurity = await readFile(new URL("../src/lib/requestSecurity.ts", import.meta.url), "utf8");
 
 for (const contract of [
@@ -82,6 +83,9 @@ assert.ok(!rentalCheckout.includes("automatic_tax"), "Rental Checkout must not a
 assert.ok(!carBuyCheckout.includes("automatic_tax"), "Car Buy Pro Checkout must not add a separate automatic-tax setting on top of Managed Payments");
 assert.ok(purchaseVerification.includes("(?:test|live)_"), "Purchase verification must accept both test and live Checkout Session IDs");
 assert.ok(entitlementStore.includes("(?:test|live)_"), "Entitlement lookup must accept both test and live Checkout Session IDs");
+assert.ok(entitlementStore.includes("ignored_unmatched"), "The entitlement store must accept verified unmatched refund events without retrying forever");
+assert.ok(entitlementStore.includes("No entitlement matches Stripe event"), "Only the database's explicit unmatched-event result may bypass webhook retries");
+assert.ok(entitlementTypes.includes("ignored_unmatched"), "The entitlement result contract must expose unmatched verified events explicitly");
 for (const notice of ["/terms", "/purchase-information", "/privacy"]) {
   assert.ok(checkoutForm.includes(notice), `Checkout form must link the customer notice: ${notice}`);
   assert.ok(payEvidenceCheckoutForm.includes(notice), `Pay Evidence Checkout form must link the customer notice: ${notice}`);
