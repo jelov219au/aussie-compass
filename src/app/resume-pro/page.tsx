@@ -136,7 +136,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">결제 기능 준비 중</span>
               )}
             </div>
-            {checkoutAvailable && <div className="mt-5"><ResumeProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
+            {checkoutAvailable && <div id="resume-pro-checkout" className="scroll-mt-24 mt-5"><ResumeProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
             <p className="mt-4 text-xs leading-5 text-muted">
               {testCheckoutAvailable
                 ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다. 테스트 이용권과 결제 처리 기술 기록만 생성됩니다."
@@ -150,6 +150,33 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 <Link href="/privacy" className="underline decoration-gold underline-offset-4">결제 데이터 처리 안내</Link>
               </div>
             )}
+          </Container>
+        </section>
+
+        <section className="border-b border-navy/15 bg-surface py-12 sm:py-16" aria-labelledby="buyer-fit-heading">
+          <Container>
+            <div className="grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-end">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">지금 결제할 단계인지 확인</p>
+                <h2 id="buyer-fit-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy">아래 세 가지가 맞다면 Pro가 시간을 아껴줘요.</h2>
+                <ol className="mt-7 grid gap-3 sm:grid-cols-3">
+                  <li className="border border-border bg-white p-5"><span className="text-xs font-semibold text-gold">01</span><strong className="mt-3 block text-navy">지원할 공고가 있어요</strong><p className="mt-2 text-sm leading-6 text-muted">회사와 직무가 정해져 있어 공고에 맞춘 점검이 필요해요.</p></li>
+                  <li className="border border-border bg-white p-5"><span className="text-xs font-semibold text-gold">02</span><strong className="mt-3 block text-navy">경력 초안이 있어요</strong><p className="mt-2 text-sm leading-6 text-muted">무료 빌더에 실제 경험을 적었거나 기존 이력서가 있어요.</p></li>
+                  <li className="border border-border bg-white p-5"><span className="text-xs font-semibold text-gold">03</span><strong className="mt-3 block text-navy">7일 안에 지원해요</strong><p className="mt-2 text-sm leading-6 text-muted">이력서와 커버레터를 이번 지원에 맞춰 끝내야 해요.</p></li>
+                </ol>
+              </div>
+              <aside className="border-l-2 border-gold pl-6">
+                <p className="text-sm font-semibold text-navy">세 가지가 모두 맞나요?</p>
+                <p className="mt-2 text-sm leading-6 text-muted">A$19.90 1회 결제로 이번 지원서 묶음을 준비할 수 있어요.</p>
+                {checkoutAvailable ? (
+                  <a href="#resume-pro-checkout" className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">Resume Pro 시작하기 ↓</a>
+                ) : (
+                  <span className="mt-5 inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted">결제 기능 준비 중</span>
+                )}
+                <p className="mt-5 text-xs leading-5 text-muted">아직 지원할 공고가 없다면 결제하지 말고 무료 이력서부터 완성하세요.</p>
+                <Link href="/resume-builder" className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold underline-offset-4">무료 이력서 빌더로 가기</Link>
+              </aside>
+            </div>
           </Container>
         </section>
 
