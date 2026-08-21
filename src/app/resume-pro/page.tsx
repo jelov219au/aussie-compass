@@ -149,6 +149,63 @@ export default async function ResumeProPage({ searchParams }: Props) {
           </Container>
         </section>
 
+        <section className="border-b border-navy/15 bg-white py-14 sm:py-20" aria-labelledby="result-preview-heading">
+          <Container>
+            <div className="max-w-3xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">결제 전에 보는 예시</p>
+              <h2 id="result-preview-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">같은 경력을 세 번 다시 쓰지 않아요.</h2>
+              <p className="mt-4 text-sm leading-7 text-muted sm:text-base">무료 빌더에 적어둔 실제 경험 하나가 공고 점검, 커버레터 초안과 회사별 지원서 정리로 어떻게 이어지는지 예시로 보여드릴게요.</p>
+            </div>
+
+            <div className="mt-10 grid gap-5 lg:grid-cols-[minmax(0,0.78fr)_3rem_minmax(0,1.22fr)] lg:items-center">
+              <article className="border border-navy/20 bg-surface p-5 sm:p-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">무료 빌더에 적어둔 사실</p>
+                <h3 className="mt-3 text-xl font-semibold text-navy">Compass Cafe · Barista</h3>
+                <ul className="mt-5 space-y-3 text-sm leading-6 text-muted">
+                  <li className="border-l-2 border-navy/20 pl-3">한 교대에 최대 150잔의 커피를 품질을 유지하며 준비</li>
+                  <li className="border-l-2 border-navy/20 pl-3">신입 직원에게 POS와 마감 절차 교육</li>
+                  <li className="border-l-2 border-navy/20 pl-3">단골 고객과 긍정적인 관계 형성</li>
+                </ul>
+                <div className="mt-6 border-t border-navy/15 pt-4">
+                  <p className="text-xs font-semibold text-navy">지원 공고에서 강조한 내용</p>
+                  <p className="mt-2 text-xs leading-5 text-muted">빠른 서비스 · 고객 응대 · 팀 교육 · 주말 근무</p>
+                </div>
+              </article>
+
+              <div className="hidden text-center text-3xl text-gold lg:block" aria-hidden="true">→</div>
+
+              <div className="grid gap-px bg-border sm:grid-cols-2">
+                <article className="bg-white p-5 sm:p-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">01 · 공고 점검</p>
+                  <h3 className="mt-3 text-lg font-semibold text-navy">이미 있는 경험과 확인할 내용을 나눠요.</h3>
+                  <dl className="mt-4 space-y-3 text-sm leading-6">
+                    <div><dt className="font-semibold text-[#315f4e]">이력서에서 확인</dt><dd className="text-muted">customer service · training · fast-paced</dd></div>
+                    <div><dt className="font-semibold text-[#755b20]">직접 확인</dt><dd className="text-muted">food safety · weekend availability</dd></div>
+                  </dl>
+                </article>
+
+                <article className="bg-white p-5 sm:p-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">02 · 커버레터 초안</p>
+                  <h3 className="mt-3 text-lg font-semibold text-navy">입력한 사실을 회사와 직무에 맞춰 연결해요.</h3>
+                  <blockquote className="mt-4 border-l-2 border-gold pl-4 text-sm italic leading-6 text-muted">“In my current barista role, I prepare up to 150 coffee orders per shift and support new team members with POS and closing procedures.”</blockquote>
+                </article>
+
+                <article className="bg-white p-5 sm:col-span-2 sm:p-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">03 · 이번 지원서 묶음</p>
+                  <h3 className="mt-3 text-lg font-semibold text-navy">제출 전에 볼 내용을 회사별로 모아요.</h3>
+                  <ul className="mt-4 grid gap-2 text-sm leading-6 text-muted sm:grid-cols-3">
+                    <li className="border-t border-border pt-3">선택한 디자인의 이력서 PDF</li>
+                    <li className="border-t border-border pt-3">직접 수정하는 커버레터 초안</li>
+                    <li className="border-t border-border pt-3">공고 표현 점검과 제출 전 확인</li>
+                  </ul>
+                </article>
+              </div>
+            </div>
+
+            <p className="mt-7 border-l-2 border-gold pl-4 text-sm leading-6 text-muted">이 예시는 기능을 설명하기 위한 샘플이에요. Resume Pro는 없는 경력이나 자격을 만들지 않으며, 공고에 나온 표현도 실제로 해본 일일 때만 추가해야 해요.</p>
+          </Container>
+        </section>
+
         <section className="py-14 sm:py-20" aria-labelledby="templates-heading">
           <Container>
             <div className="grid gap-10 lg:grid-cols-[18rem_1fr]">
