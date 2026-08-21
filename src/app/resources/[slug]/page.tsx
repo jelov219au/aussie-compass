@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PageShareButton } from "@/components/pwa/PageShareButton";
+import { ArticleNextStep } from "@/components/resources/ArticleNextStep";
 import { ArticleReadingNav } from "@/components/resources/ArticleReadingNav";
 import { Container } from "@/components/ui/Container";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
@@ -152,13 +153,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               </section>
             )}
 
-            <aside className="mt-12 bg-navy p-6 text-white sm:p-8">
-              <p className="text-sm font-semibold text-gold">읽고 나서 무엇을 하면 좋을까요?</p>
-              <h2 className="mt-2 text-2xl font-semibold">관련 무료 도구에서 이어볼 수 있어요</h2>
-              <Link href={article.toolHref} className="mt-5 inline-flex min-h-12 items-center bg-gold px-5 py-3 font-semibold text-navy">
-                {article.toolLabel}
-              </Link>
-            </aside>
+            <ArticleNextStep slug={article.slug} toolHref={article.toolHref} toolLabel={article.toolLabel} />
 
             <p className="mt-8 text-xs leading-6 text-muted">
               이 자료는 일반적인 정보이며 개인 상황에 대한 법률, 재무, 세무 또는 이민 자문이 아닙니다.
