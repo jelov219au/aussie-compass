@@ -50,6 +50,7 @@ const storedRecords: StoredRecord[] = [
   { key: "aussie-compass-service-quotes-v1", label: "서비스 견적 비교", group: "생활 서비스", sensitive: true },
   { key: "aussie-compass-service-price-log-v1", label: "서비스 가격 기록", group: "생활 서비스", sensitive: true },
   { key: "aussie-compass-vehicle-comparison-v1", label: "중고차 비교", group: "주거·이동", sensitive: true },
+  { key: "hoju-compass-car-buy-pro-v1", label: "중고차 구매 결정 패키지", group: "주거·이동", sensitive: true },
 ];
 
 const allowedKeys = new Set(storedRecords.map((record) => record.key));

@@ -34,6 +34,7 @@ const routes = [
   "/public-transport-guide",
   "/overseas-driver-licence-guide",
   "/used-car-comparison",
+  "/car-buy-pro",
   "/moving-checklist",
   "/service-price-log",
   "/visa-preparation-guide",
