@@ -20,7 +20,7 @@ export type Article = {
 export type ArticleTopicId = "start" | "work" | "home" | "money";
 
 export const articleTopicCategories: Record<ArticleTopicId, string[]> = {
-  start: ["호주 취업", "영문 이력서", "도착 행정", "구직 안전", "생활 안전"],
+  start: ["호주 취업", "영문 이력서", "도착 행정", "생활 영어", "구직 안전", "생활 안전"],
   work: ["급여 확인", "직장 권리", "고용 형태", "첫 직장"],
   home: ["집 구하기", "임대 입주", "차량 구매"],
   money: ["저축과 생활비", "생활비", "공과금", "소비자 권리"],
@@ -54,6 +54,37 @@ export function getArticleContentType(article: Article): ArticleContentTypeId {
 }
 
 export const articles: Article[] = [
+  {
+    slug: "australia-arrival-english-clarifying-phrases",
+    title: "호주 생활 영어, 못 알아들었을 때 바로 쓰는 확인 문장",
+    seoTitle: "호주 생활 영어 표현: 은행·렌트·직장·병원에서 다시 묻는 문장",
+    socialTitle: "English phrases for the moments you get stuck in Australia",
+    description: "완벽하게 말하려고 애쓰지 않아도 돼요. 은행, 집, 직장과 병원에서 천천히 다시 묻고 중요한 내용을 글로 확인하는 문장을 모았어요.",
+    category: "생활 영어",
+    region: "australia",
+    contentType: "experience",
+    readingTime: "8분",
+    publishedAt: "2026-08-21",
+    quickSummary: ["못 알아들었을 때 아는 척하지 않고 천천히 다시 말해 달라고 하기", "비용·날짜·다음 행동은 말로만 듣지 않고 글로 받아두기", "계약·급여·의료처럼 중요한 내용은 내 말로 다시 확인하고 통역 요청하기"],
+    toolHref: "/arrival-checklist",
+    toolLabel: "첫 30일 체크리스트 열기",
+    sections: [
+      { heading: "완벽한 영어보다 정확히 확인하는 게 먼저예요", paragraphs: ["처음 호주에 오면 익숙한 단어도 전화나 카운터 앞에서는 잘 안 들릴 수 있어요. 모르는 표현 하나 때문에 대화 전체를 놓쳤다고 생각할 필요는 없어요. 잠깐 멈추고, 천천히 다시 말해 달라고 하고, 내가 이해한 내용을 확인하면 됩니다.", "특히 돈, 계약, 급여, 건강과 관련된 일은 분위기에 맞춰 Yes라고 답하는 것보다 정확히 이해할 때까지 묻는 편이 좋아요. 영어를 잘하는 사람처럼 보이는 것보다 다음에 무엇을 해야 하는지 분명히 아는 게 더 중요해요."] },
+      { heading: "막혔을 때는 이 다섯 문장부터 꺼내세요", bullets: ["Sorry, could you say that more slowly? — 죄송하지만 조금 천천히 말씀해 주실 수 있나요?", "Could you say that in a different way? — 다른 표현으로 설명해 주실 수 있나요?", "Could you write that down for me? — 그 내용을 적어 주실 수 있나요?", "Let me check if I understood correctly. — 제가 제대로 이해했는지 확인해 볼게요.", "What do I need to do next? — 제가 다음으로 무엇을 해야 하나요?"], paragraphs: ["길고 어려운 문장을 외우기보다 이 다섯 문장을 휴대폰 메모에 저장해 두세요. 상대가 한 말을 전부 이해하지 못했더라도 날짜, 비용, 준비물과 다음 행동을 하나씩 나눠 물으면 대화가 훨씬 쉬워져요."] },
+      { heading: "은행과 휴대폰을 준비할 때", bullets: ["I’d like to open a transaction account. What ID do I need? — 거래 계좌를 만들고 싶은데 어떤 신분증이 필요한가요?", "Are there any monthly, ATM or international transaction fees? — 월 관리비, ATM 또는 해외 결제 수수료가 있나요?", "Do I need to visit a branch to finish the ID check? — 신원 확인을 끝내려면 지점에 가야 하나요?", "Could you show me where to find my BSB and account number? — BSB와 계좌번호를 어디에서 확인하는지 보여주실 수 있나요?", "I didn’t authorise this transaction. What should I do now? — 제가 승인하지 않은 거래인데 지금 무엇을 해야 하나요?"], paragraphs: ["계좌번호가 만들어졌다고 모든 절차가 끝난 것은 아닐 수 있어요. 신원 확인이 남았는지, 카드가 어디로 오는지, 어떤 수수료가 붙는지를 따로 확인하세요. 비밀번호, PIN과 일회용 인증번호는 도움을 받는 상황에서도 다른 사람에게 보여주지 마세요."] },
+      { heading: "집을 보고 계약하기 전에", bullets: ["Is electricity, gas, water or internet included in the rent? — 전기, 가스, 수도나 인터넷이 렌트비에 포함되나요?", "Who will hold the bond, and how will it be lodged? — Bond는 누가 보관하고 어떤 방식으로 접수하나요?", "Could you send me the agreement before I pay anything? — 돈을 보내기 전에 계약서를 보내주실 수 있나요?", "Could you confirm you received my condition report and photos? — Condition Report와 사진을 받았는지 확인해 주실 수 있나요?", "How much notice do I need to give before moving out? — 퇴거 전에 얼마 동안의 통지를 해야 하나요?"], paragraphs: ["집을 볼 때 들은 설명과 계약서가 다를 수 있으니 비용, 포함 항목, Bond와 퇴거 조건은 글로 받아두세요. 이해하지 못한 계약 문장을 그 자리에서 서둘러 넘기지 말고, 읽을 시간을 달라고 말해도 괜찮아요."] },
+      { heading: "첫 직장과 Payslip을 확인할 때", bullets: ["Could you confirm my hourly rate and classification in writing? — 시급과 Classification을 글로 확인해 주실 수 있나요?", "When should I receive my payslip? — Payslip은 언제 받게 되나요?", "Which hours and breaks are included here? — 여기에 어떤 근무시간과 휴게시간이 포함됐나요?", "I think there may be a difference between my roster and payslip. Could we check it together? — Roster와 Payslip에 차이가 있는 것 같은데 같이 확인해 볼 수 있을까요?", "Who should I contact if I have a payroll question? — 급여 질문은 누구에게 연락해야 하나요?"], paragraphs: ["급여 질문을 할 때 처음부터 잘못됐다고 단정할 필요는 없어요. 내가 기록한 근무시간과 Payslip의 어느 부분이 다른지 짚고, 계산 기준과 답변을 글로 요청하세요. 직장 문제를 한국어로 상담하고 싶다면 Fair Work 안내에서 TIS 통역 연결 방법을 확인할 수 있어요."] },
+      { heading: "병원과 약국에서는 더 정확하게 물어보세요", bullets: ["I need an interpreter, please. — 통역이 필요합니다.", "I don’t understand this form. Could you explain this section? — 이 양식을 이해하지 못했는데 이 부분을 설명해 주실 수 있나요?", "What should I do if my symptoms get worse? — 증상이 심해지면 어떻게 해야 하나요?", "Could you write down the medicine name and instructions? — 약 이름과 복용 방법을 적어 주실 수 있나요?", "Is there anything I should avoid while taking this medicine? — 이 약을 복용하는 동안 피해야 할 것이 있나요?"], paragraphs: ["증상, 동의서와 약 복용처럼 오해했을 때 위험한 내용은 자동 번역에만 기대지 말고 전문 통역을 요청하세요. Healthdirect는 GP, 병원이나 다른 의료서비스에서 통역을 요청할 수 있다고 안내해요. 생명이 위급한 상황이라면 통역 서비스에 먼저 전화하지 말고 000에 전화해야 합니다."] },
+      { heading: "마지막에는 내 말로 한 번 더 확인하세요", bullets: ["So the total cost is …, is that correct? — 총비용이 …이라는 말씀이 맞나요?", "So I need to submit this by …, right? — 제가 …까지 제출하면 되는 거죠?", "Just to confirm, this fee is not included. — 다시 확인하면, 이 비용은 포함되지 않은 거죠?", "Is there anything else I need to bring? — 제가 더 가져와야 할 것이 있나요?", "Could you send me a confirmation email? — 확인 이메일을 보내주실 수 있나요?"], paragraphs: ["상대의 긴 설명을 그대로 따라 말하려고 하지 말고 비용, 날짜와 다음 행동만 짧게 정리해 확인하세요. 틀리게 이해했다면 상대가 바로 고쳐줄 수 있고, 맞았다면 그 문장이 내 기록이 됩니다."] },
+      { heading: "전화가 끝나기 전에 기록을 남기세요", bullets: ["상대 이름과 부서", "통화한 날짜와 시간", "문의 내용과 받은 답변", "Reference number 또는 Case number", "약속한 다음 행동과 기한", "확인 이메일이나 공식 안내 링크"], paragraphs: ["전화가 끝난 뒤 기억만으로 정리하면 숫자와 날짜가 쉽게 섞여요. 통화 중에는 핵심 단어만 적고, 끝나기 전에 reference number와 다음 행동을 다시 물어보세요. 기록에는 TFN, 여권번호, 은행 비밀번호 같은 민감한 정보를 그대로 적지 않는 편이 안전해요."] },
+      { heading: "영어 문장은 시작점이고, 중요한 결정은 확인이 끝난 뒤에 하세요", paragraphs: ["짧은 문장 몇 개만 있어도 대화를 멈추고 다시 확인할 수 있어요. 하지만 이 표현들이 계약, 급여나 의료 내용을 대신 판단해 주는 것은 아니에요. 이해되지 않는 부분이 남아 있다면 서명하거나 돈을 보내기 전에 공식 기관, 전문 통역이나 자격 있는 전문가에게 확인하세요."] },
+    ],
+    sources: [
+      { label: "TIS National — Help using TIS National", href: "https://www.tisnational.gov.au/Non-English-speakers/Help-using-TIS-National", summary: "영어가 익숙하지 않은 사람이 기관이나 사업체와 통역으로 소통하는 방법을 안내해요. 무료 통역을 이용할 수 있는 서비스와 기관별 운영시간·연결 가능 여부를 먼저 확인해야 한다는 점도 설명합니다." },
+      { label: "Fair Work Ombudsman — Resolving workplace disputes", href: "https://www.fairwork.gov.au/tools-and-resources/language-help/english/issues-in-the-workplace/resolving-workplace-disputes", summary: "직장 문제를 해결하는 기본 순서와 Fair Work 상담 때 TIS를 통해 무료 통역 일정을 잡는 방법을 확인할 수 있어요." },
+      { label: "Healthdirect — What care do I need?", href: "https://www.healthdirect.gov.au/what-care-do-i-need", summary: "GP, 약국, 병원 등 상황에 맞는 의료서비스와 통역 요청 방법을 설명해요. 생명이 위급할 때는 000에 먼저 전화해야 한다는 안내도 함께 확인할 수 있어요." },
+    ],
+  },
   {
     slug: "australia-job-search-plan",
     title: "호주 구직, 지원서를 꾸준히 관리하는 방법",

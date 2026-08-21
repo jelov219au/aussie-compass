@@ -27,6 +27,7 @@ const themes = {
 
 const presets = [
   { label: "처음 도착", eyebrow: "호주 도착 후 첫 30일", title: "처음 일주일, 무엇부터 해야 할까?", body: "전화·교통·은행부터 TFN과 첫 Payslip까지. 한꺼번에 말고 순서대로 준비하세요.", cta: "첫 30일 체크리스트 보기", path: "/arrival-checklist" },
+  { label: "영어가 막힐 때", eyebrow: "처음엔 다시 물어봐도 돼요", title: "영어를 잘하는 것보다 정확히 확인하는 게 먼저예요", body: "천천히 말해 달라고 하고, 비용·날짜·다음 행동은 글로 받아두세요. 중요한 내용은 이해한 척 넘기지 않아도 됩니다.", cta: "생활 영어 확인 문장 보기", path: "/resources/australia-arrival-english-clarifying-phrases" },
   { label: "입주 첫날", eyebrow: "짐 풀기 전에 먼저", title: "입주 첫날 사진이 나중에 내 Bond를 지켜줘요", body: "방 전체와 흠집을 같이 찍고, 계량기·열쇠·고장도 남겨두세요. Condition Report 제출 기한은 사는 주의 공식 안내에서 확인하세요.", cta: "입주 첫 주 가이드 보기", path: "/resources/rental-condition-report-bond-first-week-australia" },
   { label: "집 구하기", eyebrow: "쉐어하우스 방문 전 저장", title: "집을 볼 때 월세만 확인하면 안 되는 이유", body: "Bond, 공과금, 계약 상대, 곰팡이와 교통까지 현장에서 놓치기 쉬운 항목을 확인하세요.", cta: "집 방문 체크리스트 열기", path: "/property-inspection-checklist" },
   { label: "첫 은행", eyebrow: "호주 첫 계좌를 만들 때", title: "은행 이름보다 내가 낼 수수료부터 보세요", body: "여권과 현재 주소·연락처를 준비하고, 월 관리비뿐 아니라 ATM·해외 결제·잔액 부족 비용까지 비교하세요.", cta: "첫 은행 계좌 가이드 보기", path: "/resources/australia-bank-account-opening-guide" },
