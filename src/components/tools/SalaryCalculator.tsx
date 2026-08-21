@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 
+// 2026-27 SG rate. Last reviewed: 2026-08-21.
+// Super is estimated from gross pay for simplicity; actual SG generally uses ordinary time earnings (OTE).
 const SUPER_RATE = 0.12;
+const SUPER_GUIDANCE_URL =
+  "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/quarterly-super-to-30-june-2026/how-much-super-to-pay";
 const MEDICARE_LEVY_RATE = 0.02;
 const PERMANENT_MINIMUM_RATE = 26.44;
 const CASUAL_MINIMUM_RATE = 33.05;
@@ -375,10 +379,10 @@ export function SalaryCalculator() {
       `총 예상 공제: ${formatCurrency(estimatedTotalDeductions)} (${percentFormatter.format(totalDeductionRate)})`,
       "",
       `[Super]`,
-      `연 Super: ${formatCurrency(superAnnual)}`,
+      `연 Super (gross × 12% 단순 추정): ${formatCurrency(superAnnual)}`,
       `연봉 + Super: ${formatCurrency(totalPackage)}`,
       "",
-      "참고용 예상치이며 실제 세금과 Super는 개인 상황에 따라 달라질 수 있습니다.",
+      "참고용 예상치입니다. 실제 Super는 OTE, overtime 및 최대 기여 기준 등에 따라 달라질 수 있습니다.",
     ].join("\n");
 
     try {
@@ -574,7 +578,7 @@ export function SalaryCalculator() {
             {touched.annual && annualError ? <span role="alert" className="mt-2 block text-sm text-red-600">{annualError}</span> : null}
             <span className="mt-2 block text-sm leading-6 text-muted">
               {annualAmountType === "includesSuper"
-                ? "입력한 총 패키지에서 12% Super와 세전 연봉을 역산합니다."
+                ? "입력한 총 패키지가 세전 연봉과 그 연봉의 12% Super로 구성된다고 단순 가정해 역산합니다."
                 : "채용 공고의 연봉이 “plus super” 또는 “super 제외”로 표시된 경우 입력하세요."}
             </span>
           </label>
@@ -651,7 +655,7 @@ export function SalaryCalculator() {
               ) : null}
               <li className="rounded-full bg-white/10 px-3 py-1.5">Medicare {includeMedicareLevy && !isWorkingHolidayMaker ? "적용" : "제외"}</li>
               <li className="rounded-full bg-white/10 px-3 py-1.5">HELP/HECS {includeHelpRepayment && !isWorkingHolidayMaker ? "적용" : "제외"}</li>
-              <li className="rounded-full bg-white/10 px-3 py-1.5">Super 12%</li>
+              <li className="rounded-full bg-white/10 px-3 py-1.5">Super 12% 단순 추정</li>
             </ul>
           </div>
         ) : null}
@@ -708,6 +712,12 @@ export function SalaryCalculator() {
                 <ResultCard label="연 Super (Annual)" value={superAnnual} />
                 <ResultCard label="연봉 + Super" value={totalPackage} emphasis />
               </dl>
+              <p className="mt-3 text-sm leading-6 text-white/65">
+                위 Super는 세전 급여 전체에 12%를 적용한 단순 추정입니다. 실제 법정 Super는 일반적으로 OTE(ordinary time earnings)를 기준으로 하며 overtime, 적용 상한과 개인 상황에 따라 달라질 수 있습니다.{" "}
+                <a href={SUPER_GUIDANCE_URL} target="_blank" rel="noreferrer" className="font-semibold text-gold underline underline-offset-4 hover:text-white">
+                  ATO 공식 안내 확인
+                </a>
+              </p>
             </div>
               </div>
             </details>
