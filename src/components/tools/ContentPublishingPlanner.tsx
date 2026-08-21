@@ -9,6 +9,7 @@ type Entry = { id: string; topicId: string; title: string; path: string; date: s
 const STORAGE_KEY = "hoju-compass-content-planner-v1";
 const topics = [
   { id: "arrival", stage: "도착", title: "호주 도착 첫 30일 순서", path: "/arrival-checklist", campaign: "first-30-days" },
+  { id: "arrival-english", stage: "도착", title: "영어가 막힐 때 바로 쓰는 확인 문장", path: "/resources/australia-arrival-english-clarifying-phrases", campaign: "arrival-english-phrases" },
   { id: "sim", stage: "도착", title: "호주 첫 SIM·eSIM 안전하게 개통하기", path: "/resources/australia-sim-esim-setup-guide", campaign: "first-australian-sim" },
   { id: "bank", stage: "도착", title: "호주 첫 은행 계좌 안전하게 열기", path: "/resources/australia-bank-account-opening-guide", campaign: "first-bank-account" },
   { id: "health", stage: "도착", title: "처음 아플 때 GP·병원·약국 이용 순서", path: "/resources/australia-gp-hospital-pharmacy-guide", campaign: "first-healthcare-visit" },
@@ -68,7 +69,7 @@ export function ContentPublishingPlanner() {
     setEntries((current) => [...current, item].slice(-60)); setHook(""); setDate(dateOffset(2)); setMessage("발행 계획에 추가했습니다.");
   };
   const loadSampleWeek = () => {
-    const samples = [topics[0], topics[2], topics[3], topics[5], topics[6]].map((item, index): Entry => ({ id: crypto.randomUUID(), topicId: item.id, title: item.title, path: item.path, date: dateOffset(index + 1), channel: index % 2 ? "naver" : "instagram", format: index % 2 ? "post" : "card", campaign: item.campaign, status: "idea", hook: "", createdAt: new Date().toISOString() }));
+    const samples = [topics[0], topics[3], topics[4], topics[6], topics[7]].map((item, index): Entry => ({ id: crypto.randomUUID(), topicId: item.id, title: item.title, path: item.path, date: dateOffset(index + 1), channel: index % 2 ? "naver" : "instagram", format: index % 2 ? "post" : "card", campaign: item.campaign, status: "idea", hook: "", createdAt: new Date().toISOString() }));
     setEntries((current) => current.length ? current : samples); setMessage(entries.length ? "기존 계획이 있어 샘플을 추가하지 않았습니다." : "5일 샘플 발행 계획을 불러왔습니다.");
   };
   const updateStatus = (id: string, status: Status) => setEntries((current) => current.map((item) => item.id === id ? { ...item, status } : item));
