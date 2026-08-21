@@ -13,6 +13,7 @@ const topics = [
   { id: "bank", title: "호주 첫 은행 계좌 안전하게 열기", path: "/resources/australia-bank-account-opening-guide" },
   { id: "health", title: "처음 아플 때 GP·병원·약국 이용 순서", path: "/resources/australia-gp-hospital-pharmacy-guide" },
   { id: "payslip", title: "첫 Payslip에서 확인할 5가지", path: "/payslip-guide" },
+  { id: "public-holiday-pay", title: "공휴일 근무수당 확인 순서", path: "/resources/australia-public-holiday-work-pay-guide" },
   { id: "resume", title: "호주식 영문 이력서 시작하기", path: "/resume-builder" },
   { id: "rent", title: "쉐어하우스 방문 체크리스트", path: "/property-inspection-checklist" },
   { id: "transport", title: "차 없이 통학·출근 생활권 고르기", path: "/public-transport-guide" },

@@ -32,6 +32,7 @@ const presets = [
   { label: "집 구하기", eyebrow: "쉐어하우스 방문 전 저장", title: "집을 볼 때 월세만 확인하면 안 되는 이유", body: "Bond, 공과금, 계약 상대, 곰팡이와 교통까지 현장에서 놓치기 쉬운 항목을 확인하세요.", cta: "집 방문 체크리스트 열기", path: "/property-inspection-checklist" },
   { label: "첫 은행", eyebrow: "호주 첫 계좌를 만들 때", title: "은행 이름보다 내가 낼 수수료부터 보세요", body: "여권과 현재 주소·연락처를 준비하고, 월 관리비뿐 아니라 ATM·해외 결제·잔액 부족 비용까지 비교하세요.", cta: "첫 은행 계좌 가이드 보기", path: "/resources/australia-bank-account-opening-guide" },
   { label: "급여 확인", eyebrow: "내 시급을 지키는 3단계", title: "시급이 맞아도 급여가 틀릴 수 있어요", body: "Award·Classification·근무시간을 확인하고 Payslip의 loading, penalty와 Super를 비교하세요.", cta: "급여 가이드 확인하기", path: "/payslip-guide" },
+  { label: "공휴일 수당", eyebrow: "몇 배인지 단정하기 전에", title: "공휴일 수당은 내 Award부터 확인해야 해요", body: "근무 날짜·고용형태·Classification을 적고 Fair Work PACT에서 public holiday rate와 최소 지급시간을 확인하세요.", cta: "공휴일 수당 확인 순서 보기", path: "/resources/australia-public-holiday-work-pay-guide" },
   { label: "첫 급여 기록", eyebrow: "첫 Payslip을 받은 날", title: "받고 끝내지 말고, 입금액과 꼭 맞춰보세요", body: "내 이름과 고용주 ABN, 근무시간·시급·PAYG·Super를 실제 입금액과 비교해 두세요. 문제가 생기면 첫 기록이 기준이 됩니다.", cta: "Payslip 확인 순서 보기", path: "/payslip-guide" },
   { label: "택스 리턴", eyebrow: "EOFY 준비", title: "택스 리턴 전에 먼저 모아야 할 것", body: "Income statement가 tax ready인지 확인하고 영수증과 공제 근거를 항목별로 정리하세요.", cta: "택스 리턴 준비하기", path: "/tax-return-guide" },
   { label: "귀국 준비", eyebrow: "호주 생활 마무리", title: "출국했다고 Super가 자동 환급되지는 않아요", body: "비자 종료와 출국 여부를 확인하고 DASP, 마지막 Tax return과 계정 접근을 준비하세요.", cta: "귀국 준비 가이드 보기", path: "/leaving-australia-guide" },

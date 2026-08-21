@@ -14,6 +14,7 @@ const topics = [
   { id: "bank", stage: "도착", title: "호주 첫 은행 계좌 안전하게 열기", path: "/resources/australia-bank-account-opening-guide", campaign: "first-bank-account" },
   { id: "health", stage: "도착", title: "처음 아플 때 GP·병원·약국 이용 순서", path: "/resources/australia-gp-hospital-pharmacy-guide", campaign: "first-healthcare-visit" },
   { id: "payslip", stage: "일", title: "첫 Payslip에서 확인할 5가지", path: "/payslip-guide", campaign: "first-payslip" },
+  { id: "public-holiday-pay", stage: "일", title: "공휴일 근무수당 확인 순서", path: "/resources/australia-public-holiday-work-pay-guide", campaign: "public-holiday-pay" },
   { id: "resume", stage: "구직", title: "호주식 영문 이력서 시작하기", path: "/resume-builder", campaign: "resume-starter" },
   { id: "rent", stage: "집", title: "쉐어하우스 방문 체크리스트", path: "/property-inspection-checklist", campaign: "rental-check" },
   { id: "transport", stage: "이동", title: "차 없이 통학·출근 생활권 고르기", path: "/public-transport-guide", campaign: "commute-planning" },
