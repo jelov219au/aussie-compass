@@ -1,0 +1,37 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
+import { Container } from "@/components/ui/Container";
+import { getVerifiedEofyProCheckout } from "@/lib/eofyProPurchase";
+import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
+import { isEntitlementSessionConfigured } from "@/lib/resumeProAccess";
+
+export const metadata: Metadata = { title: "EOFY Pack Pro 결제 확인 | Hoju Compass", description: "EOFY Pack Pro 결제와 이용권 처리 상태를 안전하게 확인합니다.", robots: { index: false, follow: false } };
+export const dynamic = "force-dynamic";
+type Props = { searchParams: Promise<{ session_id?: string; status?: string }> };
+
+export default async function EofyProSuccessPage({ searchParams }: Props) {
+  const { session_id: sessionId, status } = await searchParams;
+  let paid = false; let entitlementStatus: "active" | "revoked" | "review" | null = null; let testMode = true;
+  if (sessionId) {
+    const session = await getVerifiedEofyProCheckout(sessionId);
+    if (session) {
+      paid = true; testMode = !session.livemode;
+      const store = getConfiguredEntitlementStore();
+      entitlementStatus = (await store?.findByCheckoutSession(session.id, "eofy_pro"))?.status ?? null;
+    }
+  }
+  const entitlementActive = entitlementStatus === "active";
+  const canActivate = paid && entitlementActive && isEntitlementSessionConfigured();
+  const stateMessage = !paid
+    ? "잘못된 주소이거나 결제가 완료되지 않았습니다. Stripe 결제 화면 또는 상품 안내 페이지에서 다시 확인해 주세요."
+    : entitlementStatus === "revoked"
+      ? "환불 또는 결제 취소가 확인되어 EOFY Pack Pro 이용권이 종료됐습니다."
+      : entitlementStatus === "review"
+        ? "결제 상태를 추가로 확인하고 있습니다. 확인이 끝날 때까지 작업 공간은 열리지 않습니다."
+        : entitlementActive
+          ? testMode ? "Stripe 테스트 결제와 서명된 웹훅 이용권이 확인됐습니다. 실제 청구는 없으며 테스트 접근 세션만 발급할 수 있습니다." : "결제와 서명된 웹훅 이용권이 확인됐습니다. 아래 버튼을 눌러 이 기기에 접근 세션을 발급하세요."
+          : testMode ? "Stripe 테스트 결제는 확인됐지만 웹훅 이용권 처리가 아직 완료되지 않았습니다." : "결제는 확인됐지만 서명된 웹훅 이용권 처리가 아직 완료되지 않았습니다.";
+  return <><Header /><main className="py-14 sm:py-20"><Container className="max-w-3xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">결제 결과 확인</p><h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">{paid ? "결제가 확인됐습니다." : "결제 상태를 확인할 수 없습니다."}</h1><div className="mt-8 border-l-2 border-gold bg-white p-6 text-sm leading-7 text-muted">{stateMessage}{status === "pending" && " 잠시 후 이 페이지에서 다시 시도해 주세요."}{status === "unavailable" && " 접근 세션 설정을 확인할 수 없습니다."}</div><div className="mt-8 flex flex-wrap gap-3">{canActivate && sessionId && <form action="/api/eofy-pro/access/activate" method="post"><input type="hidden" name="session_id" value={sessionId} /><button type="submit" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy">EOFY Pack Pro 열기</button></form>}<Link href="/eofy-pro" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white">상품 안내로 돌아가기</Link><Link href="/eofy-pro/restore" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy">이용권 복구</Link><Link href="/payment-help" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy">결제·접근 문제 해결</Link></div></Container></main><Footer /></>;
+}

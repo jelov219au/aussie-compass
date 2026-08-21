@@ -15,7 +15,7 @@ function getProducts(resumeProLive: boolean) {
     { index: "02", href: "/rental-application-pro", label: "집 구하기", name: "Rental Pack Pro", price: "A$14.90", status: "강화 버전 검증 중", outcome: "집별 신청 서류·마감일·영문 연락·개인정보 점검", free: "무료 집 방문·계약 체크", freeHref: "/property-inspection-checklist" },
     { index: "03", href: "/pay-evidence-pro", label: "급여 확인", name: "Pay Evidence Pro", price: "A$9.90", status: "기능 검증 중", outcome: "근무시간·Payslip 차이·증빙표·영문 문의문", free: "무료 급여 문제 대응 순서", freeHref: "/underpayment-guide" },
     { index: "04", href: "/car-buy-pro", label: "중고차 구매", name: "Car Buy Pack Pro", price: "A$14.90", status: "결제 안전성 검증 중", outcome: "차량별 첫해 비용·PPSR·구매 직전 확인·판매자 질문", free: "무료 중고차 비교표", freeHref: "/used-car-comparison" },
-    { index: "05", href: "/eofy-pro", label: "세금 준비", name: "EOFY Pack Pro", price: "A$9.90", status: "기능 검증 중", outcome: "흩어진 소득·공제 자료와 세무사 질문 요약", free: "무료 택스 리턴 정보", freeHref: "/tax-return-guide" },
+    { index: "05", href: "/eofy-pro", label: "세금 준비", name: "EOFY Pack Pro", price: "A$9.90", status: "구매 흐름 준비 중", outcome: "흩어진 소득·공제 자료와 세무사 질문 요약", free: "무료 택스 리턴 정보", freeHref: "/tax-return-guide" },
     { index: "06", href: "/leaving-australia-pro", label: "귀국 준비", name: "Leaving Pack Pro", price: "A$12.90", status: "기능 검증 중", outcome: "Bond·마지막 급여·세금·DASP 후속 확인", free: "무료 귀국·DASP 가이드", freeHref: "/leaving-australia-guide" },
   ] as const;
 }

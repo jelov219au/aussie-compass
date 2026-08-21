@@ -8,8 +8,10 @@ const rentalAccess = await readFile(new URL("../src/lib/rentalProAccess.ts", imp
 const rentalPurchase = await readFile(new URL("../src/lib/rentalProPurchase.ts", import.meta.url), "utf8");
 const carBuyAccess = await readFile(new URL("../src/lib/carBuyProAccess.ts", import.meta.url), "utf8");
 const carBuyPurchase = await readFile(new URL("../src/lib/carBuyProPurchase.ts", import.meta.url), "utf8");
+const eofyAccess = await readFile(new URL("../src/lib/eofyProAccess.ts", import.meta.url), "utf8");
+const eofyPurchase = await readFile(new URL("../src/lib/eofyProPurchase.ts", import.meta.url), "utf8");
 
-for (const productCode of ["resume_pro", "rental_application_pro", "pay_evidence_pro", "car_buy_pro"]) {
+for (const productCode of ["resume_pro", "rental_application_pro", "pay_evidence_pro", "car_buy_pro", "eofy_pro"]) {
   assert.ok(entitlements.includes(`"${productCode}"`), `Supported product code is missing: ${productCode}`);
   assert.ok(storageContract.includes(`'${productCode}'`), `Database product constraint is missing: ${productCode}`);
 }
@@ -44,5 +46,9 @@ for (const contract of ["car_buy_pro", "__Host-hoju_car_buy_pro_access", "findAc
   assert.ok(carBuyAccess.includes(contract), `Car Buy Pro access isolation is missing: ${contract}`);
 }
 assert.ok(carBuyPurchase.includes('session.metadata?.product_code === "car_buy_pro"'));
+for (const contract of ["eofy_pro", "__Host-hoju_eofy_pro_access", "findActiveById"]) {
+  assert.ok(eofyAccess.includes(contract), `EOFY Pack Pro access isolation is missing: ${contract}`);
+}
+assert.ok(eofyPurchase.includes('session.metadata?.product_code === "eofy_pro"'));
 
 console.log("Paid-product entitlement isolation checks passed.");

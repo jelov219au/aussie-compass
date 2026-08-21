@@ -26,7 +26,7 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 - Create Checkout Sessions only on the server.
 - In non-production environments, use only test keys (`rk_test_` preferred, `sk_test_` supported). In production, use only live keys (`rk_live_` preferred, `sk_live_` supported).
 - Prefer least-privilege restricted keys (`rk_test_` / `rk_live_`) and grant only the Checkout Session and Price access used by this integration. Review Stripe request logs before adding permissions.
-- Validate each configured price server-side before redirecting: Resume Pro must be active, one-time AUD 19.90; Rental Application Pack Pro must be active, one-time AUD 14.90; Pay Evidence Pro must be active, one-time AUD 9.90.
+- Validate each configured price server-side before redirecting: Resume Pro must be active, one-time AUD 19.90; Rental Application Pack Pro and Car Buy Pack Pro must each be active, one-time AUD 14.90; Pay Evidence Pro and EOFY Pack Pro must each be active, one-time AUD 9.90.
 - Enable Managed Payments explicitly for each Checkout Session after confirming product eligibility.
 - Add a unique, product-specific Checkout `integration_identifier` so sessions can be filtered in Stripe Workbench.
 - Verify signed Stripe webhooks before granting access.
@@ -45,6 +45,7 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 - Run `npm run test:resume-pro-tokens` to verify signed-session tamper resistance, expiry, revoked-access blocking and restore-code hashing.
 - Run `npm run test:rental-pro-tokens` to apply the same signed-session and recovery-code checks to Rental Application Pack Pro.
 - Run `npm run test:pay-evidence-tokens` to apply the same signed-session, expiry and recovery-code checks to Pay Evidence Pro.
+- Run `npm run test:eofy-pro-tokens` to apply the same signed-session, expiry and recovery-code checks to EOFY Pack Pro.
 - Run `npm run test:stripe-contract` to prevent accidental removal of Checkout consent, server-side price validation, dynamic payment methods or webhook signature checks.
 - Run `npm run payments:check -- --strict` inside the target deployment environment. It reports only pass/wait states and never prints credentials, connection strings, legal names or the ABN.
 - Keep `PAYMENTS_ENABLED=false` until test evidence and legal copy are reviewed.
@@ -67,6 +68,8 @@ Rental Application Pack Pro additionally requires `STRIPE_RENTAL_PRO_PRICE_ID`. 
 Pay Evidence Pro additionally requires `STRIPE_PAY_EVIDENCE_PRO_PRICE_ID`. Its public Checkout stays unavailable unless the shared payment gates and its product-specific Price gate all pass. Adding the variable is not permission to sell: keep Production disabled until the live Price, signed webhook, durable entitlement, recovery and refund paths have each been verified.
 
 Car Buy Pack Pro additionally requires `STRIPE_CAR_BUY_PRO_PRICE_ID`. Its Checkout remains closed while that variable is absent. Before adding it, apply the `car_buy_pro` entitlement constraint in Preview, then verify one test purchase, access activation, one-time recovery and full-refund revocation. Production sale is a separate approval after those checks pass.
+
+EOFY Pack Pro additionally requires `STRIPE_EOFY_PRO_PRICE_ID`. Its Checkout remains closed while that variable is absent. Before adding it, apply the `eofy_pro` entitlement constraint in Preview, then verify one test purchase, signed access activation, one-time recovery and full-refund revocation. Production sale is a separate approval after those checks pass; do not publish it merely because the code path exists.
 
 ## Post-launch owner actions
 

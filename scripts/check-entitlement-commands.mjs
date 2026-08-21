@@ -59,6 +59,16 @@ assert.equal(
 );
 
 assert.equal(
+  getEntitlementCommand(stripeEvent("checkout.session.completed", {
+    ...paidSession,
+    id: "cs_test_eofy_paid",
+    metadata: { product_code: "eofy_pro" },
+  }))?.productCode,
+  "eofy_pro",
+  "an EOFY Pack purchase must receive only its own product entitlement",
+);
+
+assert.equal(
   getEntitlementCommand(stripeEvent("checkout.session.completed", { ...paidSession, metadata: { product_code: "other" } })),
   null,
   "unknown products must never receive a paid-product entitlement",

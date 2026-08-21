@@ -14,6 +14,7 @@
     "test:pay-evidence-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-pay-evidence-tokens.mjs",
     "test:rental-pro-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-rental-pro-tokens.mjs",
     "test:car-buy-pro-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-car-buy-pro-tokens.mjs",
+    "test:eofy-pro-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-eofy-pro-tokens.mjs",
     "test:entitlement-ordering": "node scripts/check-entitlement-ordering.mjs",
     "test:product-entitlements": "node scripts/check-product-entitlement-isolation.mjs",
     "test:payment-alerts": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-payment-alerts.mjs",

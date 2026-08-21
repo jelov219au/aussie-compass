@@ -29,9 +29,18 @@ export const carBuyProProduct = {
   billing: "one_time",
 } as const;
 
+export const eofyProProduct = {
+  id: "eofy-pro",
+  name: "EOFY Pack Pro",
+  currency: "aud",
+  priceCents: 990,
+  billing: "one_time",
+} as const;
+
 export const resumeProPurchaseTermsVersion = "2026-08-19";
 export const payEvidencePurchaseTermsVersion = "2026-08-21";
 export const carBuyProPurchaseTermsVersion = "2026-08-21";
+export const eofyProPurchaseTermsVersion = "2026-08-21";
 
 export const rentalProProduct = {
   id: "rental-application-pro",
@@ -153,6 +162,18 @@ export function getCarBuyProPaymentReadiness(): PaymentReadiness {
 
 export function canCreateCarBuyProTestCheckout() {
   const readiness = getCarBuyProPaymentReadiness();
+  return process.env.VERCEL_ENV !== "production"
+    && readiness.enabled
+    && readiness.stripeConfigured
+    && readiness.managedPaymentsConfigured;
+}
+
+export function getEofyProPaymentReadiness(): PaymentReadiness {
+  return getPaymentReadinessForPrice(process.env.STRIPE_EOFY_PRO_PRICE_ID, false);
+}
+
+export function canCreateEofyProTestCheckout() {
+  const readiness = getEofyProPaymentReadiness();
   return process.env.VERCEL_ENV !== "production"
     && readiness.enabled
     && readiness.stripeConfigured

@@ -8,6 +8,7 @@ const productLabels = {
   rental_application_pro: "Rental Application Pack Pro",
   pay_evidence_pro: "Pay Evidence Pro",
   car_buy_pro: "Car Buy Pack Pro",
+  eofy_pro: "EOFY Pack Pro",
 } as const;
 
 type AlertProductCode = keyof typeof productLabels;

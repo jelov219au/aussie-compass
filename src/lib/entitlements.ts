@@ -5,6 +5,7 @@ export const supportedProductCodes = [
   "rental_application_pro",
   "pay_evidence_pro",
   "car_buy_pro",
+  "eofy_pro",
 ] as const;
 
 export type ProductCode = (typeof supportedProductCodes)[number];
