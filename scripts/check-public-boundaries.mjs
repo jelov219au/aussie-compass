@@ -8,6 +8,7 @@ const operatorRoutes = new Map([
   ["/campaign-link-builder", "src/app/campaign-link-builder/page.tsx"],
   ["/content-performance", "src/app/content-performance/page.tsx"],
   ["/content-planner", "src/app/content-planner/page.tsx"],
+  ["/resume-pro-performance", "src/app/resume-pro-performance/page.tsx"],
   ["/social-card-maker", "src/app/social-card-maker/page.tsx"],
 ]);
 
@@ -17,6 +18,7 @@ const operatorOnlyFiles = new Set([
   "src/components/tools/ContentPerformanceTracker.tsx",
   "src/components/tools/ContentPublishingPlanner.tsx",
   "src/components/tools/SocialCardMaker.tsx",
+  "src/lib/resumeProPerformance.ts",
 ]);
 
 function toProjectPath(filePath) {
