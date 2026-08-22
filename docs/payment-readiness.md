@@ -1,12 +1,12 @@
 # Hoju Compass payment readiness
 
-Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Production payments were opened after the controlled live purchase, access-delivery and full-refund test passed on 20 August 2026. The remaining owner and bookkeeping checks below still need ongoing review.
+Resume Pro is a one-time AUD 19.90 product provided by Hoju Compass's Australian sole-trader operator through Stripe Managed Payments. Hoju Compass's product-provider identity and the transaction seller (Merchant of Record) shown by Managed Payments are separate roles. Production payments were opened after the controlled live purchase, access-delivery and full-refund test passed on 20 August 2026. The remaining owner and bookkeeping checks below still need ongoing review.
 
 ## Owner-only setup
 
 - Create and verify the Stripe account as an Individual / Sole trader.
 - Enter the legal name, ABN, identity document and Australian payout bank account directly in Stripe.
-- Keep the registered business name (`Hoju Compass`) separate from the sole trader's legal seller name. The customer-facing purchase page must show both without hardcoding either person's private details into source control.
+- Keep the registered business name (`Hoju Compass`) separate from the sole trader's legal/registered product-provider name. The customer-facing purchase page must show both without hardcoding either person's private details into source control. These site details do not set or prove the transaction seller shown by Managed Payments Checkout and receipts.
 - Never send identity documents, bank details or secret keys through chat, source control or client-side environment variables.
 - Create a separate business bank account where practical and confirm the ABN entity, GST registration status and how Managed Payments payouts, fees and tax documents should be recorded with a registered tax agent.
 
@@ -15,7 +15,7 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 - Keep the existing resume builder and PDF output free.
 - State the full AUD price before checkout and identify the purchase as one-time, not recurring.
 - Require the customer to acknowledge the current purchase and privacy notices before creating Checkout, and record only the notice version in Stripe metadata rather than copying the page contents into payment records.
-- Publish seller identity, ABN, support contact, delivery method, refund process, privacy notice and terms before accepting money.
+- Publish the Hoju Compass product provider's legal/registered identity, ABN, support contact, delivery method, refund process, privacy notice and terms before accepting money. Separately verify the transaction seller and transaction-support details on the actual Managed Payments Checkout and receipt.
 - Do not use “no refunds”. Australian Consumer Law rights must remain available.
 - Provide a self-service way to restore a purchase on another device and revoke access after a refund or chargeback.
 - Keep every paid workspace inaccessible on deployed builds until that server-verified access path is complete.
@@ -82,14 +82,14 @@ Stripe's Product response exposes the exact tax-code ID but does not provide a s
 
 Reference the official Stripe guides when reviewing this contract: [Managed Payments Checkout setup](https://docs.stripe.com/payments/managed-payments/set-up), [Managed Payments eligibility](https://docs.stripe.com/payments/managed-payments/eligibility), and [product tax codes and tax behavior](https://docs.stripe.com/tax/products-prices-tax-codes-tax-behavior).
 
-The registered site name `Hoju Compass` is the default customer-facing business name; `BUSINESS_TRADING_NAME` is only an optional override. `BUSINESS_LEGAL_NAME` is the underlying legal seller and must never be hardcoded. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch. The app accepts the manual `ENTITLEMENT_DB_URL` override or Vercel Neon's managed `ENTITLEMENT_DB_DATABASE_URL`; do not copy the managed connection string into a second variable.
+The registered site name `Hoju Compass` is the default customer-facing product business name; `BUSINESS_TRADING_NAME` is only an optional override. `BUSINESS_LEGAL_NAME` is the legal/registered name of the Hoju Compass product provider and must never be hardcoded. It does not configure or establish the Managed Payments transaction seller; that role must be verified from Checkout and the issued receipt/invoice. The internal readiness field `sellerDetailsConfigured` means these required product-provider details are present, not that the Merchant of Record has been identified. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch. The app accepts the manual `ENTITLEMENT_DB_URL` override or Vercel Neon's managed `ENTITLEMENT_DB_DATABASE_URL`; do not copy the managed connection string into a second variable.
 
 ## Post-launch owner actions
 
 1. Run the target-environment launch audit with `npm run payments:check -- --strict --verify-stripe` after any payment-setting change. The key needs read access to the configured Price and expanded Product for this audit, plus the existing Checkout permissions at runtime. Replace the full live key with a least-privilege restricted key when those permissions are confirmed.
 2. Repeat the completed protected-Preview customer-access test after any change to the webhook, entitlement schema, access cookie or recovery-code flow. Recovery-code expiry remains covered by the deterministic token test because the deployed code lasts 30 days.
-3. Add `BUSINESS_LEGAL_NAME`, `BUSINESS_ABN` and `NEXT_PUBLIC_SUPPORT_EMAIL` to Vercel without pasting the sole trader's private details into chat or source control. Confirm the purchase page shows the registered business name and legal seller as separate fields. Add `BUSINESS_TRADING_NAME` only if the displayed business name must differ from `Hoju Compass`.
-4. Confirm the ABN/GST status through the Australian Business Register and with a registered tax agent. Verify that live Managed Payments continues to show Stripe as the tax-liability party and ask how the gross sale, GST shown by Stripe, fees and payout belong in the sole trader's records.
+3. Add `BUSINESS_LEGAL_NAME`, `BUSINESS_ABN` and `NEXT_PUBLIC_SUPPORT_EMAIL` to Vercel without pasting the sole trader's private details into chat or source control. Confirm the purchase page shows the product business name and legal/registered product-provider name as separate fields. Add `BUSINESS_TRADING_NAME` only if the displayed business name must differ from `Hoju Compass`. Do not use these values as evidence of the Checkout transaction seller.
+4. Confirm the ABN/GST status through the Australian Business Register and with a registered tax agent. In live Managed Payments Checkout and the issued receipt/invoice, record the exact customer-visible transaction seller, document issuer and tax-liability party without inferring them from `BUSINESS_*`; then ask how the gross sale, GST shown by Stripe, fees and payout belong in the sole trader's records.
 5. Finish the Stripe live-mode business profile, statement descriptor, customer support details and payout bank verification. Create the live restricted key, live Resume Pro Price and live webhook endpoint with the same event subscriptions verified in Preview.
 6. Reconcile the controlled live purchase, Stripe fee and full refund with the first Stripe balance and payout reports.
    The private accounting register now contains the verified A$19.90 sale and full refund. Stripe fee, credit-document tax reversal and bank payout remain blank until supported by the source reports.

@@ -6,19 +6,21 @@ This is the short owner checklist for opening Resume Pro payments. Keep legal na
 
 - [x] Register the business name `Hoju Compass` and save the ASIC Record of Registration.
 - [ ] Confirm that ABN Lookup shows the expected sole-trader entity, registered business name and current GST status.
-- [ ] Confirm the legal seller name and how Managed Payments sales, GST documents, fees and payouts should be recorded with a registered tax agent.
+- [ ] Confirm the sole trader's legal/registered product-provider name and how Managed Payments sales, GST documents, fees and payouts should be recorded with a registered tax agent. Do not treat that name as the transaction seller unless the actual Checkout and receipt show it.
 - [x] Use a monitored support email that customers can reply to (`support@hojucompass.com`).
 
-## 2. Vercel seller settings
+## 2. Vercel product-provider settings
 
 Add these only through encrypted environment settings:
 
 - `BUSINESS_TRADING_NAME` — optional; leave unset to use the registered site name `Hoju Compass`.
-- [x] `BUSINESS_LEGAL_NAME` — underlying sole-trader legal seller.
+- [x] `BUSINESS_LEGAL_NAME` — legal/registered name of the Hoju Compass product provider; it does not configure or prove the Managed Payments transaction seller.
 - [x] `BUSINESS_ABN` — 11 digits; spacing is optional.
 - [x] `NEXT_PUBLIC_SUPPORT_EMAIL` — published support contact.
 
 Run `npm run payments:check -- --strict` in the target environment. The command shows only pass/wait results and does not print the stored values.
+
+The app's `sellerDetailsConfigured` check confirms that the public product-provider name and ABN are present. It is not a Merchant of Record check. Verify the transaction seller, document issuer and transaction-support route separately on the real Managed Payments Checkout and receipt/invoice, preserving the exact displayed wording.
 
 - [x] Connect the existing Neon entitlement database to Production with sensitive `ENTITLEMENT_DB_*` variables.
 - [x] Store a separate Production `ENTITLEMENT_SESSION_SECRET` and set `PAYMENTS_ENTITLEMENT_STORE=neon`.
@@ -37,7 +39,8 @@ Run `npm run payments:check -- --strict` in the target environment. The command 
 
 ## 4. Final controlled test
 
-- [x] Confirm the purchase page shows the business name, legal seller, ABN, support contact, price, digital-delivery method and ACL-compatible refund process.
+- [x] Confirm the purchase page shows the Hoju Compass product business name, legal/registered product-provider name, ABN, product support contact, price, digital-delivery method and ACL-compatible refund process.
+- [ ] Confirm the controlled live Checkout and issued receipt/invoice separately identify the customer-visible transaction seller, document issuer and transaction-support route; do not infer these from `BUSINESS_*`. The 20 August retrospective evidence leaves these fields unconfirmed.
 - [x] Confirm Checkout links the versioned service terms, purchase information and privacy notice before payment.
 - [x] Confirm Production still fails closed before the deliberate launch switch is enabled.
 - [x] Enable Production payments for the controlled test.
