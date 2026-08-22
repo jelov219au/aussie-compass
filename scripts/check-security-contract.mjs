@@ -2,24 +2,71 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const projectFile = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
-const [nextConfig, requestSecurity] = await Promise.all([
-  projectFile("next.config.ts"),
+const originalNodeEnv = process.env.NODE_ENV;
+
+async function loadHeaderRules(nodeEnv, cacheKey) {
+  process.env.NODE_ENV = nodeEnv;
+  const configUrl = new URL(`../next.config.ts?security-contract=${cacheKey}`, import.meta.url);
+  const config = (await import(configUrl.href)).default;
+  return config.headers();
+}
+
+const productionHeaderRules = await loadHeaderRules("production", "production");
+const developmentHeaderRules = await loadHeaderRules("development", "development");
+if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
+else process.env.NODE_ENV = originalNodeEnv;
+
+const [requestSecurity, cspDecision] = await Promise.all([
   projectFile("src/lib/requestSecurity.ts"),
+  projectFile("docs/csp-hardening.md"),
 ]);
 
-for (const directive of [
-  "Content-Security-Policy",
-  "default-src 'self'",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
+function headerValue(rules, source, key) {
+  const rule = rules.find((item) => item.source === source);
+  return rule?.headers.find((item) => item.key.toLowerCase() === key.toLowerCase())?.value;
+}
+
+function parseCsp(value) {
+  assert.ok(value, "Content-Security-Policy header must be configured");
+  return new Map(value.split(";").map((item) => item.trim()).filter(Boolean).map((item) => {
+    const [name, ...sources] = item.split(/\s+/);
+    return [name, sources];
+  }));
+}
+
+const productionCsp = parseCsp(headerValue(productionHeaderRules, "/(.*)", "Content-Security-Policy"));
+const developmentCsp = parseCsp(headerValue(developmentHeaderRules, "/(.*)", "Content-Security-Policy"));
+
+assert.deepEqual(productionCsp.get("script-src"), ["'self'"], "production script-src must not allow inline scripts, eval, wildcards, data, or remote schemes");
+assert.deepEqual(developmentCsp.get("script-src"), ["'self'", "'unsafe-eval'"], "unsafe-eval must be limited to the documented development requirement");
+assert.deepEqual(productionCsp.get("script-src-elem"), ["'self'", "'unsafe-inline'"], "the audited Next.js inline bootstrap exception must stay isolated to script elements");
+assert.deepEqual(productionCsp.get("script-src-attr"), ["'none'"], "inline event-handler attributes must remain blocked");
+
+for (const directive of ["default-src", "object-src", "base-uri", "form-action", "frame-ancestors"]) {
+  assert.ok(productionCsp.has(directive), `Production CSP directive is missing: ${directive}`);
+}
+
+const serviceWorkerCsp = parseCsp(headerValue(productionHeaderRules, "/sw.js", "Content-Security-Policy"));
+assert.deepEqual(serviceWorkerCsp.get("script-src"), ["'self'"], "the service worker must not inherit the framework inline-script exception");
+
+for (const header of [
   "Strict-Transport-Security",
   "X-Content-Type-Options",
   "Referrer-Policy",
   "Permissions-Policy",
 ]) {
-  assert.ok(nextConfig.includes(directive), `Security-header contract is missing: ${directive}`);
+  assert.ok(headerValue(productionHeaderRules, "/(.*)", header), `Security header is missing: ${header}`);
+}
+
+for (const evidence of [
+  "Next.js 16.3.1",
+  "script-src-elem 'self' 'unsafe-inline'",
+  "script-src-attr 'none'",
+  "dynamic rendering",
+  "experimental SRI",
+  "inline `<script>`",
+]) {
+  assert.ok(cspDecision.includes(evidence), `The CSP residual-risk decision is incomplete: ${evidence}`);
 }
 
 for (const contract of [
@@ -54,4 +101,4 @@ for (const contract of ["webhooks.constructEvent", "maxWebhookPayloadBytes", "st
   assert.ok(webhook.includes(contract), `Webhook security contract is missing: ${contract}`);
 }
 
-console.log("Security headers and mutation-request contracts passed.");
+console.log("CSP source budgets, security headers, and mutation-request contracts passed.");
