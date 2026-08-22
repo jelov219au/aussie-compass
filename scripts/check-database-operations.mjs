@@ -11,6 +11,7 @@ const [
   recovery,
   runbook,
   launchPacket,
+  liveLaunchChecklist,
   manifest,
   paymentReadiness,
   firstSaleAdapter,
@@ -26,6 +27,7 @@ const [
   readFile(new URL("../docs/database-recovery.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/first-sale-gate-runbook.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/first-payment-24-hour-operations-packet.md", import.meta.url), "utf8"),
+  readFile(new URL("../docs/live-payment-launch-checklist.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/release-candidate-manifest-2026-08-23.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/payment-readiness.md", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/neonFirstSaleGate.ts", import.meta.url), "utf8"),
@@ -354,7 +356,30 @@ for (const contract of [
   "SMTP 재시도나 동일 Message-ID의 중복 이메일은 회계 사건이 아니다",
   "15분 안에",
   "24시간 안에",
+  "active·unexpired·unrevoked",
+  "`created_at`·`expires_at`·`revoked_at` 증거 시각",
 ]) assert.ok(launchPacket.includes(contract), `launch packet is missing: ${contract}`);
+
+for (const contract of [
+  "20260823_payment_operator_alert_outbox_v1",
+  "20260823_checkout_activation_nonce_v1",
+  "20260823_purchase_access_sessions_v1",
+  "20260823_restore_activation_nonce_v1",
+  "catalog and effective-privilege evidence",
+  "12-/7-/6-argument functions",
+  "active, unexpired and unrevoked",
+  "`created_at`, `expires_at` and `revoked_at`",
+  "raw session ID, cookie, customer email or full Stripe ID",
+]) assert.ok(liveLaunchChecklist.includes(contract), `live launch checklist is missing access evidence: ${contract}`);
+assert.ok(
+  liveLaunchChecklist.indexOf("20260823_payment_operator_alert_outbox_v1")
+    < liveLaunchChecklist.indexOf("20260823_checkout_activation_nonce_v1")
+    && liveLaunchChecklist.indexOf("20260823_checkout_activation_nonce_v1")
+      < liveLaunchChecklist.indexOf("20260823_purchase_access_sessions_v1")
+    && liveLaunchChecklist.indexOf("20260823_purchase_access_sessions_v1")
+      < liveLaunchChecklist.indexOf("20260823_restore_activation_nonce_v1"),
+  "the live checklist must preserve outbox -> activation -> access session -> restore activation order",
+);
 
 for (const document of [manifest, paymentReadiness]) {
   for (const version of [

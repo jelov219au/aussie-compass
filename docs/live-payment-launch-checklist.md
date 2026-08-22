@@ -47,7 +47,9 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 - [x] Enable Production payments for the controlled test.
 - [x] Make one real purchase through the public customer path.
 - [x] Confirm the signed live webhook persists the entitlement and the Resume Pro workspace opens only after that entitlement exists.
-- [ ] With payments off, confirm the exact migration order and versions: charge-link v2 → `20260823_payment_operator_alert_outbox_v1` → `20260823_checkout_activation_nonce_v1`. Prove one nonce binding, same-browser response-loss retry, different-nonce denial, permanent release, refund/review denial and independent restore-code recovery.
+- [ ] With payments off, confirm the exact migration order and versions: charge-link v2 → `20260823_payment_operator_alert_outbox_v1` → `20260823_checkout_activation_nonce_v1` → `20260823_purchase_access_sessions_v1` → `20260823_restore_activation_nonce_v1`. Prove one nonce binding, same-browser response-loss retry, different-nonce denial, permanent release, refund/review denial and independent restore-code recovery.
+- [ ] Run the catalog and effective-privilege evidence in `docs/first-sale-gate-runbook.md`: replaced overloads are absent, only the approved 12-/7-/6-argument functions remain, every protected-table direct privilege is false, and runtime can execute only the listed wrappers.
+- [ ] Record suffix-only functional evidence that the issued activation/restore access session is active, unexpired and unrevoked. Record `created_at`, `expires_at` and `revoked_at` as evidence times without copying the raw session ID, cookie, customer email or full Stripe ID.
 - [ ] Confirm outbox pending/sent/attempt counts, SMTP failure 503, busy-worker 503, stale-lease recovery and actual purchase/refund mailbox receipt using suffix-only evidence.
 - [x] Issue a full AUD 19.90 refund in Stripe; `refund.created` and `charge.refunded` both returned HTTP 200 and the workspace was blocked immediately.
 - [ ] Reconcile the gross sale, Stripe fee, refund and bank payout record.

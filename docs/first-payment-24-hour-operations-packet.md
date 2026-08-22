@@ -18,7 +18,7 @@
 
 ### 15분·24시간 HOLD/STOP 기준
 
-- 결제 후 15분 안에 webhook 2xx, first-sale `LOCKED`, active entitlement, outbox `sent`, 실제 mailbox 수신, activation `consumed` 또는 같은 nonce의 `idempotent`가 모두 확인되지 않으면 **STOP**이다. 신규 결제를 열지 말고 같은 고객에게 재결제를 요청하지 않는다.
+- 결제 후 15분 안에 webhook 2xx, first-sale `LOCKED`, active entitlement, outbox `sent`, 실제 mailbox 수신, activation `consumed` 또는 같은 nonce의 `idempotent`, 그리고 access session의 active·unexpired·unrevoked가 모두 확인되지 않으면 **STOP**이다. 신규 결제를 열지 말고 같은 고객에게 재결제를 요청하지 않는다.
 - outbox가 `pending`이거나 `busy`, attempts 증가, SMTP 미수신, activation `used/released/revoked/review`, entitlement 불일치가 하나라도 있으면 **HOLD**로 에스컬레이션한다. 내부 해시·전체 Stripe ID·고객 이메일을 증거표에 넣지 않는다.
 - 24시간 안에 gross·표시 GST·fee·refund·ending balance, 영수증/세금 문서 발행자, 실제 알림 수신, 이용권·환불 연결이 모두 PASS가 아니면 다음 판매 재개는 **HOLD**다. payout만 `pending`이고 나머지가 PASS인 경우에만 payout 후속 대사로 넘긴다.
 - STOP/HOLD 중에는 `PAYMENTS_ENABLED=false`를 유지하고, Stripe/DB 재시도나 gate reopen은 owner 승인과 런북 증거 없이 실행하지 않는다.
@@ -31,7 +31,7 @@
 | Mailbox | purchase/refund `received=true/false`, 수신 시각, 동일 suffix | 실제 모니터링 메일함에 도착 |
 | Activation | `consumed/idempotent/released` 결과, binding 수, access-session suffix, response-loss same-nonce stable-session PASS, different-nonce DENIED | binding·activation session 각 1개, 쿠키는 consumed/idempotent active에만 발급 |
 | Replay/restore | URL query removed, replay DENIED, release-response-loss old-cookie DENIED, restore-session PASS, other-session ACTIVE | 해제한 기기만 차단되고 다른 기기 세션은 유지 |
-| Access session | activation/restore source, active/expired/revoked boolean, legacy-cookie DENIED | 서버 검증 wrapper만 접근 허용, 원문 session ID·cookie 미기록 |
+| Access session | activation/restore source, active·unexpired·unrevoked boolean, `created_at`·`expires_at`·`revoked_at` 증거 시각, legacy-cookie DENIED | active=true, unexpired=true, unrevoked=true이며 서버 검증 wrapper만 접근 허용; 원문 session ID·cookie 미기록 |
 | 상태 보호 | refund `revoked`, review `review`, first-sale `LOCKED` | 환불/검토 뒤 자동 재결제·자동 reopen 없음 |
 | 고객 다음 행동 | 환불 완료는 환불 내역 문의, 검토 중은 상태 재확인·지원, replay/restore는 무료 Builder로 연결 | 환불·검토 화면에서 작업공간 열기·복구를 우선하지 않고 구매 페이지나 `Resume Pro Viewed`로 되돌리지 않음 |
 
