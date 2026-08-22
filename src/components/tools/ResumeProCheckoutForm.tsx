@@ -90,6 +90,11 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
             : "A$19.90 1회 결제와 디지털 제공·이용·환불 조건을 확인했습니다."}
         </span>
       </label>
+      <p className="ml-8 mt-2 text-xs leading-5 text-muted">
+        결제 전에 <Link href="/terms" className="font-semibold text-navy underline decoration-gold underline-offset-4">서비스 이용 조건</Link>,{" "}
+        <Link href="/purchase-information" className="font-semibold text-navy underline decoration-gold underline-offset-4">구매·환불 안내</Link>와{" "}
+        <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">결제 데이터 처리 안내</Link>를 확인해 주세요.
+      </p>
       {failure && (
         <ResumeProCheckoutFailureNotice failure={failure} id="resume-pro-checkout-failure" />
       )}
@@ -113,11 +118,6 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
             ? "테스트 결제 시작"
             : "A$19.90에 이번 지원 준비하기"}
       </button>
-      <p className="mt-4 text-xs leading-5 text-muted">
-        결제 전에 <Link href="/terms" className="font-semibold text-navy underline decoration-gold underline-offset-4">서비스 이용 조건</Link>,{" "}
-        <Link href="/purchase-information" className="font-semibold text-navy underline decoration-gold underline-offset-4">구매·환불 안내</Link>와{" "}
-        <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">결제 데이터 처리 안내</Link>를 확인해 주세요.
-      </p>
     </form>
   );
 }

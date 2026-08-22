@@ -13,6 +13,7 @@ const resumeIntentAliases = new Set([
   "resume",
   "cv",
   "star예시",
+  "starexamples",
   "selectioncriteria",
   "coverletter",
   "호주취업이력서",

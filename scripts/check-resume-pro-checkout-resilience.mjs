@@ -113,7 +113,18 @@ assert.equal(form.match(/\btrack\(/g)?.length, 1, "public failures must not add 
 assert.ok(form.includes('track("Checkout Started", { product: "resume_pro", entry })'), "the only Checkout event must use fixed product and normalized entry values");
 assert.ok(form.includes('id="resume-pro-checkout-heading"') && form.includes("tabIndex={-1}"), "the Checkout section needs a programmatically focusable heading");
 assert.ok(form.includes('focus:ring-2 focus:ring-gold'), "programmatic Checkout focus must remain visibly apparent");
-assert.ok(form.indexOf('type="checkbox"') < form.indexOf('type="submit"') && form.indexOf('type="submit"') < form.indexOf('href="/terms"'), "after the Checkout heading, keyboard order must be checkbox, payment button, then policy links");
+const checkboxIndex = form.indexOf('type="checkbox"');
+const termsIndex = form.indexOf('href="/terms"');
+const purchaseInformationIndex = form.indexOf('href="/purchase-information"');
+const privacyIndex = form.indexOf('href="/privacy"');
+const submitIndex = form.indexOf('type="submit"');
+assert.ok(
+  checkboxIndex < termsIndex
+    && termsIndex < purchaseInformationIndex
+    && purchaseInformationIndex < privacyIndex
+    && privacyIndex < submitIndex,
+  "after the Checkout heading, keyboard order must be checkbox, terms, purchase information, privacy, then payment button",
+);
 assert.match(jumpLink, /href="#resume-pro-checkout"/);
 assert.match(jumpLink, /requestAnimationFrame[\s\S]*getElementById\(checkoutHeadingId\)\?\.focus\(\{ preventScroll: true \}\)/);
 assert.doesNotMatch(jumpLink, /preventDefault|history\.(?:pushState|replaceState)/, "the jump link must keep native fragment and Back behavior");
