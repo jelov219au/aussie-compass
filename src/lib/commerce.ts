@@ -2,6 +2,7 @@ import "server-only";
 
 import { getEntitlementDatabaseUrl } from "@/lib/entitlementConfig";
 import { isEntitlementSessionConfigured } from "@/lib/resumeProAccess";
+import { paymentAlertsConfigured } from "@/lib/paymentAlerts";
 import { hasResumeProStripeProductConfig, resumeProStripeProductDefinition } from "@/lib/resumeProStripeProduct";
 import { siteName } from "@/lib/site";
 import { getStripeSecretMode } from "@/lib/stripe";
@@ -27,6 +28,7 @@ export type PaymentReadiness = {
   accessDeliveryImplemented: boolean;
   sellerDetailsConfigured: boolean;
   supportConfigured: boolean;
+  operatorAlertsConfigured: boolean;
   ready: boolean;
 };
 
@@ -57,7 +59,8 @@ export function getPaymentReadiness(): PaymentReadiness {
     && /^\d{11}$/.test(abnDigits),
   );
   const supportConfigured = Boolean(supportEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail));
-  const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && firstSaleGateConfigured && accessDeliveryImplemented && sellerDetailsConfigured && supportConfigured;
+  const operatorAlertsConfigured = paymentAlertsConfigured();
+  const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && firstSaleGateConfigured && accessDeliveryImplemented && sellerDetailsConfigured && supportConfigured && operatorAlertsConfigured;
 
   if (
     enabled
@@ -78,10 +81,11 @@ export function getPaymentReadiness(): PaymentReadiness {
       accessDeliveryImplemented,
       sellerDetailsConfigured,
       supportConfigured,
+      operatorAlertsConfigured,
     });
   }
 
-  return { enabled, stripeConfigured, stripeProductContractConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, firstSaleGateConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, ready };
+  return { enabled, stripeConfigured, stripeProductContractConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, firstSaleGateConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, operatorAlertsConfigured, ready };
 }
 
 export function canCreateTestCheckout() {
