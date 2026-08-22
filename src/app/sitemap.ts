@@ -14,6 +14,7 @@ const routes = [
   "/disclaimer",
   "/editorial-policy",
   "/help-directory",
+  "/english-phrase-cards",
   "/glossary",
   "/install",
   "/data-transfer",

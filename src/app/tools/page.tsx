@@ -14,6 +14,15 @@ export const metadata = createPageMetadata({
 
 const availableTools: DirectoryTool[] = [
   {
+    href: "/english-phrase-cards",
+    eyebrow: "말이 막히는 순간",
+    title: "호주 생활 영어 문장 카드",
+    description: "은행, 렌트, 직장과 병원에서 바로 쓸 수 있는 확인 문장을 상황별로 고르고 이 기기에 저장할 수 있어요.",
+    features: ["상황별 25개 문장", "영어·한국어 복사", "기기 내 저장"],
+    cta: "필요한 문장 찾기",
+    categories: ["arrival", "work", "home"],
+  },
+  {
     href: "/help-directory",
     eyebrow: "긴급·생활 도움",
     title: "호주 생활 도움 연락처",
