@@ -13,8 +13,13 @@ const searchPage = readFileSync(resolve("src/app/search/page.tsx"), "utf8");
 const valueHeading = page.indexOf("지원할수록 내 준비 자료가 쌓입니다.");
 const checkout = page.indexOf("<ResumeProCheckoutForm");
 const completionPdf = builder.indexOf('saveAsPdf("completion_choice")');
-const completionStar = builder.indexOf('href="/resources/english-resume-achievement-examples"');
+const completionStar = builder.indexOf('href="/resources/english-resume-achievement-examples"', completionPdf);
 const completionPro = builder.indexOf('href="/resume-pro?from=resume-builder-complete"');
+const quickStart = builder.indexOf('aria-labelledby="resume-quick-start-heading"');
+const quickStartEnd = builder.indexOf('>디자인</legend>', quickStart);
+const quickStartSection = builder.slice(quickStart, quickStartEnd);
+const earlyStar = quickStartSection.indexOf('href="/resources/english-resume-achievement-examples"');
+const firstSavedExperienceInput = quickStartSection.indexOf('id="resume-quick-achievement"');
 const articleMobileCta = articlePage.indexOf("내 사례를 무료로 저장하기");
 const articleShare = articlePage.indexOf("<PageShareButton");
 
@@ -38,6 +43,9 @@ const checks = [
   [builder.includes("AI 예시 대신") && builder.includes("무료 PDF로 내보내고"), "빠른 시작은 저장·내보내기 가치를 먼저 설명해야 합니다."],
   [completionPdf >= 0 && completionStar > completionPdf && completionPro > completionStar, "완료 화면은 무료 PDF, STAR 학습, Pro 순서여야 합니다."],
   [builder.includes("저장한 경험을 STAR로 다시 정리하기") && builder.includes("min-h-11"), "STAR 보조 링크는 내부 자료와 모바일 터치 크기를 보존해야 합니다."],
+  [earlyStar >= 0 && earlyStar < firstSavedExperienceInput, "STAR 무료 글은 개인정보나 경력 입력 전에 키보드로 열 수 있어야 합니다."],
+  [quickStartSection.includes("실제 경험을 STAR로 정리하는 법") && quickStartSection.includes("focus-visible:ring-2"), "조기 STAR 링크는 목적과 키보드 포커스를 명확히 보여야 합니다."],
+  [!quickStartSection.includes("ResumeProCtaLink") && !quickStartSection.includes("/resume-pro"), "이력서 완료 전 빠른 시작 영역에 Pro CTA를 노출하면 안 됩니다."],
 ];
 
 const failures = checks.filter(([passed]) => !passed).map(([, message]) => message);

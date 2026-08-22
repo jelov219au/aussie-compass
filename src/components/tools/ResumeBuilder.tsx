@@ -272,6 +272,9 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
         <section className="mt-4 border-l-2 border-gold bg-gold/5 p-3 sm:mt-5 sm:p-4" aria-labelledby="resume-quick-start-heading">
           <h3 id="resume-quick-start-heading" className="text-lg font-semibold leading-7 text-navy">내 경험 한 줄부터 저장하세요.</h3>
           <p id="resume-quick-start-help" className="mt-2 text-sm leading-6 text-muted">AI 예시 대신, 내가 한 행동과 확인 가능한 결과를 적어요. 브라우저에 자동 저장되고 아래 경력란에도 이어집니다.</p>
+          <Link href="/resources/english-resume-achievement-examples" className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+            실제 경험을 STAR로 정리하는 법 →
+          </Link>
           <label className="mt-3 block text-sm font-medium text-navy" htmlFor="resume-quick-achievement">저장할 경험 한 줄</label>
           <input id="resume-quick-achievement" aria-describedby="resume-quick-start-help resume-quick-start-next" className={inputClass} value={resume.experiences[0]?.details ?? ""} onChange={(event) => updateFirstExperienceDetails(event.target.value)} placeholder="[내가 한 행동] + [상황] + [확인 가능한 결과]" />
           <p id="resume-quick-start-next" className="mt-3 text-xs leading-5 text-muted">나머지를 채우면 무료 PDF로 내보내고, 공고가 정해진 뒤에만 Pro로 이어갈 수 있어요.</p>
