@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { serializeJsonLd } from "../src/lib/jsonLd.ts";
+import { safeExternalHttpUrl, safeInternalNavigationPath } from "../src/lib/safeNavigation.ts";
 
 const projectFile = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const originalNodeEnv = process.env.NODE_ENV;
@@ -16,9 +18,12 @@ const developmentHeaderRules = await loadHeaderRules("development", "development
 if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
 else process.env.NODE_ENV = originalNodeEnv;
 
-const [requestSecurity, cspDecision] = await Promise.all([
+const [requestSecurity, cspDecision, jsonLdComponent, dashboard, jobTracker] = await Promise.all([
   projectFile("src/lib/requestSecurity.ts"),
   projectFile("docs/csp-hardening.md"),
+  projectFile("src/components/seo/JsonLd.tsx"),
+  projectFile("src/components/dashboard/MyCompassDashboard.tsx"),
+  projectFile("src/components/tools/JobApplicationTracker.tsx"),
 ]);
 
 function headerValue(rules, source, key) {
@@ -79,6 +84,26 @@ for (const contract of [
   assert.ok(requestSecurity.includes(contract), `Mutation-request contract is missing: ${contract}`);
 }
 
+const hostileJsonLd = serializeJsonLd({ title: "</script><script>alert(1)</script>" });
+assert.equal(hostileJsonLd.includes("</script>"), false, "JSON-LD must not be able to close its script element");
+assert.ok(hostileJsonLd.includes("\\u003c/script>"), "JSON-LD must escape opening angle brackets before HTML serialization");
+assert.ok(jsonLdComponent.includes("serializeJsonLd(data)"), "The JSON-LD script sink must use the audited serializer");
+
+assert.equal(safeInternalNavigationPath("/resources/example?q=1#summary"), "/resources/example?q=1#summary");
+for (const unsafePath of ["//attacker.example/phish", "https://attacker.example/phish", "/\\attacker.example/phish", "javascript:alert(1)", "data:text/html,<script>alert(1)</script>"]) {
+  assert.equal(safeInternalNavigationPath(unsafePath), null, `Unsafe internal navigation path was accepted: ${unsafePath}`);
+}
+
+assert.equal(safeExternalHttpUrl("https://jobs.example/role"), "https://jobs.example/role");
+assert.equal(safeExternalHttpUrl("http://jobs.example/role"), "http://jobs.example/role");
+for (const unsafeUrl of ["javascript:alert(1)", "data:text/html,<script>alert(1)</script>", "file:///etc/passwd", "//attacker.example/phish"]) {
+  assert.equal(safeExternalHttpUrl(unsafeUrl), null, `Unsafe external URL was accepted: ${unsafeUrl}`);
+}
+
+assert.ok(dashboard.includes("safeInternalNavigationPath(bookmark.href)"), "Imported bookmark links must be constrained to local paths");
+assert.ok(jobTracker.includes("safeApplications(JSON.parse(stored))"), "Imported job records must be validated before rendering");
+assert.ok(jobTracker.includes("safeExternalHttpUrl(item.link)"), "Imported job links must be constrained to HTTP(S)");
+
 const guardedRoutes = [
   "src/app/api/checkout/resume-pro/route.ts",
   "src/app/api/push/reminders/route.ts",
@@ -101,4 +126,4 @@ for (const contract of ["webhooks.constructEvent", "maxWebhookPayloadBytes", "st
   assert.ok(webhook.includes(contract), `Webhook security contract is missing: ${contract}`);
 }
 
-console.log("CSP source budgets, security headers, and mutation-request contracts passed.");
+console.log("CSP, JSON-LD, safe navigation, security headers, and mutation-request contracts passed.");

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory, type ReadArticleRecord } from "@/lib/articleProgress";
+import { safeInternalNavigationPath } from "@/lib/safeNavigation";
 import { ResourceReadingProgress, type ResourceSummary } from "@/components/dashboard/ResourceReadingProgress";
 
 type DashboardItem = { href: string; eyebrow: string; title: string; detail: string; progress?: number; active: boolean; action: string };
@@ -11,6 +12,17 @@ type Bookmark = { href: string; title: string; savedAt: string };
 function readJson(key: string) {
   try { const value = localStorage.getItem(key); return value ? JSON.parse(value) : null; }
   catch { return null; }
+}
+
+function safeBookmarks(value: unknown): Bookmark[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const bookmark = entry as Partial<Bookmark>;
+    const href = safeInternalNavigationPath(bookmark.href);
+    if (!href || typeof bookmark.title !== "string" || typeof bookmark.savedAt !== "string") return [];
+    return [{ href, title: bookmark.title.slice(0, 160), savedAt: bookmark.savedAt }];
+  }).slice(0, 30);
 }
 
 function projectItem(key: string, total: number, href: string, eyebrow: string, title: string): DashboardItem {
@@ -74,7 +86,7 @@ export function MyCompassDashboard({ resourceArticles }: { resourceArticles: Res
   const refresh = useCallback(() => {
     setItems(buildItems());
     const savedBookmarks = readJson("aussie-compass-bookmarks-v1");
-    setBookmarks(Array.isArray(savedBookmarks) ? savedBookmarks : []);
+    setBookmarks(safeBookmarks(savedBookmarks));
     setReadArticles(readArticleHistory());
     setLoaded(true);
   }, []);
