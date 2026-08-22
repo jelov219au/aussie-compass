@@ -29,8 +29,9 @@
 | --- | --- | --- |
 | Outbox | `pending_count`, `sent_count`, 해당 사건 `attempts`, 마지막 시도/전송 시각, event suffix | intent 1개, 최종 sent, 누락 없음 |
 | Mailbox | purchase/refund `received=true/false`, 수신 시각, 동일 suffix | 실제 모니터링 메일함에 도착 |
-| Activation | `consumed/idempotent/released` 결과, binding 수, response-loss same-nonce PASS, different-nonce DENIED | binding 1개, 쿠키는 consumed/idempotent active에만 발급 |
-| Replay/restore | URL query removed, replay DENIED, release 뒤 same-nonce DENIED, restore PASS | release 후 restore만 가능 |
+| Activation | `consumed/idempotent/released` 결과, binding 수, access-session suffix, response-loss same-nonce stable-session PASS, different-nonce DENIED | binding·activation session 각 1개, 쿠키는 consumed/idempotent active에만 발급 |
+| Replay/restore | URL query removed, replay DENIED, release-response-loss old-cookie DENIED, restore-session PASS, other-session ACTIVE | 해제한 기기만 차단되고 다른 기기 세션은 유지 |
+| Access session | activation/restore source, active/expired/revoked boolean, legacy-cookie DENIED | 서버 검증 wrapper만 접근 허용, 원문 session ID·cookie 미기록 |
 | 상태 보호 | refund `revoked`, review `review`, first-sale `LOCKED` | 환불/검토 뒤 자동 재결제·자동 reopen 없음 |
 
 SMTP 재시도나 동일 Message-ID의 중복 이메일은 회계 사건이 아니다. 회계 장부는 Stripe 원거래와 실제 refund/charge/dispute 식별자를 private 원본에서 대사해 각각 한 번만 반영하며, 메일 수신 횟수나 outbox attempts를 매출·환불 건수로 사용하지 않는다.

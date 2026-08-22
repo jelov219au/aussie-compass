@@ -52,6 +52,12 @@ export type CheckoutActivationResult = {
   entitlement?: EntitlementRecord;
 };
 
+export type AccessSessionInput = {
+  accessSessionHash: string;
+  accessSessionRefLast8: string;
+  expiresAt: Date;
+};
+
 export interface EntitlementStore {
   applyStripeEvent(input: {
     receipt: StripeEventReceipt;
@@ -61,19 +67,31 @@ export interface EntitlementStore {
     entitlement?: EntitlementRecord;
   }>;
 
-  consumeRestoreTokenHash(tokenHash: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
+  consumeRestoreTokenHash(
+    tokenHash: string,
+    productCode: ProductCode,
+    accessSession: AccessSessionInput,
+  ): Promise<EntitlementRecord | null>;
 
   consumeCheckoutActivation(input: {
     checkoutSessionId: string;
     productCode: ProductCode;
     customerId: string;
     nonceHash: string;
+    accessSession: AccessSessionInput;
   }): Promise<CheckoutActivationResult>;
 
-  releaseCheckoutActivation(input: {
+  releaseAccessSession(input: {
     entitlementId: string;
     productCode: ProductCode;
+    accessSessionHash: string;
   }): Promise<boolean>;
+
+  findActiveByAccessSession(input: {
+    entitlementId: string;
+    productCode: ProductCode;
+    accessSessionHash: string;
+  }): Promise<EntitlementRecord | null>;
 
   findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
 

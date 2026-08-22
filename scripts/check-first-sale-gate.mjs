@@ -282,7 +282,7 @@ for (const contract of [
   "old_9_arg_paid_event_removed",
   "old_11_arg_paid_event_removed",
   "all_privilege_checks_pass",
-  "exactly one 12-argument row",
+  "exactly one 12-argument paid-event",
 ]) {
   assert.ok(runbook.includes(contract), `Operations runbook is missing: ${contract}`);
 }

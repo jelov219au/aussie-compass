@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
-import { clearResumeProAccessCookie, getResumeProAccessPayload } from "@/lib/resumeProAccess";
+import { clearResumeProAccessCookie, getResumeProAccessPayload, hashAccessSessionId } from "@/lib/resumeProAccess";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
 
 export const runtime = "nodejs";
@@ -18,9 +18,10 @@ export async function POST(request: NextRequest) {
   const payload = await getResumeProAccessPayload();
   if (payload) {
     const store = getConfiguredEntitlementStore();
-    if (!store || !await store.releaseCheckoutActivation({
+    if (!store || !await store.releaseAccessSession({
       entitlementId: payload.entitlementId,
       productCode: "resume_pro",
+      accessSessionHash: hashAccessSessionId(payload.accessSessionId),
     })) {
       return NextResponse.json({ error: "Unable to release this device." }, {
         status: 503,

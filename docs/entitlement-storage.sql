@@ -95,6 +95,25 @@ create table if not exists purchase_checkout_activations (
   released_at timestamptz
 );
 
+-- Every browser access cookie is bound to one server-tracked, revocable device
+-- session. Only a SHA-256 hash and a short fixed reference are stored here.
+create table if not exists purchase_access_sessions (
+  id bigint generated always as identity primary key,
+  access_session_hash text not null unique check (access_session_hash ~ '^[a-f0-9]{64}$'),
+  access_session_ref_last8 text not null check (access_session_ref_last8 ~ '^[A-Za-z0-9_-]{8}$'),
+  entitlement_id bigint not null references purchase_entitlements(id) on delete restrict,
+  product_code text not null check (product_code in ('resume_pro', 'rental_application_pro')),
+  session_source text not null check (session_source in ('activation', 'restore')),
+  activation_entitlement_id bigint references purchase_checkout_activations(entitlement_id) on delete restrict,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  revoked_at timestamptz,
+  check (
+    (session_source = 'activation' and activation_entitlement_id = entitlement_id)
+    or (session_source = 'restore' and activation_entitlement_id is null)
+  )
+);
+
 alter table public.purchase_checkout_activations
   add column if not exists activation_nonce_hash text;
 alter table public.purchase_checkout_activations
@@ -1022,6 +1041,7 @@ $$;
 --     recover a lost response while release permanently closes that binding.
 
 revoke all on table payment_operator_alert_outbox from public;
+revoke all on table purchase_access_sessions from public;
 revoke insert, update, delete on purchase_checkout_activations from public;
 revoke insert, update, delete on entitlement_event_tombstones, stripe_payment_object_links from public;
 revoke all on function prevent_entitlement_tombstone_mutation() from public;

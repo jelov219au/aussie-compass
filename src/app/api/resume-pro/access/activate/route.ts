@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
-import { isEntitlementSessionConfigured, setResumeProAccessCookie } from "@/lib/resumeProAccess";
+import { createAccessSession, isEntitlementSessionConfigured, setResumeProAccessCookie } from "@/lib/resumeProAccess";
 import { getVerifiedResumeProCheckout } from "@/lib/resumeProPurchase";
 
 export const runtime = "nodejs";
@@ -48,14 +48,17 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const nonceHash = createHash("sha256").update(activationNonce).digest("hex");
+    const accessSession = createAccessSession("activation", nonceHash);
     const result = await store.consumeCheckoutActivation({
       checkoutSessionId: session.id,
       productCode: "resume_pro",
       customerId,
-      nonceHash: createHash("sha256").update(activationNonce).digest("hex"),
+      nonceHash,
+      accessSession,
     });
     if ((result.outcome === "consumed" || result.outcome === "idempotent") && result.entitlement) {
-      await setResumeProAccessCookie(result.entitlement);
+      await setResumeProAccessCookie(result.entitlement, accessSession.accessSessionId);
       return activationResponse(request, "activation_ready", "/resume-pro/workspace", 200);
     }
 

@@ -10,9 +10,10 @@ type ResumeProAccessInput = {
 };
 
 export type ResumeProAccessPayload = {
-  v: 1;
+  v: 2;
   entitlementId: string;
   productCode: "resume_pro";
+  accessSessionId: string;
   exp: number;
 };
 
@@ -28,6 +29,7 @@ function sign(encodedPayload: string, secret: string) {
 
 export function encodeResumeProAccessToken(
   entitlement: ResumeProAccessInput,
+  accessSessionId: string,
   secret: string,
   nowMs = Date.now(),
 ) {
@@ -35,11 +37,15 @@ export function encodeResumeProAccessToken(
   if (entitlement.productCode !== "resume_pro" || entitlement.status !== "active" || !/^\d+$/.test(entitlement.id)) {
     throw new Error("An active Resume Pro entitlement is required.");
   }
+  if (!/^[A-Za-z0-9_-]{43}$/.test(accessSessionId)) {
+    throw new Error("A valid server-tracked access session is required.");
+  }
 
   const payload: ResumeProAccessPayload = {
-    v: 1,
+    v: 2,
     entitlementId: entitlement.id,
     productCode: "resume_pro",
+    accessSessionId,
     exp: Math.floor(nowMs / 1000) + resumeProAccessLifetimeSeconds,
   };
   const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -63,16 +69,35 @@ export function decodeResumeProAccessToken(
 
   try {
     const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as Partial<ResumeProAccessPayload>;
-    if (payload.v !== 1
+    if (payload.v !== 2
       || payload.productCode !== "resume_pro"
       || typeof payload.entitlementId !== "string"
       || !/^\d+$/.test(payload.entitlementId)
+      || typeof payload.accessSessionId !== "string"
+      || !/^[A-Za-z0-9_-]{43}$/.test(payload.accessSessionId)
       || typeof payload.exp !== "number"
       || payload.exp <= Math.floor(nowMs / 1000)) return null;
     return payload as ResumeProAccessPayload;
   } catch {
     return null;
   }
+}
+
+export function deriveResumeProAccessSessionId(
+  source: "activation" | "restore",
+  sourceHash: string,
+  secret: string,
+) {
+  const signingSecret = requireSessionSecret(secret);
+  if (!/^[a-f0-9]{64}$/.test(sourceHash)) throw new Error("A hashed access source is required.");
+  return createHmac("sha256", signingSecret)
+    .update(`resume-pro-access-v1:${source}:${sourceHash}`)
+    .digest("base64url");
+}
+
+export function hashResumeProAccessSessionId(accessSessionId: string) {
+  if (!/^[A-Za-z0-9_-]{43}$/.test(accessSessionId)) throw new Error("Invalid access session identifier.");
+  return createHash("sha256").update(accessSessionId).digest("hex");
 }
 
 export function createResumeProRestoreCode(nowMs = Date.now()) {

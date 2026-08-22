@@ -87,26 +87,30 @@ async function applyStripeEvent(input: {
   } as const;
 }
 
-async function consumeRestoreTokenHash(tokenHash: string, productCode: ProductCode) {
+async function consumeRestoreTokenHash(
+  tokenHash: string,
+  productCode: ProductCode,
+  accessSession: Parameters<EntitlementStore["consumeRestoreTokenHash"]>[2],
+) {
   if (!/^[a-f0-9]{64}$/i.test(tokenHash)) return null;
 
   const sql = neon(getConnectionString());
   const rows = await sql`
     select * from consume_entitlement_restore_token(
       ${tokenHash.toLowerCase()},
-      ${productCode}
+      ${productCode},
+      ${accessSession.accessSessionHash},
+      ${accessSession.accessSessionRefLast8},
+      ${accessSession.expiresAt.toISOString()}
     )
   ` as EntitlementRow[];
 
   return rows[0] ? toEntitlementRecord(rows[0]) : null;
 }
 
-async function consumeCheckoutActivation(input: {
-  checkoutSessionId: string;
-  productCode: ProductCode;
-  customerId: string;
-  nonceHash: string;
-}) {
+async function consumeCheckoutActivation(
+  input: Parameters<EntitlementStore["consumeCheckoutActivation"]>[0],
+) {
   if (!/^cs_(?:test|live)_[A-Za-z0-9]+$/.test(input.checkoutSessionId)
     || !/^cus_[A-Za-z0-9]+$/.test(input.customerId)
     || !/^[a-f0-9]{64}$/.test(input.nonceHash)) return { outcome: "missing" as const };
@@ -117,7 +121,10 @@ async function consumeCheckoutActivation(input: {
       ${input.checkoutSessionId},
       ${input.productCode},
       ${input.customerId},
-      ${input.nonceHash}
+      ${input.nonceHash},
+      ${input.accessSession.accessSessionHash},
+      ${input.accessSession.accessSessionRefLast8},
+      ${input.accessSession.expiresAt.toISOString()}
     )
   ` as EntitlementRow[];
 
@@ -129,16 +136,34 @@ async function consumeCheckoutActivation(input: {
   };
 }
 
-async function releaseCheckoutActivation(input: { entitlementId: string; productCode: ProductCode }) {
+async function releaseAccessSession(
+  input: Parameters<EntitlementStore["releaseAccessSession"]>[0],
+) {
   if (!/^\d+$/.test(input.entitlementId)) return false;
   const sql = neon(getConnectionString());
   const rows = await sql`
-    select release_checkout_activation(
+    select release_purchase_access_session(
       ${input.entitlementId},
-      ${input.productCode}
+      ${input.productCode},
+      ${input.accessSessionHash}
     ) as released
   ` as { released: boolean }[];
   return rows[0]?.released === true;
+}
+
+async function findActiveByAccessSession(
+  input: Parameters<EntitlementStore["findActiveByAccessSession"]>[0],
+) {
+  if (!/^\d+$/.test(input.entitlementId) || !/^[a-f0-9]{64}$/.test(input.accessSessionHash)) return null;
+  const sql = neon(getConnectionString());
+  const rows = await sql`
+    select * from find_active_purchase_entitlement_by_access_session(
+      ${input.entitlementId},
+      ${input.productCode},
+      ${input.accessSessionHash}
+    )
+  ` as EntitlementRow[];
+  return rows[0] ? toEntitlementRecord(rows[0]) : null;
 }
 
 async function findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode) {
@@ -196,7 +221,8 @@ export const neonEntitlementStore: EntitlementStore = {
   applyStripeEvent,
   consumeRestoreTokenHash,
   consumeCheckoutActivation,
-  releaseCheckoutActivation,
+  releaseAccessSession,
+  findActiveByAccessSession,
   findActiveByCheckoutSession,
   findActiveById,
   createRestoreTokenHash,

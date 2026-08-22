@@ -38,9 +38,12 @@ for (const productCode of ["resume_pro", "rental_application_pro"]) {
 }
 
 for (const methodContract of [
-  "consumeRestoreTokenHash(tokenHash: string, productCode: ProductCode)",
+  "async function consumeRestoreTokenHash(",
+  "accessSession: Parameters<EntitlementStore[\"consumeRestoreTokenHash\"]>[2]",
   "findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode)",
   "findActiveById(entitlementId: string, productCode: ProductCode)",
+  "find_active_purchase_entitlement_by_access_session(",
+  "${input.productCode}",
   "productCode: ProductCode;",
 ]) {
   assert.ok(entitlementStore.includes(methodContract), `Product-isolation contract is missing: ${methodContract}`);
