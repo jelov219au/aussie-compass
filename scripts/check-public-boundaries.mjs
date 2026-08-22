@@ -18,6 +18,7 @@ const operatorOnlyFiles = new Set([
   "src/components/tools/ContentPerformanceTracker.tsx",
   "src/components/tools/ContentPublishingPlanner.tsx",
   "src/components/tools/SocialCardMaker.tsx",
+  "src/app/api/resume-pro-performance/connection/route.ts",
   "src/lib/resumeProPerformance.ts",
 ]);
 

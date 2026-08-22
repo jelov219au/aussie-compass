@@ -4,14 +4,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const localEnvPath = path.join(process.cwd(), ".env.local");
-const supportedKeys = [
-  "VERCEL_TOKEN",
-  "VERCEL_PROJECT_ID",
-  "VERCEL_TEAM_ID",
-  "STRIPE_ACCOUNTING_KEY",
-] as const;
-
-type SupportedKey = (typeof supportedKeys)[number];
+type SupportedKey = "VERCEL_TOKEN" | "VERCEL_PROJECT_ID" | "VERCEL_TEAM_ID" | "STRIPE_ACCOUNTING_KEY";
 
 function parseEnvFile(contents: string) {
   const values = new Map<string, string>();
