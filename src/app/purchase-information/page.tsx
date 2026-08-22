@@ -94,6 +94,7 @@ export default function PurchaseInformationPage() {
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>Stripe 결제 과정의 연락처와 결제 상태는 Stripe에서 처리됩니다. Hoju Compass 서버에는 이용권 제공과 환불·분쟁 대응에 필요한 결제 식별자, 이용권 상태와 처리 시각 같은 기술 기록이 저장될 수 있습니다.</p>
                 <p>이력서와 커버레터 작성 내용은 별도 안내가 없는 한 현재 브라우저에서 처리되며 결제 이용권 데이터베이스에 저장되지 않습니다. 자세한 내용은 <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내</Link>를 확인하세요.</p>
+                <p>브라우저 작성 내용이나 접근 세션의 삭제는 결제 취소·환불 또는 거래 기록 삭제와 별개입니다. 삭제 요청을 받으면 더 이상 필요하지 않은 제품·지원 데이터와 세무·회계 또는 소비자 문제 대응에 필요할 수 있는 최소 거래 증거를 시스템별로 구분하며, 후자는 적용되는 보존기간 동안 제한된 목적으로 남을 수 있습니다.</p>
               </div>
             </section>
           </div>
