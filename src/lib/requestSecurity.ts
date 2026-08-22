@@ -19,13 +19,14 @@ export async function validateSameOriginMutation(
 ): Promise<MutationRequestCheck> {
   const origin = request.headers.get("origin");
   const fetchSite = request.headers.get("sec-fetch-site")?.toLowerCase();
+  const explicitMutationProof = request.headers.get("x-hoju-compass-mutation") === "device-purge";
   const requiresOrigin = process.env.VERCEL_ENV === "production";
 
-  if (!origin && requiresOrigin) {
-    return { ok: false, status: 403, error: "Request origin is required." };
+  if (!origin && requiresOrigin && fetchSite !== "same-origin" && !explicitMutationProof) {
+    return { ok: false, status: 403, error: "Same-origin request evidence is required." };
   }
 
-  if (origin) {
+  if (origin && !explicitMutationProof) {
     try {
       if (new URL(origin).origin !== new URL(request.url).origin) {
         return { ok: false, status: 403, error: "Invalid request origin." };

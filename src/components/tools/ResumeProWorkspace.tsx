@@ -1,7 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+
+import {
+  resumeProApplicationsStorageKey,
+  resumeProDevicePurgeEventName,
+  resumeProDraftStorageKey,
+  resumeProStarStoriesStorageKey,
+  resumeStorageKey,
+} from "@/lib/resumeProDeviceStorage";
 
 import {
   buildInterviewQuestions,
@@ -61,10 +69,6 @@ type SavedApplication = {
 };
 type ApplicationStore = { activeId: string | null; items: SavedApplication[] };
 
-const RESUME_STORAGE_KEY = "aussie-compass-resume-v1";
-const PRO_STORAGE_KEY = "hoju-compass-resume-pro-preview-v1";
-const APPLICATIONS_STORAGE_KEY = "hoju-compass-resume-pro-applications-v1";
-const STAR_STORIES_STORAGE_KEY = "hoju-compass-resume-pro-star-stories-v1";
 const STAR_STORY_LIMIT = 20;
 const emptyStarStory: StarStoryDraft = { title: "", competency: "", situation: "", task: "", action: "", result: "" };
 const inputClass = "mt-1.5 min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy outline-none transition placeholder:text-muted/60 focus:border-navy focus:ring-2 focus:ring-navy/15";
@@ -119,7 +123,7 @@ function toStarStoryDraft(story: StarStory): StarStoryDraft {
 
 function readSavedResume(): SavedResume {
   try {
-    return JSON.parse(window.localStorage.getItem(RESUME_STORAGE_KEY) || "{}") as SavedResume;
+    return JSON.parse(window.localStorage.getItem(resumeStorageKey) || "{}") as SavedResume;
   } catch {
     return {};
   }
@@ -217,19 +221,23 @@ export function ResumeProWorkspace() {
   const [activeApplicationId, setActiveApplicationId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
+  const purgingRef = useRef(false);
+  const draftSaveTimerRef = useRef<number | null>(null);
+  const applicationsSaveTimerRef = useRef<number | null>(null);
+  const starStoriesSaveTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setSavedResume(readSavedResume());
     try {
-      const stored = window.localStorage.getItem(PRO_STORAGE_KEY);
+      const stored = window.localStorage.getItem(resumeProDraftStorageKey);
       if (stored) setDraft((current) => normaliseDraft(JSON.parse(stored), current));
-      const applicationStore = window.localStorage.getItem(APPLICATIONS_STORAGE_KEY);
+      const applicationStore = window.localStorage.getItem(resumeProApplicationsStorageKey);
       if (applicationStore) {
         const parsed = JSON.parse(applicationStore) as Partial<ApplicationStore>;
         if (Array.isArray(parsed.items)) setApplications(parsed.items.slice(0, 30));
         if (typeof parsed.activeId === "string") setActiveApplicationId(parsed.activeId);
       }
-      const storedStarStories = window.localStorage.getItem(STAR_STORIES_STORAGE_KEY);
+      const storedStarStories = window.localStorage.getItem(resumeProStarStoriesStorageKey);
       if (storedStarStories) {
         const parsed = JSON.parse(storedStarStories) as unknown;
         if (Array.isArray(parsed)) setStarStories(parsed.slice(0, STAR_STORY_LIMIT) as StarStory[]);
@@ -241,31 +249,61 @@ export function ResumeProWorkspace() {
   }, []);
 
   useEffect(() => {
-    if (!loaded) return;
-    const timer = window.setTimeout(() => {
+    const handleDevicePurge = () => {
+      purgingRef.current = true;
+      [draftSaveTimerRef, applicationsSaveTimerRef, starStoriesSaveTimerRef].forEach((timerRef) => {
+        if (timerRef.current !== null) window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+      });
+      setLoaded(false);
+      setSavedResume({});
+      setDraft(initialDraft);
+      setApplications([]);
+      setStarStories([]);
+      setStarStoryDraft(emptyStarStory);
+      setEditingStarStoryId(null);
+      setActiveApplicationId(null);
+      setMessage("");
+    };
+    window.addEventListener(resumeProDevicePurgeEventName, handleDevicePurge);
+    return () => window.removeEventListener(resumeProDevicePurgeEventName, handleDevicePurge);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded || purgingRef.current) return;
+    draftSaveTimerRef.current = window.setTimeout(() => {
       try {
-        window.localStorage.setItem(PRO_STORAGE_KEY, JSON.stringify(draft));
+        window.localStorage.setItem(resumeProDraftStorageKey, JSON.stringify(draft));
       } catch {
         // The preview remains usable when local storage is unavailable.
       }
     }, 400);
-    return () => window.clearTimeout(timer);
+    return () => {
+      if (draftSaveTimerRef.current !== null) window.clearTimeout(draftSaveTimerRef.current);
+      draftSaveTimerRef.current = null;
+    };
   }, [draft, loaded]);
 
   useEffect(() => {
-    if (!loaded) return;
-    const timer = window.setTimeout(() => {
-      try { window.localStorage.setItem(APPLICATIONS_STORAGE_KEY, JSON.stringify({ activeId: activeApplicationId, items: applications.slice(0, 30) } satisfies ApplicationStore)); } catch {}
+    if (!loaded || purgingRef.current) return;
+    applicationsSaveTimerRef.current = window.setTimeout(() => {
+      try { window.localStorage.setItem(resumeProApplicationsStorageKey, JSON.stringify({ activeId: activeApplicationId, items: applications.slice(0, 30) } satisfies ApplicationStore)); } catch {}
     }, 400);
-    return () => window.clearTimeout(timer);
+    return () => {
+      if (applicationsSaveTimerRef.current !== null) window.clearTimeout(applicationsSaveTimerRef.current);
+      applicationsSaveTimerRef.current = null;
+    };
   }, [activeApplicationId, applications, loaded]);
 
   useEffect(() => {
-    if (!loaded) return;
-    const timer = window.setTimeout(() => {
-      try { window.localStorage.setItem(STAR_STORIES_STORAGE_KEY, JSON.stringify(starStories.slice(0, STAR_STORY_LIMIT))); } catch {}
+    if (!loaded || purgingRef.current) return;
+    starStoriesSaveTimerRef.current = window.setTimeout(() => {
+      try { window.localStorage.setItem(resumeProStarStoriesStorageKey, JSON.stringify(starStories.slice(0, STAR_STORY_LIMIT))); } catch {}
     }, 400);
-    return () => window.clearTimeout(timer);
+    return () => {
+      if (starStoriesSaveTimerRef.current !== null) window.clearTimeout(starStoriesSaveTimerRef.current);
+      starStoriesSaveTimerRef.current = null;
+    };
   }, [loaded, starStories]);
 
   useEffect(() => {

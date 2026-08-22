@@ -80,10 +80,10 @@ function TemplatePreview({ variant, label }: { variant: "editorial" | "split" | 
   );
 }
 
-type Props = { searchParams: Promise<{ access?: string; checkout?: string; from?: string | string[] }> };
+type Props = { searchParams: Promise<{ access?: string; checkout?: string; deviceData?: string; from?: string | string[] }> };
 
 export default async function ResumeProPage({ searchParams }: Props) {
-  const { access, checkout, from } = await searchParams;
+  const { access, checkout, deviceData, from } = await searchParams;
   const paymentReadiness = getPaymentReadiness();
   const testCheckoutAvailable = canCreateTestCheckout();
   const checkoutAvailable = paymentReadiness.ready || testCheckoutAvailable;
@@ -105,7 +105,9 @@ export default async function ResumeProPage({ searchParams }: Props) {
             )}
             {access === "released" && (
               <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">
-                이 기기의 Resume Pro 접근을 안전하게 해제했습니다. 구매 이용권은 유지됩니다.
+                {deviceData === "deleted"
+                  ? "이 기기의 Resume Pro 접근과 저장 데이터를 안전하게 삭제했습니다. 구매 이용권과 다른 기기의 접근은 유지됩니다."
+                  : "이 기기의 Resume Pro 접근을 안전하게 해제했습니다. 저장 데이터와 구매 이용권은 유지됩니다."}
               </div>
             )}
             {checkout === "cancelled" && (

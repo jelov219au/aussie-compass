@@ -15,5 +15,10 @@ export async function POST(request: NextRequest) {
   }
 
   await clearResumeProAccessCookie();
+  if (request.headers.get("x-hoju-compass-mutation") === "device-purge") {
+    return NextResponse.json({ released: true }, {
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
   return NextResponse.redirect(new URL("/resume-pro?access=released", request.url), 303);
 }
