@@ -428,11 +428,13 @@ declare
   v_gate public.first_sale_gates%rowtype;
 begin
   if p_owner_approval_reference is null
+    or trim(p_owner_approval_reference) = ''
     or length(trim(p_owner_approval_reference)) < 4
     or length(trim(p_owner_approval_reference)) > 120
-    or p_evidence_status <> 'PASS'
+    or p_evidence_status is distinct from 'PASS'
+    or p_cash_difference_cents is null
     or abs(p_cash_difference_cents) > 1
-    or p_payout_status <> 'matched'
+    or p_payout_status is distinct from 'matched'
   then
     return false;
   end if;

@@ -106,6 +106,10 @@ for (const contract of [
   "revoke insert, update, delete on public.payment_webhook_events",
   "grant execute on function public.apply_first_sale_paid_event",
   "revoke all on function public.approve_next_first_sale",
+  "p_evidence_status is distinct from 'PASS'",
+  "p_cash_difference_cents is null",
+  "p_payout_status is distinct from 'matched'",
+  "trim(p_owner_approval_reference) = ''",
   "on conflict (version) do nothing",
   "20260823_first_sale_gate_v1",
 ]) {
@@ -187,7 +191,16 @@ class GateModel {
   }
 
   ownerReopen({ approved, evidence, cashDifference, payout }) {
-    if (!approved || evidence !== "PASS" || Math.abs(cashDifference) > 1 || payout !== "matched") return false;
+    const approvalReference = typeof approved === "string" ? approved.trim() : "";
+    if (
+      approvalReference.length < 4
+      || approvalReference.length > 120
+      || evidence !== "PASS"
+      || cashDifference === null
+      || !Number.isInteger(cashDifference)
+      || Math.abs(cashDifference) > 1
+      || payout !== "matched"
+    ) return false;
     if (this.state !== "LOCKED") return false;
     this.state = "OPEN";
     this.events.push("LOCKED>OPEN:owner");
@@ -212,8 +225,31 @@ assert.equal(concurrent.paid("evt_other", concurrent.lockedSession), "blocked", 
 assert.equal(concurrent.paid("evt_other_session", "session-other"), "blocked", "a different Session after LOCKED must be blocked");
 assert.equal(concurrent.refund(), "LOCKED", "refund must not reopen the gate");
 assert.equal(await concurrent.claim(2_000_000), "locked", "second Checkout must remain blocked");
-assert.equal(concurrent.ownerReopen({ approved: true, evidence: "MISSING", cashDifference: 0, payout: "matched" }), false);
-assert.equal(concurrent.ownerReopen({ approved: true, evidence: "PASS", cashDifference: 0, payout: "matched" }), true);
+const validApproval = "FP-OWNER-0001";
+assert.equal(concurrent.ownerReopen({ approved: validApproval, evidence: null, cashDifference: 0, payout: "matched" }), false, "NULL evidence must fail closed");
+assert.equal(concurrent.ownerReopen({ approved: validApproval, evidence: "PASS", cashDifference: null, payout: "matched" }), false, "NULL cash difference must fail closed");
+assert.equal(concurrent.ownerReopen({ approved: validApproval, evidence: "PASS", cashDifference: 0, payout: null }), false, "NULL payout must fail closed");
+assert.equal(concurrent.ownerReopen({ approved: validApproval, evidence: null, cashDifference: null, payout: null }), false, "combined NULL inputs must fail closed");
+assert.equal(concurrent.ownerReopen({ approved: null, evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "NULL owner reference must fail closed");
+assert.equal(concurrent.ownerReopen({ approved: "   ", evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "blank owner reference must fail closed");
+assert.equal(concurrent.ownerReopen({ approved: "abc", evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "short owner reference must fail closed");
+assert.equal(concurrent.ownerReopen({ approved: "x".repeat(121), evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "long owner reference must fail closed");
+assert.equal(concurrent.ownerReopen({ approved: validApproval, evidence: "PASS", cashDifference: 2, payout: "matched" }), false, "+2 cents must fail");
+assert.equal(concurrent.ownerReopen({ approved: validApproval, evidence: "PASS", cashDifference: -2, payout: "matched" }), false, "-2 cents must fail");
+
+for (const cashDifference of [-1, 0, 1]) {
+  const passingGate = new GateModel();
+  assert.equal(await passingGate.claim(0), "claimed");
+  passingGate.attach(`session-pass-${cashDifference}`);
+  assert.equal(passingGate.paid(`event-pass-${cashDifference}`), "locked");
+  assert.equal(
+    passingGate.ownerReopen({ approved: validApproval, evidence: "PASS", cashDifference, payout: "matched" }),
+    true,
+    `${cashDifference} cent must pass`,
+  );
+}
+
+assert.equal(concurrent.ownerReopen({ approved: validApproval, evidence: "PASS", cashDifference: 0, payout: "matched" }), true);
 assert.equal(await concurrent.claim(2_000_001), "claimed", "owner approval opens only one fresh reservation");
 
 const refundBeforeGrant = new GateModel();

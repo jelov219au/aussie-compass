@@ -54,7 +54,7 @@ Do not edit `first_sale_gates` directly.
 
 ## Owner-controlled next sale
 
-`approve_next_first_sale` is deliberately unreachable by the web application. It returns false unless all of the following are supplied: a non-empty owner approval reference, evidence status `PASS`, cash difference within ±A$0.01, and payout status `matched`. The owner must first satisfy the 15-minute, 24-hour and first-payout evidence gates in `docs/first-payment-24-hour-operations-packet.md`.
+`approve_next_first_sale` is deliberately unreachable by the web application. It returns false unless all of the following are supplied: a trimmed 4–120 character owner approval reference, evidence status `PASS`, a non-NULL cash difference within ±A$0.01, and payout status `matched`. NULL, blank, `MISSING` and `FAIL` inputs fail closed. The owner must first satisfy the 15-minute, 24-hour and first-payout evidence gates in `docs/first-payment-24-hour-operations-packet.md`.
 
 Approval creates one append-only `LOCKED → OPEN` event. The next request still has to win a fresh single reservation; this never enables unrestricted multi-sale mode. Record only an incident/approval reference, never a customer name, email, card detail, receipt, full Stripe ID, API key or webhook secret.
 

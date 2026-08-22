@@ -21,6 +21,9 @@ for (const contract of [
   "revoke create on schema public from public",
   "revoke all on table public.first_sale_gates, public.first_sale_gate_events from public",
   "apply_guarded_entitlement_event",
+  "p_evidence_status is distinct from 'PASS'",
+  "p_cash_difference_cents is null",
+  "p_payout_status is distinct from 'matched'",
   "on conflict (version) do nothing",
   "commit;",
 ]) {
