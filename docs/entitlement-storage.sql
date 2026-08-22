@@ -305,14 +305,26 @@ create or replace function claim_payment_operator_alert_intent(
   p_claim_token_hash text
 )
 returns table (
-  alert_kind text, event_type text, event_ref_last8 text, product_code text,
+  claim_outcome text, alert_kind text, event_type text, event_ref_last8 text, product_code text,
   checkout_ref_last8 text, payment_intent_ref_last8 text, charge_ref_last8 text,
   attempts integer
 )
-language sql
+language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
+declare
+  v_intent public.payment_operator_alert_outbox%rowtype;
+begin
+  if p_event_id is null or p_event_id !~ '^evt_[A-Za-z0-9]+$'
+    or p_alert_kind is null or p_alert_kind not in (
+      'payment_completed', 'refund_event', 'dispute_event', 'fulfillment_attention'
+    )
+    or p_claim_token_hash is null or p_claim_token_hash !~ '^[a-f0-9]{64}$'
+  then
+    raise exception 'Invalid payment operator alert claim';
+  end if;
+
   update public.payment_operator_alert_outbox alert
   set attempts = alert.attempts + 1,
       last_attempt_at = now(),
@@ -320,13 +332,37 @@ as $$
       lease_expires_at = now() + interval '2 minutes'
   where alert.event_key = md5(p_event_id)
     and alert.alert_kind = p_alert_kind
-    and p_event_id ~ '^evt_[A-Za-z0-9]+$'
-    and p_claim_token_hash ~ '^[a-f0-9]{64}$'
     and alert.status = 'pending'
     and (alert.lease_expires_at is null or alert.lease_expires_at < now())
-  returning alert.alert_kind, alert.event_type, alert.event_ref_last8, alert.product_code,
-    alert.checkout_ref_last8, alert.payment_intent_ref_last8, alert.charge_ref_last8,
-    alert.attempts;
+  returning alert.* into v_intent;
+
+  if found then
+    return query select
+      'claimed'::text, v_intent.alert_kind, v_intent.event_type,
+      v_intent.event_ref_last8, v_intent.product_code,
+      v_intent.checkout_ref_last8, v_intent.payment_intent_ref_last8,
+      v_intent.charge_ref_last8, v_intent.attempts;
+    return;
+  end if;
+
+  select alert.* into v_intent
+  from public.payment_operator_alert_outbox alert
+  where alert.event_key = md5(p_event_id)
+    and alert.alert_kind = p_alert_kind;
+
+  if not found then
+    return query select 'missing'::text, null::text, null::text, null::text,
+      null::text, null::text, null::text, null::text, null::integer;
+  elsif v_intent.status = 'sent' then
+    return query select 'sent'::text, null::text, null::text, v_intent.event_ref_last8,
+      null::text, null::text, null::text, null::text, v_intent.attempts;
+  else
+    -- Another worker owns a live lease. Returning busy instead of an empty row
+    -- prevents the webhook from acknowledging before that worker marks sent.
+    return query select 'busy'::text, null::text, null::text, v_intent.event_ref_last8,
+      null::text, null::text, null::text, null::text, v_intent.attempts;
+  end if;
+end;
 $$;
 
 create or replace function mark_payment_operator_alert_sent(

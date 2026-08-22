@@ -97,6 +97,7 @@ assert.equal(getPaymentOperatorAlertKind(stripeEvent("refund.created", {}, "evt_
 assert.equal(getPaymentOperatorAlertKind(stripeEvent("charge.dispute.created", {}, "evt_kind")), "dispute_event");
 
 function inMemoryOutbox(event, alertKind) {
+  let now = 0;
   const row = {
     alertKind,
     eventType: event.type,
@@ -104,25 +105,37 @@ function inMemoryOutbox(event, alertKind) {
     attempts: 0,
     status: "pending",
     claimToken: null,
+    leaseExpiresAt: null,
   };
   return {
     row,
+    advance(milliseconds) {
+      now += milliseconds;
+    },
     async enqueueFulfillmentAttention() {},
     async claim() {
-      if (row.status !== "pending" || row.claimToken) return null;
+      if (row.status === "sent") return { outcome: "sent" };
+      if (row.status !== "pending") return { outcome: "missing" };
+      if (row.claimToken && row.leaseExpiresAt > now) return { outcome: "busy" };
       row.attempts += 1;
       row.claimToken = `claim-${row.attempts}`;
-      return { ...row, claimToken: row.claimToken };
+      row.leaseExpiresAt = now + 120_000;
+      return {
+        outcome: "claimed",
+        intent: { ...row, claimToken: row.claimToken },
+      };
     },
     async markSent(_eventId, _kind, claimToken) {
       if (row.status !== "pending" || row.claimToken !== claimToken) return false;
       row.status = "sent";
       row.claimToken = null;
+      row.leaseExpiresAt = null;
       return true;
     },
     async release(_eventId, _kind, claimToken) {
       if (row.status !== "pending" || row.claimToken !== claimToken) return false;
       row.claimToken = null;
+      row.leaseExpiresAt = null;
       return true;
     },
   };
@@ -172,8 +185,92 @@ const sentDuplicate = await deliverDurablePaymentOperatorAlert(
     return { outcome: "sent" };
   },
 );
-assert.equal(sentDuplicate.outcome, "not_pending");
+assert.equal(sentDuplicate.outcome, "already_sent");
 assert.equal(sendAttempts, 2, "a sent duplicate must not send another email");
+
+const concurrentEvent = stripeEvent("checkout.session.completed", {
+  id: "cs_live_concurrent",
+  payment_status: "paid",
+  amount_total: 1990,
+  currency: "aud",
+  metadata: { product_code: "resume_pro" },
+  payment_intent: "pi_live_concurrent",
+}, "evt_alert_concurrent_12345678");
+const concurrentStore = inMemoryOutbox(concurrentEvent, "payment_completed");
+let rejectFirstSender;
+let firstSenderStarted;
+const firstSenderReady = new Promise((resolve) => { firstSenderStarted = resolve; });
+const firstSenderResult = new Promise((_resolve, reject) => { rejectFirstSender = reject; });
+const firstWorker = deliverDurablePaymentOperatorAlert(
+  concurrentEvent,
+  "payment_completed",
+  concurrentStore,
+  async () => {
+    firstSenderStarted();
+    return firstSenderResult;
+  },
+);
+await firstSenderReady;
+const secondWorker = await deliverDurablePaymentOperatorAlert(
+  concurrentEvent,
+  "payment_completed",
+  concurrentStore,
+  async () => assert.fail("a busy worker must never send SMTP"),
+);
+assert.equal(secondWorker.outcome, "busy", "the second live worker must receive an explicit busy result");
+rejectFirstSender(new Error("temporary SMTP failure"));
+await assert.rejects(firstWorker, /temporary SMTP failure/);
+assert.equal(concurrentStore.row.status, "pending");
+assert.equal(concurrentStore.row.claimToken, null, "SMTP failure must release the live claim");
+
+const recovered = await deliverDurablePaymentOperatorAlert(
+  concurrentEvent,
+  "payment_completed",
+  concurrentStore,
+  async () => ({ outcome: "sent" }),
+);
+assert.equal(recovered.outcome, "sent", "the failed worker's intent must be retryable");
+
+const staleStore = inMemoryOutbox(concurrentEvent, "payment_completed");
+const abandonedClaim = await staleStore.claim();
+assert.equal(abandonedClaim.outcome, "claimed");
+assert.equal((await staleStore.claim()).outcome, "busy");
+staleStore.advance(120_001);
+let staleLeaseSends = 0;
+const staleRecovered = await deliverDurablePaymentOperatorAlert(
+  concurrentEvent,
+  "payment_completed",
+  staleStore,
+  async () => {
+    staleLeaseSends += 1;
+    return { outcome: "sent" };
+  },
+);
+assert.equal(staleRecovered.outcome, "sent", "an expired lease must be reclaimable");
+assert.equal(staleLeaseSends, 1);
+
+const responseCrashStore = inMemoryOutbox(concurrentEvent, "payment_completed");
+let responseCrashSends = 0;
+assert.equal((await deliverDurablePaymentOperatorAlert(
+  concurrentEvent,
+  "payment_completed",
+  responseCrashStore,
+  async () => {
+    responseCrashSends += 1;
+    return { outcome: "sent" };
+  },
+)).outcome, "sent");
+// Model a response crash by discarding the first result and replaying the same event.
+assert.equal((await deliverDurablePaymentOperatorAlert(
+  concurrentEvent,
+  "payment_completed",
+  responseCrashStore,
+  async () => {
+    responseCrashSends += 1;
+    return { outcome: "sent" };
+  },
+)).outcome, "already_sent");
+assert.equal(responseCrashSends, 1, "a response-loss retry must not send a second email after mark-sent");
 
 const entitlementSql = fs.readFileSync(new URL("../docs/entitlement-storage.sql", import.meta.url), "utf8");
 const webhookSource = fs.readFileSync(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
@@ -192,6 +289,10 @@ for (const contract of [
   "20260823_payment_operator_alert_outbox_v1",
   "revoke all on table payment_operator_alert_outbox from public",
   "perform public.record_payment_operator_alert_intent",
+  "'claimed'::text",
+  "'sent'::text",
+  "'busy'::text",
+  "alert.lease_expires_at < now()",
 ]) {
   assert.ok(entitlementSql.includes(contract), `missing durable alert SQL contract: ${contract}`);
 }
@@ -203,8 +304,16 @@ assert.ok(
 );
 assert.doesNotMatch(webhookSource, /\bafter\s*\(/, "durable alert delivery must not happen after the HTTP response");
 assert.match(webhookSource, /deliverDurablePaymentOperatorAlert/);
+assert.match(webhookSource, /notification\.outcome === "busy"[\s\S]*throw new Error/);
 assert.match(webhookSource, /entitlementPersisted[\s\S]*payment_alert_delivery/);
 assert.match(webhookSource, /enqueueFulfillmentAttention/);
 assert.match(webhookSource, /return webhookResponse\(\{ error: "Entitlement persistence failed\." \}, 503\)/);
+
+const alertSource = fs.readFileSync(new URL("../src/lib/paymentAlerts.ts", import.meta.url), "utf8");
+assert.match(
+  alertSource,
+  /messageId: `<stripe-\$\{alertKind \?\? "event"\}-\$\{referenceSuffix\(event\.id\)\}@hojucompass\.com>`/,
+  "retries must reuse a stable privacy-safe Message-ID",
+);
 
 console.log("Stripe operator-alert checks passed.");

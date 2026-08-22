@@ -11,6 +11,7 @@ import type {
 } from "@/lib/paymentAlertOutbox";
 
 type AlertIntentRow = {
+  claim_outcome: "claimed" | "sent" | "busy" | "missing";
   alert_kind: PaymentOperatorAlertKind;
   event_type: string;
   event_ref_last8: string;
@@ -61,19 +62,25 @@ async function claim(eventId: string, alertKind: PaymentOperatorAlertKind) {
     )
   ` as AlertIntentRow[];
   const row = rows[0];
-  if (!row) return null;
+  if (!row || row.claim_outcome === "missing") return { outcome: "missing" as const };
+  if (row.claim_outcome === "sent" || row.claim_outcome === "busy") {
+    return { outcome: row.claim_outcome } as const;
+  }
 
   return {
-    alertKind: row.alert_kind,
-    eventType: row.event_type,
-    eventRefLast8: row.event_ref_last8,
-    ...(row.product_code ? { productCode: row.product_code } : {}),
-    ...(row.checkout_ref_last8 ? { checkoutRefLast8: row.checkout_ref_last8 } : {}),
-    ...(row.payment_intent_ref_last8 ? { paymentIntentRefLast8: row.payment_intent_ref_last8 } : {}),
-    ...(row.charge_ref_last8 ? { chargeRefLast8: row.charge_ref_last8 } : {}),
-    attempts: Number(row.attempts),
-    claimToken,
-  } satisfies ClaimedPaymentOperatorAlert;
+    outcome: "claimed" as const,
+    intent: {
+      alertKind: row.alert_kind,
+      eventType: row.event_type,
+      eventRefLast8: row.event_ref_last8,
+      ...(row.product_code ? { productCode: row.product_code } : {}),
+      ...(row.checkout_ref_last8 ? { checkoutRefLast8: row.checkout_ref_last8 } : {}),
+      ...(row.payment_intent_ref_last8 ? { paymentIntentRefLast8: row.payment_intent_ref_last8 } : {}),
+      ...(row.charge_ref_last8 ? { chargeRefLast8: row.charge_ref_last8 } : {}),
+      attempts: Number(row.attempts),
+      claimToken,
+    } satisfies ClaimedPaymentOperatorAlert,
+  };
 }
 
 async function markSent(eventId: string, alertKind: PaymentOperatorAlertKind, claimToken: string) {

@@ -24,6 +24,12 @@ export type ClaimedPaymentOperatorAlert = PaymentOperatorAlertIntent & {
   claimToken: string;
 };
 
+export type PaymentOperatorAlertClaimResult =
+  | { outcome: "claimed"; intent: ClaimedPaymentOperatorAlert }
+  | { outcome: "sent" }
+  | { outcome: "busy" }
+  | { outcome: "missing" };
+
 export interface PaymentOperatorAlertOutboxStore {
   enqueueFulfillmentAttention(input: {
     eventId: string;
@@ -33,7 +39,7 @@ export interface PaymentOperatorAlertOutboxStore {
     checkoutSessionId: string;
     paymentIntentId: string;
   }): Promise<void>;
-  claim(eventId: string, alertKind: PaymentOperatorAlertKind): Promise<ClaimedPaymentOperatorAlert | null>;
+  claim(eventId: string, alertKind: PaymentOperatorAlertKind): Promise<PaymentOperatorAlertClaimResult>;
   markSent(eventId: string, alertKind: PaymentOperatorAlertKind, claimToken: string): Promise<boolean>;
   release(eventId: string, alertKind: PaymentOperatorAlertKind, claimToken: string): Promise<boolean>;
 }
@@ -84,8 +90,13 @@ export async function deliverDurablePaymentOperatorAlert(
   store: PaymentOperatorAlertOutboxStore,
   sender: PaymentOperatorAlertSender,
 ) {
-  const intent = await store.claim(event.id, alertKind);
-  if (!intent) return { outcome: "not_pending" as const };
+  const claim = await store.claim(event.id, alertKind);
+  if (claim.outcome === "sent") return { outcome: "already_sent" as const };
+  if (claim.outcome === "busy") return { outcome: "busy" as const };
+  if (claim.outcome === "missing") {
+    throw new Error("The payment alert intent is missing.");
+  }
+  const { intent } = claim;
 
   try {
     if (!intentMatchesEvent(intent, event, alertKind)) {

@@ -174,6 +174,9 @@ export async function POST(request: NextRequest) {
           alertOutbox,
           sendStripeOperatorAlert,
         );
+        if (notification.outcome === "busy") {
+          throw new Error("The payment operator alert is leased by another worker.");
+        }
         console.info("Handled durable Stripe operator alert", {
           eventRef: stripeReferenceSuffix(event.id),
           type: event.type,
@@ -209,12 +212,15 @@ export async function POST(request: NextRequest) {
             paymentIntentId: entitlementCommand.paymentIntentId,
           });
           if (paymentAlertsConfigured()) {
-            await deliverDurablePaymentOperatorAlert(
+            const notification = await deliverDurablePaymentOperatorAlert(
               event,
               "fulfillment_attention",
               alertOutbox,
               sendStripeOperatorAlert,
             );
+            if (notification.outcome === "busy") {
+              throw new Error("The fulfillment alert is leased by another worker.");
+            }
           }
         }
       } catch {
