@@ -51,3 +51,29 @@ Run `npm run payments:check -- --strict` in the target environment. The command 
 Production should not stay open if any identity, tax, access-delivery, refund or support check fails.
 
 Do not start the controlled live purchase while the Stripe account status page shows an active identity task or paused payouts. An onboarding approval email does not override an active capability restriction shown in the Dashboard.
+
+## 5. First-customer accounting handoff
+
+The operational evidence pack is controlled outside this release branch. Do not copy customer documents, Stripe exports, bank evidence or the private workbook into this repository, a deployment artifact, a ticket or chat. Use the immutable accounting reference below to retrieve only the runbook/template version; store completed evidence in the approved private accounting location.
+
+- Fixed reference: commit `162c96e1a82ec1f6f61295982dbd4529c8a879f4`
+- 15-minute / 24-hour / first-payout runbook: `docs/first-live-customer-payment-runbook.md`
+- Field and formula rules: `docs/managed-payments-first-live-evidence-form.md`
+- Private workbook template: `outputs/01a01c79-be17-7031-9d5b-b5e0dd9ac50f/managed-payments-first-live-evidence.xlsx`
+- Evidence owner: accounting operations records source evidence and reconciliation without customer details.
+- Technical owner: the development team resolves webhook, entitlement, access or alert failures.
+- Approval owner: the business owner alone records the second-sale decision; this reference does not authorise a payment, refund, customer contact or BAS lodgment.
+
+Evidence timing and sales gate:
+
+1. Within 15 minutes, link privacy-safe FP-/WH-/ENT- incident numbers to the live paid Resume Pro charge, signed webhook result, active entitlement, signed access, customer document title/issuer/seller display and operator alert.
+2. Within 24 hours, retain the tax and Balance/Ending evidence, record `withheld_tax`, `fee_net_of_withheld_tax`, refund/credit note and closing balance exactly as reported, and keep unknown values as `MISSING` rather than zero.
+3. At the first payout, match the itemised payout and bank arrival and complete the Stripe clearing reconciliation.
+4. The first customer payment may proceed only after all pre-payment items in sections 1–4 pass. After that payment, a second Resume Pro sale remains `NO-GO` until required evidence has zero `MISSING`/`FAIL`, the cash difference is within ±A$0.01, access and operator alerts are confirmed, any refund is linked to credit-document and revocation evidence, the first payout is matched, and the business owner records `APPROVED`.
+
+## 6. Live-key gate versus runtime compatibility
+
+- `rk_live_` is the least-privilege launch requirement. For the first customer sale, a failing `npm run payments:check -- --strict` result is a deployment blocker; the earlier owner-controlled transaction does not waive this gate.
+- Runtime acceptance of `sk_live_` prevents an environment-mode mismatch and preserves an incident-recovery path. It is compatibility behaviour, not launch approval and not a reason to mark the restricted-key item complete.
+- Rotating keys, adding key IP restrictions and periodically reviewing Workbench request logs are ongoing security improvements after the least-privilege launch gate passes. They do not replace the pre-sale `rk_live_` requirement.
+- The 15-minute / 24-hour / first-payout evidence sequence is not a blocker before the first customer payment because its evidence does not yet exist. It is an operational blocker for the second sale if the sequence is incomplete.
