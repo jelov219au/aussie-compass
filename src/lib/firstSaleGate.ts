@@ -70,6 +70,9 @@ export interface FirstSaleGateStore {
       action: "grant";
       productCode: typeof FIRST_SALE_PRODUCT_CODE;
       checkoutSessionId: string;
+      paymentIntentId: string;
+      chargeId: string;
+      customerId: string;
       currency: "aud";
       amountTotal: 1990;
     };

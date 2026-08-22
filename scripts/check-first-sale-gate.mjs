@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { FirstSalePaymentIntentContractError, verifyFirstSalePaymentIntent } from "../src/lib/firstSalePaymentIntent.ts";
 
 const [checkout, webhook, gate, neonGate, entitlementStore, migration, runbook, commerce, entitlementCommands] = await Promise.all([
   readFile(new URL("../src/app/api/checkout/resume-pro/route.ts", import.meta.url), "utf8"),
@@ -12,6 +13,19 @@ const [checkout, webhook, gate, neonGate, entitlementStore, migration, runbook, 
   readFile(new URL("../src/lib/commerce.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/entitlements.ts", import.meta.url), "utf8"),
 ]);
+const compactMigration = migration.replace(/\s+/g, " ");
+
+for (const obsoleteSignature of [
+  "drop function if exists public.apply_first_sale_paid_event( text, text, boolean, timestamptz, text, text, text, text, text );",
+  "drop function if exists public.apply_first_sale_paid_event( text, text, boolean, timestamptz, text, text, integer, text, text, text, text );",
+]) {
+  assert.ok(compactMigration.includes(obsoleteSignature), `Obsolete paid-event overload is not removed: ${obsoleteSignature}`);
+}
+assert.equal(
+  migration.match(/create or replace function public\.apply_first_sale_paid_event\(/g)?.length,
+  1,
+  "exactly one charge-aware paid-event implementation may be installed",
+);
 
 for (const contract of [
   "claimFirstSale(firstSaleGate, stripe, environment)",
@@ -78,6 +92,7 @@ for (const contract of [
   "release_failed_first_sale_reservation",
   "release_verified_abandoned_first_sale",
   "apply_first_sale_paid_event",
+  "${command.chargeId}",
 ]) {
   assert.ok(neonGate.includes(contract), `Neon gate adapter is missing: ${contract}`);
 }
@@ -119,6 +134,9 @@ for (const contract of [
   "v_approval_reference = ''",
   "translate(",
   "[[:cntrl:]]",
+  "v_approval_reference !~ '[[:alnum:]]'",
+  "\\200B",
+  "\\2060",
   "p_product_code is null",
   "p_generation is null",
   "p_claim_token_hash is null",
@@ -131,12 +149,16 @@ for (const contract of [
   "p_currency is distinct from 'aud'",
   "p_amount_total is null",
   "p_amount_total is distinct from 1990",
+  "p_charge_id is null",
+  "p_charge_id !~ '^ch_[A-Za-z0-9]+$'",
   "is distinct from p_checkout_session_id",
   "entitlement_event_tombstones",
   "stripe_payment_object_links",
   "prevent_entitlement_tombstone_mutation",
   "on conflict (version) do nothing",
   "20260823_first_sale_gate_v1",
+  "20260823_first_sale_gate_charge_link_v2",
+  "drop function if exists public.apply_first_sale_paid_event(",
 ]) {
   assert.ok(migration.includes(contract), `First-sale migration contract is missing: ${contract}`);
 }
@@ -168,7 +190,7 @@ for (const [name, nextName, requiredNullGuards] of [
   ["release_failed_first_sale_reservation", "release_verified_abandoned_first_sale", ["p_product_code", "p_generation", "p_claim_token_hash", "p_reason_code"]],
   ["release_verified_abandoned_first_sale", "lock_first_sale_from_paid_event", ["p_product_code", "p_generation", "p_checkout_session_id"]],
   ["lock_first_sale_from_paid_event", "approve_next_first_sale", ["p_product_code", "p_stripe_event_id", "p_checkout_session_id", "p_livemode", "p_stripe_created_at"]],
-  ["apply_first_sale_paid_event", "apply_guarded_entitlement_event", ["p_event_id", "p_event_type", "p_livemode", "p_stripe_created_at", "p_product_code", "p_currency", "p_amount_total", "p_checkout_session_id", "p_payment_intent_id", "p_customer_id", "p_reason"]],
+  ["apply_first_sale_paid_event", "apply_guarded_entitlement_event", ["p_event_id", "p_event_type", "p_livemode", "p_stripe_created_at", "p_product_code", "p_currency", "p_amount_total", "p_checkout_session_id", "p_payment_intent_id", "p_charge_id", "p_customer_id", "p_reason"]],
   ["consume_entitlement_restore_token", "create_entitlement_restore_token", ["p_token_hash", "p_product_code"]],
   ["create_entitlement_restore_token", null, ["p_entitlement_id", "p_product_code", "p_token_hash", "p_expires_at"]],
 ]) {
@@ -183,10 +205,25 @@ assert.ok(
   restoreCreate.indexOf("select entitlement.id into v_active_entitlement_id") < restoreCreate.indexOf("update public.purchase_restore_tokens"),
   "restore-token creation must validate and lock the active product entitlement before invalidating older tokens",
 );
+assert.ok(restoreCreate.includes("p_expires_at > now() + interval '30 days'"), "restore-token creation must reject expiry beyond 30 days");
+const restoreConsume = sqlFunction("consume_entitlement_restore_token", "create_entitlement_restore_token");
+for (const contract of ["active_entitlement as materialized", "entitlement.status = 'active'", "for update"]) {
+  assert.ok(restoreConsume.includes(contract), `restore-token consumption must lock and require active status: ${contract}`);
+}
 
 assert.ok(
   webhook.indexOf("applyPaidEventAndEntitlement") < webhook.indexOf("Persisted Stripe entitlement event"),
   "paid first sale must be committed before success is acknowledged",
+);
+assert.ok(
+  webhook.indexOf("paymentIntents.retrieve") < webhook.indexOf("applyPaidEventAndEntitlement"),
+  "latest_charge must be verified before the atomic DB transaction starts",
+);
+assert.ok(webhook.includes("chargeId,"), "the verified latest Charge must enter the atomic DB transaction");
+assert.ok(
+  webhook.indexOf("paymentIntents.retrieve") > webhook.indexOf("try {")
+    && webhook.includes('return webhookResponse({ error: "Entitlement persistence failed." }, 503)'),
+  "PaymentIntent retrieval failures must stay in the fail-closed 503 and operator-alert boundary",
 );
 assert.ok(!webhook.includes("approve_next_first_sale"), "webhook code must never reopen sales");
 assert.ok(webhook.includes("stripeReferenceSuffix(event.id)"), "logs must use only the final eight reference characters");
@@ -194,6 +231,40 @@ assert.equal(webhook.match(/eventId: event\.id/g)?.length, 1, "the complete even
 assert.ok(webhook.includes("sendStripeOperatorAlert(event)"), "a failed paid transaction must reach the operator alert path");
 assert.ok(commerce.includes('process.env.FIRST_SALE_GATE_ENABLED === "true"'), "readiness must require the first-sale gate");
 assert.ok(commerce.includes("&& readiness.firstSaleGateConfigured"), "test Checkout must also fail closed");
+
+const validPaymentIntent = {
+  id: "pi_testVerified123",
+  livemode: false,
+  currency: "aud",
+  amount: 1990,
+  status: "succeeded",
+  customer: "cus_testVerified123",
+  latest_charge: "ch_testVerified123",
+};
+const expectedPaymentIntent = {
+  paymentIntentId: "pi_testVerified123",
+  customerId: "cus_testVerified123",
+  livemode: false,
+  currency: "aud",
+  amountCents: 1990,
+};
+assert.equal(verifyFirstSalePaymentIntent(validPaymentIntent, expectedPaymentIntent), "ch_testVerified123");
+for (const candidate of [
+  { ...validPaymentIntent, id: "pi_wrong" },
+  { ...validPaymentIntent, livemode: true },
+  { ...validPaymentIntent, currency: "usd" },
+  { ...validPaymentIntent, amount: 1989 },
+  { ...validPaymentIntent, status: "processing" },
+  { ...validPaymentIntent, customer: "cus_wrong" },
+  { ...validPaymentIntent, latest_charge: null },
+  { ...validPaymentIntent, latest_charge: "pi_not_a_charge" },
+]) {
+  assert.throws(
+    () => verifyFirstSalePaymentIntent(candidate, expectedPaymentIntent),
+    FirstSalePaymentIntentContractError,
+    "a mismatched PaymentIntent must fail closed before the gate lock",
+  );
+}
 
 for (const contract of [
   "OPEN → RESERVED → SOLD → LOCKED",
@@ -203,6 +274,10 @@ for (const contract of [
   "zero existing open Checkout Sessions",
   "live remains **HOLD**",
   "A refund does not constitute rollback",
+  "PaymentIntents Read",
+  "old_9_arg_removed",
+  "old_11_arg_removed",
+  "exactly one 12-argument row",
 ]) {
   assert.ok(runbook.includes(contract), `Operations runbook is missing: ${contract}`);
 }
@@ -259,10 +334,13 @@ class GateModel {
   }
 
   ownerReopen({ approved, evidence, cashDifference, payout }) {
-    const approvalReference = typeof approved === "string" ? approved.trim() : "";
+    const approvalReference = typeof approved === "string"
+      ? approved.replace(/[\u00a0\u1680\u2000-\u200b\u2028\u2029\u202f\u205f\u2060\u3000\ufeff\u0000-\u001f\u007f]/gu, "").trim()
+      : "";
     if (
       approvalReference.length < 4
       || approvalReference.length > 120
+      || !/[\p{L}\p{N}]/u.test(approvalReference)
       || evidence !== "PASS"
       || cashDifference === null
       || !Number.isInteger(cashDifference)
@@ -302,6 +380,7 @@ assert.equal(concurrent.ownerReopen({ approved: null, evidence: "PASS", cashDiff
 assert.equal(concurrent.ownerReopen({ approved: "   ", evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "blank owner reference must fail closed");
 assert.equal(concurrent.ownerReopen({ approved: "\t\n\r", evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "control-only owner reference must fail closed");
 assert.equal(concurrent.ownerReopen({ approved: "\u00a0\u2003\u3000", evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "Unicode-space-only owner reference must fail closed");
+assert.equal(concurrent.ownerReopen({ approved: "\u200b\u2060\u200b\u2060", evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "format-only owner reference must fail closed");
 assert.equal(concurrent.ownerReopen({ approved: "abc", evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "short owner reference must fail closed");
 assert.equal(concurrent.ownerReopen({ approved: "x".repeat(121), evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "long owner reference must fail closed");
 assert.equal(concurrent.ownerReopen({ approved: validApproval, evidence: "PASS", cashDifference: 2, payout: "matched" }), false, "+2 cents must fail");
@@ -329,5 +408,19 @@ assert.equal(await refundBeforeGrant.claim(0), "claimed");
 refundBeforeGrant.attach("session-late");
 assert.equal(refundBeforeGrant.paid("evt_late_grant", "session-late"), "locked", "a later verified reserved paid event must permanently lock");
 assert.equal(refundBeforeGrant.refund(), "LOCKED", "a retried refund must leave the gate locked");
+
+function restoreTokenCreationAllowed(now, expiresAt) {
+  return expiresAt > now && expiresAt <= now + 30 * 24 * 60 * 60 * 1000;
+}
+assert.equal(restoreTokenCreationAllowed(0, 30 * 24 * 60 * 60 * 1000), true, "exactly 30 days must pass");
+assert.equal(restoreTokenCreationAllowed(0, 30 * 24 * 60 * 60 * 1000 + 1), false, "more than 30 days must fail");
+assert.equal(restoreTokenCreationAllowed(0, 0), false, "an already expired token must fail");
+
+function consumeRestoreToken(entitlementStatus) {
+  return entitlementStatus === "active";
+}
+assert.equal(consumeRestoreToken("active"), true);
+assert.equal(consumeRestoreToken("revoked"), false, "a refunded entitlement cannot consume an issued restore token");
+assert.equal(consumeRestoreToken("review"), false, "a reviewed entitlement cannot consume an issued restore token");
 
 console.log("Atomic first-sale gate, Stripe idempotency, expiry, webhook-order and owner-reopen contracts passed.");

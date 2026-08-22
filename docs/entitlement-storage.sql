@@ -292,12 +292,26 @@ begin
     raise exception 'Invalid entitlement event contract';
   end if;
 
-  perform pg_advisory_xact_lock(hashtext(coalesce(
-    p_payment_intent_id,
-    p_checkout_session_id,
-    p_charge_id,
-    p_event_id
-  )));
+  -- A paid Checkout knows both its PaymentIntent and latest Charge, while a
+  -- refund/dispute can arrive with only one of them. Lock every known payment
+  -- object in stable lexical order so PI-only and charge-only delivery races
+  -- serialize with the grant transaction without deadlocking each other.
+  if p_payment_intent_id is not null and p_charge_id is not null then
+    perform pg_advisory_xact_lock(hashtext(least(
+      'payment-intent:' || p_payment_intent_id,
+      'charge:' || p_charge_id
+    )));
+    perform pg_advisory_xact_lock(hashtext(greatest(
+      'payment-intent:' || p_payment_intent_id,
+      'charge:' || p_charge_id
+    )));
+  elsif p_payment_intent_id is not null then
+    perform pg_advisory_xact_lock(hashtext('payment-intent:' || p_payment_intent_id));
+  elsif p_charge_id is not null then
+    perform pg_advisory_xact_lock(hashtext('charge:' || p_charge_id));
+  else
+    perform pg_advisory_xact_lock(hashtext('checkout:' || p_checkout_session_id));
+  end if;
 
   insert into payment_webhook_events (
     stripe_event_id,

@@ -4,6 +4,7 @@ import type Stripe from "stripe";
 import { getEntitlementCommand } from "@/lib/entitlements";
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import { FIRST_SALE_PRODUCT_CODE } from "@/lib/firstSaleGate";
+import { FirstSalePaymentIntentContractError, verifyFirstSalePaymentIntent } from "@/lib/firstSalePaymentIntent";
 import { getConfiguredFirstSaleGate } from "@/lib/neonFirstSaleGate";
 import { paymentAlertsConfigured, sendStripeOperatorAlert } from "@/lib/paymentAlerts";
 import { getStripe } from "@/lib/stripe";
@@ -94,18 +95,34 @@ export async function POST(request: NextRequest) {
     };
     let result: { outcome: "processed" | "duplicate" | "ignored_stale" | "tombstoned" };
 
-    if (
-      entitlementCommand.action === "grant"
-      && entitlementCommand.productCode === FIRST_SALE_PRODUCT_CODE
-      && entitlementCommand.checkoutSessionId
-      && entitlementCommand.currency === "aud"
-      && entitlementCommand.amountTotal === 1990
-    ) {
+    if (entitlementCommand.action === "grant" && entitlementCommand.productCode === FIRST_SALE_PRODUCT_CODE) {
       const firstSaleGate = getConfiguredFirstSaleGate();
 
       if (!firstSaleGate) {
         return webhookResponse({ error: "First-sale fulfillment is not configured." }, 503);
       }
+
+      if (
+        !entitlementCommand.checkoutSessionId
+        || !entitlementCommand.paymentIntentId
+        || !entitlementCommand.customerId
+        || entitlementCommand.currency !== "aud"
+        || entitlementCommand.amountTotal !== 1990
+      ) {
+        throw new FirstSalePaymentIntentContractError();
+      }
+
+      // Resolve latest_charge before the database call. The charge and
+      // PaymentIntent are then stored in the same atomic gate+grant transaction,
+      // allowing charge-only refunds/disputes to serialize with the first grant.
+      const paymentIntent = await getStripe().paymentIntents.retrieve(entitlementCommand.paymentIntentId);
+      const chargeId = verifyFirstSalePaymentIntent(paymentIntent, {
+        paymentIntentId: entitlementCommand.paymentIntentId,
+        customerId: entitlementCommand.customerId,
+        livemode: event.livemode,
+        currency: "aud",
+        amountCents: 1990,
+      });
 
       // The paid event locks sales and grants access in one DB transaction.
       // Refunds, disputes and stale webhooks never call the owner-only reopen path.
@@ -116,6 +133,9 @@ export async function POST(request: NextRequest) {
           action: "grant",
           productCode: FIRST_SALE_PRODUCT_CODE,
           checkoutSessionId: entitlementCommand.checkoutSessionId,
+          paymentIntentId: entitlementCommand.paymentIntentId,
+          chargeId,
+          customerId: entitlementCommand.customerId,
           currency: "aud",
           amountTotal: 1990,
         },

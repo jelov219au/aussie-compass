@@ -124,8 +124,9 @@ async function applyPaidEventAndEntitlement(
       ${command.currency},
       ${command.amountTotal},
       ${command.checkoutSessionId},
-      ${command.paymentIntentId ?? null},
-      ${command.customerId ?? null},
+      ${command.paymentIntentId},
+      ${command.chargeId},
+      ${command.customerId},
       ${command.reason}
     ) as outcome
   ` as { outcome: "processed" | "duplicate" | "ignored_stale" }[];

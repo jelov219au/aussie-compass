@@ -92,6 +92,9 @@ for (const contract of [
   "p_event_type = 'charge.dispute.funds_reinstated'",
   "p_action = 'grant' and p_reason = 'dispute_won_or_funds_reinstated'",
   "v_inserted_event_id is not null",
+  "least(",
+  "'payment-intent:' || p_payment_intent_id",
+  "'charge:' || p_charge_id",
 ]) {
   assert.ok(sql.includes(contract), `SQL contract is missing: ${contract}`);
 }
@@ -223,5 +226,44 @@ function applyLinkFixture({ inserted, paymentIntentId, chargeId }) {
 applyLinkFixture({ inserted: true, paymentIntentId: "pi_original", chargeId: "ch_original" });
 applyLinkFixture({ inserted: false, paymentIntentId: "pi_forged", chargeId: "ch_forged" });
 assert.deepEqual([...receiptLinks], ["pi_original|ch_original"], "a duplicate event must not mutate payment-object links");
+
+class ChargeLinkedRaceModel {
+  status = null;
+  links = new Set();
+  tombstones = new Map();
+
+  negative({ chargeId, action }) {
+    this.tombstones.set(chargeId, action);
+    if (this.links.has(chargeId)) this.status = action === "revoke" ? "revoked" : "review";
+  }
+
+  grant({ chargeId }) {
+    this.links.add(chargeId);
+    const tombstone = this.tombstones.get(chargeId);
+    this.status = tombstone === "revoke" ? "revoked" : tombstone === "review" ? "review" : "active";
+  }
+}
+
+const chargeBeforeGrant = new ChargeLinkedRaceModel();
+chargeBeforeGrant.negative({ chargeId: "ch_before", action: "revoke" });
+chargeBeforeGrant.grant({ chargeId: "ch_before" });
+assert.equal(chargeBeforeGrant.status, "revoked", "a charge-only refund before grant must dominate the late grant");
+
+const chargeAfterGrant = new ChargeLinkedRaceModel();
+chargeAfterGrant.grant({ chargeId: "ch_after" });
+chargeAfterGrant.negative({ chargeId: "ch_after", action: "revoke" });
+assert.equal(chargeAfterGrant.status, "revoked", "a charge-only refund after grant must revoke the linked entitlement");
+
+for (const order of ["negative-first", "grant-first"]) {
+  const raced = new ChargeLinkedRaceModel();
+  if (order === "negative-first") {
+    raced.negative({ chargeId: "ch_race", action: "review" });
+    raced.grant({ chargeId: "ch_race" });
+  } else {
+    raced.grant({ chargeId: "ch_race" });
+    raced.negative({ chargeId: "ch_race", action: "review" });
+  }
+  assert.equal(raced.status, "review", `a serialized ${order} race must finish in the safer review state`);
+}
 
 console.log("Entitlement event-order checks passed.");

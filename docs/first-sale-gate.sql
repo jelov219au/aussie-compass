@@ -476,7 +476,7 @@ begin
   v_approval_reference := btrim(regexp_replace(
     translate(
       p_owner_approval_reference,
-      U&'\00A0\1680\2000\2001\2002\2003\2004\2005\2006\2007\2008\2009\200A\2028\2029\202F\205F\3000\FEFF',
+      U&'\00A0\1680\2000\2001\2002\2003\2004\2005\2006\2007\2008\2009\200A\200B\2028\2029\202F\205F\2060\3000\FEFF',
       ''
     ),
     '[[:cntrl:]]',
@@ -488,6 +488,7 @@ begin
     or p_product_code is distinct from 'resume_pro'
     or p_owner_approval_reference is null
     or v_approval_reference = ''
+    or v_approval_reference !~ '[[:alnum:]]'
     or length(v_approval_reference) < 4
     or length(v_approval_reference) > 120
     or p_evidence_status is distinct from 'PASS'
@@ -526,6 +527,16 @@ begin
 end;
 $$;
 
+-- PostgreSQL overloads functions by argument types. Remove both historical
+-- paid-event signatures before installing the charge-aware atomic contract so
+-- no stale EXECUTE grant can keep an older bypass callable.
+drop function if exists public.apply_first_sale_paid_event(
+  text, text, boolean, timestamptz, text, text, text, text, text
+);
+drop function if exists public.apply_first_sale_paid_event(
+  text, text, boolean, timestamptz, text, text, integer, text, text, text, text
+);
+
 create or replace function public.apply_first_sale_paid_event(
   p_event_id text,
   p_event_type text,
@@ -536,6 +547,7 @@ create or replace function public.apply_first_sale_paid_event(
   p_amount_total integer,
   p_checkout_session_id text,
   p_payment_intent_id text,
+  p_charge_id text,
   p_customer_id text,
   p_reason text
 )
@@ -564,6 +576,8 @@ begin
     or p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
     or p_payment_intent_id is null
     or p_payment_intent_id !~ '^pi_[A-Za-z0-9]+$'
+    or p_charge_id is null
+    or p_charge_id !~ '^ch_[A-Za-z0-9]+$'
     or p_customer_id is null
     or p_customer_id !~ '^cus_[A-Za-z0-9]+$'
     or p_reason is null
@@ -592,7 +606,7 @@ begin
     p_product_code,
     p_checkout_session_id,
     p_payment_intent_id,
-    null,
+    p_charge_id,
     p_customer_id,
     p_reason
   ) result;
@@ -687,18 +701,20 @@ begin
   end if;
 
   return query
-  with consumed as (
+  with active_entitlement as materialized (
+    select entitlement.id
+    from public.purchase_entitlements entitlement
+    where entitlement.product_code = p_product_code
+      and entitlement.status = 'active'
+    for update
+  ), consumed as (
     update public.purchase_restore_tokens
     set used_at = now()
     where token_hash = lower(p_token_hash)
       and p_token_hash ~ '^[a-fA-F0-9]{64}$'
       and used_at is null
       and expires_at > now()
-      and entitlement_id in (
-        select entitlement.id
-        from public.purchase_entitlements entitlement
-        where entitlement.product_code = p_product_code
-      )
+      and entitlement_id in (select id from active_entitlement)
     returning entitlement_id
   )
   select
@@ -712,7 +728,9 @@ begin
     entitlement.granted_at,
     entitlement.revoked_at
   from public.purchase_entitlements entitlement
-  join consumed on consumed.entitlement_id = entitlement.id;
+  join consumed on consumed.entitlement_id = entitlement.id
+  join active_entitlement on active_entitlement.id = entitlement.id
+  where entitlement.status = 'active';
 end;
 $$;
 
@@ -739,6 +757,7 @@ begin
     or p_token_hash !~ '^[a-fA-F0-9]{64}$'
     or p_expires_at is null
     or p_expires_at <= now()
+    or p_expires_at > now() + interval '30 days'
   then
     raise exception 'Invalid restore-token contract';
   end if;
@@ -781,7 +800,7 @@ revoke all on function public.attach_first_sale_checkout(text, bigint, text, tex
 revoke all on function public.release_failed_first_sale_reservation(text, bigint, text, text) from public;
 revoke all on function public.release_verified_abandoned_first_sale(text, bigint, text) from public;
 revoke all on function public.lock_first_sale_from_paid_event(text, text, text, boolean, timestamptz) from public;
-revoke all on function public.apply_first_sale_paid_event(text, text, boolean, timestamptz, text, text, integer, text, text, text, text) from public;
+revoke all on function public.apply_first_sale_paid_event(text, text, boolean, timestamptz, text, text, integer, text, text, text, text, text) from public;
 revoke all on function public.apply_guarded_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) from public;
 revoke all on function public.consume_entitlement_restore_token(text, text) from public;
 revoke all on function public.create_entitlement_restore_token(bigint, text, text, timestamptz) from public;
@@ -798,7 +817,7 @@ revoke all on function public.prevent_entitlement_tombstone_mutation() from publ
 -- grant execute on function public.attach_first_sale_checkout(text, bigint, text, text, timestamptz) to hoju_app_runtime;
 -- grant execute on function public.release_failed_first_sale_reservation(text, bigint, text, text) to hoju_app_runtime;
 -- grant execute on function public.release_verified_abandoned_first_sale(text, bigint, text) to hoju_app_runtime;
--- grant execute on function public.apply_first_sale_paid_event(text, text, boolean, timestamptz, text, text, integer, text, text, text, text) to hoju_app_runtime;
+-- grant execute on function public.apply_first_sale_paid_event(text, text, boolean, timestamptz, text, text, integer, text, text, text, text, text) to hoju_app_runtime;
 -- grant execute on function public.apply_guarded_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) to hoju_app_runtime;
 -- grant execute on function public.consume_entitlement_restore_token(text, text) to hoju_app_runtime;
 -- grant execute on function public.create_entitlement_restore_token(bigint, text, text, timestamptz) to hoju_app_runtime;
@@ -806,6 +825,10 @@ revoke all on function public.prevent_entitlement_tombstone_mutation() from publ
 
 insert into public.schema_migrations (version)
 values ('20260823_first_sale_gate_v1')
+on conflict (version) do nothing;
+
+insert into public.schema_migrations (version)
+values ('20260823_first_sale_gate_charge_link_v2')
 on conflict (version) do nothing;
 
 commit;
