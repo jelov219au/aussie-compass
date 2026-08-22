@@ -12,6 +12,8 @@
     "test:entitlement-commands": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-entitlement-commands.mjs",
     "test:resume-pro-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-resume-pro-tokens.mjs",
     "test:resume-mobile-value": "node scripts/check-resume-pro-mobile-value.mjs",
+    "test:resume-interview": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-resume-interview-prep.mjs",
+    "test:resume-onboarding": "node scripts/check-resume-onboarding-contract.mjs",
     "test:entitlement-ordering": "node scripts/check-entitlement-ordering.mjs",
     "test:product-entitlements": "node scripts/check-product-entitlement-isolation.mjs",
     "test:payment-alerts": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-payment-alerts.mjs",
