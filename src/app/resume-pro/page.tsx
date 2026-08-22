@@ -7,6 +7,7 @@ import { ResumeProCheckoutForm } from "@/components/tools/ResumeProCheckoutForm"
 import { Container } from "@/components/ui/Container";
 import { canCreateTestCheckout, getPaymentReadiness } from "@/lib/commerce";
 import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
+import { getResumeProCheckoutFailure } from "@/lib/resumeProCheckoutFailure";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -88,6 +89,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
   const testCheckoutAvailable = canCreateTestCheckout();
   const checkoutAvailable = paymentReadiness.ready || testCheckoutAvailable;
   const entry = normalizeResumeProEntry(from);
+  const checkoutFailure = getResumeProCheckoutFailure(checkout);
 
   return (
     <>
@@ -113,6 +115,12 @@ export default async function ResumeProPage({ searchParams }: Props) {
             {checkout === "cancelled" && (
               <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">
                 결제가 취소됐습니다. 청구되지 않았으며 준비가 되면 다시 시작할 수 있습니다.
+              </div>
+            )}
+            {checkoutFailure && (
+              <div className="mt-5 border-l-2 border-amber-600 bg-white p-4 text-sm leading-6 text-navy" role="alert">
+                {checkoutFailure.message}
+                {checkoutFailure.retryable && <span className="block text-xs text-muted">이 페이지에서 다시 눌러도 중복 청구되지 않습니다.</span>}
               </div>
             )}
             <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">

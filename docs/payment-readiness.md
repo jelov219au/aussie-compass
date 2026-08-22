@@ -66,6 +66,18 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 
 The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. `STRIPE_RESUME_PRO_PRICE_ID`, `STRIPE_RESUME_PRO_PRODUCT_ID`, and `STRIPE_RESUME_PRO_TAX_CODE` are a three-part deployment contract, not interchangeable labels: the first two must identify the intended Price and its independently reviewed Product, while the third must be the exact Product tax code that Stripe Dashboard marks eligible for Managed Payments. The server additionally requires the Price's immutable tax behavior to be `inclusive`, matching the advertised AUD 19.90 total. If any value is absent or disagrees with Stripe, Checkout fails closed before a Session is created.
 
+### Checkout preflight failure contract
+
+| Preflight result | HTTP / screen result | Retry guidance | Analytics |
+| --- | --- | --- | --- |
+| Required environment value absent or invalid | HTTP 503 and a Korean configuration-unavailable notice; no Stripe lookup or Session creation | Wait until the owner corrects the deployment | No `Checkout Started` event |
+| Restricted key cannot read the configured Price/Product | HTTP 503 and the same configuration-unavailable notice | Owner reviews the restricted-key permissions | No `Checkout Started` event |
+| Stripe connection, API, or rate-limit interruption | HTTP 503 and a Korean temporary-unavailable notice | Customer may retry from the same page; no charge has occurred | No `Checkout Started` event |
+| Price, Product identity, tax code, tax behavior, activity, or mode mismatch | HTTP 503 and the configuration-unavailable notice | Checkout remains closed until the server contract is corrected | No `Checkout Started` event |
+| Verified Session URL returned | Redirect to the exact `https://checkout.stripe.com` host | Continue in Stripe Checkout | Record `Checkout Started` immediately before redirect |
+
+The enhanced form receives only an allowlisted code, Korean message and retry flag. The native form fallback redirects to the same allowlisted page state. Neither response nor server log serializes the caught Stripe error, environment variable name, Price/Product/tax-code identifier or key. Run `npm run test:checkout-resilience` after changing this boundary.
+
 Stripe's Product response exposes the exact tax-code ID but does not provide a stable API field that proves the Dashboard's “Eligible for Managed Payments” label. The owner must therefore confirm that label when choosing the code; the app then pins and verifies the approved ID on every Checkout. Stripe performs the final eligibility check when `managed_payments[enabled]` is submitted. Do not create a speculative eligibility allowlist in source code.
 
 Reference the official Stripe guides when reviewing this contract: [Managed Payments Checkout setup](https://docs.stripe.com/payments/managed-payments/set-up), [Managed Payments eligibility](https://docs.stripe.com/payments/managed-payments/eligibility), and [product tax codes and tax behavior](https://docs.stripe.com/tax/products-prices-tax-codes-tax-behavior).

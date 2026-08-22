@@ -4,6 +4,11 @@ import { randomBytes } from "node:crypto";
 import { canCreateTestCheckout, getPaymentReadiness, resumeProPurchaseTermsVersion } from "@/lib/commerce";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
 import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
+import {
+  classifyResumeProCheckoutFailure,
+  getResumeProCheckoutConfigurationFailure,
+  type ResumeProCheckoutFailure,
+} from "@/lib/resumeProCheckoutFailure";
 import { assertResumeProStripeProduct, getResumeProStripeProductConfig } from "@/lib/resumeProStripeProduct";
 import { siteUrl } from "@/lib/site";
 import { assertSafeStripeEnvironment, getStripe } from "@/lib/stripe";
@@ -19,6 +24,32 @@ function getCheckoutOrigin(request: NextRequest) {
 function createIntegrationIdentifier() {
   const suffix = Array.from(randomBytes(8), (byte) => String.fromCharCode(97 + (byte % 26))).join("");
   return `hoju_compass_resume_pro_${suffix}`;
+}
+
+function acceptsJson(request: NextRequest) {
+  return request.headers.get("accept")?.includes("application/json") ?? false;
+}
+
+function checkoutFailureResponse(
+  request: NextRequest,
+  source: string,
+  failure: ResumeProCheckoutFailure,
+) {
+  if (acceptsJson(request)) {
+    return NextResponse.json({
+      error: {
+        code: failure.code,
+        message: failure.message,
+        retryable: failure.retryable,
+      },
+    }, {
+      status: failure.status,
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
+
+  const query = new URLSearchParams({ checkout: failure.code, from: source });
+  return NextResponse.redirect(new URL(`/resume-pro?${query}`, getCheckoutOrigin(request)), 303);
 }
 
 export async function POST(request: NextRequest) {
@@ -58,10 +89,7 @@ export async function POST(request: NextRequest) {
   const allowed = process.env.VERCEL_ENV === "production" ? readiness.ready : canCreateTestCheckout();
 
   if (!allowed) {
-    return NextResponse.json({ error: "Payments are not ready in this environment." }, {
-      status: 503,
-      headers: { "Cache-Control": "no-store" },
-    });
+    return checkoutFailureResponse(request, acquisitionSource, getResumeProCheckoutConfigurationFailure());
   }
 
   try {
@@ -94,12 +122,16 @@ export async function POST(request: NextRequest) {
       throw new Error("Stripe did not return a Checkout URL.");
     }
 
+    if (acceptsJson(request)) {
+      return NextResponse.json({ checkoutUrl: session.url }, {
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
+
     return NextResponse.redirect(session.url, 303);
   } catch (error) {
-    console.error("Unable to create Resume Pro Checkout Session", error instanceof Error ? error.message : "Unknown error");
-    return NextResponse.json({ error: "Checkout could not be started." }, {
-      status: 500,
-      headers: { "Cache-Control": "no-store" },
-    });
+    const failure = classifyResumeProCheckoutFailure(error);
+    console.error("Unable to create Resume Pro Checkout Session", { category: failure.logCategory });
+    return checkoutFailureResponse(request, acquisitionSource, failure);
   }
 }

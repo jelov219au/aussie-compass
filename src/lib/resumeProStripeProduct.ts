@@ -32,11 +32,18 @@ export type ResumeProStripeProductConfig = {
   taxCode: string;
 };
 
+export class ResumeProStripeProductContractError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ResumeProStripeProductContractError";
+  }
+}
+
 function requireStripeId(value: string | undefined, prefix: string, variableName: string) {
   const candidate = value?.trim() ?? "";
 
   if (!candidate.startsWith(prefix) || candidate.length <= prefix.length) {
-    throw new Error(`${variableName} is missing or invalid.`);
+    throw new ResumeProStripeProductContractError(`${variableName} is missing or invalid.`);
   }
 
   return candidate;
@@ -65,7 +72,7 @@ export function hasResumeProStripeProductConfig(
 
 function getExpandedProduct(price: StripePriceWithProduct) {
   if (typeof price.product === "string" || "deleted" in price.product) {
-    throw new Error("Resume Pro Stripe Product was not returned as an active expanded Product.");
+    throw new ResumeProStripeProductContractError("Resume Pro Stripe Product was not returned as an active expanded Product.");
   }
 
   return price.product;
@@ -91,7 +98,7 @@ export function assertResumeProStripeProduct(
     && price.livemode === expectedLivemode;
 
   if (!validPrice) {
-    throw new Error("Resume Pro Price does not match the server product and tax definition.");
+    throw new ResumeProStripeProductContractError("Resume Pro Price does not match the server product and tax definition.");
   }
 
   const validProduct = product.id === config.productId
@@ -99,10 +106,10 @@ export function assertResumeProStripeProduct(
     && product.livemode === expectedLivemode;
 
   if (!validProduct) {
-    throw new Error("Resume Pro Price is attached to an unexpected or inactive Stripe Product.");
+    throw new ResumeProStripeProductContractError("Resume Pro Price is attached to an unexpected or inactive Stripe Product.");
   }
 
   if (getTaxCodeId(product) !== config.taxCode) {
-    throw new Error("Resume Pro Stripe Product tax code is missing or does not match the approved code.");
+    throw new ResumeProStripeProductContractError("Resume Pro Stripe Product tax code is missing or does not match the approved code.");
   }
 }
