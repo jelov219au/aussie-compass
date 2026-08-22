@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   assertResumeProStripeProduct,
   getResumeProStripeProductConfig,
+  hasResumeProStripeProductConfig,
   resumeProStripeProductDefinition,
 } from "../src/lib/resumeProStripeProduct.ts";
 
@@ -11,6 +12,23 @@ const config = getResumeProStripeProductConfig({
   STRIPE_RESUME_PRO_PRODUCT_ID: "prod_resume_pro",
   STRIPE_RESUME_PRO_TAX_CODE: "txcd_approved",
 });
+
+assert.equal(hasResumeProStripeProductConfig({
+  STRIPE_RESUME_PRO_PRICE_ID: config.priceId,
+  STRIPE_RESUME_PRO_PRODUCT_ID: config.productId,
+  STRIPE_RESUME_PRO_TAX_CODE: config.taxCode,
+}), true, "all three independent Stripe identifiers must satisfy the deployment contract");
+assert.equal(hasResumeProStripeProductConfig({
+  STRIPE_RESUME_PRO_PRICE_ID: config.priceId,
+}), false, "Checkout readiness must fail closed when both Product ID and tax code are missing");
+assert.equal(hasResumeProStripeProductConfig({
+  STRIPE_RESUME_PRO_PRICE_ID: config.priceId,
+  STRIPE_RESUME_PRO_TAX_CODE: config.taxCode,
+}), false, "Checkout readiness must fail closed when Product ID is missing");
+assert.equal(hasResumeProStripeProductConfig({
+  STRIPE_RESUME_PRO_PRICE_ID: config.priceId,
+  STRIPE_RESUME_PRO_PRODUCT_ID: config.productId,
+}), false, "Checkout readiness must fail closed when tax code is missing");
 
 const validPrice = {
   id: config.priceId,

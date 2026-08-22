@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 
 const checkout = await readFile(new URL("../src/app/api/checkout/resume-pro/route.ts", import.meta.url), "utf8");
 const productContract = await readFile(new URL("../src/lib/resumeProStripeProduct.ts", import.meta.url), "utf8");
+const commerce = await readFile(new URL("../src/lib/commerce.ts", import.meta.url), "utf8");
 const launchCheck = await readFile(new URL("./check-payment-launch.mjs", import.meta.url), "utf8");
 const checkoutForm = await readFile(new URL("../src/components/tools/ResumeProCheckoutForm.tsx", import.meta.url), "utf8");
 const attribution = await readFile(new URL("../src/lib/resumeProAttribution.ts", import.meta.url), "utf8");
@@ -35,6 +36,14 @@ for (const contract of [
   "getTaxCodeId(product) !== config.taxCode",
 ]) {
   assert.ok(productContract.includes(contract), `Resume Pro Stripe Product contract is missing: ${contract}`);
+}
+
+for (const contract of [
+  "hasResumeProStripeProductConfig()",
+  "stripeMode === expectedStripeMode && stripeProductContractConfigured",
+  "readiness.stripeConfigured",
+]) {
+  assert.ok(commerce.includes(contract), `Checkout readiness fail-closed contract is missing: ${contract}`);
 }
 
 for (const contract of ["--verify-stripe", "expand: [\"product\"]", "assertResumeProStripeProduct"]) {

@@ -52,6 +52,17 @@ export function getResumeProStripeProductConfig(
   };
 }
 
+export function hasResumeProStripeProductConfig(
+  environment: NodeJS.ProcessEnv = process.env,
+) {
+  try {
+    getResumeProStripeProductConfig(environment);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function getExpandedProduct(price: StripePriceWithProduct) {
   if (typeof price.product === "string" || "deleted" in price.product) {
     throw new Error("Resume Pro Stripe Product was not returned as an active expanded Product.");

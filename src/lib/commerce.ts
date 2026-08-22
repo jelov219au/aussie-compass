@@ -2,7 +2,7 @@ import "server-only";
 
 import { getEntitlementDatabaseUrl } from "@/lib/entitlementConfig";
 import { isEntitlementSessionConfigured } from "@/lib/resumeProAccess";
-import { resumeProStripeProductDefinition } from "@/lib/resumeProStripeProduct";
+import { hasResumeProStripeProductConfig, resumeProStripeProductDefinition } from "@/lib/resumeProStripeProduct";
 import { siteName } from "@/lib/site";
 import { getStripeSecretMode } from "@/lib/stripe";
 
@@ -35,10 +35,7 @@ export function getPaymentReadiness(): PaymentReadiness {
   const enabled = process.env.PAYMENTS_ENABLED === "true";
   const stripeMode = getStripeSecretMode();
   const expectedStripeMode = process.env.VERCEL_ENV === "production" ? "live" : "test";
-  const stripePriceConfigured = Boolean(process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_"));
-  const stripeProductConfigured = Boolean(process.env.STRIPE_RESUME_PRO_PRODUCT_ID?.trim().startsWith("prod_"));
-  const stripeTaxCodeConfigured = Boolean(process.env.STRIPE_RESUME_PRO_TAX_CODE?.trim().startsWith("txcd_"));
-  const stripeProductContractConfigured = stripePriceConfigured && stripeProductConfigured && stripeTaxCodeConfigured;
+  const stripeProductContractConfigured = hasResumeProStripeProductConfig();
   const stripeConfigured = stripeMode === expectedStripeMode && stripeProductContractConfigured;
   const managedPaymentsConfigured = process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true";
   const webhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_"));
@@ -69,9 +66,6 @@ export function getPaymentReadiness(): PaymentReadiness {
     console.warn("[payments] Production readiness is incomplete.", {
       stripeMode,
       expectedStripeMode,
-      stripePriceConfigured,
-      stripeProductConfigured,
-      stripeTaxCodeConfigured,
       stripeProductContractConfigured,
       stripeConfigured,
       managedPaymentsConfigured,
