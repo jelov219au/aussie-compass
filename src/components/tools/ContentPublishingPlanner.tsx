@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 type Status = "idea" | "drafting" | "ready" | "published";
-type Entry = { id: string; topicId: string; title: string; path: string; date: string; channel: string; format: string; campaign: string; status: Status; hook: string; createdAt: string };
+type Entry = { id: string; topicId: string; title: string; path: string; date: string; channel: string; format: string; campaign: string; status: Status; hook: string; caption: string; hashtags: string; createdAt: string };
 
 const STORAGE_KEY = "hoju-compass-content-planner-v1";
 const topics = [
@@ -31,6 +31,64 @@ const topics = [
 const channels = [["instagram", "Instagram"], ["youtube", "YouTube"], ["naver", "Naver Blog·Cafe"], ["facebook", "Facebook"], ["kakao", "Kakao"], ["newsletter", "Newsletter"]] as const;
 const formats = [["card", "카드뉴스"], ["reel", "Reel·Shorts"], ["post", "긴 글"], ["story", "Story"], ["email", "이메일"]] as const;
 const statusLabels: Record<Status, string> = { idea: "아이디어", drafting: "제작 중", ready: "발행 준비", published: "발행 완료" };
+const englishPhrasePublishingPack = [
+  {
+    topicId: "english-rent",
+    hook: "집이 마음에 들어도 돈부터 보내지는 마세요.",
+    caption: `집이 마음에 들어도 돈부터 보내지는 마세요.
+
+계약 상대와 집 주소를 확인하고, 계약서를 먼저 받아 읽어보는 게 좋아요. Bond와 렌트비에 포함되는 비용도 말로만 듣지 말고 글로 남겨두세요.
+
+이럴 때 이렇게 물어볼 수 있어요.
+“Could you send me the agreement before I pay?”
+돈을 보내기 전에 계약서를 보내주실 수 있나요?
+
+필요할 때 바로 꺼내 쓸 수 있도록 저장해 두세요. 프로필 링크에서 렌트할 때 쓰는 문장을 더 볼 수 있어요.`,
+    hashtags: "#호주렌트 #호주쉐어하우스 #호주생활영어 #호주워홀준비 #호주유학생활 #HojuCompass",
+  },
+  {
+    topicId: "english-work",
+    hook: "첫 출근 전에 시급을 글로 받아두세요.",
+    caption: `첫 출근 전에 시급을 글로 받아두세요.
+
+시급만 묻고 끝내지 말고 내 Classification과 고용 형태도 같이 확인하는 게 좋아요. 나중에 Payslip을 볼 때 비교할 기준이 됩니다.
+
+이럴 때 이렇게 물어볼 수 있어요.
+“Could you confirm my hourly rate in writing?”
+제 시급을 글로 확인해 주실 수 있나요?
+
+말로 들은 조건은 메시지나 이메일로 한 번 더 확인해 두세요. 프로필 링크에서 직장에서 쓰는 문장을 더 볼 수 있어요.`,
+    hashtags: "#호주직장 #호주시급 #호주급여 #호주생활영어 #호주워홀 #HojuCompass",
+  },
+  {
+    topicId: "english-bank",
+    hook: "계좌를 열기 전에 수수료 조건부터 확인하세요.",
+    caption: `계좌를 열기 전에 수수료 조건부터 확인하세요.
+
+월 관리비뿐 아니라 ATM과 해외 결제 수수료도 함께 물어보는 게 좋아요. 무료라고 들었다면 어떤 조건에서 무료인지도 확인해 두세요.
+
+이럴 때 이렇게 물어볼 수 있어요.
+“Are there any monthly or ATM fees?”
+월 관리비나 ATM 수수료가 있나요?
+
+비용과 조건은 화면이나 안내문으로 다시 확인해 두세요. 프로필 링크에서 은행에서 쓰는 문장을 더 볼 수 있어요.`,
+    hashtags: "#호주은행 #호주계좌개설 #호주생활영어 #호주워홀준비 #호주생활팁 #HojuCompass",
+  },
+  {
+    topicId: "english-health",
+    hook: "병원에서 말이 막히면 통역이 필요하다고 먼저 말하세요.",
+    caption: `병원에서 말이 막히면 통역이 필요하다고 먼저 말하세요.
+
+진료, 검사, 동의서와 약 복용처럼 중요한 내용을 이해하지 못했다면 그냥 넘기지 않아도 됩니다. 한국어 통역이 필요한지 분명하게 말하고, 이해될 때까지 다시 물어보세요.
+
+이럴 때 이렇게 말할 수 있어요.
+“I need a Korean interpreter, please.”
+한국어 통역이 필요합니다.
+
+필요할 때 바로 보여줄 수 있도록 이 문장을 저장해 두세요. 프로필 링크에서 병원에서 쓰는 문장을 더 볼 수 있어요.`,
+    hashtags: "#호주병원 #호주생활영어 #호주워홀 #호주유학 #호주생활 #HojuCompass",
+  },
+] as const;
 
 function cleanTag(value: string) { return value.trim().toLocaleLowerCase("ko-KR").replace(/\s+/g, "-").replace(/[^a-z0-9가-힣_-]/g, "").replace(/-+/g, "-").slice(0, 64); }
 function dateOffset(offset: number) { const date = new Date(); date.setDate(date.getDate() + offset); return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
@@ -43,7 +101,7 @@ function safeEntries(value: unknown): Entry[] {
   const channelIds = new Set(channels.map(([id]) => id));
   const formatIds = new Set(formats.map(([id]) => id));
   const statuses = new Set<Status>(["idea", "drafting", "ready", "published"]);
-  return value.filter((item): item is Entry => Boolean(item && typeof item === "object" && typeof item.id === "string" && typeof item.title === "string" && typeof item.path === "string" && topicPaths.has(item.path as typeof topics[number]["path"]) && typeof item.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.date) && typeof item.channel === "string" && channelIds.has(item.channel as typeof channels[number][0]) && typeof item.format === "string" && formatIds.has(item.format as typeof formats[number][0]) && typeof item.status === "string" && statuses.has(item.status as Status))).slice(0, 60).map((item) => ({ ...item, title: item.title.slice(0, 80), campaign: cleanTag(item.campaign || "content"), hook: typeof item.hook === "string" ? item.hook.slice(0, 140) : "" }));
+  return value.filter((item): item is Entry => Boolean(item && typeof item === "object" && typeof item.id === "string" && typeof item.title === "string" && typeof item.path === "string" && topicPaths.has(item.path as typeof topics[number]["path"]) && typeof item.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.date) && typeof item.channel === "string" && channelIds.has(item.channel as typeof channels[number][0]) && typeof item.format === "string" && formatIds.has(item.format as typeof formats[number][0]) && typeof item.status === "string" && statuses.has(item.status as Status))).slice(0, 60).map((item) => ({ ...item, title: item.title.slice(0, 80), campaign: cleanTag(item.campaign || "content"), hook: typeof item.hook === "string" ? item.hook.slice(0, 140) : "", caption: typeof item.caption === "string" ? item.caption.slice(0, 1600) : "", hashtags: typeof item.hashtags === "string" ? item.hashtags.slice(0, 300) : "" }));
 }
 
 export function ContentPublishingPlanner() {
@@ -54,6 +112,7 @@ export function ContentPublishingPlanner() {
   const [campaign, setCampaign] = useState<string>(topics[0].campaign);
   const [hook, setHook] = useState("");
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [copiedEntryId, setCopiedEntryId] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
   const topic = topics.find((item) => item.id === topicId) ?? topics[0];
@@ -70,26 +129,35 @@ export function ContentPublishingPlanner() {
   const changeTopic = (id: string) => { const next = topics.find((item) => item.id === id) ?? topics[0]; setTopicId(next.id); setCampaign(next.campaign); };
   const addEntry = () => {
     if (!date || !cleanTag(campaign)) { setMessage("발행일과 캠페인 이름을 확인해 주세요."); return; }
-    const item: Entry = { id: crypto.randomUUID(), topicId: topic.id, title: topic.title, path: topic.path, date, channel, format, campaign: cleanTag(campaign), status: "idea", hook: hook.trim().slice(0, 140), createdAt: new Date().toISOString() };
+    const item: Entry = { id: crypto.randomUUID(), topicId: topic.id, title: topic.title, path: topic.path, date, channel, format, campaign: cleanTag(campaign), status: "idea", hook: hook.trim().slice(0, 140), caption: "", hashtags: "", createdAt: new Date().toISOString() };
     setEntries((current) => [...current, item].slice(-60)); setHook(""); setDate(dateOffset(2)); setMessage("발행 계획에 추가했습니다.");
   };
   const loadSampleWeek = () => {
     const sampleIds = ["arrival", "bank", "health", "public-holiday-pay", "resume"];
-    const samples = sampleIds.map((id) => topics.find((item) => item.id === id) ?? topics[0]).map((item, index): Entry => ({ id: crypto.randomUUID(), topicId: item.id, title: item.title, path: item.path, date: dateOffset(index + 1), channel: index % 2 ? "naver" : "instagram", format: index % 2 ? "post" : "card", campaign: item.campaign, status: "idea", hook: "", createdAt: new Date().toISOString() }));
+    const samples = sampleIds.map((id) => topics.find((item) => item.id === id) ?? topics[0]).map((item, index): Entry => ({ id: crypto.randomUUID(), topicId: item.id, title: item.title, path: item.path, date: dateOffset(index + 1), channel: index % 2 ? "naver" : "instagram", format: index % 2 ? "post" : "card", campaign: item.campaign, status: "idea", hook: "", caption: "", hashtags: "", createdAt: new Date().toISOString() }));
     setEntries((current) => current.length ? current : samples); setMessage(entries.length ? "기존 계획이 있어 샘플을 추가하지 않았습니다." : "5일 샘플 발행 계획을 불러왔습니다.");
   };
   const loadEnglishPhraseCampaign = () => {
-    const hooks: Record<string, string> = {
-      "english-bank": "Are there any monthly or ATM fees?",
-      "english-rent": "Could you send me the agreement before I pay?",
-      "english-work": "Could you confirm my hourly rate in writing?",
-      "english-health": "I need a Korean interpreter, please.",
-    };
-    const campaignTopics = topics.filter((item) => item.id.startsWith("english-"));
-    const missing = campaignTopics.filter((item) => !entries.some((entry) => entry.campaign === item.campaign));
-    const campaignEntries = missing.map((item, index): Entry => ({ id: crypto.randomUUID(), topicId: item.id, title: item.title, path: item.path, date: dateOffset(index + 1), channel: "instagram", format: "card", campaign: item.campaign, status: "idea", hook: hooks[item.id] ?? "", createdAt: new Date().toISOString() }));
-    setEntries((current) => [...current, ...campaignEntries].slice(-60));
-    setMessage(campaignEntries.length ? `생활 영어 카드뉴스 ${campaignEntries.length}종을 발행 계획에 추가했습니다.` : "생활 영어 카드뉴스 4종이 이미 계획에 있습니다.");
+    const missing = englishPhrasePublishingPack.filter((pack) => {
+      const item = topics.find((topic) => topic.id === pack.topicId);
+      return item && !entries.some((entry) => entry.campaign === item.campaign);
+    });
+    const campaignEntries = missing.map((pack, index): Entry => {
+      const item = topics.find((topic) => topic.id === pack.topicId) ?? topics[0];
+      return { id: crypto.randomUUID(), topicId: item.id, title: item.title, path: item.path, date: dateOffset(index + 1), channel: "instagram", format: "card", campaign: item.campaign, status: "ready", hook: pack.hook, caption: pack.caption, hashtags: pack.hashtags, createdAt: new Date().toISOString() };
+    });
+    setEntries((current) => {
+      const updated = current.map((entry) => {
+        const pack = englishPhrasePublishingPack.find((item) => topics.find((topic) => topic.id === item.topicId)?.campaign === entry.campaign);
+        return pack ? { ...entry, hook: pack.hook, caption: pack.caption, hashtags: pack.hashtags, status: entry.status === "published" ? entry.status : "ready" as Status } : entry;
+      });
+      return [...updated, ...campaignEntries].slice(-60);
+    });
+    setMessage(campaignEntries.length ? `생활 영어 4일 발행팩을 추가했습니다. ${campaignEntries.length}개 게시물이 바로 발행 가능한 상태예요.` : "기존 생활 영어 일정에 캡션과 해시태그를 채웠습니다.");
+  };
+  const copyPublishingText = async (item: Entry) => {
+    try { await navigator.clipboard.writeText([item.caption, item.hashtags].filter(Boolean).join("\n\n")); setCopiedEntryId(item.id); }
+    catch { setMessage("자동 복사가 되지 않았어요. 게시 문구를 직접 선택해 복사해 주세요."); }
   };
   const updateStatus = (id: string, status: Status) => setEntries((current) => current.map((item) => item.id === id ? { ...item, status } : item));
   const downloadCalendar = () => {
@@ -103,13 +171,13 @@ export function ContentPublishingPlanner() {
     <section className="min-w-0 border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="content-entry-heading">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Plan one useful post</p><h2 id="content-entry-heading" className="mt-2 text-2xl font-semibold text-navy">다음 게시물 정하기</h2><p className="mt-3 text-sm leading-6 text-muted">사람이 실제로 다음 행동을 할 수 있는 Hoju Compass 페이지 한 곳을 연결합니다.</p>
       <div className="mt-6 space-y-4"><label className="block text-sm font-medium text-navy">주제<select className="mt-1.5 min-h-11 w-full border border-border bg-white px-3" value={topicId} onChange={(event) => changeTopic(event.target.value)}>{topics.map((item) => <option key={item.id} value={item.id}>{item.stage} · {item.title}</option>)}</select></label><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1"><label className="text-sm font-medium text-navy">발행일<input type="date" className="mt-1.5 min-h-11 w-full border border-border px-3" value={date} onChange={(event) => setDate(event.target.value)} /></label><label className="text-sm font-medium text-navy">채널<select className="mt-1.5 min-h-11 w-full border border-border bg-white px-3" value={channel} onChange={(event) => setChannel(event.target.value)}>{channels.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label></div><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1"><label className="text-sm font-medium text-navy">형식<select className="mt-1.5 min-h-11 w-full border border-border bg-white px-3" value={format} onChange={(event) => setFormat(event.target.value)}>{formats.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><label className="text-sm font-medium text-navy">캠페인 이름<input className="mt-1.5 min-h-11 w-full border border-border px-3" value={campaign} onChange={(event) => setCampaign(event.target.value)} /></label></div><label className="block text-sm font-medium text-navy">첫 문장 메모 <span className="font-normal text-muted">선택</span><textarea rows={3} maxLength={140} className="mt-1.5 w-full resize-y border border-border p-3 text-sm" value={hook} onChange={(event) => setHook(event.target.value)} placeholder="예: 첫 Payslip, 입금액만 보면 놓치는 게 있습니다." /></label></div>
-      <button type="button" onClick={addEntry} className="mt-5 min-h-12 w-full bg-navy px-4 text-sm font-semibold text-white">발행 계획에 추가</button><button type="button" onClick={loadEnglishPhraseCampaign} className="mt-2 min-h-11 w-full border border-gold bg-gold/10 px-4 text-sm font-semibold text-navy">생활 영어 카드뉴스 4종 불러오기</button><button type="button" onClick={loadSampleWeek} className="mt-2 min-h-11 w-full border border-border px-4 text-sm font-semibold text-navy">5일 샘플 불러오기</button><p className="mt-3 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{message}</p>
+      <button type="button" onClick={addEntry} className="mt-5 min-h-12 w-full bg-navy px-4 text-sm font-semibold text-white">발행 계획에 추가</button><button type="button" onClick={loadEnglishPhraseCampaign} className="mt-2 min-h-11 w-full border border-gold bg-gold/10 px-4 text-sm font-semibold text-navy">생활 영어 4일 발행팩 불러오기</button><button type="button" onClick={loadSampleWeek} className="mt-2 min-h-11 w-full border border-border px-4 text-sm font-semibold text-navy">5일 샘플 불러오기</button><p className="mt-3 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{message}</p>
     </section>
 
     <section className="min-w-0" aria-labelledby="publishing-plan-heading">
       <div className="grid gap-3 border-y border-navy/20 py-5 sm:grid-cols-3"><div><span className="font-mono text-xs text-gold">TOTAL</span><strong className="mt-1 block text-2xl text-navy">{counts.total}</strong><span className="text-xs text-muted">전체 계획</span></div><div><span className="font-mono text-xs text-gold">READY</span><strong className="mt-1 block text-2xl text-navy">{counts.ready}</strong><span className="text-xs text-muted">발행 준비</span></div><div><span className="font-mono text-xs text-gold">DONE</span><strong className="mt-1 block text-2xl text-navy">{counts.published}</strong><span className="text-xs text-muted">발행 완료</span></div></div>
       <div className="flex flex-wrap items-end justify-between gap-4 py-6"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Local publishing desk</p><h2 id="publishing-plan-heading" className="mt-2 text-2xl font-semibold text-navy">발행 일정</h2></div>{entries.length ? <div className="flex gap-4"><button type="button" onClick={downloadCalendar} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">캘린더 저장</button><button type="button" onClick={() => setEntries([])} className="min-h-11 text-sm text-muted hover:text-red-700">전체 삭제</button></div> : null}</div>
-      {sorted.length ? <ol className="divide-y divide-border border-y border-navy/20">{sorted.map((item, index) => <li key={item.id} className="py-5"><div className="flex min-w-0 gap-3"><span className="mt-1 font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{displayDate(item.date)} · {channels.find(([id]) => id === item.channel)?.[1]} · {formats.find(([id]) => id === item.format)?.[1]}</p><h3 className="mt-1 text-lg font-semibold text-navy">{item.title}</h3></div><select aria-label={`${item.title} 상태`} value={item.status} onChange={(event) => updateStatus(item.id, event.target.value as Status)} className="min-h-10 border border-border bg-white px-2 text-xs font-semibold text-navy">{Object.entries(statusLabels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></div>{item.hook ? <p className="mt-3 border-l-2 border-gold pl-3 text-sm leading-6 text-muted">{item.hook}</p> : null}<div className="mt-4 flex flex-wrap gap-x-5 gap-y-2"><Link href={{ pathname: "/campaign-link-builder", query: { target: item.path, source: item.channel, campaign: item.campaign, content: `${item.format}-${item.date}` } }} className="inline-flex min-h-10 items-center border-b border-gold text-xs font-semibold text-navy">링크·카드 준비 →</Link><Link href={{ pathname: "/content-performance", query: { target: item.path, source: item.channel, campaign: item.campaign, date: item.date, format: item.format } }} className="inline-flex min-h-10 items-center text-xs font-semibold text-navy">발행 후 성과 기록 →</Link><Link href={item.path} className="inline-flex min-h-10 items-center text-xs font-medium text-muted">원문 확인</Link><button type="button" onClick={() => setEntries((current) => current.filter((entry) => entry.id !== item.id))} className="min-h-10 text-xs text-muted hover:text-red-700">삭제</button></div></div></div></li>)}</ol> : <div className="border-y border-border py-12 text-center"><p className="font-semibold text-navy">아직 발행 계획이 없습니다.</p><p className="mt-2 text-sm text-muted">왼쪽에서 한 건을 추가하거나 5일 샘플을 불러오세요.</p></div>}
+      {sorted.length ? <ol className="divide-y divide-border border-y border-navy/20">{sorted.map((item, index) => <li key={item.id} className="py-5"><div className="flex min-w-0 gap-3"><span className="mt-1 font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{displayDate(item.date)} · {channels.find(([id]) => id === item.channel)?.[1]} · {formats.find(([id]) => id === item.format)?.[1]}</p><h3 className="mt-1 text-lg font-semibold text-navy">{item.title}</h3></div><select aria-label={`${item.title} 상태`} value={item.status} onChange={(event) => updateStatus(item.id, event.target.value as Status)} className="min-h-10 border border-border bg-white px-2 text-xs font-semibold text-navy">{Object.entries(statusLabels).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></div>{item.hook ? <p className="mt-3 border-l-2 border-gold pl-3 text-sm leading-6 text-muted">{item.hook}</p> : null}{item.caption ? <details className="mt-4 border border-border bg-surface p-4"><summary className="cursor-pointer text-sm font-semibold text-navy">게시 문구와 해시태그 보기</summary><p className="mt-4 whitespace-pre-line text-sm leading-7 text-muted">{item.caption}</p><p className="mt-4 text-sm leading-7 text-navy">{item.hashtags}</p><button type="button" onClick={() => void copyPublishingText(item)} className="mt-4 min-h-10 border-b border-gold text-xs font-semibold text-navy">{copiedEntryId === item.id ? "복사됨" : "게시 문구 복사"}</button></details> : null}<div className="mt-4 flex flex-wrap gap-x-5 gap-y-2"><Link href={{ pathname: "/campaign-link-builder", query: { target: item.path, source: item.channel, campaign: item.campaign, content: `${item.format}-${item.date}` } }} className="inline-flex min-h-10 items-center border-b border-gold text-xs font-semibold text-navy">링크·카드 준비 →</Link><Link href={{ pathname: "/content-performance", query: { target: item.path, source: item.channel, campaign: item.campaign, date: item.date, format: item.format } }} className="inline-flex min-h-10 items-center text-xs font-semibold text-navy">발행 후 성과 기록 →</Link><Link href={item.path} className="inline-flex min-h-10 items-center text-xs font-medium text-muted">원문 확인</Link><button type="button" onClick={() => setEntries((current) => current.filter((entry) => entry.id !== item.id))} className="min-h-10 text-xs text-muted hover:text-red-700">삭제</button></div></div></div></li>)}</ol> : <div className="border-y border-border py-12 text-center"><p className="font-semibold text-navy">아직 발행 계획이 없습니다.</p><p className="mt-2 text-sm text-muted">왼쪽에서 한 건을 추가하거나 생활 영어 발행팩을 불러오세요.</p></div>}
       <p className="mt-5 text-xs leading-5 text-muted">계획은 현재 브라우저에만 저장됩니다. 자동 게시, 계정 연결, 방문자 추적은 하지 않습니다.</p>
     </section>
   </div>;
