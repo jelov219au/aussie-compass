@@ -11,7 +11,7 @@ import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
   title: "호주 취업 공고별 이력서·커버레터 준비 | Resume Pro",
-  description: "지원하고 싶은 호주 취업 공고에 맞춰 실제 경력을 점검하고, 회사별 이력서와 커버레터를 한 묶음으로 준비하세요.",
+  description: "실제 경력과 호주 채용 공고를 맞춰 회사별 이력서·커버레터를 만들고, STAR 면접 메모로 다시 쓰거나 지원서 묶음으로 내보내세요.",
   path: "/resume-pro",
 });
 
@@ -118,12 +118,12 @@ export default async function ResumeProPage({ searchParams }: Props) {
             <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
               <div className="max-w-3xl">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro</p>
-                <h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">AI로 문장을 찾았다면,<br /><span className="font-normal text-navy-light">이번 공고에 낼 지원 자료로 남기세요.</span></h1>
-                <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">답변을 복사해 끝내지 않고, 무료 빌더에 저장한 실제 경력과 채용 공고를 맞춰 회사별 이력서, 커버레터와 다시 꺼내 쓸 STAR 경험으로 정리해요.</p>
+                <h1 className="mt-4 text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">한 공고에 맞춘 이력서부터,<br /><span className="font-normal text-navy-light">다음 면접에 다시 쓸 STAR까지.</span></h1>
+                <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">문장 하나를 복사해 끝내지 않고, 무료 빌더에 저장한 실제 경력과 채용 공고를 맞춰 회사별 이력서와 커버레터를 만들어요. 같은 경험은 STAR 면접 메모로 보관하고, 지원서 묶음으로 내보내 다음 지원에 다시 쓸 수 있어요.</p>
                 <ol className="mt-7 grid gap-px border-y border-navy/15 bg-border text-sm sm:grid-cols-3">
-                  <li className="bg-white px-4 py-4"><span className="block text-xs font-semibold text-gold">01</span><strong className="mt-1 block text-navy">내 실제 경력 저장</strong></li>
+                  <li className="bg-white px-4 py-4"><span className="block text-xs font-semibold text-gold">01</span><strong className="mt-1 block text-navy">실제 경력을 브라우저에 저장</strong></li>
                   <li className="bg-white px-4 py-4"><span className="block text-xs font-semibold text-gold">02</span><strong className="mt-1 block text-navy">공고별 지원 자료 정리</strong></li>
-                  <li className="bg-white px-4 py-4"><span className="block text-xs font-semibold text-gold">03</span><strong className="mt-1 block text-navy">다음 지원에 다시 사용</strong></li>
+                  <li className="bg-white px-4 py-4"><span className="block text-xs font-semibold text-gold">03</span><strong className="mt-1 block text-navy">STAR·면접 메모 재사용</strong></li>
                 </ol>
               </div>
               <aside className="border-l-2 border-gold pl-6">
@@ -207,12 +207,12 @@ export default async function ResumeProPage({ searchParams }: Props) {
 
             <div className="mt-10 grid gap-5 lg:grid-cols-[minmax(0,0.78fr)_3rem_minmax(0,1.22fr)] lg:items-center">
               <article className="border border-navy/20 bg-surface p-5 sm:p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">무료 빌더에 적어둔 사실</p>
-                <h3 className="mt-3 text-xl font-semibold text-navy">Compass Cafe · Barista</h3>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">무료 빌더에서 확인할 사실</p>
+                <h3 className="mt-3 text-xl font-semibold text-navy">[실제 근무처] · Barista</h3>
                 <ul className="mt-5 space-y-3 text-sm leading-6 text-muted">
-                  <li className="border-l-2 border-navy/20 pl-3">한 교대에 최대 150잔의 커피를 품질을 유지하며 준비</li>
-                  <li className="border-l-2 border-navy/20 pl-3">신입 직원에게 POS와 마감 절차 교육</li>
-                  <li className="border-l-2 border-navy/20 pl-3">단골 고객과 긍정적인 관계 형성</li>
+                  <li className="border-l-2 border-navy/20 pl-3">[바쁜 시간대에 직접 맡은 주문·고객 응대]</li>
+                  <li className="border-l-2 border-navy/20 pl-3">[실제로 안내한 절차와 사용한 도구]</li>
+                  <li className="border-l-2 border-navy/20 pl-3">[확인할 수 있는 완료 결과나 받은 피드백]</li>
                 </ul>
                 <div className="mt-6 border-t border-navy/15 pt-4">
                   <p className="text-xs font-semibold text-navy">지원 공고에서 강조한 내용</p>
@@ -235,7 +235,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 <article className="bg-white p-5 sm:p-6">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">02 · 커버레터 초안</p>
                   <h3 className="mt-3 text-lg font-semibold text-navy">입력한 사실을 회사와 직무에 맞춰 연결해요.</h3>
-                  <blockquote className="mt-4 border-l-2 border-gold pl-4 text-sm italic leading-6 text-muted">“In my current barista role, I prepare up to 150 coffee orders per shift and support new team members with POS and closing procedures.”</blockquote>
+                  <blockquote className="mt-4 border-l-2 border-gold pl-4 text-sm italic leading-6 text-muted">“[Action verb] [specific action] during [verified work context], helping [customer or team] achieve [verified result].”</blockquote>
                 </article>
 
                 <article className="bg-white p-5 sm:col-span-2 sm:p-6">

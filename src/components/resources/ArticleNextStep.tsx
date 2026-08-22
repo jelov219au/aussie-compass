@@ -27,13 +27,13 @@ const nextSteps: Record<
     note: "공고를 모으고 지원을 기록하는 기능은 무료예요. Resume Pro는 실제로 지원할 공고를 골랐을 때 선택하면 돼요.",
   },
   "english-resume-achievement-examples": {
-    heading: "방금 만든 문장을 실제 이력서에 써보세요",
+    heading: "내 실제 사례를 저장하고, 다음 면접에도 다시 쓰세요",
     description:
-      "먼저 무료 이력서에서 내 경험을 정리해 보세요. 지원할 공고가 있다면 Resume Pro에서 그 공고가 원하는 내용과 내 이력서가 잘 맞는지 확인하고, 커버레터까지 이어서 준비할 수 있어요.",
-    freeLabel: "무료 이력서에 문장 넣기",
-    proLabel: "지원 공고에 맞춰 다듬기",
+      "먼저 무료 Builder에 성과 문장을 저장하고 PDF로 내보내세요. 지원할 공고가 정해졌다면 Resume Pro에서 같은 사례를 STAR 면접 메모와 회사별 지원서 묶음으로 이어갈 수 있어요.",
+    freeLabel: "내 사례를 무료로 저장하기",
+    proLabel: "공고별 이력서·면접 준비로 이어가기",
     proHref: "/resume-pro?from=article-achievement-examples",
-    note: "기본 이력서 작성과 PDF 저장은 무료예요. Resume Pro도 없는 경력이나 자격을 만들어내지는 않아요.",
+    note: "무료 Builder 내용은 현재 브라우저에 저장돼요. Resume Pro도 입력하지 않은 숫자, 경력이나 자격을 만들지 않아요.",
   },
 };
 

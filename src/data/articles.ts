@@ -142,9 +142,10 @@ export const articles: Article[] = [
   },
   {
     slug: "english-resume-achievement-examples",
-    title: "호주 영문 이력서에서 경력을 성과로 바꾸는 법",
+    title: "호주 이력서 성과 문장: 실제 경험을 STAR로 정리하는 법",
+    seoTitle: "호주 이력서 STAR 성과 문장 작성법과 실제 경험 예시",
     socialTitle: "Turn experience into resume achievements",
-    description: "하던 일을 나열하는 데서 그치지 않고, 구체적이고 읽기 쉬운 영문 성과 문장으로 바꾸는 법을 알아봐요.",
+    description: "실제 경험을 STAR로 정리해 이력서 성과 문장으로 바꾸고, 현재 브라우저에 저장해 PDF로 내보낸 뒤 면접에 다시 쓰는 흐름을 알아봐요.",
     category: "영문 이력서",
     readingTime: "12분",
     publishedAt: "2026-08-13",

@@ -87,6 +87,11 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               <h1 className="mt-4 max-w-4xl text-balance text-3xl font-semibold leading-tight tracking-tight text-navy sm:text-5xl">{article.title}</h1>
               <p className="mt-6 max-w-3xl text-lg leading-8 text-muted sm:text-xl sm:leading-9">{article.description}</p>
               <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2">
+                {article.slug === "english-resume-achievement-examples" && (
+                  <Link href={article.toolHref} className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy/90">
+                    내 사례를 무료로 저장하기 →
+                  </Link>
+                )}
                 <PageShareButton />
               </div>
             </header>
