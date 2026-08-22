@@ -24,7 +24,7 @@ export default function ResumeBuilderPage() {
         <Container>
           <Link href="/#tools" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">&larr; 도구 목록으로 돌아가기</Link>
           <div className="mb-10 mt-5 max-w-3xl">
-            <p className="text-sm font-semibold text-gold">영문 이력서가 막막할 때</p>
+            <p className="text-sm font-semibold text-[#806515]">영문 이력서가 막막할 때</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 영문 이력서 빌더</h1>
             <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">경험과 강점을 먼저 한국어로 적어도 괜찮아요. 영문 예시를 참고해 문장을 다듬고, 마음에 드는 색상과 레이아웃으로 정리해보세요. 입력한 내용은 이 브라우저에만 남습니다.</p>
           </div>

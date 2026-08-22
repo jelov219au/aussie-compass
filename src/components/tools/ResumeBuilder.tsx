@@ -283,7 +283,7 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
         </fieldset>
 
         <section className="mt-8 rounded-2xl border border-gold/40 bg-gold/5 p-5" aria-labelledby="writing-helper-heading">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">영문 작성 도우미</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#806515]">영문 작성 도우미</p>
           <h2 id="writing-helper-heading" className="mt-2 text-lg font-semibold text-navy">한국어 강점을 영문 초안으로</h2>
           <p className="mt-2 text-sm leading-6 text-muted">직무, 경력 연수, 강점 키워드를 한국어로 적으면 이력서용 영문 초안을 만듭니다. 내용은 외부로 전송되지 않습니다.</p>
           <label className="mt-4 block text-sm font-medium text-navy">한국어 메모<textarea className={`${inputClass} mt-1.5 min-h-24 resize-y`} value={koreanDraft} onChange={(e) => setKoreanDraft(e.target.value)} placeholder="예: 카페에서 2년 일했고 친절하며 바쁜 시간에도 빠르고 정확하게 일합니다." /></label>
@@ -351,7 +351,7 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
         <fieldset className="mt-8"><legend className="text-base font-semibold text-navy">언어 <span className="font-normal text-muted">(선택)</span></legend><label className="mt-2 block text-sm text-muted">쉼표로 구분해 입력하세요<input className={inputClass} value={resume.languages} onChange={(e) => setField("languages", e.target.value)} placeholder="Korean (Native), English (Professional)" /></label></fieldset>
         <label className="mt-6 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-border px-4 py-2 text-sm text-navy"><input type="checkbox" checked={resume.showReferences} onChange={(e) => setResume((current) => ({ ...current, showReferences: e.target.checked }))} className="h-4 w-4 accent-navy" />References available upon request 문구 포함</label>
         {resumeReady && <section className="mt-8 border border-gold/50 bg-gold/5 p-5 sm:p-6" aria-labelledby="resume-next-step-heading">
-          <p className="text-xs font-semibold tracking-[0.14em] text-gold">기본 이력서 준비 완료</p>
+          <p className="text-xs font-semibold tracking-[0.14em] text-[#806515]">기본 이력서 준비 완료</p>
           <h2 id="resume-next-step-heading" className="mt-2 text-xl font-semibold text-navy">이제 어떻게 준비할까요?</h2>
           <p className="mt-2 text-sm leading-6 text-muted">지금 만든 이력서는 무료로 저장할 수 있어요. 지원할 공고가 있다면 같은 내용을 다시 쓰지 않고 회사에 맞춰 이어서 준비할 수도 있고요.</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">

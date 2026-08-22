@@ -75,6 +75,7 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
           name="terms_accepted"
           value="yes"
           required
+          aria-describedby="resume-pro-checkout-requirement"
           checked={accepted}
           onChange={(event) => setAccepted(event.target.checked)}
           className="mt-1 h-5 w-5 shrink-0 accent-[#c6a34b]"
@@ -96,10 +97,16 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
           {failure.retryable && <span className="block text-xs text-muted">이 페이지에서 다시 눌러도 중복 청구되지 않습니다.</span>}
         </div>
       )}
+      <p id="resume-pro-checkout-requirement" className="mt-4 text-sm leading-6 text-muted" aria-live="polite">
+        {accepted
+          ? "확인이 완료됐어요. 아래 결제 버튼을 사용할 수 있습니다."
+          : "결제 버튼을 사용하려면 위 확인란을 먼저 선택해 주세요."}
+      </p>
       <button
         type="submit"
         disabled={!accepted || submitting}
         aria-busy={submitting}
+        aria-describedby="resume-pro-checkout-requirement"
         className="mt-4 inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy enabled:hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
       >
         {submitting
