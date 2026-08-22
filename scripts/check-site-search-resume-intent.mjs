@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { getSiteSearchIntent, rankSiteSearchItems } from "../src/lib/siteSearch.ts";
+import { SEARCH_TRANSFER_MAX_LENGTH, sanitizeTransferredSearch } from "../src/lib/searchTransfer.ts";
 
 const fixtures = [
   { href: "/resume-pro", type: "도구", title: "Resume Pro — 공고별 이력서·커버레터", description: "회사별 지원 자료", keywords: ["resume", "STAR", "STAR examples", "selection criteria", "cover letter"] },
@@ -28,11 +29,32 @@ assert.equal(rankSiteSearchItems(fixtures, "급여 이력").length, 0, "unrelate
 
 const searchComponent = readFileSync(resolve("src/components/search/SiteSearch.tsx"), "utf8");
 const searchPage = readFileSync(resolve("src/app/search/page.tsx"), "utf8");
+const homeSearch = readFileSync(resolve("src/components/sections/HomeSearch.tsx"), "utf8");
+const searchTransfer = readFileSync(resolve("src/lib/searchTransfer.ts"), "utf8");
+const jsonLd = readFileSync(resolve("src/components/seo/JsonLd.tsx"), "utf8");
 for (const query of ["STAR 예시", "STAR examples", "selection criteria", "cover letter", "호주 취업 이력서"]) {
   assert.ok(searchPage.includes(`"${query}"`), `the live search index is missing ${query}`);
 }
 assert.match(searchComponent, /rankSiteSearchItems\(items, query\)/);
 assert.match(searchComponent, /이력서 준비 추천 순서/);
 assert.doesNotMatch(searchComponent, /\btrack\(|analytics|sendBeacon|fetch\(|XMLHttpRequest|window\.location/, "search terms must stay inside the page and must not be sent to analytics, URLs or external requests");
+
+assert.match(searchTransfer, /SEARCH_TRANSFER_STORAGE_KEY\s*=\s*"hojucompass:search-transfer:v1"/);
+assert.match(searchTransfer, /SEARCH_TRANSFER_MAX_LENGTH\s*=\s*120/);
+assert.equal(SEARCH_TRANSFER_MAX_LENGTH, 120);
+assert.equal(sanitizeTransferredSearch(`  ${"x".repeat(140)}  `).length, 120, "transferred search terms must be trimmed and capped at 120 characters");
+assert.match(homeSearch, /sessionStorage\.setItem\(SEARCH_TRANSFER_STORAGE_KEY, transferredQuery\)/);
+assert.match(homeSearch, /router\.push\("\/search"\)/);
+assert.match(homeSearch, /track\("Home Search", \{ topic, entry \}\)/, "analytics may contain only allowlisted topic and entry fields");
+assert.equal(homeSearch.match(/\btrack\(/g)?.length, 1, "home search must expose only one fixed analytics call");
+assert.match(homeSearch, /openSearch\(query, classifySearch\(query\), "free_text"\)/);
+assert.match(homeSearch, /openSearch\(label, topic, "popular"\)/);
+assert.ok(homeSearch.indexOf('router.push("/search")') > homeSearch.indexOf("sessionStorage.setItem"), "queryless navigation must still occur after the storage attempt");
+assert.doesNotMatch(homeSearch, /action=["']\/search|method=["']get|name=["']q|\/search\?q=|href=\{?`?\/search\?|URLSearchParams|window\.location/, "home search must not put raw terms in a form GET, link, URL or navigation request");
+assert.match(searchComponent, /sessionStorage\.getItem\(SEARCH_TRANSFER_STORAGE_KEY\)/);
+assert.match(searchComponent, /sessionStorage\.removeItem\(SEARCH_TRANSFER_STORAGE_KEY\)/);
+assert.ok(searchComponent.indexOf("sessionStorage.removeItem(SEARCH_TRANSFER_STORAGE_KEY)") < searchComponent.indexOf("setQuery(sanitizeTransferredSearch(transferredQuery))"), "the transferred term must be removed before it is applied to search state");
+assert.doesNotMatch(searchPage, /searchParams|initialQuery/, "the search server component must not read or serialize raw query parameters");
+assert.doesNotMatch(jsonLd, /search\?q=|search_term_string|SearchAction/, "structured data must not advertise a raw-query URL that the private client boundary does not support");
 
 console.log("High-intent resume search ranking contract passed.");

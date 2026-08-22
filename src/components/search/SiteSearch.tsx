@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { getSiteSearchIntent, rankSiteSearchItems, type SearchItem } from "@/lib/siteSearch";
+import { SEARCH_TRANSFER_STORAGE_KEY, sanitizeTransferredSearch } from "@/lib/searchTransfer";
 
 const suggestions = ["TFN", "Bond", "전기 요금", "세후 급여", "영문 이력서", "택스 리턴", "Super 환급", "중고거래", "통역", "교통"];
 
@@ -23,8 +24,19 @@ function ResultList({ items }: { items: SearchItem[] }) {
   );
 }
 
-export function SiteSearch({ items, initialQuery = "" }: { items: SearchItem[]; initialQuery?: string }) {
-  const [query, setQuery] = useState(initialQuery);
+export function SiteSearch({ items }: { items: SearchItem[] }) {
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    try {
+      const transferredQuery = sessionStorage.getItem(SEARCH_TRANSFER_STORAGE_KEY);
+      sessionStorage.removeItem(SEARCH_TRANSFER_STORAGE_KEY);
+      if (transferredQuery) setQuery(sanitizeTransferredSearch(transferredQuery));
+    } catch {
+      // The search page remains usable when storage is blocked or unavailable.
+    }
+  }, []);
+
   const intent = getSiteSearchIntent(query);
   const results = useMemo(() => rankSiteSearchItems(items, query), [items, query]);
   const groups = ["도구", "가이드", "자료"] as const;
