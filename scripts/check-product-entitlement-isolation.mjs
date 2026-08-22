@@ -39,7 +39,10 @@ for (const productCode of ["resume_pro", "rental_application_pro"]) {
 
 for (const methodContract of [
   "async function consumeRestoreTokenHash(",
-  "accessSession: Parameters<EntitlementStore[\"consumeRestoreTokenHash\"]>[2]",
+  "input: Parameters<EntitlementStore[\"consumeRestoreTokenHash\"]>[0]",
+  "${input.productCode}",
+  "${input.nonceHash}",
+  "${input.accessSession.accessSessionHash}",
   "findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode)",
   "findActiveById(entitlementId: string, productCode: ProductCode)",
   "find_active_purchase_entitlement_by_access_session(",

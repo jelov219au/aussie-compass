@@ -112,3 +112,17 @@ export function createResumeProRestoreCode(nowMs = Date.now()) {
 export function hashResumeProRestoreCode(token: string) {
   return createHash("sha256").update(token.trim()).digest("hex");
 }
+
+export function hashResumeProRestoreNonce(nonce: string) {
+  if (!/^[A-Za-z0-9_-]{40,128}$/.test(nonce)) throw new Error("Invalid restore nonce.");
+  return createHash("sha256").update(nonce).digest("hex");
+}
+
+export function deriveResumeProRestoreSourceHash(tokenHash: string, nonceHash: string) {
+  if (!/^[a-f0-9]{64}$/.test(tokenHash) || !/^[a-f0-9]{64}$/.test(nonceHash)) {
+    throw new Error("Hashed restore credentials are required.");
+  }
+  return createHash("sha256")
+    .update(`resume-pro-restore-v1:${tokenHash}:${nonceHash}`)
+    .digest("hex");
+}

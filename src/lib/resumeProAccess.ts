@@ -8,8 +8,10 @@ import {
   createResumeProRestoreCode,
   decodeResumeProAccessToken,
   deriveResumeProAccessSessionId,
+  deriveResumeProRestoreSourceHash,
   encodeResumeProAccessToken,
   hashResumeProRestoreCode,
+  hashResumeProRestoreNonce,
   hashResumeProAccessSessionId,
   resumeProAccessLifetimeSeconds,
 } from "@/lib/resumeProTokens";
@@ -101,4 +103,10 @@ export function createRestoreCode() {
 
 export function hashRestoreCode(token: string) {
   return hashResumeProRestoreCode(token);
+}
+
+export function createRestoreAccessSession(tokenHash: string, nonce: string) {
+  const nonceHash = hashResumeProRestoreNonce(nonce);
+  const sourceHash = deriveResumeProRestoreSourceHash(tokenHash, nonceHash);
+  return { nonceHash, accessSession: createAccessSession("restore", sourceHash) };
 }

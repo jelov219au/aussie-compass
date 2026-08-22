@@ -7,6 +7,7 @@ const [
   outboxMigration,
   activationMigration,
   accessSessionMigration,
+  restoreActivationMigration,
   recovery,
   runbook,
   launchPacket,
@@ -21,6 +22,7 @@ const [
   readFile(new URL("../docs/migrations/20260823_payment_operator_alert_outbox_v1.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/migrations/20260823_checkout_activation_nonce_v1.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/migrations/20260823_purchase_access_sessions_v1.sql", import.meta.url), "utf8"),
+  readFile(new URL("../docs/migrations/20260823_restore_activation_nonce_v1.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/database-recovery.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/first-sale-gate-runbook.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/first-payment-24-hour-operations-packet.md", import.meta.url), "utf8"),
@@ -38,7 +40,7 @@ const runtimeWrapperSignatures = new Map([
   ["release_verified_abandoned_first_sale", "public.release_verified_abandoned_first_sale(text,bigint,text)"],
   ["apply_first_sale_paid_event", "public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)"],
   ["apply_guarded_entitlement_event", "public.apply_guarded_entitlement_event(text,text,boolean,timestamptz,text,text,text,text,text,text,text)"],
-  ["consume_entitlement_restore_token", "public.consume_entitlement_restore_token(text,text,text,text,timestamptz)"],
+  ["consume_entitlement_restore_token", "public.consume_entitlement_restore_token(text,text,text,text,text,timestamptz)"],
   ["create_entitlement_restore_token", "public.create_entitlement_restore_token(bigint,text,text,timestamptz)"],
   ["enqueue_payment_operator_alert_failure", "public.enqueue_payment_operator_alert_failure(text,text,boolean,text,text,text)"],
   ["claim_payment_operator_alert_intent", "public.claim_payment_operator_alert_intent(text,text,text)"],
@@ -69,7 +71,7 @@ const runtimeWrapperCheckNames = new Map([
   ["find_active_purchase_entitlement_by_checkout", "runtime_can_read_active_by_checkout"],
   ["find_active_purchase_entitlement_by_id", "runtime_can_read_active_by_id"],
 ]);
-const compactFunctionContractSql = [firstSaleSchema, outboxMigration, activationMigration, accessSessionMigration]
+const compactFunctionContractSql = [firstSaleSchema, outboxMigration, activationMigration, accessSessionMigration, restoreActivationMigration]
   .join("\n")
   .replace(/\s+/g, "");
 
@@ -212,6 +214,8 @@ for (const tableName of [
   "purchase_entitlements",
   "purchase_restore_tokens",
   "purchase_checkout_activations",
+  "purchase_access_sessions",
+  "purchase_restore_activations",
   "entitlement_event_tombstones",
   "stripe_payment_object_links",
   "payment_operator_alert_outbox",
@@ -254,6 +258,7 @@ for (const contract of [
   "create table if not exists payment_operator_alert_outbox",
   "create table if not exists purchase_checkout_activations",
   "create table if not exists purchase_access_sessions",
+  "create table if not exists purchase_restore_activations",
   "20260823_payment_operator_alert_outbox_v1",
   "20260823_checkout_activation_once_v1",
   "20260823_checkout_activation_nonce_v1",
@@ -266,6 +271,7 @@ for (const [name, migration, prerequisite, version] of [
   ["outbox", outboxMigration, "20260823_first_sale_gate_charge_link_v2", "20260823_payment_operator_alert_outbox_v1"],
   ["activation", activationMigration, "20260823_payment_operator_alert_outbox_v1", "20260823_checkout_activation_nonce_v1"],
   ["access sessions", accessSessionMigration, "20260823_checkout_activation_nonce_v1", "20260823_purchase_access_sessions_v1"],
+  ["restore activation", restoreActivationMigration, "20260823_purchase_access_sessions_v1", "20260823_restore_activation_nonce_v1"],
 ]) {
   for (const contract of ["begin;", "commit;", prerequisite, version, "public.schema_migrations", "on conflict (version) do nothing"]) {
     assert.ok(migration.includes(contract), `${name} additive migration is missing: ${contract}`);
@@ -307,6 +313,17 @@ for (const contract of [
   "20260823_purchase_access_sessions_v1",
 ]) assert.ok(accessSessionMigration.includes(contract), `access-session migration is missing: ${contract}`);
 
+for (const contract of [
+  "create table if not exists public.purchase_restore_activations",
+  "restore_nonce_hash text not null unique",
+  "drop function if exists public.consume_entitlement_restore_token(text, text, text, text, timestamptz)",
+  "consume_entitlement_restore_token(text, text, text, text, text, timestamptz)",
+  "'idempotent'::text",
+  "access.revoked_at is not null or v_access.expires_at <= now()",
+  "grant execute on function public.consume_entitlement_restore_token(text, text, text, text, text, timestamptz) to hoju_app_runtime",
+  "20260823_restore_activation_nonce_v1",
+]) assert.ok(restoreActivationMigration.includes(contract), `restore-activation migration is missing: ${contract}`);
+
 assert.ok(
   runbook.indexOf("20260823_first_sale_gate_charge_link_v2")
     < runbook.indexOf("docs/migrations/20260823_payment_operator_alert_outbox_v1.sql")
@@ -318,6 +335,11 @@ assert.ok(
   runbook.indexOf("docs/migrations/20260823_checkout_activation_nonce_v1.sql")
     < runbook.indexOf("docs/migrations/20260823_purchase_access_sessions_v1.sql"),
   "the runbook must apply access sessions after activation nonce v1",
+);
+assert.ok(
+  runbook.indexOf("docs/migrations/20260823_purchase_access_sessions_v1.sql")
+    < runbook.indexOf("docs/migrations/20260823_restore_activation_nonce_v1.sql"),
+  "the runbook must apply restore activation after access sessions v1",
 );
 
 for (const contract of [
@@ -340,6 +362,7 @@ for (const document of [manifest, paymentReadiness]) {
     "20260823_payment_operator_alert_outbox_v1",
     "20260823_checkout_activation_nonce_v1",
     "20260823_purchase_access_sessions_v1",
+    "20260823_restore_activation_nonce_v1",
   ]) assert.ok(document.includes(version), `release documentation is missing migration ${version}`);
   assert.match(document, /response-loss|응답 유실/);
 }
@@ -353,6 +376,7 @@ for (const contract of [
   "payment_operator_alert_outbox",
   "purchase_checkout_activations",
   "purchase_access_sessions",
+  "purchase_restore_activations",
   "SHA-256",
 ]) {
   assert.ok(recovery.includes(contract), `Database recovery runbook is missing: ${contract}`);

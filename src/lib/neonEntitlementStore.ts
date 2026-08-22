@@ -14,6 +14,7 @@ import type {
 type EntitlementRow = {
   outcome?: "processed" | "duplicate" | "ignored_stale" | "tombstoned";
   activation_outcome?: "consumed" | "idempotent" | "used" | "released" | "revoked" | "review" | "missing";
+  restore_outcome?: "consumed" | "idempotent" | "used" | "released" | "revoked" | "review" | "missing";
   id: string | number | bigint | null;
   product_code: ProductCode | null;
   status: "active" | "revoked" | "review" | null;
@@ -88,24 +89,39 @@ async function applyStripeEvent(input: {
 }
 
 async function consumeRestoreTokenHash(
-  tokenHash: string,
-  productCode: ProductCode,
-  accessSession: Parameters<EntitlementStore["consumeRestoreTokenHash"]>[2],
+  input: Parameters<EntitlementStore["consumeRestoreTokenHash"]>[0],
 ) {
-  if (!/^[a-f0-9]{64}$/i.test(tokenHash)) return null;
+  if (!/^[a-f0-9]{64}$/.test(input.tokenHash) || !/^[a-f0-9]{64}$/.test(input.nonceHash)) {
+    return { outcome: "missing" as const };
+  }
 
   const sql = neon(getConnectionString());
   const rows = await sql`
     select * from consume_entitlement_restore_token(
-      ${tokenHash.toLowerCase()},
-      ${productCode},
-      ${accessSession.accessSessionHash},
-      ${accessSession.accessSessionRefLast8},
-      ${accessSession.expiresAt.toISOString()}
+      ${input.tokenHash},
+      ${input.productCode},
+      ${input.nonceHash},
+      ${input.accessSession.accessSessionHash},
+      ${input.accessSession.accessSessionRefLast8},
+      ${input.accessSession.expiresAt.toISOString()}
     )
   ` as EntitlementRow[];
 
-  return rows[0] ? toEntitlementRecord(rows[0]) : null;
+  const row = rows[0];
+  const allowedOutcomes = new Set(["consumed", "idempotent", "used", "released", "revoked", "review", "missing"]);
+  if (!row?.restore_outcome || !allowedOutcomes.has(row.restore_outcome)) {
+    throw new Error("The entitlement database returned an invalid restore result.");
+  }
+  const successful = row.restore_outcome === "consumed" || row.restore_outcome === "idempotent";
+  if (successful) {
+    const entitlement = toEntitlementRecord(row);
+    if (entitlement.productCode !== input.productCode || entitlement.status !== "active") {
+      throw new Error("The entitlement database returned an invalid restored entitlement.");
+    }
+    return { outcome: row.restore_outcome, entitlement };
+  }
+  if (row.id !== null) throw new Error("A denied restore result returned an entitlement.");
+  return { outcome: row.restore_outcome };
 }
 
 async function consumeCheckoutActivation(

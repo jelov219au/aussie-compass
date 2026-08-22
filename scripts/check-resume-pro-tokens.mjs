@@ -6,9 +6,11 @@ import {
   createResumeProRestoreCode,
   decodeResumeProAccessToken,
   deriveResumeProAccessSessionId,
+  deriveResumeProRestoreSourceHash,
   encodeResumeProAccessToken,
   hashResumeProAccessSessionId,
   hashResumeProRestoreCode,
+  hashResumeProRestoreNonce,
   resumeProAccessLifetimeSeconds,
 } from "../src/lib/resumeProTokens.ts";
 
@@ -49,6 +51,141 @@ assert.match(restore.token, /^[A-Za-z0-9_-]{40,}$/);
 assert.match(restore.tokenHash, /^[a-f0-9]{64}$/);
 assert.equal(hashResumeProRestoreCode(` ${restore.token} `), restore.tokenHash);
 assert.equal(restore.expiresAt.getTime(), now + resumeProAccessLifetimeSeconds * 1000);
+
+class RestoreMutationModel {
+  now = now;
+  entitlements = new Map();
+  tokens = new Map();
+  bindings = new Map();
+  sessions = new Map();
+
+  addEntitlement(record) { this.entitlements.set(record.id, { ...record }); }
+  addToken(tokenHash, entitlementId, expiresAt) {
+    this.tokens.set(tokenHash, { tokenHash, entitlementId, expiresAt, usedAt: null });
+  }
+
+  async consume(input) {
+    const token = this.tokens.get(input.tokenHash);
+    if (!token) return { outcome: "missing" };
+
+    const binding = this.bindings.get(input.tokenHash);
+    if (binding) {
+      if (binding.nonceHash !== input.nonceHash) return { outcome: "used" };
+      const entitlement = this.entitlements.get(binding.entitlementId);
+      if (!entitlement || entitlement.productCode !== input.productCode) throw new Error("binding entitlement mismatch");
+      if (entitlement.status !== "active") return { outcome: entitlement.status };
+      const session = this.sessions.get(binding.accessSessionHash);
+      if (!session
+        || session.entitlementId !== entitlement.id
+        || session.productCode !== input.productCode
+        || session.source !== "restore"
+        || session.sessionHash !== input.accessSessionHash) throw new Error("binding session mismatch");
+      if (session.revoked || session.expiresAt <= this.now) return { outcome: "released" };
+      return { outcome: "idempotent", entitlement };
+    }
+
+    if ([...this.bindings.values()].some((candidate) => candidate.nonceHash === input.nonceHash)) {
+      return { outcome: "used" };
+    }
+    if (token.usedAt !== null || token.expiresAt <= this.now) return { outcome: "missing" };
+    const entitlement = this.entitlements.get(token.entitlementId);
+    if (!entitlement || entitlement.productCode !== input.productCode) return { outcome: "missing" };
+    if (entitlement.status !== "active") return { outcome: entitlement.status };
+
+    this.sessions.set(input.accessSessionHash, {
+      entitlementId: entitlement.id,
+      productCode: entitlement.productCode,
+      sessionHash: input.accessSessionHash,
+      source: "restore",
+      expiresAt: input.expiresAt,
+      revoked: false,
+    });
+    this.bindings.set(input.tokenHash, {
+      tokenHash: input.tokenHash,
+      nonceHash: input.nonceHash,
+      entitlementId: entitlement.id,
+      accessSessionHash: input.accessSessionHash,
+    });
+    token.usedAt = this.now;
+    return { outcome: "consumed", entitlement };
+  }
+
+  release(sessionHash) {
+    const session = this.sessions.get(sessionHash);
+    if (!session) return false;
+    session.revoked = true;
+    return true;
+  }
+}
+
+const restoreNonce = "restore_browser_nonce_abcdefghijklmnopqrstuvwxyz012345";
+const restoreNonceHash = hashResumeProRestoreNonce(restoreNonce);
+const restoreTokenHash = restore.tokenHash;
+const restoreSourceHash = deriveResumeProRestoreSourceHash(restoreTokenHash, restoreNonceHash);
+const restoreAccessId = deriveResumeProAccessSessionId("restore", restoreSourceHash, secret);
+const restoreAccessHash = hashResumeProAccessSessionId(restoreAccessId);
+const restoreInput = {
+  tokenHash: restoreTokenHash,
+  productCode: "resume_pro",
+  nonceHash: restoreNonceHash,
+  accessSessionHash: restoreAccessHash,
+  expiresAt: now + resumeProAccessLifetimeSeconds * 1000,
+};
+
+function newRestoreModel(status = "active") {
+  const model = new RestoreMutationModel();
+  model.addEntitlement({ id: "42", productCode: "resume_pro", status });
+  model.addToken(restoreTokenHash, "42", now + resumeProAccessLifetimeSeconds * 1000);
+  return model;
+}
+
+const sameNonceRace = newRestoreModel();
+const sameNonceResults = await Promise.all([
+  sameNonceRace.consume(restoreInput),
+  sameNonceRace.consume(restoreInput),
+]);
+assert.deepEqual(sameNonceResults.map((result) => result.outcome), ["consumed", "idempotent"]);
+assert.equal(sameNonceRace.sessions.size, 1, "same-nonce retries must create exactly one access session");
+assert.equal(sameNonceRace.bindings.size, 1, "same-nonce retries must create exactly one restore binding");
+assert.equal(sameNonceRace.tokens.get(restoreTokenHash).usedAt, now, "the token and binding must commit together");
+assert.equal((await sameNonceRace.consume(restoreInput)).outcome, "idempotent", "response-loss retry must return the same access session");
+
+const differentNonceRace = newRestoreModel();
+const otherNonceHash = "b".repeat(64);
+const differentNonceResults = await Promise.all([
+  differentNonceRace.consume(restoreInput),
+  differentNonceRace.consume({ ...restoreInput, nonceHash: otherNonceHash, accessSessionHash: "c".repeat(64) }),
+]);
+assert.deepEqual(differentNonceResults.map((result) => result.outcome), ["consumed", "used"]);
+assert.equal(differentNonceRace.sessions.size, 1, "different-browser concurrency must leave one access session");
+
+const secondTokenHash = "d".repeat(64);
+sameNonceRace.addToken(secondTokenHash, "42", restoreInput.expiresAt);
+assert.equal(
+  (await sameNonceRace.consume({ ...restoreInput, tokenHash: secondTokenHash })).outcome,
+  "used",
+  "a bound browser nonce must not be reused with another restore code",
+);
+assert.equal(sameNonceRace.tokens.get(secondTokenHash).usedAt, null, "a rejected different code must remain unconsumed");
+assert.equal((await sameNonceRace.consume({ ...restoreInput, nonceHash: otherNonceHash })).outcome, "used");
+assert.equal(sameNonceRace.release(restoreAccessHash), true);
+assert.equal((await sameNonceRace.consume(restoreInput)).outcome, "released", "release must block same-nonce response-loss reminting");
+
+for (const status of ["revoked", "review"]) {
+  const denied = newRestoreModel(status);
+  assert.equal((await denied.consume(restoreInput)).outcome, status);
+  assert.equal(denied.sessions.size, 0, `${status} must not mint a restore session`);
+  assert.equal(denied.tokens.get(restoreTokenHash).usedAt, null, `${status} must not consume the token`);
+}
+const expiredRestore = newRestoreModel();
+expiredRestore.tokens.get(restoreTokenHash).expiresAt = now - 1;
+assert.equal((await expiredRestore.consume(restoreInput)).outcome, "missing");
+assert.equal(expiredRestore.sessions.size, 0);
+
+const mismatchedRestore = newRestoreModel();
+await mismatchedRestore.consume(restoreInput);
+mismatchedRestore.sessions.get(restoreAccessHash).productCode = "rental_application_pro";
+await assert.rejects(() => mismatchedRestore.consume(restoreInput), /binding session mismatch/);
 
 class ActivationModel {
   binding = null;
@@ -173,9 +310,11 @@ const restoreRoute = fs.readFileSync(new URL("../src/app/api/resume-pro/restore/
 const storeSource = fs.readFileSync(new URL("../src/lib/neonEntitlementStore.ts", import.meta.url), "utf8");
 const activationMigration = fs.readFileSync(new URL("../docs/migrations/20260823_checkout_activation_nonce_v1.sql", import.meta.url), "utf8");
 const accessSessionMigration = fs.readFileSync(new URL("../docs/migrations/20260823_purchase_access_sessions_v1.sql", import.meta.url), "utf8");
+const restoreActivationMigration = fs.readFileSync(new URL("../docs/migrations/20260823_restore_activation_nonce_v1.sql", import.meta.url), "utf8");
 const successPage = fs.readFileSync(new URL("../src/app/resume-pro/success/page.tsx", import.meta.url), "utf8");
 const resumeProPage = fs.readFileSync(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8");
 const restorePage = fs.readFileSync(new URL("../src/app/resume-pro/restore/page.tsx", import.meta.url), "utf8");
+const restoreForm = fs.readFileSync(new URL("../src/components/tools/ResumeProRestoreForm.tsx", import.meta.url), "utf8");
 const tokenSource = fs.readFileSync(new URL("../src/lib/resumeProTokens.ts", import.meta.url), "utf8");
 const accessSource = fs.readFileSync(new URL("../src/lib/resumeProAccess.ts", import.meta.url), "utf8");
 
@@ -229,6 +368,32 @@ for (const contract of [
   "20260823_purchase_access_sessions_v1",
   "revoke all on table public.purchase_access_sessions from public",
 ]) assert.ok(accessSessionMigration.includes(contract), `server access-session SQL contract is missing: ${contract}`);
+for (const contract of [
+  "create table if not exists public.purchase_restore_activations",
+  "restore_token_hash text primary key",
+  "restore_nonce_hash text not null unique",
+  "drop function if exists public.consume_entitlement_restore_token(text, text, text, text, timestamptz)",
+  "create function public.consume_entitlement_restore_token(",
+  "p_restore_nonce_hash text",
+  "restore_outcome text",
+  "v_binding.restore_nonce_hash is distinct from p_restore_nonce_hash",
+  "v_access.access_session_hash is distinct from p_access_session_hash",
+  "v_access.revoked_at is not null or v_access.expires_at <= now()",
+  "insert into public.purchase_access_sessions",
+  "insert into public.purchase_restore_activations",
+  "update public.purchase_restore_tokens",
+  "20260823_restore_activation_nonce_v1",
+  "revoke all on table public.purchase_restore_activations from public",
+  "grant execute on function public.consume_entitlement_restore_token(text, text, text, text, text, timestamptz) to hoju_app_runtime",
+]) assert.ok(restoreActivationMigration.includes(contract), `response-loss restore SQL contract is missing: ${contract}`);
+assert.ok(
+  restoreActivationMigration.indexOf("insert into public.purchase_access_sessions")
+    < restoreActivationMigration.indexOf("insert into public.purchase_restore_activations")
+    && restoreActivationMigration.indexOf("insert into public.purchase_restore_activations")
+      < restoreActivationMigration.indexOf("update public.purchase_restore_tokens"),
+  "restore token, binding and access session mutation order must stay in one transaction",
+);
+assert.doesNotMatch(restoreActivationMigration, /raw_(?:restore|token|nonce)|restore_code\s+text|restore_nonce\s+text/i, "raw restore credentials must not enter PostgreSQL");
 assert.match(activateRoute, /consumeCheckoutActivation/);
 assert.ok(
   activateRoute.indexOf("await store.consumeCheckoutActivation") < activateRoute.indexOf("await setResumeProAccessCookie"),
@@ -288,7 +453,14 @@ for (const noticeCopy of [
 ]) assert.ok(activationForm.includes(noticeCopy), `post-purchase copy must block repurchase in its first two sentences: ${noticeCopy}`);
 assert.doesNotMatch(activationForm, /track\(/, "activation recovery must not add a new analytics event");
 assert.match(successPage, /<ResumeProActivationForm initialSessionId=\{sessionId\}/);
-assert.match(restorePage, /코드가 잘못됐거나 만료·사용 처리됐습니다\. 다시 결제하지 마세요\./);
+assert.match(restorePage, /<ResumeProRestoreForm initialStatus=\{status\}/);
+assert.match(restoreForm, /window\.crypto\.getRandomValues/);
+assert.match(restoreForm, /window\.sessionStorage\.setItem\(restoreNonceStorageKey, nonce\)/);
+assert.doesNotMatch(restoreForm, /sessionStorage\.setItem\([^\n]*code|localStorage/, "restore code must stay out of browser storage");
+assert.match(restoreForm, /formData\.set\("restore_nonce", nonce\)/);
+assert.match(restoreForm, /min-h-12 w-full[\s\S]*sm:w-auto/);
+assert.match(restoreForm, /aria-live="polite"/);
+assert.doesNotMatch(restoreForm, /track\(|ResumeProVisitTracker/);
 assert.match(restorePage, /href="\/payment-help"/);
 assert.match(restorePage, /href="\/resume-builder"[\s\S]*무료 이력서 빌더 이용하기/);
 assert.doesNotMatch(restorePage, /href="\/resume-pro"/, "replay and restore screens must lead to the free Builder, not the purchase page");
@@ -304,8 +476,14 @@ assert.ok(
 );
 assert.match(restoreRoute, /consumeRestoreTokenHash/);
 assert.match(restoreRoute, /setResumeProAccessCookie/);
+assert.match(restoreRoute, /createRestoreAccessSession\(restoreHash, nonce\)/);
+assert.match(restoreRoute, /result\.outcome === "consumed" \|\| result\.outcome === "idempotent"/);
+assert.doesNotMatch(restoreRoute, /console\.|logger|restore_code.*(?:log|error)/i, "restore secrets must not be logged");
 assert.match(activateRoute, /createAccessSession\("activation", nonceHash\)/);
-assert.match(restoreRoute, /createAccessSession\("restore", restoreHash\)/);
+assert.match(storeSource, /restore_outcome/);
+assert.match(storeSource, /The entitlement database returned an invalid restore result/);
+assert.match(storeSource, /select \* from consume_entitlement_restore_token\([\s\S]*\$\{input\.nonceHash\}/);
+assert.match(accessSource, /deriveResumeProRestoreSourceHash\(tokenHash, nonceHash\)/);
 assert.match(tokenSource, /v: 2/);
 assert.match(tokenSource, /accessSessionId: string/);
 assert.match(accessSource, /findActiveByAccessSession/);

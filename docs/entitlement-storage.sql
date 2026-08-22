@@ -114,6 +114,17 @@ create table if not exists purchase_access_sessions (
   )
 );
 
+-- A consumed restore token binds one browser nonce hash to one server access
+-- session. Only hashes and relational identifiers are retained.
+create table if not exists purchase_restore_activations (
+  restore_token_hash text primary key references purchase_restore_tokens(token_hash) on delete restrict
+    check (restore_token_hash ~ '^[a-f0-9]{64}$'),
+  restore_nonce_hash text not null unique check (restore_nonce_hash ~ '^[a-f0-9]{64}$'),
+  entitlement_id bigint not null references purchase_entitlements(id) on delete restrict,
+  access_session_id bigint not null unique references purchase_access_sessions(id) on delete restrict,
+  created_at timestamptz not null default now()
+);
+
 alter table public.purchase_checkout_activations
   add column if not exists activation_nonce_hash text;
 alter table public.purchase_checkout_activations
@@ -1042,6 +1053,7 @@ $$;
 
 revoke all on table payment_operator_alert_outbox from public;
 revoke all on table purchase_access_sessions from public;
+revoke all on table purchase_restore_activations from public;
 revoke insert, update, delete on purchase_checkout_activations from public;
 revoke insert, update, delete on entitlement_event_tombstones, stripe_payment_object_links from public;
 revoke all on function prevent_entitlement_tombstone_mutation() from public;
@@ -1073,6 +1085,14 @@ on conflict (version) do nothing;
 
 insert into schema_migrations (version)
 values ('20260823_checkout_activation_nonce_v1')
+on conflict (version) do nothing;
+
+insert into schema_migrations (version)
+values ('20260823_purchase_access_sessions_v1')
+on conflict (version) do nothing;
+
+insert into schema_migrations (version)
+values ('20260823_restore_activation_nonce_v1')
 on conflict (version) do nothing;
 
 commit;

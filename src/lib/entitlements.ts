@@ -52,6 +52,11 @@ export type CheckoutActivationResult = {
   entitlement?: EntitlementRecord;
 };
 
+export type RestoreActivationResult = {
+  outcome: "consumed" | "idempotent" | "used" | "released" | "revoked" | "review" | "missing";
+  entitlement?: EntitlementRecord;
+};
+
 export type AccessSessionInput = {
   accessSessionHash: string;
   accessSessionRefLast8: string;
@@ -67,11 +72,12 @@ export interface EntitlementStore {
     entitlement?: EntitlementRecord;
   }>;
 
-  consumeRestoreTokenHash(
-    tokenHash: string,
-    productCode: ProductCode,
-    accessSession: AccessSessionInput,
-  ): Promise<EntitlementRecord | null>;
+  consumeRestoreTokenHash(input: {
+    tokenHash: string;
+    productCode: ProductCode;
+    nonceHash: string;
+    accessSession: AccessSessionInput;
+  }): Promise<RestoreActivationResult>;
 
   consumeCheckoutActivation(input: {
     checkoutSessionId: string;

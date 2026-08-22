@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { ResumeProRestoreForm } from "@/components/tools/ResumeProRestoreForm";
 import { Container } from "@/components/ui/Container";
 
 export const metadata: Metadata = {
@@ -23,14 +24,7 @@ export default async function ResumeProRestorePage({ searchParams }: Props) {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">구매 내역 다시 찾기</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">Resume Pro 이용권 복구</h1>
           <p className="mt-5 text-sm leading-7 text-muted">이미 구매했다면 다시 결제하지 마세요. 이전에 Resume Pro 작업 공간에서 만든 1회용 복구 코드를 입력하면 이용권을 다시 연결할 수 있어요. 원문 코드는 서버에 저장되지 않으며 사용 후 즉시 무효화됩니다.</p>
-          {status === "invalid" && <p className="mt-5 border-l-2 border-red-500 bg-red-50 p-4 text-sm leading-6 text-red-900" role="alert">코드가 잘못됐거나 만료·사용 처리됐습니다. 다시 결제하지 마세요. 고객지원 확인 순서를 따라 구매 내역을 확인해 주세요.</p>}
-          {status === "activation-used" && <p className="mt-5 border-l-2 border-gold bg-gold/10 p-4 text-sm leading-6 text-navy" role="status">이 결제 완료 주소는 이미 다른 브라우저에서 사용됐습니다. 다시 결제하지 마세요. 기존 기기의 작업 공간에서 만든 1회용 복구 코드로 다시 연결할 수 있어요.</p>}
-          {status === "activation-released" && <p className="mt-5 border-l-2 border-gold bg-gold/10 p-4 text-sm leading-6 text-navy" role="status">이 기기의 이용 연결은 이미 해제됐습니다. 다시 결제하지 마세요. 기존 기기의 작업 공간에서 만든 1회용 복구 코드로만 다시 연결할 수 있어요.</p>}
-          <form action="/api/resume-pro/restore" method="post" className="mt-8 border border-navy/15 bg-white p-5 sm:p-6">
-            <label htmlFor="restore-code" className="text-sm font-semibold text-navy">복구 코드</label>
-            <textarea id="restore-code" name="restore_code" required minLength={32} maxLength={128} autoComplete="off" spellCheck={false} className="mt-2 min-h-28 w-full border border-border bg-surface p-3 text-sm text-navy outline-none focus:border-gold" />
-            <button type="submit" className="mt-4 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white">이용권 복구</button>
-          </form>
+          <ResumeProRestoreForm initialStatus={status} />
           <p className="mt-5 text-xs leading-5 text-muted">복구 코드를 분실했다면 결제 이메일만으로 자동 복구하지 않습니다. 구매 정보 확인 절차가 마련될 때까지 지원 채널을 이용해야 합니다.</p>
           <Link href="/payment-help" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold underline-offset-4">복구 코드가 없다면 문제 해결 순서 보기 →</Link>
           <Link href="/resume-builder" className="mt-7 inline-flex min-h-11 items-center text-sm font-semibold text-navy">&larr; 무료 이력서 빌더 이용하기</Link>
