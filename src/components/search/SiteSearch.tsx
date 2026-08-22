@@ -13,9 +13,18 @@ export function SiteSearch({ items, initialQuery = "" }: { items: SearchItem[]; 
   const normalized = normalize(query.trim());
   const results = useMemo(() => {
     if (!normalized) return items;
-    return items.filter((item) => normalize([item.title, item.description, ...item.keywords].join(" ")).includes(normalized));
+    const relevance = (item: SearchItem) => {
+      if (normalize(item.title).includes(normalized)) return 3;
+      if (item.keywords.some((keyword) => normalize(keyword).includes(normalized))) return 2;
+      return 1;
+    };
+    const paid = (item: SearchItem) => item.href === "/pro" || item.href.includes("-pro");
+    const rank = (item: SearchItem) => relevance(item) * 2 - Number(paid(item)) * 2;
+    return items
+      .filter((item) => normalize([item.title, item.description, ...item.keywords].join(" ")).includes(normalized))
+      .sort((a, b) => rank(b) - rank(a));
   }, [items, normalized]);
-  const groups = ["도구", "가이드", "자료"] as const;
+  const groups = normalized === normalize("STAR") ? ["자료", "도구", "가이드"] as const : ["도구", "가이드", "자료"] as const;
 
   return <>
     <section className="mt-10 border-y border-navy/20 py-6" aria-labelledby="site-search-label"><label id="site-search-label" htmlFor="site-search" className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">어떤 도움이 필요하세요?</label><div className="mt-3 flex items-center border-b-2 border-navy pb-3"><span className="mr-3 font-mono text-2xl text-gold" aria-hidden="true">⌕</span><input id="site-search" type="search" autoComplete="off" autoFocus value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="예: TFN, 집 구하기, Super 환급" className="min-h-12 w-full bg-transparent text-xl text-navy outline-none placeholder:text-muted/55 sm:text-2xl"/><span className="ml-3 shrink-0 font-mono text-xs text-muted" aria-live="polite">{results.length}개</span></div><div className="mt-4 flex flex-wrap gap-x-5 gap-y-2"><span className="text-xs text-muted">많이 찾는 검색어</span>{suggestions.map((value)=><button key={value} type="button" onClick={()=>setQuery(value)} className="min-h-8 border-b border-border text-xs font-semibold text-navy hover:border-gold">{value}</button>)}</div></section>

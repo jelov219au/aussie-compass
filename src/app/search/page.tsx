@@ -14,7 +14,9 @@ export const metadata = {
 
 const coreItems:SearchItem[]=[
   {href:"/my-compass",type:"도구",title:"나의 진행 상황",description:"이 기기에 저장된 정착·구직·저축·세금 프로젝트 모아보기",keywords:["대시보드","이어하기","저장","진행률","내 프로젝트","my compass"]},
-  {href:"/pro",type:"도구",title:"Hoju Compass Pro 비교",description:"현재 이용 가능한 Resume Pro와 준비 중인 유료 도구 비교",keywords:["유료","프리미엄","pro","가격","결제","상품","패키지"]},
+  {href:"/resume-builder",type:"도구",title:"무료 영문 이력서 빌더",description:"경력 문장을 현재 브라우저에 저장하고 영문 이력서를 PDF로 내보내기",keywords:["이력서","resume","CV","레쥬메","STAR","면접","인터뷰","번역","자기소개","경력","구직"]},
+  {href:"/resume-pro",type:"도구",title:"Resume Pro — 공고별 이력서·커버레터",description:"지원할 공고가 정해진 뒤 STAR 경험을 회사별 지원서와 면접 준비에 재사용하고 묶음으로 내보내기",keywords:["이력서","resume","CV","커버레터","cover letter","STAR","면접","인터뷰","selection criteria","유료","pro"]},
+  {href:"/pro",type:"도구",title:"Hoju Compass Pro 비교",description:"현재 이용 가능한 유료 도구와 준비 중인 도구 비교",keywords:["유료","프리미엄","pro","가격","결제","상품","패키지"]},
   {href:"/purchase-information",type:"자료",title:"구매·환불 안내",description:"Resume Pro 가격, 판매자 정보, 영수증, 이용권 복구와 환불 요청 절차",keywords:["환불","결제","영수증","인보이스","ABN","소비자권리","Stripe","구매"]},
   {href:"/contact",type:"자료",title:"Hoju Compass 문의하기",description:"콘텐츠 정정, 도구 이용과 결제 문제를 안전하게 이메일로 문의",keywords:["고객센터","이메일","support","문의","오류신고","정보수정","제휴"]},
   {href:"/editorial-policy",type:"자료",title:"콘텐츠 작성 원칙",description:"공식 출처 확인, 업데이트, 정정과 광고·제휴 표시 기준",keywords:["신뢰","출처","공식자료","업데이트","광고","제휴","수정","정정"]},
@@ -33,8 +35,7 @@ const coreItems:SearchItem[]=[
   {href:"/public-transport-guide",type:"도구",title:"대중교통·통학 생활권 비교",description:"주거비, 통학시간, Google Maps와 학생 교통정보",keywords:["기차","버스","트램","통근","대학교","교환학생","교통카드","myki","opal"]},
   {href:"/property-inspection-checklist",type:"도구",title:"쉐어하우스·집 방문 체크리스트",description:"집 상태, 비용, 계약, 안전과 생활환경 점검",keywords:["flatmates","페이스북","렌트","방","보증금","bond","인스펙션"]},
   {href:"/moving-checklist",type:"도구",title:"이사 체크리스트",description:"퇴거 통지, 공과금, 주소 변경과 보증금",keywords:["이삿날","condition report","전기","가스","인터넷","주소"]},
-  {href:"/resume-builder",type:"도구",title:"영문 이력서 빌더",description:"영문 예시 문장, 디자인과 PDF 출력",keywords:["resume","CV","레쥬메","번역","자기소개","경력","구직"]},
-  {href:"/job-application-tracker",type:"도구",title:"구직 지원 트래커",description:"공고, 지원일, 면접과 다음 행동 관리",keywords:["취업","일자리","인터뷰","application","job"]},
+  {href:"/job-application-tracker",type:"도구",title:"구직 지원 트래커",description:"공고, 지원일, 면접과 다음 행동 관리",keywords:["취업","일자리","면접","인터뷰","application","job"]},
   {href:"/career-pathways",type:"도구",title:"직업·부족 분야 탐색기",description:"직업 정보와 공식 부족·비자 목록 확인",keywords:["영주권","부족직군","skilled","occupation","진로","스폰서"]},
   {href:"/savings-goal-calculator",type:"도구",title:"저축 목표 계산기",description:"목표 기간, 정기 저축액과 비상금 관리",keywords:["적금","비상금","이자","목돈","savings"]},
   {href:"/tax-return-guide",type:"도구",title:"택스 리턴 준비",description:"EOFY 소득자료, 공제 증빙과 신고 일정",keywords:["세금환급","ATO","tax return","deduction","공제"]},
@@ -58,7 +59,7 @@ const articleItems: SearchItem[] = articles.map((article) => ({
   type: "자료",
   title: article.title,
   description: article.description,
-  keywords: [article.category, article.toolLabel, ...article.sections.map((section) => section.heading)],
+  keywords: [article.category, article.toolLabel, ...article.sections.map((section) => section.heading), ...(article.slug === "english-resume-achievement-examples" ? ["이력서", "resume", "CV", "커버레터", "STAR", "면접"] : [])],
 }));
 
 const items = [...coreItems, ...articleItems];
