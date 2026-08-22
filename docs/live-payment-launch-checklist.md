@@ -77,3 +77,48 @@ Evidence timing and sales gate:
 - Runtime acceptance of `sk_live_` prevents an environment-mode mismatch and preserves an incident-recovery path. It is compatibility behaviour, not launch approval and not a reason to mark the restricted-key item complete.
 - Rotating keys, adding key IP restrictions and periodically reviewing Workbench request logs are ongoing security improvements after the least-privilege launch gate passes. They do not replace the pre-sale `rk_live_` requirement.
 - The 15-minute / 24-hour / first-payout evidence sequence is not a blocker before the first customer payment because its evidence does not yet exist. It is an operational blocker for the second sale if the sequence is incomplete.
+
+## 7. Fourteen-day first-customer conversion watch
+
+Starting observation, supplied by the operator rather than fetched during this review: the previous 28 days show 1 Resume Pro visit, 0 Checkout starts and 0 customer purchases. Builder-start and Pro-CTA baselines were not supplied; record them as `N/A`, not zero. These are observations, not targets or forecasts.
+
+Check the same Australia/Sydney reporting window once each day after deployment. Use aggregate counts only; do not record names, emails, Stripe IDs or customer-level paths.
+
+| Funnel step | Daily minimum record | Existing source or honest proxy |
+| --- | --- | --- |
+| Unique landing visits | Unique visitors to the selected high-intent landing routes | Vercel route-level unique visitors; use `N/A` if a unique count is unavailable and never substitute pageviews silently |
+| Builder start | Unique visitors who opened `/resume-builder` | Route visit is a proxy because there is no dedicated Builder-start event; do not label it as first-field interaction |
+| Pro CTA | `Pro Interest` for `product=resume_pro`, plus article next-step events whose destination is `resume_pro` | Report the two event families separately if they cannot be de-duplicated |
+| Checkout start | `Checkout Started` where `product=resume_pro` | Existing anonymous Vercel event; compare only with the same date and acquisition entry |
+| Completed purchase | Live, paid, complete Resume Pro Checkout at A$19.90 | Read-only Stripe aggregate; exclude test and owner-controlled transactions and show refunds separately |
+
+Because some stages use unique-route proxies and others use event counts, any calculated rate is directional until all stages share a consistent unique-count basis.
+
+| Day | Unique landing | Builder-start proxy | Pro CTA | Checkout start | Paid customer | Note / data gap |
+| ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 1 | — | — | — | — | — | |
+| 2 | — | — | — | — | — | |
+| 3 | — | — | — | — | — | |
+| 4 | — | — | — | — | — | |
+| 5 | — | — | — | — | — | |
+| 6 | — | — | — | — | — | |
+| 7 | — | — | — | — | — | Decision review; change at most one variable |
+| 8 | — | — | — | — | — | |
+| 9 | — | — | — | — | — | |
+| 10 | — | — | — | — | — | |
+| 11 | — | — | — | — | — | |
+| 12 | — | — | — | — | — | |
+| 13 | — | — | — | — | — | |
+| 14 | — | — | — | — | — | Final review; record HOLD or one next change |
+
+### Sample hold and single-decision rule
+
+The numbers below are decision floors, not sales goals, promised conversion rates or advertising targets. Make decisions only on day 7 and day 14; daily checks detect outages and data gaps, not reasons to keep changing the offer.
+
+1. **Data gate:** if a required stage is `N/A`, live/test traffic is mixed, or a technical checkout/access incident is unresolved, record `HOLD`. Change no price, copy or channel.
+2. **Reach gate:** if a candidate acquisition entry has fewer than 10 cumulative `Resume Pro Viewed` events, conversion is not interpretable. Keep A$19.90 and the offer copy unchanged; the only allowed experiment is one no-cost organic channel or landing distribution change for the next review window.
+3. **Message gate:** with at least 10 Resume Pro views but zero Checkout starts, keep the price and channel fixed and change one value/CTA or trust sentence. Do not change the page and acquisition source together.
+4. **Price gate:** one or two Checkout starts without a purchase is still `HOLD` for price. Only at the day-14 review, after at least 3 Checkout starts and zero paid completions, and after excluding technical, access and seller-trust failures, may the owner choose one price test **or** one checkout-terms/copy test. Never change both in the same window.
+5. **Customer-payment gate:** when the first genuine customer payment completes, stop conversion changes and pause acceptance of a second sale. Run the 15-minute, 24-hour and first-payout evidence sequence in section 5. Resume selling only after the accounting system gate is `GO` and the business owner records `APPROVED`.
+
+Channel changes in this 14-day watch mean unpaid distribution through an existing owned or community route that already permits the post. This table does not authorise advertising spend, a new tracking service, unsolicited messages or paid placement.
