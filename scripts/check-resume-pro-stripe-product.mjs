@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 
 import {
   assertResumeProStripeProduct,
@@ -75,5 +76,27 @@ for (const [label, environment] of [
 ]) {
   assert.throws(() => getResumeProStripeProductConfig(environment), undefined, `${label} must fail closed`);
 }
+
+const [resumeProPage, jsonLdComponent] = await Promise.all([
+  readFile("src/app/resume-pro/page.tsx", "utf8"),
+  readFile("src/components/seo/JsonLd.tsx", "utf8"),
+]);
+
+for (const contract of [
+  "name={resumeProProduct.name}",
+  "currency={resumeProProduct.currency}",
+  "priceCents={resumeProProduct.priceCents}",
+  'path="/resume-pro"',
+  'available={process.env.VERCEL_ENV === "production" && paymentReadiness.ready}',
+]) {
+  assert.ok(resumeProPage.includes(contract), `Resume Pro Product JSON-LD is not tied to the verified product contract: ${contract}`);
+}
+
+assert.ok(jsonLdComponent.includes("const url = `${siteUrl}${path}`"), "Product and Offer URLs must use the canonical site URL");
+assert.ok(jsonLdComponent.includes("price: (priceCents / 100).toFixed(2)"), "Product JSON-LD must derive AUD 19.90 from the server price definition");
+assert.ok(jsonLdComponent.includes("serializeJsonLd(data)"), "Product JSON-LD must keep the safe serializer");
+assert.ok(jsonLdComponent.includes("getPublicSellerDetails"), "Organization JSON-LD must keep the configured public support email");
+assert.equal(jsonLdComponent.includes("aggregateRating"), false, "Product JSON-LD must not invent aggregate ratings");
+assert.equal(jsonLdComponent.includes('"review"'), false, "Product JSON-LD must not invent reviews");
 
 console.log("Resume Pro Stripe Product identity and tax-contract checks passed.");
