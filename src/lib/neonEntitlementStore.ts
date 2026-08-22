@@ -59,7 +59,7 @@ async function applyStripeEvent(input: {
   const sql = neon(getConnectionString());
   const { receipt, command } = input;
   const rows = await sql`
-    select * from apply_entitlement_event(
+    select * from apply_guarded_entitlement_event(
       ${receipt.eventId},
       ${receipt.eventType},
       ${receipt.livemode},
@@ -88,29 +88,10 @@ async function consumeRestoreTokenHash(tokenHash: string, productCode: ProductCo
 
   const sql = neon(getConnectionString());
   const rows = await sql`
-    with consumed as (
-      update purchase_restore_tokens
-      set used_at = now()
-      where token_hash = ${tokenHash.toLowerCase()}
-        and used_at is null
-        and expires_at > now()
-        and entitlement_id in (
-          select id from purchase_entitlements where product_code = ${productCode}
-        )
-      returning entitlement_id
+    select * from consume_entitlement_restore_token(
+      ${tokenHash.toLowerCase()},
+      ${productCode}
     )
-    select
-      entitlement.id,
-      entitlement.product_code,
-      entitlement.status,
-      entitlement.stripe_checkout_session_id,
-      entitlement.stripe_payment_intent_id,
-      entitlement.stripe_charge_id,
-      entitlement.stripe_customer_id,
-      entitlement.granted_at,
-      entitlement.revoked_at
-    from purchase_entitlements entitlement
-    join consumed on consumed.entitlement_id = entitlement.id
   ` as EntitlementRow[];
 
   return rows[0] ? toEntitlementRecord(rows[0]) : null;
@@ -178,26 +159,15 @@ async function createRestoreTokenHash(input: {
 
   const sql = neon(getConnectionString());
   const rows = await sql`
-    with active_entitlement as (
-      select id
-      from purchase_entitlements
-      where id = ${input.entitlementId}
-        and product_code = ${input.productCode}
-        and status = 'active'
-    ), invalidated as (
-      update purchase_restore_tokens
-      set used_at = now()
-      where entitlement_id in (select id from active_entitlement)
-        and used_at is null
-      returning token_hash
-    )
-    insert into purchase_restore_tokens (token_hash, entitlement_id, expires_at)
-    select ${input.tokenHash.toLowerCase()}, id, ${input.expiresAt.toISOString()}
-    from active_entitlement
-    returning token_hash
-  ` as { token_hash: string }[];
+    select create_entitlement_restore_token(
+      ${input.entitlementId},
+      ${input.productCode},
+      ${input.tokenHash.toLowerCase()},
+      ${input.expiresAt.toISOString()}
+    ) as created
+  ` as { created: boolean }[];
 
-  if (!rows[0]) throw new Error("An active entitlement is required to create a restore token.");
+  if (!rows[0]?.created) throw new Error("An active entitlement is required to create a restore token.");
 }
 
 export const neonEntitlementStore: EntitlementStore = {

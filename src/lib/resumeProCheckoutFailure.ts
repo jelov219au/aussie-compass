@@ -69,6 +69,10 @@ export function classifyResumeProCheckoutFailure(error: unknown): ResumeProCheck
     return failures.checkout_unavailable;
   }
 
+  if (errorLike?.name === "FirstSaleGateClosedError") {
+    return failures.checkout_unavailable;
+  }
+
   const stripeType = errorLike?.type;
 
   if (typeof stripeType === "string" && configurationStripeErrors.has(stripeType)) {

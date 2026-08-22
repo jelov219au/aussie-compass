@@ -23,6 +23,7 @@ export type PaymentReadiness = {
   managedPaymentsConfigured: boolean;
   webhookConfigured: boolean;
   entitlementStoreConfigured: boolean;
+  firstSaleGateConfigured: boolean;
   accessDeliveryImplemented: boolean;
   sellerDetailsConfigured: boolean;
   supportConfigured: boolean;
@@ -41,6 +42,8 @@ export function getPaymentReadiness(): PaymentReadiness {
   const webhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_"));
   const entitlementStoreConfigured = process.env.PAYMENTS_ENTITLEMENT_STORE === "neon"
     && Boolean(getEntitlementDatabaseUrl()?.match(/^postgres(?:ql)?:\/\//));
+  const firstSaleGateConfigured = process.env.FIRST_SALE_GATE_ENABLED === "true"
+    && entitlementStoreConfigured;
   const accessDeliveryImplemented = entitlementStoreConfigured && isEntitlementSessionConfigured();
   const tradingName = process.env.BUSINESS_TRADING_NAME?.trim() || siteName;
   const legalName = process.env.BUSINESS_LEGAL_NAME?.trim();
@@ -54,7 +57,7 @@ export function getPaymentReadiness(): PaymentReadiness {
     && /^\d{11}$/.test(abnDigits),
   );
   const supportConfigured = Boolean(supportEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail));
-  const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && accessDeliveryImplemented && sellerDetailsConfigured && supportConfigured;
+  const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && firstSaleGateConfigured && accessDeliveryImplemented && sellerDetailsConfigured && supportConfigured;
 
   if (
     enabled
@@ -71,13 +74,14 @@ export function getPaymentReadiness(): PaymentReadiness {
       managedPaymentsConfigured,
       webhookConfigured,
       entitlementStoreConfigured,
+      firstSaleGateConfigured,
       accessDeliveryImplemented,
       sellerDetailsConfigured,
       supportConfigured,
     });
   }
 
-  return { enabled, stripeConfigured, stripeProductContractConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, ready };
+  return { enabled, stripeConfigured, stripeProductContractConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, firstSaleGateConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, ready };
 }
 
 export function canCreateTestCheckout() {
@@ -85,7 +89,8 @@ export function canCreateTestCheckout() {
   return process.env.VERCEL_ENV !== "production"
     && readiness.enabled
     && readiness.stripeConfigured
-    && readiness.managedPaymentsConfigured;
+    && readiness.managedPaymentsConfigured
+    && readiness.firstSaleGateConfigured;
 }
 
 export function isResumeProLive() {

@@ -1,10 +1,31 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [schema, recovery] = await Promise.all([
+const [schema, firstSaleSchema, recovery] = await Promise.all([
   readFile(new URL("../docs/entitlement-storage.sql", import.meta.url), "utf8"),
+  readFile(new URL("../docs/first-sale-gate.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/database-recovery.md", import.meta.url), "utf8"),
 ]);
+
+for (const contract of [
+  "begin;",
+  "create table if not exists public.first_sale_gates",
+  "create table if not exists public.first_sale_gate_events",
+  "first_sale_gate_events is append-only",
+  "security definer",
+  "set search_path = public, pg_temp",
+  "pg_advisory_xact_lock",
+  "apply_first_sale_paid_event",
+  "approve_next_first_sale",
+  "revoke all on function public.approve_next_first_sale",
+  "revoke create on schema public from public",
+  "revoke all on table public.first_sale_gates, public.first_sale_gate_events from public",
+  "apply_guarded_entitlement_event",
+  "on conflict (version) do nothing",
+  "commit;",
+]) {
+  assert.ok(firstSaleSchema.includes(contract), `First-sale migration contract is missing: ${contract}`);
+}
 
 for (const contract of [
   "begin;",

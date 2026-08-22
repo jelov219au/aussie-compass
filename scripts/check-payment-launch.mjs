@@ -40,6 +40,7 @@ const checks = [
   ["웹훅 서명", process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_") ?? false, "whsec_ 비밀"],
   ["이용권 저장소", process.env.PAYMENTS_ENTITLEMENT_STORE === "neon", "Neon"],
   ["이용권 DB", /^postgres(?:ql)?:\/\//.test(entitlementDatabaseUrl), "Postgres 연결"],
+  ["첫 판매 원자 게이트", process.env.FIRST_SALE_GATE_ENABLED === "true", "DB gate 활성화"],
   ["접근 세션 서명", (process.env.ENTITLEMENT_SESSION_SECRET?.trim().length ?? 0) >= 32, "32자 이상"],
   ["등록 사업명", tradingName.length <= 120, "Hoju Compass"],
   ["법적 판매자", present(process.env.BUSINESS_LEGAL_NAME), "고객 공개용"],

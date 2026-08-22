@@ -138,11 +138,11 @@ The fixed hashes above are the authoritative complete file inventory. The candid
 
 ### Required only for a full Resume Pro payment/access Preview
 
-`docs/entitlement-storage.sql` is the authoritative, idempotent entitlement schema. A target database must have the tables, indexes, event-order column, constraints and `apply_entitlement_event` routine before a Preview exercises webhook persistence, access activation, recovery or refund/revocation. The candidate adds a transaction wrapper and records migration version `20260818_entitlement_baseline_v1` in `schema_migrations`.
+`docs/entitlement-storage.sql` is the authoritative, idempotent entitlement schema. A target database must have the tables, indexes, event-order column, constraints and `apply_entitlement_event` routine before a Preview exercises webhook persistence, access activation, recovery or refund/revocation. Apply `docs/first-sale-gate.sql` second; it adds the atomic sale reservation, append-only audit, guarded entitlement/restore wrappers and records `20260823_first_sale_gate_v1`. The baseline records `20260818_entitlement_baseline_v1`.
 
 - A static/UI Preview with `PAYMENTS_ENABLED=false` does not require a database migration.
-- A Checkout-only test can create a test Session without the entitlement database, but must not be presented as a complete purchase flow.
-- A full payment/access Preview requires the entitlement schema plus target-Preview database connection and signing settings.
+- Checkout is now fail-closed without the entitlement database, first-sale migration and `FIRST_SALE_GATE_ENABLED=true`; there is no persistence-free Session mode.
+- A full payment/access Preview requires both schemas plus target-Preview database connection, least-privilege role matrix and signing settings.
 - Do not rerun or alter Production from this manifest. First perform the documented read-only schema check and record whether the version already exists.
 - Never roll back payment tables by dropping them. On an incident, disable payments and roll back application code while preserving webhook and entitlement evidence.
 
@@ -184,9 +184,10 @@ In addition to the Checkout variables, require:
 
 - `STRIPE_WEBHOOK_SECRET` for the exact Preview endpoint
 - `PAYMENTS_ENTITLEMENT_STORE=neon`
+- `FIRST_SALE_GATE_ENABLED=true`
 - one approved target connection: managed `ENTITLEMENT_DB_DATABASE_URL` or manual `ENTITLEMENT_DB_URL`
 - `ENTITLEMENT_SESSION_SECRET` with at least 32 random characters
-- the applied entitlement migration from section 3
+- both applied migration versions from section 3
 
 `ENTITLEMENT_DB_HMAC_SECRET` is reserved for privacy-preserving email lookup and is not a substitute for the session signing secret.
 
@@ -197,6 +198,7 @@ Production `getPaymentReadiness()` additionally fails closed unless all of these
 - live-mode Stripe key and live Price/Product/tax contract
 - `STRIPE_WEBHOOK_SECRET`
 - `PAYMENTS_ENTITLEMENT_STORE=neon` and a recognised Postgres connection
+- `FIRST_SALE_GATE_ENABLED=true` and the verified least-privilege runtime/operator role matrix
 - `ENTITLEMENT_SESSION_SECRET`
 - `BUSINESS_LEGAL_NAME`
 - `BUSINESS_ABN` as 11 digits
@@ -214,6 +216,8 @@ Do not copy legal identity, ABN, keys or connection strings into this repository
 - Restricted key can retrieve the configured Price with expanded Product and create Checkout Sessions.
 - Exact Preview webhook destination and signing secret configured for the required Checkout, refund and dispute events.
 - Preview-scoped Neon database connection and entitlement migration verified.
+- First-sale migration verified; runtime has no public-schema CREATE, direct protected-table DML, original entitlement-function execution or owner-reopen execution.
+- Zero payable Resume Pro Checkout Sessions exist from before the gate; each old Session is explicitly expired.
 - Preview environment variables assigned to the intended branch/deployment only.
 
 ### Required before Production, not before a payments-off Preview

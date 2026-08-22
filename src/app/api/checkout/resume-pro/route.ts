@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 
 import { canCreateTestCheckout, getPaymentReadiness, resumeProPurchaseTermsVersion } from "@/lib/commerce";
+import {
+  canSafelyReleaseAfterStripeError,
+  createFirstSaleReservation,
+  FIRST_SALE_PRODUCT_CODE,
+  isVerifiedAbandonedCheckout,
+  type FirstSaleClaim,
+  type FirstSaleGateStore,
+} from "@/lib/firstSaleGate";
+import { getConfiguredFirstSaleGate } from "@/lib/neonFirstSaleGate";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
 import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
 import {
@@ -12,6 +21,7 @@ import {
 import { assertResumeProStripeProduct, getResumeProStripeProductConfig } from "@/lib/resumeProStripeProduct";
 import { siteUrl } from "@/lib/site";
 import { assertSafeStripeEnvironment, getStripe } from "@/lib/stripe";
+import type Stripe from "stripe";
 
 export const runtime = "nodejs";
 
@@ -28,6 +38,64 @@ function createIntegrationIdentifier() {
 
 function acceptsJson(request: NextRequest) {
   return request.headers.get("accept")?.includes("application/json") ?? false;
+}
+
+class FirstSaleGateClosedError extends Error {
+  override name = "FirstSaleGateClosedError";
+}
+
+async function claimFirstSale(
+  gate: FirstSaleGateStore,
+  stripe: Stripe,
+  environment: "live" | "test",
+) {
+  const reserve = () => {
+    const reservation = createFirstSaleReservation();
+    return gate.claimReservation({
+      productCode: FIRST_SALE_PRODUCT_CODE,
+      ...reservation,
+      environment,
+      currency: "aud",
+      amountCents: 1990,
+    });
+  };
+
+  let result = await reserve();
+
+  if (result.outcome === "verify_expiry") {
+    // A clock timeout alone is insufficient. Only a Stripe-confirmed expired,
+    // unpaid Session with no PaymentIntent is safe to release.
+    let session: Stripe.Checkout.Session;
+    try {
+      session = await stripe.checkout.sessions.retrieve(result.checkoutSessionId);
+    } catch {
+      throw new FirstSaleGateClosedError();
+    }
+
+    const paymentIntentId = typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : session.payment_intent?.id ?? null;
+
+    if (!isVerifiedAbandonedCheckout({
+      status: session.status,
+      paymentStatus: session.payment_status,
+      paymentIntentId,
+    })) {
+      throw new FirstSaleGateClosedError();
+    }
+
+    const released = await gate.releaseVerifiedAbandoned({
+      productCode: FIRST_SALE_PRODUCT_CODE,
+      generation: result.generation,
+      checkoutSessionId: result.checkoutSessionId,
+    });
+
+    if (!released) throw new FirstSaleGateClosedError();
+    result = await reserve();
+  }
+
+  if (result.outcome !== "claimed") throw new FirstSaleGateClosedError();
+  return result;
 }
 
 function checkoutFailureResponse(
@@ -96,12 +164,20 @@ export async function POST(request: NextRequest) {
     assertSafeStripeEnvironment();
 
     const stripe = getStripe();
+    const firstSaleGate = getConfiguredFirstSaleGate();
+    if (!firstSaleGate) throw new FirstSaleGateClosedError();
     const productConfig = getResumeProStripeProductConfig();
     const price = await stripe.prices.retrieve(productConfig.priceId, { expand: ["product"] });
     assertResumeProStripeProduct(price, productConfig, process.env.VERCEL_ENV === "production");
 
     const origin = getCheckoutOrigin(request);
-    const session = await stripe.checkout.sessions.create({
+    const environment = process.env.VERCEL_ENV === "production" ? "live" : "test";
+    let claim: FirstSaleClaim | undefined;
+    let sessionCreated = false;
+
+    try {
+      claim = await claimFirstSale(firstSaleGate, stripe, environment);
+      const session = await stripe.checkout.sessions.create({
       mode: "payment",
       integration_identifier: createIntegrationIdentifier(),
       line_items: [{ price: productConfig.priceId, quantity: 1 }],
@@ -114,21 +190,48 @@ export async function POST(request: NextRequest) {
         purchase_terms_version: resumeProPurchaseTermsVersion,
         acquisition_source: acquisitionSource,
       },
+      expires_at: Math.floor(claim.expiresAt.getTime() / 1000),
       success_url: `${origin}/resume-pro/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/resume-pro?checkout=cancelled&from=${encodeURIComponent(acquisitionSource)}`,
-    });
+      }, { idempotencyKey: claim.idempotencyKey });
+      sessionCreated = true;
 
-    if (!session.url) {
-      throw new Error("Stripe did not return a Checkout URL.");
-    }
+      if (!session.url) {
+        throw new Error("Stripe did not return a Checkout URL.");
+      }
 
-    if (acceptsJson(request)) {
-      return NextResponse.json({ checkoutUrl: session.url }, {
-        headers: { "Cache-Control": "no-store" },
+      const attached = await firstSaleGate.attachCheckoutSession({
+        productCode: FIRST_SALE_PRODUCT_CODE,
+        generation: claim.generation,
+        claimTokenHash: claim.claimTokenHash,
+        checkoutSessionId: session.id,
+        expiresAt: new Date(session.expires_at * 1000),
       });
-    }
 
-    return NextResponse.redirect(session.url, 303);
+      if (!attached) throw new FirstSaleGateClosedError();
+
+      if (acceptsJson(request)) {
+        return NextResponse.json({ checkoutUrl: session.url }, {
+          headers: { "Cache-Control": "no-store" },
+        });
+      }
+
+      return NextResponse.redirect(session.url, 303);
+    } catch (error) {
+      if (claim && !sessionCreated && canSafelyReleaseAfterStripeError(error)) {
+        try {
+          await firstSaleGate.releaseFailedReservation({
+            productCode: FIRST_SALE_PRODUCT_CODE,
+            generation: claim.generation,
+            claimTokenHash: claim.claimTokenHash,
+            reason: "stripe_rejected_before_session",
+          });
+        } catch {
+          // Fail closed: an inability to prove release leaves the reservation in place.
+        }
+      }
+      throw error;
+    }
   } catch (error) {
     const failure = classifyResumeProCheckoutFailure(error);
     console.error("Unable to create Resume Pro Checkout Session", { category: failure.logCategory });

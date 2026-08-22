@@ -76,6 +76,8 @@ Evidence timing and sales gate:
 
 The implementation acceptance contract for this control is `OPEN → RESERVED → SOLD → LOCKED` in `docs/first-payment-24-hour-operations-packet.md`. A pre-Checkout atomic reservation must admit one request only; a verified paid event must lock later Checkouts; abandoned reservations require confirmed expiry and no payment; refunds never reopen sales; and only complete 15-minute, 24-hour and first-payout evidence plus an explicit owner approval may move `LOCKED → OPEN`. Operator alerts and a later manual `PAYMENTS_ENABLED=false` deployment are defence-in-depth, not the first-sale concurrency control.
 
+Before enabling the gate, verify in the matching Stripe mode that Resume Pro has zero existing open Checkout Sessions. Explicitly expire every pre-gate Session and retain non-sensitive expiry evidence; an old payable URL is a launch blocker. The runtime database role must have function `EXECUTE` only for claim/attach/verified release/atomic paid processing, no direct first-sale table DML, and no `approve_next_first_sale` access.
+
 ## 6. Live-key gate versus runtime compatibility
 
 - `rk_live_` is the least-privilege launch requirement. For the first customer sale, a failing `npm run payments:check -- --strict` result is a deployment blocker; the earlier owner-controlled transaction does not waive this gate.

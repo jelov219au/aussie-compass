@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 const entitlements = await readFile(new URL("../src/lib/entitlements.ts", import.meta.url), "utf8");
 const entitlementStore = await readFile(new URL("../src/lib/neonEntitlementStore.ts", import.meta.url), "utf8");
 const storageContract = await readFile(new URL("../docs/entitlement-storage.sql", import.meta.url), "utf8");
+const firstSaleContract = await readFile(new URL("../docs/first-sale-gate.sql", import.meta.url), "utf8");
 
 for (const productCode of ["resume_pro", "rental_application_pro"]) {
   assert.ok(entitlements.includes(`"${productCode}"`), `Supported product code is missing: ${productCode}`);
@@ -20,15 +21,19 @@ for (const methodContract of [
 }
 
 assert.ok(
-  entitlementStore.includes("select id from purchase_entitlements where product_code = ${productCode}"),
+  entitlementStore.includes("consume_entitlement_restore_token(")
+    && firstSaleContract.includes("where entitlement.product_code = p_product_code"),
   "A restore code must be filtered by product before it is consumed",
 );
 assert.ok(
-  entitlementStore.match(/product_code = \$\{productCode\}/g)?.length >= 3,
+  entitlementStore.match(/product_code = \$\{productCode\}/g)?.length >= 2
+    && entitlementStore.includes("${productCode}\n    )"),
   "Active-entitlement lookups must be scoped to an explicit product",
 );
 assert.ok(
-  entitlementStore.includes("product_code = ${input.productCode}"),
+  entitlementStore.includes("create_entitlement_restore_token(")
+    && entitlementStore.includes("${input.productCode}")
+    && firstSaleContract.includes("entitlement.product_code = p_product_code"),
   "Restore-code creation must be scoped to the active product entitlement",
 );
 

@@ -1,0 +1,227 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+
+const [checkout, webhook, gate, neonGate, entitlementStore, migration, runbook, commerce] = await Promise.all([
+  readFile(new URL("../src/app/api/checkout/resume-pro/route.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/firstSaleGate.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/neonFirstSaleGate.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/neonEntitlementStore.ts", import.meta.url), "utf8"),
+  readFile(new URL("../docs/first-sale-gate.sql", import.meta.url), "utf8"),
+  readFile(new URL("../docs/first-sale-gate-runbook.md", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/commerce.ts", import.meta.url), "utf8"),
+]);
+
+for (const contract of [
+  "claimFirstSale(firstSaleGate, stripe, environment)",
+  "checkout.sessions.create",
+  "expires_at: Math.floor(claim.expiresAt.getTime() / 1000)",
+  "{ idempotencyKey: claim.idempotencyKey }",
+  "attachCheckoutSession",
+  "isVerifiedAbandonedCheckout",
+  "releaseVerifiedAbandoned",
+  "session.payment_intent",
+]) {
+  assert.ok(checkout.includes(contract), `Checkout first-sale contract is missing: ${contract}`);
+}
+
+assert.equal(
+  checkout.match(/checkout\.sessions\.create/g)?.length,
+  1,
+  "the route must have one Session creation site",
+);
+assert.ok(
+  checkout.indexOf("claimFirstSale(firstSaleGate") < checkout.indexOf("checkout.sessions.create"),
+  "the DB claim must happen before Session creation",
+);
+assert.ok(
+  checkout.indexOf("attachCheckoutSession") < checkout.indexOf("checkoutUrl: session.url"),
+  "the Session must be attached before its URL is returned",
+);
+
+const metadataStart = checkout.indexOf("metadata: {");
+const metadataEnd = checkout.indexOf("},", metadataStart);
+const metadata = checkout.slice(metadataStart, metadataEnd);
+for (const prohibited of ["claimTokenHash", "idempotencyKey", "generation", "reservation"]) {
+  assert.ok(!metadata.includes(prohibited), `Stripe metadata must not expose ${prohibited}`);
+}
+assert.ok(!checkout.includes("error.message") && !checkout.includes("String(error)"), "public/log boundaries must not serialize internal errors");
+
+for (const contract of [
+  "STRIPE_CHECKOUT_MINIMUM_TTL_SECONDS = 30 * 60",
+  "FIRST_SALE_CLOCK_SKEW_BUFFER_SECONDS = 60",
+  "resume_pro_first_sale_${claimTokenHash}",
+  "StripeAuthenticationError",
+  "StripeInvalidRequestError",
+  "StripePermissionError",
+  'input.status === "expired"',
+  'input.paymentStatus === "unpaid"',
+  "input.paymentIntentId === null",
+]) {
+  assert.ok(gate.includes(contract), `Gate safety helper is missing: ${contract}`);
+}
+
+for (const ambiguous of ["StripeConnectionError", "StripeAPIError", "StripeRateLimitError"]) {
+  assert.ok(!gate.includes(`stripeType === "${ambiguous}"`), `${ambiguous} must retain the reservation`);
+}
+
+for (const contract of [
+  "claim_first_sale_reservation",
+  "attach_first_sale_checkout",
+  "release_failed_first_sale_reservation",
+  "release_verified_abandoned_first_sale",
+  "apply_first_sale_paid_event",
+]) {
+  assert.ok(neonGate.includes(contract), `Neon gate adapter is missing: ${contract}`);
+}
+
+for (const contract of [
+  "apply_guarded_entitlement_event",
+  "consume_entitlement_restore_token",
+  "create_entitlement_restore_token",
+]) {
+  assert.ok(entitlementStore.includes(contract), `Least-privilege entitlement adapter is missing: ${contract}`);
+}
+
+for (const contract of [
+  "pg_advisory_xact_lock(hashtext('first-sale:' || p_product_code))",
+  "for update",
+  "first_sale_gate_events is append-only",
+  "security definer",
+  "set search_path = public, pg_temp",
+  "p_reservation_expires_at < now() + interval '30 minutes'",
+  "return query select 'manual_review'::text",
+  "verified_expired_unpaid_no_intent",
+  "lock_first_sale_from_paid_event",
+  "apply_first_sale_paid_event",
+  "from public.apply_entitlement_event(",
+  "'SOLD', 'LOCKED'",
+  "Paid event does not match the active first-sale reservation",
+  "First-sale gate is locked by another paid event",
+  "revoke create on schema public from public",
+  "revoke all on table public.first_sale_gates, public.first_sale_gate_events from public",
+  "revoke all on function public.apply_entitlement_event",
+  "apply_guarded_entitlement_event",
+  "Resume Pro grant requires apply_first_sale_paid_event",
+  "revoke insert, update, delete on public.payment_webhook_events",
+  "grant execute on function public.apply_first_sale_paid_event",
+  "revoke all on function public.approve_next_first_sale",
+  "on conflict (version) do nothing",
+  "20260823_first_sale_gate_v1",
+]) {
+  assert.ok(migration.includes(contract), `First-sale migration contract is missing: ${contract}`);
+}
+
+assert.ok(
+  webhook.indexOf("applyPaidEventAndEntitlement") < webhook.indexOf("Persisted Stripe entitlement event"),
+  "paid first sale must be committed before success is acknowledged",
+);
+assert.ok(!webhook.includes("approve_next_first_sale"), "webhook code must never reopen sales");
+assert.ok(webhook.includes("stripeReferenceSuffix(event.id)"), "logs must use only the final eight reference characters");
+assert.equal(webhook.match(/eventId: event\.id/g)?.length, 1, "the complete event ID must be used only for the private DB receipt");
+assert.ok(webhook.includes("sendStripeOperatorAlert(event)"), "a failed paid transaction must reach the operator alert path");
+assert.ok(commerce.includes('process.env.FIRST_SALE_GATE_ENABLED === "true"'), "readiness must require the first-sale gate");
+assert.ok(commerce.includes("&& readiness.firstSaleGateConfigured"), "test Checkout must also fail closed");
+
+for (const contract of [
+  "OPEN → RESERVED → SOLD → LOCKED",
+  "expired + unpaid + no PaymentIntent",
+  "does not authorize",
+  "Do **not** grant it `approve_next_first_sale`",
+  "zero existing open Checkout Sessions",
+  "live remains **HOLD**",
+  "A refund does not constitute rollback",
+]) {
+  assert.ok(runbook.includes(contract), `Operations runbook is missing: ${contract}`);
+}
+
+class GateModel {
+  state = "OPEN";
+  generation = 0;
+  session = null;
+  expiresAt = 0;
+  seenPaid = new Set();
+  lockedEvent = null;
+  lockedSession = null;
+  events = [];
+
+  async claim(now) {
+    await Promise.resolve();
+    if (this.state === "LOCKED") return "locked";
+    if (this.state === "RESERVED") return "reserved";
+    this.state = "RESERVED";
+    this.generation += 1;
+    this.expiresAt = now + 1_860_000;
+    this.events.push("OPEN>RESERVED");
+    return "claimed";
+  }
+
+  attach(session) {
+    assert.equal(this.state, "RESERVED");
+    this.session = session;
+  }
+
+  verifyAbandoned(now, remote) {
+    if (this.state !== "RESERVED" || now < this.expiresAt) return false;
+    if (remote.status !== "expired" || remote.paymentStatus !== "unpaid" || remote.paymentIntent !== null) return false;
+    this.state = "OPEN";
+    this.session = null;
+    this.events.push("RESERVED>OPEN:verified");
+    return true;
+  }
+
+  paid(eventId, session = this.session) {
+    if (this.seenPaid.has(eventId)) return "duplicate";
+    if (this.state === "LOCKED") return "blocked";
+    if (this.state !== "RESERVED" || !this.session || session !== this.session) return "blocked";
+    this.seenPaid.add(eventId);
+    this.events.push(`${this.state}>SOLD`, "SOLD>LOCKED");
+    this.state = "LOCKED";
+    this.lockedEvent = eventId;
+    this.lockedSession = session;
+    return "locked";
+  }
+
+  refund() {
+    return this.state;
+  }
+
+  ownerReopen({ approved, evidence, cashDifference, payout }) {
+    if (!approved || evidence !== "PASS" || Math.abs(cashDifference) > 1 || payout !== "matched") return false;
+    if (this.state !== "LOCKED") return false;
+    this.state = "OPEN";
+    this.events.push("LOCKED>OPEN:owner");
+    return true;
+  }
+}
+
+const concurrent = new GateModel();
+const claims = await Promise.all(Array.from({ length: 16 }, () => concurrent.claim(0)));
+assert.equal(claims.filter((outcome) => outcome === "claimed").length, 1, "concurrent claims must have exactly one winner");
+assert.equal(claims.filter((outcome) => outcome === "reserved").length, 15);
+
+concurrent.attach("session-internal");
+assert.equal(concurrent.verifyAbandoned(1_860_001, { status: "expired", paymentStatus: "unpaid", paymentIntent: "pi_pending" }), false);
+assert.equal(concurrent.verifyAbandoned(1_860_001, { status: "expired", paymentStatus: "unpaid", paymentIntent: null }), true);
+assert.equal(await concurrent.claim(1_860_002), "claimed", "verified abandonment must permit one new first customer");
+concurrent.attach("session-retry");
+
+assert.equal(concurrent.paid("evt_paid"), "locked");
+assert.equal(concurrent.paid("evt_paid"), "duplicate", "the exact paid webhook must be idempotent");
+assert.equal(concurrent.paid("evt_other", concurrent.lockedSession), "blocked", "a different event after LOCKED must not reach entitlement");
+assert.equal(concurrent.paid("evt_other_session", "session-other"), "blocked", "a different Session after LOCKED must be blocked");
+assert.equal(concurrent.refund(), "LOCKED", "refund must not reopen the gate");
+assert.equal(await concurrent.claim(2_000_000), "locked", "second Checkout must remain blocked");
+assert.equal(concurrent.ownerReopen({ approved: true, evidence: "MISSING", cashDifference: 0, payout: "matched" }), false);
+assert.equal(concurrent.ownerReopen({ approved: true, evidence: "PASS", cashDifference: 0, payout: "matched" }), true);
+assert.equal(await concurrent.claim(2_000_001), "claimed", "owner approval opens only one fresh reservation");
+
+const refundBeforeGrant = new GateModel();
+assert.equal(refundBeforeGrant.refund(), "OPEN", "a refund-before-grant cannot fabricate a sale transition");
+assert.equal(refundBeforeGrant.paid("evt_unreserved"), "blocked", "an unreserved paid event must not grant access");
+assert.equal(await refundBeforeGrant.claim(0), "claimed");
+refundBeforeGrant.attach("session-late");
+assert.equal(refundBeforeGrant.paid("evt_late_grant", "session-late"), "locked", "a later verified reserved paid event must permanently lock");
+assert.equal(refundBeforeGrant.refund(), "LOCKED", "a retried refund must leave the gate locked");
+
+console.log("Atomic first-sale gate, Stripe idempotency, expiry, webhook-order and owner-reopen contracts passed.");
