@@ -32,8 +32,9 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 - [x] Confirm the paused-payout warning is no longer shown after identity review.
 - [ ] Set the public business name, support email, website and a recognisable statement descriptor.
 - [x] Create an active one-time AUD 19.90 Resume Pro Price.
-- [ ] Create a least-privilege `rk_live_` key that can retrieve Prices, create/retrieve Checkout Sessions, and read PaymentIntents so the paid webhook can verify `latest_charge` before the atomic grant.
+- [ ] Create a least-privilege `rk_live_` key with Prices Read, Products Read, Checkout Sessions create/retrieve and PaymentIntents Read so the paid webhook can verify `latest_charge` before the atomic grant.
 - [x] Create the live `/api/stripe/webhook` endpoint and subscribe to the same 11 Checkout, refund and dispute events verified in test mode.
+- [ ] Configure Production payment operator alerts, confirm the support mailbox is monitored, and receive controlled purchase/refund alerts before accepting a customer payment.
 - [x] Store the live key, Price ID and webhook signing secret only in Vercel Production. Replacing the full live key with a least-privilege restricted key remains a security follow-up.
 - [x] Do not add a separate app-controlled automatic-tax setting or manual tax rate. The controlled live Checkout included AUD 1.81 GST inside the AUD 19.90 total under Managed Payments.
 
@@ -84,7 +85,7 @@ Before enabling the gate, verify in the matching Stripe mode that Resume Pro has
 - Runtime acceptance of `sk_live_` prevents an environment-mode mismatch and preserves an incident-recovery path. It is compatibility behaviour, not launch approval and not a reason to mark the restricted-key item complete.
 - Rotating keys, adding key IP restrictions and periodically reviewing Workbench request logs are ongoing security improvements after the least-privilege launch gate passes. They do not replace the pre-sale `rk_live_` requirement.
 - The 15-minute / 24-hour / first-payout evidence sequence is not a blocker before the first customer payment because its evidence does not yet exist. It is an operational blocker for the second sale if the sequence is incomplete.
-- The runtime key must include PaymentIntents Read. A 403, timeout, missing `latest_charge`, or PaymentIntent contract mismatch is intentionally fail-closed: HTTP 503, no gate lock, no grant and an operator investigation path.
+- The runtime key must include Prices Read, Products Read, Checkout Sessions create/retrieve and PaymentIntents Read. A 403, timeout, missing `latest_charge`, or PaymentIntent contract mismatch is intentionally fail-closed: HTTP 503, no gate lock, no grant and an operator investigation path.
 
 ## 7. Fourteen-day first-customer conversion watch
 

@@ -138,11 +138,12 @@ The fixed hashes above are the authoritative complete file inventory. The candid
 
 ### Required only for a full Resume Pro payment/access Preview
 
-`docs/entitlement-storage.sql` is the authoritative, idempotent entitlement schema. A target database must have the tables, indexes, event-order column, constraints and `apply_entitlement_event` routine before a Preview exercises webhook persistence, access activation, recovery or refund/revocation. Apply `docs/first-sale-gate.sql` second; it adds the atomic sale reservation, append-only audit, guarded entitlement/restore wrappers and records `20260823_first_sale_gate_v1`. The baseline records `20260818_entitlement_baseline_v1`.
+`docs/entitlement-storage.sql` is the authoritative, idempotent entitlement schema. A target database must have the tables, indexes, event-order column, constraints and `apply_entitlement_event` routine before a Preview exercises webhook persistence, access activation, recovery or refund/revocation. Apply `docs/first-sale-gate.sql` second; it adds the atomic sale reservation, append-only audit, guarded entitlement/restore wrappers and records `20260823_first_sale_gate_charge_link_v2`. The baseline records `20260818_entitlement_baseline_v1`.
 
 - A static/UI Preview with `PAYMENTS_ENABLED=false` does not require a database migration.
 - Checkout is now fail-closed without the entitlement database, first-sale migration and `FIRST_SALE_GATE_ENABLED=true`; there is no persistence-free Session mode.
 - A full payment/access Preview requires both schemas plus target-Preview database connection, least-privilege role matrix and signing settings.
+- Required catalog evidence is: migration version `20260823_first_sale_gate_charge_link_v2` exists, the historical 9- and 11-argument `apply_first_sale_paid_event` signatures are absent, and exactly one 12-argument signature exists. A missing or additional overload keeps payment launch **NO-GO**.
 - Do not rerun or alter Production from this manifest. First perform the documented read-only schema check and record whether the version already exists.
 - Never roll back payment tables by dropping them. On an incident, disable payments and roll back application code while preserving webhook and entitlement evidence.
 
@@ -206,14 +207,14 @@ Production `getPaymentReadiness()` additionally fails closed unless all of these
 - optional `BUSINESS_TRADING_NAME`; the site name is the fallback
 - explicit `PAYMENTS_ENABLED=true`
 
-Do not copy legal identity, ABN, keys or connection strings into this repository or a release report.
+Production launch approval additionally requires configured and tested payment operator alerts. This operational requirement is not represented by `getPaymentReadiness()` and must be verified separately before enabling live payments. Do not copy legal identity, ABN, keys or connection strings into this repository or a release report.
 
 ## 5. External settings classification
 
 ### Required before a payment/access Preview
 
 - Stripe test Product/Price/tax-code relationship reviewed in Dashboard.
-- Restricted key can retrieve the configured Price with expanded Product and create Checkout Sessions.
+- Restricted key has Prices Read, Products Read, Checkout Sessions create/retrieve and PaymentIntents Read; the last permission is required to verify `latest_charge` before the atomic grant.
 - Exact Preview webhook destination and signing secret configured for the required Checkout, refund and dispute events.
 - Preview-scoped Neon database connection and entitlement migration verified.
 - First-sale migration verified; runtime has no public-schema CREATE, direct protected-table DML, original entitlement-function execution or owner-reopen execution.
@@ -222,15 +223,15 @@ Do not copy legal identity, ABN, keys or connection strings into this repository
 
 ### Required before Production, not before a payments-off Preview
 
-- Stripe live business profile, support details, statement descriptor, Product eligibility, restricted-key permissions and webhook destination.
+- Stripe live business profile, support details, statement descriptor, Product eligibility, a restricted key with Prices Read, Products Read, Checkout Sessions create/retrieve and PaymentIntents Read, and the webhook destination.
 - Published product-provider legal/registered name, ABN and support information. These fields do not establish the Managed Payments transaction seller; verify that separately from live Checkout and the issued receipt/invoice.
+- Production payment operator alerts are enabled, the support mailbox is monitored, and controlled purchase/refund alerts have been received without exposing sensitive payment data.
 - GitHub branch protection must mark the new `Quality gate` workflow as required; committing the workflow alone does not enforce it.
 - Vercel environment scoping and deployment-protection review.
 
 ### Optional and held disabled
 
 - Web Push VAPID keys, provider delivery, `CRON_SECRET` and push tables.
-- Payment alert SMTP settings.
 - Local performance connectors. These are local-development operator tools and must remain 404 in Preview/Production.
 
 ## 6. CI and CSP release contract
