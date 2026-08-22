@@ -124,6 +124,41 @@ export function ArticleJsonLd({ title, description, path, category, publishedAt,
   );
 }
 
+type ProductJsonLdProps = {
+  name: string;
+  description: string;
+  path: `/${string}`;
+  currency: string;
+  priceCents: number;
+  available: boolean;
+};
+
+export function ProductJsonLd({ name, description, path, currency, priceCents, available }: ProductJsonLdProps) {
+  const url = `${siteUrl}${path}`;
+
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "@id": `${url}#product`,
+        name,
+        description,
+        url,
+        brand: { "@type": "Brand", name: siteName },
+        offers: {
+          "@type": "Offer",
+          url,
+          priceCurrency: currency.toUpperCase(),
+          price: (priceCents / 100).toFixed(2),
+          availability: available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          seller: { "@id": `${siteUrl}/#organization` },
+        },
+      }}
+    />
+  );
+}
+
 type CollectionItem = { name: string; path: `/${string}` };
 
 export function CollectionJsonLd({ name, description, path, items }: { name: string; description: string; path: `/${string}`; items: CollectionItem[] }) {

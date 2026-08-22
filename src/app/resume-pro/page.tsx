@@ -2,17 +2,19 @@ import Link from "next/link";
 import { ResumeProVisitTracker } from "@/components/analytics/ResumeProVisitTracker";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { BreadcrumbJsonLd, ProductJsonLd } from "@/components/seo/JsonLd";
 import { ResumeProCheckoutForm } from "@/components/tools/ResumeProCheckoutForm";
 import { Container } from "@/components/ui/Container";
-import { canCreateTestCheckout, getPaymentReadiness } from "@/lib/commerce";
+import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
 import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
 import { getResumeProCheckoutFailure } from "@/lib/resumeProCheckoutFailure";
 import { createPageMetadata } from "@/lib/site";
 
+const resumeProDescription = "실제 경력과 호주 채용 공고를 맞춰 회사별 이력서·커버레터를 만들고, STAR 면접 메모로 다시 쓰거나 지원서 묶음으로 내보내세요.";
+
 export const metadata = createPageMetadata({
   title: "호주 취업 공고별 이력서·커버레터 준비 | Resume Pro",
-  description: "실제 경력과 호주 채용 공고를 맞춰 회사별 이력서·커버레터를 만들고, STAR 면접 메모로 다시 쓰거나 지원서 묶음으로 내보내세요.",
+  description: resumeProDescription,
   path: "/resume-pro",
 });
 
@@ -94,6 +96,14 @@ export default async function ResumeProPage({ searchParams }: Props) {
   return (
     <>
       <ResumeProVisitTracker entry={entry} checkoutAvailable={checkoutAvailable} />
+      <ProductJsonLd
+        name={resumeProProduct.name}
+        description={resumeProDescription}
+        path="/resume-pro"
+        currency={resumeProProduct.currency}
+        priceCents={resumeProProduct.priceCents}
+        available={process.env.VERCEL_ENV === "production" && paymentReadiness.ready}
+      />
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "영문 이력서 빌더", path: "/resume-builder" }, { name: "Resume Pro", path: "/resume-pro" }]} />
       <Header />
       <main>
