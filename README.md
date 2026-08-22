@@ -35,7 +35,7 @@ Practical tools and trusted guides for Koreans living in Australia.
 - Live Resume Pro one-time purchase with Stripe Checkout, signed-webhook entitlement delivery, recovery codes, refund revocation, premium layouts, cover-letter drafting, job-ad keyword checks, and saved-resume connection
 - EOFY Pack Pro product preview with an evidence register, accountant-handoff summary, annual backup concept, and free-versus-Pro boundary
 - EOFY Pack Pro local workspace for income-source readiness, deduction-candidate evidence notes, accountant questions, and a text summary without receipt uploads or refund estimates
-- Rental Application Pack Pro preview and local workspace with document readiness, privacy checks, an English introduction draft, and text-package export without document uploads
+- Rental Application Pack Pro paid-validation flow with a separate Stripe Price gate, product-scoped Checkout entitlement, signed device access, one-time recovery, refund revocation, document readiness, privacy checks, an English introduction draft, and text-package export without document uploads; public charging stays off until controlled test and live verification pass
 - Leaving Australia Pack Pro preview and local workspace with ordered departure tasks, expected-payment follow-up, confirmation questions, and a text handoff without sensitive identifiers
 - Pay Evidence Pack Pro preview and local workspace with period-by-period gross comparisons, evidence readiness, an English review request, and a text handoff without source-document uploads
 - Hoju Compass Pro comparison hub with a situation-based product finder, environment-aware Resume Pro availability, transparent free-versus-paid boundaries, and clearly labelled pricing candidates for local-only prototypes
@@ -90,6 +90,8 @@ For production SEO URLs, set `NEXT_PUBLIC_SITE_URL` to the deployed site origin.
 - `npm run test:stripe-contract` — keep Checkout consent, price validation, dynamic payment methods and signed webhook protections in place
 - `npm run test:entitlement-commands` — verify Stripe payment, refund and dispute events map to safe access states
 - `npm run test:resume-pro-tokens` — verify signed access-session tamper, expiry and restore-code contracts
+- `npm run test:rental-pro-contract` — verify the Rental checkout, product isolation, price validation and workspace access contract
+- `npm run test:rental-pro-tokens` — verify Rental access-token tamper, expiry, restore-code and cross-product rejection contracts
 - `npm run test:entitlement-ordering` — verify refund and dispute events cannot be overwritten by older payment events
 - `npm run security:secrets` — scan tracked and untracked source files for accidentally pasted payment credentials
 
