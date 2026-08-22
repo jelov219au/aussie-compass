@@ -100,6 +100,26 @@ async function consumeRestoreTokenHash(tokenHash: string, productCode: ProductCo
   return rows[0] ? toEntitlementRecord(rows[0]) : null;
 }
 
+async function consumeCheckoutActivation(input: {
+  checkoutSessionId: string;
+  productCode: ProductCode;
+  customerId: string;
+}) {
+  if (!/^cs_(?:test|live)_[A-Za-z0-9]+$/.test(input.checkoutSessionId)
+    || !/^cus_[A-Za-z0-9]+$/.test(input.customerId)) return null;
+
+  const sql = neon(getConnectionString());
+  const rows = await sql`
+    select * from consume_checkout_activation(
+      ${input.checkoutSessionId},
+      ${input.productCode},
+      ${input.customerId}
+    )
+  ` as EntitlementRow[];
+
+  return rows[0] ? toEntitlementRecord(rows[0]) : null;
+}
+
 async function findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode) {
   if (!/^cs_(?:test|live)_[A-Za-z0-9]+$/.test(checkoutSessionId)) return null;
 
@@ -176,6 +196,7 @@ async function createRestoreTokenHash(input: {
 export const neonEntitlementStore: EntitlementStore = {
   applyStripeEvent,
   consumeRestoreTokenHash,
+  consumeCheckoutActivation,
   findActiveByCheckoutSession,
   findActiveById,
   createRestoreTokenHash,

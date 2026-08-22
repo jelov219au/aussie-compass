@@ -138,12 +138,12 @@ The fixed hashes above are the authoritative complete file inventory. The candid
 
 ### Required only for a full Resume Pro payment/access Preview
 
-`docs/entitlement-storage.sql` is the authoritative, idempotent entitlement schema. A target database must have the tables, indexes, event-order column, constraints, durable non-PII operator-alert outbox and `apply_entitlement_event` routine before a Preview exercises webhook persistence, access activation, recovery or refund/revocation. It records `20260823_payment_operator_alert_outbox_v1`; alert intent and entitlement mutation commit or roll back together. Apply `docs/first-sale-gate.sql` second; it adds the atomic sale reservation, append-only audit, guarded entitlement/restore/outbox wrappers and records `20260823_first_sale_gate_charge_link_v2`. The baseline records `20260818_entitlement_baseline_v1`.
+`docs/entitlement-storage.sql` is the authoritative, idempotent entitlement schema. A target database must have the tables, indexes, event-order column, constraints, durable non-PII operator-alert outbox and `apply_entitlement_event` routine before a Preview exercises webhook persistence, access activation, recovery or refund/revocation. It records `20260823_payment_operator_alert_outbox_v1` and `20260823_checkout_activation_once_v1`; alert intent and entitlement mutation commit or roll back together, while each verified Checkout Session can mint a browser cookie once only. Apply `docs/first-sale-gate.sql` second; it adds the atomic sale reservation, append-only audit, guarded entitlement/restore/outbox/activation wrappers and records `20260823_first_sale_gate_charge_link_v2`. The baseline records `20260818_entitlement_baseline_v1`.
 
 - A static/UI Preview with `PAYMENTS_ENABLED=false` does not require a database migration.
 - Checkout is now fail-closed without the entitlement database, first-sale migration and `FIRST_SALE_GATE_ENABLED=true`; there is no persistence-free Session mode.
 - A full payment/access Preview requires both schemas plus target-Preview database connection, least-privilege role matrix and signing settings.
-- Required catalog evidence is: migration version `20260823_first_sale_gate_charge_link_v2` exists, the historical 9- and 11-argument `apply_first_sale_paid_event` signatures are absent, and exactly one 12-argument signature exists. A missing or additional overload keeps payment launch **NO-GO**.
+- Required catalog evidence is: migration versions `20260823_first_sale_gate_charge_link_v2` and `20260823_checkout_activation_once_v1` exist; the historical 9- and 11-argument `apply_first_sale_paid_event` signatures are absent and exactly one 12-argument signature exists; obsolete 2-argument `consume_checkout_activation` is absent and exactly one 3-argument signature exists. A missing or additional overload keeps payment launch **NO-GO**.
 - Do not rerun or alter Production from this manifest. First perform the documented read-only schema check and record whether the version already exists.
 - Never roll back payment tables by dropping them. On an incident, disable payments and roll back application code while preserving webhook and entitlement evidence.
 
@@ -188,7 +188,7 @@ In addition to the Checkout variables, require:
 - `FIRST_SALE_GATE_ENABLED=true`
 - one approved target connection: managed `ENTITLEMENT_DB_DATABASE_URL` or manual `ENTITLEMENT_DB_URL`
 - `ENTITLEMENT_SESSION_SECRET` with at least 32 random characters
-- both applied migration versions from section 3
+- every applied migration version listed in section 3
 
 `ENTITLEMENT_DB_HMAC_SECRET` is reserved for privacy-preserving email lookup and is not a substitute for the session signing secret.
 

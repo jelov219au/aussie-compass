@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
-import { setResumeProAccessCookie } from "@/lib/resumeProAccess";
+import { isEntitlementSessionConfigured, setResumeProAccessCookie } from "@/lib/resumeProAccess";
 import { getVerifiedResumeProCheckout } from "@/lib/resumeProPurchase";
 
 export const runtime = "nodejs";
@@ -24,15 +24,29 @@ export async function POST(request: NextRequest) {
   const session = await getVerifiedResumeProCheckout(sessionId);
   const store = getConfiguredEntitlementStore();
 
-  if (!session || !store) {
+  const customerId = typeof session?.customer === "string" ? session.customer : session?.customer?.id;
+
+  if (!session || !store || !customerId || !isEntitlementSessionConfigured()) {
     return NextResponse.redirect(new URL("/resume-pro/success?status=unavailable", request.url), 303);
   }
 
-  const entitlement = await store.findActiveByCheckoutSession(session.id, "resume_pro");
-  if (!entitlement) {
-    return NextResponse.redirect(new URL(`/resume-pro/success?session_id=${encodeURIComponent(session.id)}&status=pending`, request.url), 303);
-  }
+  try {
+    const entitlement = await store.consumeCheckoutActivation({
+      checkoutSessionId: session.id,
+      productCode: "resume_pro",
+      customerId,
+    });
+    if (!entitlement) {
+      const active = await store.findActiveByCheckoutSession(session.id, "resume_pro");
+      const destination = active
+        ? "/resume-pro/restore?status=activation-used"
+        : `/resume-pro/success?session_id=${encodeURIComponent(session.id)}&status=pending`;
+      return NextResponse.redirect(new URL(destination, request.url), 303);
+    }
 
-  await setResumeProAccessCookie(entitlement);
-  return NextResponse.redirect(new URL("/resume-pro/workspace", request.url), 303);
+    await setResumeProAccessCookie(entitlement);
+    return NextResponse.redirect(new URL("/resume-pro/workspace", request.url), 303);
+  } catch {
+    return NextResponse.redirect(new URL("/resume-pro/success?status=unavailable", request.url), 303);
+  }
 }

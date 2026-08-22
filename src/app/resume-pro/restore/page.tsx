@@ -24,6 +24,7 @@ export default async function ResumeProRestorePage({ searchParams }: Props) {
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">Resume Pro 이용권 복구</h1>
           <p className="mt-5 text-sm leading-7 text-muted">이전에 Resume Pro 작업 공간에서 만든 1회용 복구 코드를 입력하세요. 원문 코드는 서버에 저장되지 않으며 사용 후 즉시 무효화됩니다.</p>
           {status === "invalid" && <p className="mt-5 border-l-2 border-red-500 bg-red-50 p-4 text-sm text-red-900" role="alert">코드가 잘못됐거나 만료·사용 처리됐습니다.</p>}
+          {status === "activation-used" && <p className="mt-5 border-l-2 border-gold bg-gold/10 p-4 text-sm text-navy" role="status">결제 완료 주소를 통한 첫 접근은 이미 사용됐습니다. 기존 기기의 작업 공간에서 만든 1회용 복구 코드로만 다시 연결할 수 있습니다.</p>}
           <form action="/api/resume-pro/restore" method="post" className="mt-8 border border-navy/15 bg-white p-5 sm:p-6">
             <label htmlFor="restore-code" className="text-sm font-semibold text-navy">복구 코드</label>
             <textarea id="restore-code" name="restore_code" required minLength={32} maxLength={128} autoComplete="off" spellCheck={false} className="mt-2 min-h-28 w-full border border-border bg-surface p-3 text-sm text-navy outline-none focus:border-gold" />

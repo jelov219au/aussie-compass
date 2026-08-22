@@ -83,6 +83,91 @@ create table if not exists purchase_restore_tokens (
 create index if not exists purchase_restore_tokens_entitlement_idx
   on purchase_restore_tokens (entitlement_id);
 
+-- A paid Checkout URL can mint a browser access cookie exactly once. Losing
+-- that cookie never reopens this row; another device must use a one-time
+-- restore token issued from the authenticated workspace.
+create table if not exists purchase_checkout_activations (
+  entitlement_id bigint primary key references purchase_entitlements(id) on delete restrict,
+  checkout_session_key text not null unique check (checkout_session_key ~ '^[a-f0-9]{32}$'),
+  checkout_ref_last8 text not null check (checkout_ref_last8 ~ '^[A-Za-z0-9_]{1,8}$'),
+  consumed_at timestamptz not null default now()
+);
+
+drop function if exists consume_checkout_activation(text, text);
+drop function if exists consume_checkout_activation(text, text, text);
+
+create or replace function consume_checkout_activation(
+  p_checkout_session_id text,
+  p_product_code text,
+  p_customer_id text
+)
+returns table (
+  id bigint,
+  product_code text,
+  status text,
+  stripe_checkout_session_id text,
+  stripe_payment_intent_id text,
+  stripe_charge_id text,
+  stripe_customer_id text,
+  granted_at timestamptz,
+  revoked_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_entitlement_id bigint;
+begin
+  if p_checkout_session_id is null
+    or p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
+    or p_product_code is null
+    or p_product_code not in ('resume_pro', 'rental_application_pro')
+    or p_customer_id is null
+    or p_customer_id !~ '^cus_[A-Za-z0-9]+$'
+  then
+    raise exception 'Invalid checkout activation input';
+  end if;
+
+  select entitlement.id into v_entitlement_id
+  from public.purchase_entitlements entitlement
+  where entitlement.stripe_checkout_session_id = p_checkout_session_id
+    and entitlement.product_code = p_product_code
+    and entitlement.stripe_customer_id = p_customer_id
+    and entitlement.status = 'active'
+  for update;
+
+  if v_entitlement_id is null then return; end if;
+
+  insert into public.purchase_checkout_activations (
+    entitlement_id,
+    checkout_session_key,
+    checkout_ref_last8
+  ) values (
+    v_entitlement_id,
+    md5(p_checkout_session_id),
+    right(p_checkout_session_id, 8)
+  ) on conflict do nothing;
+
+  if not found then return; end if;
+
+  return query
+  select
+    entitlement.id,
+    entitlement.product_code,
+    entitlement.status,
+    entitlement.stripe_checkout_session_id,
+    entitlement.stripe_payment_intent_id,
+    entitlement.stripe_charge_id,
+    entitlement.stripe_customer_id,
+    entitlement.granted_at,
+    entitlement.revoked_at
+  from public.purchase_entitlements entitlement
+  where entitlement.id = v_entitlement_id
+    and entitlement.status = 'active';
+end;
+$$;
+
 -- Negative Stripe events can arrive before the paid Checkout event that names
 -- the product. Keep a non-PII, append-only receipt keyed by Stripe object IDs so
 -- a late grant cannot revive access that was already refunded or disputed.
@@ -789,8 +874,11 @@ $$;
 --    records; operator outbox rows store only hashed lookup keys and suffixes.
 -- 10. Never store customer email, card data, a full Stripe ID, arbitrary JSON
 --     or a webhook payload in payment_operator_alert_outbox.
+-- 11. A Checkout Session can consume purchase_checkout_activations once only;
+--     releasing a browser cookie never deletes or resets that receipt.
 
 revoke all on table payment_operator_alert_outbox from public;
+revoke insert, update, delete on purchase_checkout_activations from public;
 revoke insert, update, delete on entitlement_event_tombstones, stripe_payment_object_links from public;
 revoke all on function prevent_entitlement_tombstone_mutation() from public;
 revoke all on function record_payment_operator_alert_intent(text, text, boolean, text) from public;
@@ -798,6 +886,7 @@ revoke all on function enqueue_payment_operator_alert_failure(text, text, boolea
 revoke all on function claim_payment_operator_alert_intent(text, text, text) from public;
 revoke all on function mark_payment_operator_alert_sent(text, text, text) from public;
 revoke all on function release_payment_operator_alert_claim(text, text, text) from public;
+revoke all on function consume_checkout_activation(text, text, text) from public;
 
 insert into schema_migrations (version)
 values ('20260818_entitlement_baseline_v1')
@@ -809,6 +898,10 @@ on conflict (version) do nothing;
 
 insert into schema_migrations (version)
 values ('20260823_payment_operator_alert_outbox_v1')
+on conflict (version) do nothing;
+
+insert into schema_migrations (version)
+values ('20260823_checkout_activation_once_v1')
 on conflict (version) do nothing;
 
 commit;

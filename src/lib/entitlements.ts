@@ -58,6 +58,12 @@ export interface EntitlementStore {
 
   consumeRestoreTokenHash(tokenHash: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
 
+  consumeCheckoutActivation(input: {
+    checkoutSessionId: string;
+    productCode: ProductCode;
+    customerId: string;
+  }): Promise<EntitlementRecord | null>;
+
   findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
 
   findActiveById(entitlementId: string, productCode: ProductCode): Promise<EntitlementRecord | null>;

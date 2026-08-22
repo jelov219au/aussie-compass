@@ -38,7 +38,9 @@ for (const contract of [
   "on conflict (stripe_event_id) do nothing",
   "token_hash text primary key",
   "create table if not exists payment_operator_alert_outbox",
+  "create table if not exists purchase_checkout_activations",
   "20260823_payment_operator_alert_outbox_v1",
+  "20260823_checkout_activation_once_v1",
   "commit;",
 ]) {
   assert.ok(schema.includes(contract), `Database migration contract is missing: ${contract}`);
@@ -51,6 +53,7 @@ for (const contract of [
   "requires explicit owner approval",
   "schema_migrations",
   "payment_operator_alert_outbox",
+  "purchase_checkout_activations",
   "SHA-256",
 ]) {
   assert.ok(recovery.includes(contract), `Database recovery runbook is missing: ${contract}`);

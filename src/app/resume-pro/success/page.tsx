@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { ResumeProActivationForm } from "@/components/tools/ResumeProActivationForm";
 import { Container } from "@/components/ui/Container";
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import { isEntitlementSessionConfigured } from "@/lib/resumeProAccess";
@@ -58,10 +59,7 @@ export default async function ResumeProSuccessPage({ searchParams }: Props) {
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
             {canActivate && sessionId && (
-              <form action="/api/resume-pro/access/activate" method="post">
-                <input type="hidden" name="session_id" value={sessionId} />
-                <button type="submit" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy">Resume Pro 열기</button>
-              </form>
+              <ResumeProActivationForm sessionId={sessionId} />
             )}
             <Link href="/resume-pro" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white">Resume Pro로 돌아가기</Link>
             <Link href="/resume-pro/restore" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy">이용권 복구</Link>
