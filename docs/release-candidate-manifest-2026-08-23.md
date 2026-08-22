@@ -12,9 +12,10 @@ This manifest is a read-only release-scope audit. It records repository contract
 | Divergence | candidate has 28 commits not in main; main has 19 commits not in candidate |
 | Two-endpoint file delta | 115 files, 3,858 insertions, 2,206 deletions |
 | Reconstructed mainline base | `origin/main` at `7910525c539408535e343ea1eff7fe8ebc510bec` |
-| Reconstructed functional head before manifest finalization | `1b99f07f92e651cba672544f579fa880dc94d8c2` |
-| Mainline delta at that head | 65 files, 2,735 insertions, 204 deletions, unintended deletions **0** |
-| Preview decision | **HOLD** until the pending internal-search patch and final local quality/CSP checks pass |
+| Final tested application head before manifest finalization | `307c75add5b786812dd25b99cbcf3a2ddde7cb8c` |
+| Mainline delta at that head | 70 files, 2,868 insertions, 221 deletions, unintended deletions **0** |
+| Protected Preview decision | **READY** with payments off by default, or with an intentionally configured test-only Stripe/Neon environment |
+| Production/live decision | **HOLD** until target environment, migration and actual Checkout/receipt seller evidence are verified |
 
 The historical `7904086` candidate is not a descendant of the current deployment reference. Deploying it directly would remove current main features, including the English phrase-card pages/assets and Job Move Pro research/survey files. That route remains prohibited. The replacement branch `codex/resume-pro-mainline-release` was created exactly from the frozen `origin/main`; at the functional head above, the English-card and Job Move paths remain unchanged and `git diff --diff-filter=D origin/main..HEAD` returns no file.
 
@@ -78,6 +79,7 @@ Include, in dependency order, after reviewing each actual diff:
 7. Support contact, JSON-LD/navigation security and their contracts: `b9f98e2`, `ae68d2f`, `7503f1a`, `7904086`.
 8. Product-data deletion versus transaction-record retention, mobile Builder first saved input, product-provider legal-name boundary and mobile free-Builder entry: `d62ab9e`, `ad8a227`, `15111ea`, `34db7ce`.
 9. First-payment customer-support routing from `3a25eb1`. Its required content was already present after the privacy/record-retention document integration, so the later cherry-pick was empty and correctly skipped; the final document still preserves product-access versus transaction-support roles, last-eight-character references, sensitive-data exclusions and no automatic refund or legal-outcome promise.
+10. Privacy-free internal search ordering and Resume Pro Product/Offer structured data: `05ae9d9`, `47d894c`. Free Builder remains ahead of Pro for broad resume intent, cover-letter and STAR/interview paths are present, and Product JSON-LD derives AUD 19.90 and availability from the server product/readiness contracts without ratings or reviews.
 
 Exclude from the first-payment candidate:
 
@@ -217,7 +219,7 @@ Do not copy legal identity, ABN, keys or connection strings into this repository
 ### Required before Production, not before a payments-off Preview
 
 - Stripe live business profile, support details, statement descriptor, Product eligibility, restricted-key permissions and webhook destination.
-- Published product provider/legal seller/ABN/support information.
+- Published product-provider legal/registered name, ABN and support information. These fields do not establish the Managed Payments transaction seller; verify that separately from live Checkout and the issued receipt/invoice.
 - GitHub branch protection must mark the new `Quality gate` workflow as required; committing the workflow alone does not enforce it.
 - Vercel environment scoping and deployment-protection review.
 
@@ -235,21 +237,22 @@ Do not copy legal identity, ABN, keys or connection strings into this repository
 - `public/sw.js` and its response handling are unchanged from `origin/main`; no service-worker durability claim is part of this candidate.
 - Preview verification must inspect the actual HTTP response header and exercise hydrated Builder input; a source-only CSP check is insufficient.
 
-## 7. Required checks before Preview
+## 7. Completed local checks and remaining Preview conditions
 
-After integrating current main and resolving all overlaps:
+After integrating current main and resolving all overlaps, the local candidate produced these results:
 
-1. `git diff --name-status origin/main...HEAD` contains no unapproved deletion from the main-only list in section 1.
-2. `git diff --check` passes and the working tree is clean.
-3. `npm run quality:gate` passes, including production build, lint, security/CSP/JSON-LD/navigation, Stripe Checkout/Product/failure handling, entitlement ordering/isolation, Resume Pro mobile/interview/onboarding/privacy, anonymous funnel, `test:push-exclusion`, database operations and secret scan. This release has no push-delivery test or runtime.
-4. A production-mode local server returns the expected CSP, especially `script-src-attr 'none'`, and Builder hydration still works.
+1. `git diff --name-only --diff-filter=D origin/main..HEAD` returns no file. English-card and Job Move routes remain in the successful production build.
+2. `git diff --check` passes. The manifest finalization commit must leave the working tree clean.
+3. `npm run quality:gate` passes, including the production build of 108 pages, lint, security/CSP/JSON-LD/navigation, Stripe Checkout/Product/failure handling, entitlement ordering/isolation, Resume Pro mobile/interview/onboarding/privacy, anonymous funnel, `test:push-exclusion`, database operations and secret scan. This release has no push-delivery test or runtime.
+4. A production-mode local server returned HTTP 200 for `/resume-pro` with the expected CSP, including `script-src 'self'`, `script-src-attr 'none'`, `object-src 'none'`, `form-action 'self'` and `frame-ancestors 'none'`.
 5. `npm run payments:check -- --strict` runs only inside an intentionally configured target environment. Add `--verify-stripe` only when read-only external verification is separately approved.
 6. If payments remain off, confirm the purchase CTA is unavailable and no Checkout call occurs.
 7. Confirm push remains disabled; do not invoke a provider or cron test in this release.
 
 ## 8. Rollback and stop criteria
 
-- **Current blocker:** do not create a Preview until the pending internal-search patch is integrated and the final quality gate, build, CSP response and mainline-diff checks pass. The 19 main-only commits are now preserved; the historical `7904086` branch remains permanently non-deployable.
+- **Historical candidate:** `7904086` remains permanently non-deployable. The rebuilt mainline preserves the 19 main-only commits and has passed the local Preview gate.
+- **Live evidence HOLD:** do not enable Production payments until the actual customer-visible Checkout transaction seller, issued receipt/invoice issuer and tax-liability presentation are recorded. `BUSINESS_LEGAL_NAME` identifies the product provider only and is not proof of the Managed Payments Merchant of Record.
 - **Build, CSP or hydration failure:** stop and restore the last known-good application deployment; do not weaken CSP ad hoc.
 - **Checkout/Product/tax/support/seller failure:** keep or set `PAYMENTS_ENABLED=false`; no customer should reach Checkout.
 - **Webhook, entitlement, recovery, refund or shared-device privacy failure:** disable payments and retain all database/event evidence. Do not repair by granting access from a success URL.
