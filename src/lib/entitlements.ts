@@ -18,6 +18,8 @@ export type EntitlementCommand = {
   eventId: string;
   eventType: Stripe.Event.Type;
   productCode?: ProductCode;
+  currency?: string;
+  amountTotal?: number;
   checkoutSessionId?: string;
   paymentIntentId?: string;
   chargeId?: string;
@@ -50,7 +52,7 @@ export interface EntitlementStore {
     receipt: StripeEventReceipt;
     command: EntitlementCommand;
   }): Promise<{
-    outcome: "processed" | "duplicate" | "ignored_stale";
+    outcome: "processed" | "duplicate" | "ignored_stale" | "tombstoned";
     entitlement?: EntitlementRecord;
   }>;
 
@@ -98,6 +100,8 @@ function checkoutCommand(event: Stripe.Event, session: Stripe.Checkout.Session):
     eventId: event.id,
     eventType: event.type,
     productCode,
+    currency: session.currency?.toLowerCase(),
+    amountTotal: session.amount_total ?? undefined,
     checkoutSessionId: session.id,
     paymentIntentId,
     customerId,
@@ -114,7 +118,7 @@ function refundCommand(event: Stripe.Event, refund: Stripe.Refund): EntitlementC
     paymentIntentId: expandableId(refund.payment_intent),
     chargeId: expandableId(refund.charge),
     referenceId: refund.id,
-    reason: refund.status === "succeeded" ? "refund_succeeded_requires_amount_check" : `refund_${refund.status ?? "unknown"}`,
+    reason: refund.status === "succeeded" ? "refund_succeeded_requires_amount_check" : "refund_status_requires_review",
   };
 }
 
@@ -135,7 +139,7 @@ function chargeCommand(event: Stripe.Event, charge: Stripe.Charge): EntitlementC
 
 function disputeCommand(event: Stripe.Event, dispute: Stripe.Dispute): EntitlementCommand {
   let action: EntitlementAction = "review";
-  let reason = `dispute_${dispute.status}`;
+  let reason = "dispute_status_requires_review";
 
   if (event.type === "charge.dispute.created") {
     action = "revoke";

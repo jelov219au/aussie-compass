@@ -121,6 +121,8 @@ async function applyPaidEventAndEntitlement(
       ${receipt.livemode},
       ${receipt.createdAt.toISOString()},
       ${command.productCode},
+      ${command.currency},
+      ${command.amountTotal},
       ${command.checkoutSessionId},
       ${command.paymentIntentId ?? null},
       ${command.customerId ?? null},

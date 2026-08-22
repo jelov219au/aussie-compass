@@ -12,10 +12,10 @@ import type {
 } from "@/lib/entitlements";
 
 type EntitlementRow = {
-  outcome?: "processed" | "duplicate" | "ignored_stale";
-  id: string | number | bigint;
-  product_code: ProductCode;
-  status: "active" | "revoked" | "review";
+  outcome?: "processed" | "duplicate" | "ignored_stale" | "tombstoned";
+  id: string | number | bigint | null;
+  product_code: ProductCode | null;
+  status: "active" | "revoked" | "review" | null;
   stripe_checkout_session_id: string | null;
   stripe_payment_intent_id: string | null;
   stripe_charge_id: string | null;
@@ -39,6 +39,9 @@ function optionalDate(value: Date | string | null) {
 }
 
 function toEntitlementRecord(row: EntitlementRow): EntitlementRecord {
+  if (row.id === null || row.product_code === null || row.status === null) {
+    throw new Error("The entitlement database returned an incomplete entitlement.");
+  }
   return {
     id: String(row.id),
     productCode: row.product_code,
@@ -79,7 +82,7 @@ async function applyStripeEvent(input: {
 
   return {
     outcome: row.outcome ?? "processed",
-    entitlement: toEntitlementRecord(row),
+    entitlement: row.id === null ? undefined : toEntitlementRecord(row),
   } as const;
 }
 

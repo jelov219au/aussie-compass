@@ -92,12 +92,14 @@ export async function POST(request: NextRequest) {
       livemode: event.livemode,
       createdAt: new Date(event.created * 1000),
     };
-    let result: { outcome: "processed" | "duplicate" | "ignored_stale" };
+    let result: { outcome: "processed" | "duplicate" | "ignored_stale" | "tombstoned" };
 
     if (
       entitlementCommand.action === "grant"
       && entitlementCommand.productCode === FIRST_SALE_PRODUCT_CODE
       && entitlementCommand.checkoutSessionId
+      && entitlementCommand.currency === "aud"
+      && entitlementCommand.amountTotal === 1990
     ) {
       const firstSaleGate = getConfiguredFirstSaleGate();
 
@@ -114,6 +116,8 @@ export async function POST(request: NextRequest) {
           action: "grant",
           productCode: FIRST_SALE_PRODUCT_CODE,
           checkoutSessionId: entitlementCommand.checkoutSessionId,
+          currency: "aud",
+          amountTotal: 1990,
         },
       });
     } else {
@@ -130,7 +134,7 @@ export async function POST(request: NextRequest) {
       entitlementAction: entitlementCommand.action,
     });
 
-    if (result.outcome === "processed" && paymentAlertsConfigured()) {
+    if ((result.outcome === "processed" || result.outcome === "tombstoned") && paymentAlertsConfigured()) {
       after(async () => {
         try {
           const notification = await sendStripeOperatorAlert(event);

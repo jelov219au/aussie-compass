@@ -70,6 +70,8 @@ export interface FirstSaleGateStore {
       action: "grant";
       productCode: typeof FIRST_SALE_PRODUCT_CODE;
       checkoutSessionId: string;
+      currency: "aud";
+      amountTotal: 1990;
     };
   }): Promise<{ outcome: "processed" | "duplicate" | "ignored_stale" }>;
 }

@@ -18,8 +18,8 @@ const paidAlert = buildStripeOperatorAlert(stripeEvent("checkout.session.complet
 }, "evt_paid"));
 
 assert.match(paidAlert?.subject ?? "", /결제 완료 · Resume Pro · \$19\.90/);
-assert.match(paidAlert?.text ?? "", /고객 이메일: customer@example\.com/);
-assert.match(paidAlert?.text ?? "", /Stripe event: evt_paid/);
+assert.doesNotMatch(paidAlert?.text ?? "", /customer@example\.com|고객 이메일/);
+assert.match(paidAlert?.text ?? "", /Stripe event ref: evt_paid/);
 
 for (const productCode of supportedProductCodes) {
   const alert = buildStripeOperatorAlert(stripeEvent("checkout.session.completed", {
@@ -56,6 +56,24 @@ const refundAlert = buildStripeOperatorAlert(stripeEvent("charge.refunded", {
 
 assert.match(refundAlert?.subject ?? "", /전액 환불 · \$14\.90/);
 assert.doesNotMatch(refundAlert?.text ?? "", /4242|card|payment_method/i, "alerts must not expose card details");
+
+for (const eventType of ["refund.created", "refund.updated", "refund.failed"]) {
+  const refundObjectAlert = buildStripeOperatorAlert(stripeEvent(eventType, {
+    id: "re_1234567890sensitive",
+    amount: 1990,
+    currency: "aud",
+    status: eventType === "refund.failed" ? "failed" : "pending",
+    payment_intent: "pi_1234567890sensitive",
+    charge: "ch_1234567890sensitive",
+    metadata: { customer_email: "must-not-appear@example.com" },
+  }, `evt_${eventType.replaceAll(".", "_")}_1234567890`));
+
+  assert.ok(refundObjectAlert, `${eventType} must not be skipped`);
+  assert.match(refundObjectAlert.subject, /환불 이벤트/);
+  assert.match(refundObjectAlert.text, /환불금액: \$19\.90/);
+  assert.match(refundObjectAlert.text, /Stripe Dashboard/);
+  assert.doesNotMatch(refundObjectAlert.text, /must-not-appear@example\.com|1234567890sensitive|metadata|payload/i);
+}
 
 const disputeAlert = buildStripeOperatorAlert(stripeEvent("charge.dispute.created", {
   id: "dp_open",

@@ -94,11 +94,17 @@ declare
   v_gate public.first_sale_gates%rowtype;
   v_generation bigint;
 begin
-  if p_product_code <> 'resume_pro'
+  if p_product_code is null
+    or p_product_code is distinct from 'resume_pro'
+    or p_claim_token_hash is null
     or p_claim_token_hash !~ '^[a-f0-9]{64}$'
+    or p_reservation_expires_at is null
+    or p_environment is null
     or p_environment not in ('live', 'test')
-    or p_currency <> 'aud'
-    or p_expected_amount_cents <> 1990
+    or p_currency is null
+    or p_currency is distinct from 'aud'
+    or p_expected_amount_cents is null
+    or p_expected_amount_cents is distinct from 1990
     or p_reservation_expires_at < now() + interval '30 minutes'
     or p_reservation_expires_at > now() + interval '35 minutes'
   then
@@ -125,9 +131,9 @@ begin
   where product_code = p_product_code
   for update;
 
-  if v_gate.environment <> p_environment
-    or v_gate.currency <> p_currency
-    or v_gate.expected_amount_cents <> p_expected_amount_cents
+  if v_gate.environment is distinct from p_environment
+    or v_gate.currency is distinct from p_currency
+    or v_gate.expected_amount_cents is distinct from p_expected_amount_cents
   then
     raise exception 'First-sale gate environment or price contract mismatch';
   end if;
@@ -194,7 +200,15 @@ as $$
 declare
   v_gate public.first_sale_gates%rowtype;
 begin
-  if p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
+  if p_product_code is null
+    or p_product_code is distinct from 'resume_pro'
+    or p_generation is null
+    or p_generation < 1
+    or p_claim_token_hash is null
+    or p_claim_token_hash !~ '^[a-f0-9]{64}$'
+    or p_checkout_session_id is null
+    or p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
+    or p_checkout_expires_at is null
     or p_checkout_expires_at <= now()
   then
     raise exception 'Invalid Checkout attachment';
@@ -203,15 +217,15 @@ begin
   perform pg_advisory_xact_lock(hashtext('first-sale:' || p_product_code));
   select * into v_gate from public.first_sale_gates where product_code = p_product_code for update;
 
-  if v_gate.state <> 'RESERVED'
-    or v_gate.generation <> p_generation
-    or v_gate.claim_token_hash <> p_claim_token_hash
+  if v_gate.state is distinct from 'RESERVED'
+    or v_gate.generation is distinct from p_generation
+    or v_gate.claim_token_hash is distinct from p_claim_token_hash
   then
     return false;
   end if;
 
   if v_gate.stripe_checkout_session_id is not null then
-    return v_gate.stripe_checkout_session_id = p_checkout_session_id;
+    return v_gate.stripe_checkout_session_id is not distinct from p_checkout_session_id;
   end if;
 
   update public.first_sale_gates
@@ -250,16 +264,24 @@ as $$
 declare
   v_gate public.first_sale_gates%rowtype;
 begin
-  if p_reason_code <> 'stripe_rejected_before_session' then
+  if p_product_code is null
+    or p_product_code is distinct from 'resume_pro'
+    or p_generation is null
+    or p_generation < 1
+    or p_claim_token_hash is null
+    or p_claim_token_hash !~ '^[a-f0-9]{64}$'
+    or p_reason_code is null
+    or p_reason_code is distinct from 'stripe_rejected_before_session'
+  then
     raise exception 'Unsupported first-sale failure release reason';
   end if;
 
   perform pg_advisory_xact_lock(hashtext('first-sale:' || p_product_code));
   select * into v_gate from public.first_sale_gates where product_code = p_product_code for update;
 
-  if v_gate.state <> 'RESERVED'
-    or v_gate.generation <> p_generation
-    or v_gate.claim_token_hash <> p_claim_token_hash
+  if v_gate.state is distinct from 'RESERVED'
+    or v_gate.generation is distinct from p_generation
+    or v_gate.claim_token_hash is distinct from p_claim_token_hash
     or v_gate.stripe_checkout_session_id is not null
   then
     return false;
@@ -299,12 +321,23 @@ as $$
 declare
   v_gate public.first_sale_gates%rowtype;
 begin
+  if p_product_code is null
+    or p_product_code is distinct from 'resume_pro'
+    or p_generation is null
+    or p_generation < 1
+    or p_checkout_session_id is null
+    or p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
+  then
+    raise exception 'Invalid verified-abandonment release contract';
+  end if;
+
   perform pg_advisory_xact_lock(hashtext('first-sale:' || p_product_code));
   select * into v_gate from public.first_sale_gates where product_code = p_product_code for update;
 
-  if v_gate.state <> 'RESERVED'
-    or v_gate.generation <> p_generation
-    or v_gate.stripe_checkout_session_id <> p_checkout_session_id
+  if v_gate.state is distinct from 'RESERVED'
+    or v_gate.generation is distinct from p_generation
+    or v_gate.stripe_checkout_session_id is distinct from p_checkout_session_id
+    or v_gate.reservation_expires_at is null
     or v_gate.reservation_expires_at > now()
   then
     return false;
@@ -349,6 +382,18 @@ declare
   v_environment text := case when p_livemode then 'live' else 'test' end;
   v_dedupe_key text := 'paid:' || md5(p_stripe_event_id);
 begin
+  if p_product_code is null
+    or p_product_code is distinct from 'resume_pro'
+    or p_stripe_event_id is null
+    or p_stripe_event_id !~ '^evt_[A-Za-z0-9]+$'
+    or p_checkout_session_id is null
+    or p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
+    or p_livemode is null
+    or p_stripe_created_at is null
+  then
+    raise exception 'Invalid first-sale paid event contract';
+  end if;
+
   perform pg_advisory_xact_lock(hashtext('first-sale:' || p_product_code));
 
   if exists (select 1 from public.first_sale_gate_events where dedupe_key = v_dedupe_key || ':sold') then
@@ -358,7 +403,7 @@ begin
   select * into v_gate from public.first_sale_gates where product_code = p_product_code for update;
 
   if v_gate.product_code is null
-    or v_gate.environment <> v_environment
+    or v_gate.environment is distinct from v_environment
   then
     raise exception 'First-sale paid event environment mismatch';
   end if;
@@ -369,9 +414,9 @@ begin
     raise exception 'First-sale gate is locked by another paid event';
   end if;
 
-  if v_gate.state <> 'RESERVED'
+  if v_gate.state is distinct from 'RESERVED'
     or v_gate.stripe_checkout_session_id is null
-    or v_gate.stripe_checkout_session_id <> p_checkout_session_id
+    or v_gate.stripe_checkout_session_id is distinct from p_checkout_session_id
   then
     raise exception 'Paid event does not match the active first-sale reservation';
   end if;
@@ -426,11 +471,25 @@ set search_path = public, pg_temp
 as $$
 declare
   v_gate public.first_sale_gates%rowtype;
+  v_approval_reference text;
 begin
-  if p_owner_approval_reference is null
-    or trim(p_owner_approval_reference) = ''
-    or length(trim(p_owner_approval_reference)) < 4
-    or length(trim(p_owner_approval_reference)) > 120
+  v_approval_reference := btrim(regexp_replace(
+    translate(
+      p_owner_approval_reference,
+      U&'\00A0\1680\2000\2001\2002\2003\2004\2005\2006\2007\2008\2009\200A\2028\2029\202F\205F\3000\FEFF',
+      ''
+    ),
+    '[[:cntrl:]]',
+    '',
+    'g'
+  ));
+
+  if p_product_code is null
+    or p_product_code is distinct from 'resume_pro'
+    or p_owner_approval_reference is null
+    or v_approval_reference = ''
+    or length(v_approval_reference) < 4
+    or length(v_approval_reference) > 120
     or p_evidence_status is distinct from 'PASS'
     or p_cash_difference_cents is null
     or abs(p_cash_difference_cents) > 1
@@ -442,7 +501,7 @@ begin
   perform pg_advisory_xact_lock(hashtext('first-sale:' || p_product_code));
   select * into v_gate from public.first_sale_gates where product_code = p_product_code for update;
 
-  if v_gate.state <> 'LOCKED' then return false; end if;
+  if v_gate.state is distinct from 'LOCKED' then return false; end if;
 
   update public.first_sale_gates
   set state = 'OPEN', stripe_checkout_session_id = null, sold_at = null,
@@ -459,7 +518,7 @@ begin
     'first-sale-v1', p_product_code, v_gate.generation, 'LOCKED', 'OPEN',
     (now() at time zone 'Australia/Sydney')::date, v_gate.environment, v_gate.currency,
     v_gate.expected_amount_cents, 'owner', 'owner_approved_next_sale',
-    trim(p_owner_approval_reference), p_evidence_status, p_cash_difference_cents,
+    v_approval_reference, p_evidence_status, p_cash_difference_cents,
     p_payout_status, '20260823_first_sale_gate_v1'
   );
 
@@ -473,6 +532,8 @@ create or replace function public.apply_first_sale_paid_event(
   p_livemode boolean,
   p_stripe_created_at timestamptz,
   p_product_code text,
+  p_currency text,
+  p_amount_total integer,
   p_checkout_session_id text,
   p_payment_intent_id text,
   p_customer_id text,
@@ -487,6 +548,30 @@ declare
   v_gate_outcome text;
   v_entitlement_outcome text;
 begin
+  if p_event_id is null
+    or p_event_id !~ '^evt_[A-Za-z0-9]+$'
+    or p_event_type is null
+    or p_event_type not in ('checkout.session.completed', 'checkout.session.async_payment_succeeded')
+    or p_livemode is null
+    or p_stripe_created_at is null
+    or p_product_code is null
+    or p_product_code is distinct from 'resume_pro'
+    or p_currency is null
+    or p_currency is distinct from 'aud'
+    or p_amount_total is null
+    or p_amount_total is distinct from 1990
+    or p_checkout_session_id is null
+    or p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
+    or p_payment_intent_id is null
+    or p_payment_intent_id !~ '^pi_[A-Za-z0-9]+$'
+    or p_customer_id is null
+    or p_customer_id !~ '^cus_[A-Za-z0-9]+$'
+    or p_reason is null
+    or p_reason not in ('checkout_paid', 'async_payment_succeeded')
+  then
+    raise exception 'Invalid first-sale entitlement contract';
+  end if;
+
   -- Both transitions share this database transaction. If entitlement delivery
   -- fails, the gate lock rolls back and Stripe retries the signed event.
   v_gate_outcome := public.lock_first_sale_from_paid_event(
@@ -588,10 +673,20 @@ returns table (
   granted_at timestamptz,
   revoked_at timestamptz
 )
-language sql
+language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
+begin
+  if p_token_hash is null
+    or p_token_hash !~ '^[a-fA-F0-9]{64}$'
+    or p_product_code is null
+    or p_product_code not in ('resume_pro', 'rental_application_pro')
+  then
+    raise exception 'Invalid restore-token consumption contract';
+  end if;
+
+  return query
   with consumed as (
     update public.purchase_restore_tokens
     set used_at = now()
@@ -617,7 +712,8 @@ as $$
     entitlement.granted_at,
     entitlement.revoked_at
   from public.purchase_entitlements entitlement
-  join consumed on consumed.entitlement_id = entitlement.id
+  join consumed on consumed.entitlement_id = entitlement.id;
+end;
 $$;
 
 create or replace function public.create_entitlement_restore_token(
@@ -633,29 +729,40 @@ set search_path = public, pg_temp
 as $$
 declare
   v_inserted text;
+  v_active_entitlement_id bigint;
 begin
-  if p_token_hash !~ '^[a-fA-F0-9]{64}$' or p_expires_at <= now() then
+  if p_entitlement_id is null
+    or p_entitlement_id < 1
+    or p_product_code is null
+    or p_product_code not in ('resume_pro', 'rental_application_pro')
+    or p_token_hash is null
+    or p_token_hash !~ '^[a-fA-F0-9]{64}$'
+    or p_expires_at is null
+    or p_expires_at <= now()
+  then
     raise exception 'Invalid restore-token contract';
   end if;
 
   perform pg_advisory_xact_lock(hashtext('restore-token:' || p_entitlement_id::text));
 
-  update public.purchase_restore_tokens
-  set used_at = now()
-  where entitlement_id in (
-    select entitlement.id
-    from public.purchase_entitlements entitlement
-    where entitlement.id = p_entitlement_id
-      and entitlement.product_code = p_product_code
-      and entitlement.status = 'active'
-  ) and used_at is null;
-
-  insert into public.purchase_restore_tokens (token_hash, entitlement_id, expires_at)
-  select lower(p_token_hash), entitlement.id, p_expires_at
+  select entitlement.id into v_active_entitlement_id
   from public.purchase_entitlements entitlement
   where entitlement.id = p_entitlement_id
     and entitlement.product_code = p_product_code
     and entitlement.status = 'active'
+  for update;
+
+  if v_active_entitlement_id is null then
+    return false;
+  end if;
+
+  update public.purchase_restore_tokens
+  set used_at = now()
+  where entitlement_id = v_active_entitlement_id
+    and used_at is null;
+
+  insert into public.purchase_restore_tokens (token_hash, entitlement_id, expires_at)
+  values (lower(p_token_hash), v_active_entitlement_id, p_expires_at)
   returning token_hash into v_inserted;
 
   return v_inserted is not null;
@@ -667,30 +774,31 @@ $$;
 -- deployment ticket only; do not paste a live role name into this repository.
 revoke create on schema public from public;
 revoke all on table public.first_sale_gates, public.first_sale_gate_events from public;
-revoke insert, update, delete on table public.payment_webhook_events, public.purchase_entitlements, public.purchase_restore_tokens from public;
+revoke insert, update, delete on table public.payment_webhook_events, public.purchase_entitlements, public.purchase_restore_tokens, public.entitlement_event_tombstones, public.stripe_payment_object_links from public;
 revoke all on function public.apply_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) from public;
 revoke all on function public.claim_first_sale_reservation(text, text, timestamptz, text, text, integer) from public;
 revoke all on function public.attach_first_sale_checkout(text, bigint, text, text, timestamptz) from public;
 revoke all on function public.release_failed_first_sale_reservation(text, bigint, text, text) from public;
 revoke all on function public.release_verified_abandoned_first_sale(text, bigint, text) from public;
 revoke all on function public.lock_first_sale_from_paid_event(text, text, text, boolean, timestamptz) from public;
-revoke all on function public.apply_first_sale_paid_event(text, text, boolean, timestamptz, text, text, text, text, text) from public;
+revoke all on function public.apply_first_sale_paid_event(text, text, boolean, timestamptz, text, text, integer, text, text, text, text) from public;
 revoke all on function public.apply_guarded_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) from public;
 revoke all on function public.consume_entitlement_restore_token(text, text) from public;
 revoke all on function public.create_entitlement_restore_token(bigint, text, text, timestamptz) from public;
 revoke all on function public.approve_next_first_sale(text, text, text, integer, text) from public;
 revoke all on function public.prevent_first_sale_gate_event_mutation() from public;
+revoke all on function public.prevent_entitlement_tombstone_mutation() from public;
 
 -- Owner-approved deployment template (intentionally comments):
 -- revoke create on schema public from hoju_app_runtime;
 -- revoke all on public.first_sale_gates, public.first_sale_gate_events from hoju_app_runtime;
--- revoke insert, update, delete on public.payment_webhook_events, public.purchase_entitlements, public.purchase_restore_tokens from hoju_app_runtime;
+-- revoke insert, update, delete on public.payment_webhook_events, public.purchase_entitlements, public.purchase_restore_tokens, public.entitlement_event_tombstones, public.stripe_payment_object_links from hoju_app_runtime;
 -- revoke execute on function public.apply_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) from hoju_app_runtime;
 -- grant execute on function public.claim_first_sale_reservation(text, text, timestamptz, text, text, integer) to hoju_app_runtime;
 -- grant execute on function public.attach_first_sale_checkout(text, bigint, text, text, timestamptz) to hoju_app_runtime;
 -- grant execute on function public.release_failed_first_sale_reservation(text, bigint, text, text) to hoju_app_runtime;
 -- grant execute on function public.release_verified_abandoned_first_sale(text, bigint, text) to hoju_app_runtime;
--- grant execute on function public.apply_first_sale_paid_event(text, text, boolean, timestamptz, text, text, text, text, text) to hoju_app_runtime;
+-- grant execute on function public.apply_first_sale_paid_event(text, text, boolean, timestamptz, text, text, integer, text, text, text, text) to hoju_app_runtime;
 -- grant execute on function public.apply_guarded_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) to hoju_app_runtime;
 -- grant execute on function public.consume_entitlement_restore_token(text, text) to hoju_app_runtime;
 -- grant execute on function public.create_entitlement_restore_token(bigint, text, text, timestamptz) to hoju_app_runtime;

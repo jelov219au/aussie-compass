@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [checkout, webhook, gate, neonGate, entitlementStore, migration, runbook, commerce] = await Promise.all([
+const [checkout, webhook, gate, neonGate, entitlementStore, migration, runbook, commerce, entitlementCommands] = await Promise.all([
   readFile(new URL("../src/app/api/checkout/resume-pro/route.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/firstSaleGate.ts", import.meta.url), "utf8"),
@@ -10,6 +10,7 @@ const [checkout, webhook, gate, neonGate, entitlementStore, migration, runbook, 
   readFile(new URL("../docs/first-sale-gate.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/first-sale-gate-runbook.md", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/commerce.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/entitlements.ts", import.meta.url), "utf8"),
 ]);
 
 for (const contract of [
@@ -115,12 +116,73 @@ for (const contract of [
   "p_evidence_status is distinct from 'PASS'",
   "p_cash_difference_cents is null",
   "p_payout_status is distinct from 'matched'",
-  "trim(p_owner_approval_reference) = ''",
+  "v_approval_reference = ''",
+  "translate(",
+  "[[:cntrl:]]",
+  "p_product_code is null",
+  "p_generation is null",
+  "p_claim_token_hash is null",
+  "p_checkout_session_id is null",
+  "p_checkout_expires_at is null",
+  "p_reservation_expires_at is null",
+  "p_livemode is null",
+  "p_stripe_created_at is null",
+  "p_currency is null",
+  "p_currency is distinct from 'aud'",
+  "p_amount_total is null",
+  "p_amount_total is distinct from 1990",
+  "is distinct from p_checkout_session_id",
+  "entitlement_event_tombstones",
+  "stripe_payment_object_links",
+  "prevent_entitlement_tombstone_mutation",
   "on conflict (version) do nothing",
   "20260823_first_sale_gate_v1",
 ]) {
   assert.ok(migration.includes(contract), `First-sale migration contract is missing: ${contract}`);
 }
+
+for (const contract of [
+  'outcome?: "processed" | "duplicate" | "ignored_stale" | "tombstoned"',
+  "row.id === null ? undefined : toEntitlementRecord(row)",
+]) {
+  assert.ok(entitlementStore.includes(contract), `Tombstone adapter contract is missing: ${contract}`);
+}
+
+assert.ok(
+  webhook.includes('result.outcome === "processed" || result.outcome === "tombstoned"'),
+  "entitlement-free refund/dispute tombstones must still reach the operator alert path",
+);
+assert.ok(!entitlementCommands.includes("`refund_${"), "refund reasons must not interpolate provider or customer text");
+assert.ok(!entitlementCommands.includes("`dispute_${"), "dispute reasons must not interpolate provider or customer text");
+
+function sqlFunction(name, nextName) {
+  const start = migration.indexOf(`create or replace function public.${name}`);
+  const end = nextName ? migration.indexOf(`create or replace function public.${nextName}`, start + 1) : migration.length;
+  assert.ok(start >= 0 && end > start, `SQL function ${name} must exist`);
+  return migration.slice(start, end);
+}
+
+for (const [name, nextName, requiredNullGuards] of [
+  ["claim_first_sale_reservation", "attach_first_sale_checkout", ["p_product_code", "p_claim_token_hash", "p_reservation_expires_at", "p_environment", "p_currency", "p_expected_amount_cents"]],
+  ["attach_first_sale_checkout", "release_failed_first_sale_reservation", ["p_product_code", "p_generation", "p_claim_token_hash", "p_checkout_session_id", "p_checkout_expires_at"]],
+  ["release_failed_first_sale_reservation", "release_verified_abandoned_first_sale", ["p_product_code", "p_generation", "p_claim_token_hash", "p_reason_code"]],
+  ["release_verified_abandoned_first_sale", "lock_first_sale_from_paid_event", ["p_product_code", "p_generation", "p_checkout_session_id"]],
+  ["lock_first_sale_from_paid_event", "approve_next_first_sale", ["p_product_code", "p_stripe_event_id", "p_checkout_session_id", "p_livemode", "p_stripe_created_at"]],
+  ["apply_first_sale_paid_event", "apply_guarded_entitlement_event", ["p_event_id", "p_event_type", "p_livemode", "p_stripe_created_at", "p_product_code", "p_currency", "p_amount_total", "p_checkout_session_id", "p_payment_intent_id", "p_customer_id", "p_reason"]],
+  ["consume_entitlement_restore_token", "create_entitlement_restore_token", ["p_token_hash", "p_product_code"]],
+  ["create_entitlement_restore_token", null, ["p_entitlement_id", "p_product_code", "p_token_hash", "p_expires_at"]],
+]) {
+  const body = sqlFunction(name, nextName);
+  for (const parameter of requiredNullGuards) {
+    assert.ok(body.includes(`${parameter} is null`), `${name} must reject NULL ${parameter}`);
+  }
+}
+
+const restoreCreate = sqlFunction("create_entitlement_restore_token", null);
+assert.ok(
+  restoreCreate.indexOf("select entitlement.id into v_active_entitlement_id") < restoreCreate.indexOf("update public.purchase_restore_tokens"),
+  "restore-token creation must validate and lock the active product entitlement before invalidating older tokens",
+);
 
 assert.ok(
   webhook.indexOf("applyPaidEventAndEntitlement") < webhook.indexOf("Persisted Stripe entitlement event"),
@@ -238,6 +300,8 @@ assert.equal(concurrent.ownerReopen({ approved: validApproval, evidence: "PASS",
 assert.equal(concurrent.ownerReopen({ approved: validApproval, evidence: null, cashDifference: null, payout: null }), false, "combined NULL inputs must fail closed");
 assert.equal(concurrent.ownerReopen({ approved: null, evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "NULL owner reference must fail closed");
 assert.equal(concurrent.ownerReopen({ approved: "   ", evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "blank owner reference must fail closed");
+assert.equal(concurrent.ownerReopen({ approved: "\t\n\r", evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "control-only owner reference must fail closed");
+assert.equal(concurrent.ownerReopen({ approved: "\u00a0\u2003\u3000", evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "Unicode-space-only owner reference must fail closed");
 assert.equal(concurrent.ownerReopen({ approved: "abc", evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "short owner reference must fail closed");
 assert.equal(concurrent.ownerReopen({ approved: "x".repeat(121), evidence: "PASS", cashDifference: 0, payout: "matched" }), false, "long owner reference must fail closed");
 assert.equal(concurrent.ownerReopen({ approved: validApproval, evidence: "PASS", cashDifference: 2, payout: "matched" }), false, "+2 cents must fail");

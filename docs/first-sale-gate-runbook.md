@@ -12,11 +12,11 @@ The application fails closed when `FIRST_SALE_GATE_ENABLED=true`, the Neon entit
 
 1. Keep `PAYMENTS_ENABLED=false`.
 2. Create and verify a current encrypted PostgreSQL backup using `docs/database-recovery.md`.
-3. Apply `docs/entitlement-storage.sql` first. The first-sale transaction calls `apply_entitlement_event`.
+3. Apply `docs/entitlement-storage.sql` first, including `schema_migrations.version=20260823_entitlement_negative_event_tombstones_v1`. The first-sale transaction calls `apply_entitlement_event`; the additive tombstone/link tables prevent a refund or dispute delivered before the grant from being lost.
 4. Apply `docs/first-sale-gate.sql` once. It is idempotent through `schema_migrations.version=20260823_first_sale_gate_v1`, `create table if not exists`, and `create or replace function`.
 5. Confirm the migration row, tables, append-only trigger and functions without selecting claim hashes or complete Stripe identifiers.
 6. The migration owner must own the `SECURITY DEFINER` functions and must not be the runtime login. Revoke `CREATE ON SCHEMA public` from both `PUBLIC` and the runtime role, then verify it with `has_schema_privilege`. Every protected table/function reference is also `public.`-qualified as defence-in-depth.
-7. Revoke runtime `EXECUTE` on the original `apply_entitlement_event` and direct `INSERT/UPDATE/DELETE` on `payment_webhook_events`, `purchase_entitlements`, `purchase_restore_tokens`, `first_sale_gates` and `first_sale_gate_events`. Existing grants from the baseline entitlement rollout must be explicitly removed.
+7. Revoke runtime `EXECUTE` on the original `apply_entitlement_event` and direct `INSERT/UPDATE/DELETE` on `payment_webhook_events`, `purchase_entitlements`, `purchase_restore_tokens`, `entitlement_event_tombstones`, `stripe_payment_object_links`, `first_sale_gates` and `first_sale_gate_events`. Existing grants from the baseline entitlement rollout must be explicitly removed. Confirm the tombstone trigger rejects update/delete.
 8. Grant the application role only `claim_first_sale_reservation`, `attach_first_sale_checkout`, both verified release functions, `apply_first_sale_paid_event`, `apply_guarded_entitlement_event`, and the two restore-token wrappers. The guarded wrapper rejects a Resume Pro grant outside the atomic first-sale transaction. Do **not** grant it `approve_next_first_sale` or the private lock helper.
 9. Grant `approve_next_first_sale` only to a separate owner-controlled operator role after access review. `PUBLIC` is explicitly revoked in the migration.
 10. In the matching Stripe mode, prove there are **zero existing open Checkout Sessions** for Resume Pro. Explicitly expire any pre-gate Session and retain its non-sensitive expiry evidence. An old URL must not remain payable when the gate opens.
@@ -40,6 +40,8 @@ Required non-secret environment contract:
 - A signed paid Checkout webhook calls `apply_first_sale_paid_event`. Gate `SOLD → LOCKED`, event receipt, and entitlement grant commit or roll back together.
 - Only `RESERVED` plus the exact attached Session is eligible for that transaction. An unreserved, old or mismatched paid Session is a P0: access is not granted, the webhook fails for investigation, and the operator follows the manual refund/support path.
 - Only the exact same signed paid event is idempotent. A different event received after `LOCKED`, including another event for the same Session, cannot invoke entitlement processing. Refund and dispute commands update entitlement/accounting state only and cannot call the reopen function.
+- A refund, charge-refund or dispute received before its Checkout grant creates an append-only, non-PII tombstone tied to PaymentIntent/Charge identifiers. A later grant compares Stripe `created_at`; for an equal second the priority is `revoke > review > active`. A product-less dispute-win grant may restore only an already matched entitlement and can never create a new one.
+- An entitlement-free tombstone returns `tombstoned`, not a fabricated entitlement. It is still eligible for the fixed operator alert path. Tombstone reasons are fixed application codes; raw webhook bodies and customer text are not stored.
 
 The public Checkout response contains only the existing Stripe-hosted Checkout URL or an allowlisted Korean error. It never contains a claim token/hash, gate generation, database state, full stored Session ID, or database error. Application logs contain an error category only. Append-only gate audit records retain only the last eight characters of Stripe references.
 
@@ -54,7 +56,7 @@ Do not edit `first_sale_gates` directly.
 
 ## Owner-controlled next sale
 
-`approve_next_first_sale` is deliberately unreachable by the web application. It returns false unless all of the following are supplied: a trimmed 4–120 character owner approval reference, evidence status `PASS`, a non-NULL cash difference within ±A$0.01, and payout status `matched`. NULL, blank, `MISSING` and `FAIL` inputs fail closed. The owner must first satisfy the 15-minute, 24-hour and first-payout evidence gates in `docs/first-payment-24-hour-operations-packet.md`.
+`approve_next_first_sale` is deliberately unreachable by the web application. It returns false unless all of the following are supplied: a sanitized 4–120 character owner approval reference containing meaningful non-control characters, evidence status `PASS`, a non-NULL cash difference within ±A$0.01, and payout status `matched`. NULL, ASCII/Unicode whitespace-only, control-only, blank, `MISSING` and `FAIL` inputs fail closed. The owner must first satisfy the 15-minute, 24-hour and first-payout evidence gates in `docs/first-payment-24-hour-operations-packet.md`.
 
 Approval creates one append-only `LOCKED → OPEN` event. The next request still has to win a fresh single reservation; this never enables unrestricted multi-sale mode. Record only an incident/approval reference, never a customer name, email, card detail, receipt, full Stripe ID, API key or webhook secret.
 
@@ -77,4 +79,4 @@ npm run test:database-operations
 npm run quality:gate
 ```
 
-Before a live release, separately test signed sandbox events for concurrent requests, duplicate paid webhooks, refund-before-grant retry, late refund, expiry verification failure, verified abandonment, and owner-role denial. Live Stripe/DB execution requires a new explicit approval.
+Before a live release, separately test signed sandbox events for concurrent requests, duplicate paid webhooks, refund-before-grant, dispute-before-grant, same-second revoke/review/grant priority, late grant, newer dispute-win recovery, expiry verification failure, verified abandonment, and owner-role denial. Live Stripe/DB execution requires a new explicit approval.
