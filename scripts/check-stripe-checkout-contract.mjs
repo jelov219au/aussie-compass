@@ -11,6 +11,10 @@ const webhook = await readFile(new URL("../src/app/api/stripe/webhook/route.ts",
 const purchaseVerification = await readFile(new URL("../src/lib/resumeProPurchase.ts", import.meta.url), "utf8");
 const entitlementStore = await readFile(new URL("../src/lib/neonEntitlementStore.ts", import.meta.url), "utf8");
 const requestSecurity = await readFile(new URL("../src/lib/requestSecurity.ts", import.meta.url), "utf8");
+const contactPage = await readFile(new URL("../src/app/contact/page.tsx", import.meta.url), "utf8");
+const privacyPage = await readFile(new URL("../src/app/privacy/page.tsx", import.meta.url), "utf8");
+const paymentSupport = await readFile(new URL("../src/components/tools/PaymentSupportHelper.tsx", import.meta.url), "utf8");
+const jsonLd = await readFile(new URL("../src/components/seo/JsonLd.tsx", import.meta.url), "utf8");
 
 for (const contract of [
   "checkout.sessions.create",
@@ -42,6 +46,8 @@ for (const contract of [
   "hasResumeProStripeProductConfig()",
   "stripeMode === expectedStripeMode && stripeProductContractConfigured",
   "readiness.stripeConfigured",
+  "supportConfigured",
+  "sellerDetailsConfigured && supportConfigured",
 ]) {
   assert.ok(commerce.includes(contract), `Checkout readiness fail-closed contract is missing: ${contract}`);
 }
@@ -49,6 +55,22 @@ for (const contract of [
 for (const contract of ["--verify-stripe", "expand: [\"product\"]", "assertResumeProStripeProduct"]) {
   assert.ok(launchCheck.includes(contract), `Read-only Stripe launch verification is missing: ${contract}`);
 }
+assert.ok(launchCheck.includes('process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim()'), "launch audit must read the configured support route");
+assert.ok(launchCheck.includes('[\"지원 이메일\", /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(supportEmail)'), "launch audit must block an absent or invalid support email");
+
+assert.ok(contactPage.includes("영수증·결제 참조의 마지막 8자"), "contact guidance must request only the final eight reference characters");
+assert.ok(paymentSupport.includes("[있다면 마지막 8자만 입력]"), "support template must limit the payment reference to eight characters");
+for (const prohibitedDetail of ["카드번호 전체·일부", "CVC", "영수증 전체", "이력서 원문"]) {
+  assert.ok(
+    contactPage.includes(prohibitedDetail) || privacyPage.includes(prohibitedDetail) || paymentSupport.includes(prohibitedDetail),
+    `support guidance must prohibit collecting: ${prohibitedDetail}`,
+  );
+}
+for (const publicSupportSurface of [contactPage, privacyPage, paymentSupport, jsonLd]) {
+  assert.ok(!publicSupportSurface.includes("support@hojucompass.com"), "public support surfaces must not hardcode an email address");
+}
+assert.ok(jsonLd.includes("getPublicSellerDetails()") && jsonLd.includes("contactPoint: email ?"), "Organization JSON-LD must omit an unconfigured support email");
+assert.ok(jsonLd.includes('JSON.stringify(data).replace(/</g, "\\\\u003c")'), "JSON-LD must preserve injection-safe serialization");
 
 assert.ok(checkoutForm.includes('name="source"'), "Resume Pro Checkout must submit its allowlisted acquisition source");
 for (const entry of ["article-job-search-plan", "article-achievement-examples", "resume-builder-complete"]) {
