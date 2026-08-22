@@ -49,6 +49,7 @@ const comparison = [
   ["커버레터 작성 도구", false, true],
   ["채용 공고 키워드 점검", false, true],
   ["회사별 지원서 묶음", false, true],
+  ["재사용하는 STAR 경험 보관함", false, true],
 ] as const;
 
 function TemplatePreview({ variant, label }: { variant: "editorial" | "split" | "minimal"; label: string }) {
@@ -115,13 +116,13 @@ export default async function ResumeProPage({ searchParams }: Props) {
             <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
               <div className="max-w-3xl">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro</p>
-                <h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">지원하고 싶은 공고를 찾았다면,<br /><span className="font-normal text-navy-light">이제 제출할 준비를 끝내세요.</span></h1>
-                <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">무료 빌더에 적어둔 실제 경력을 바탕으로 공고에서 빠뜨린 내용은 없는지 확인하고, 회사별 이력서와 커버레터를 한 묶음으로 준비해요.</p>
-                <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-navy/70">
-                  <li>실제로 한 경험만 사용</li>
-                  <li>취업 결과를 과장하지 않음</li>
-                  <li>구독 없는 1회 결제</li>
-                </ul>
+                <h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">AI로 문장을 찾았다면,<br /><span className="font-normal text-navy-light">이번 공고에 낼 지원 자료로 남기세요.</span></h1>
+                <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">답변을 복사해 끝내지 않고, 무료 빌더에 저장한 실제 경력과 채용 공고를 맞춰 회사별 이력서, 커버레터와 다시 꺼내 쓸 STAR 경험으로 정리해요.</p>
+                <ol className="mt-7 grid gap-px border-y border-navy/15 bg-border text-sm sm:grid-cols-3">
+                  <li className="bg-white px-4 py-4"><span className="block text-xs font-semibold text-gold">01</span><strong className="mt-1 block text-navy">내 실제 경력 저장</strong></li>
+                  <li className="bg-white px-4 py-4"><span className="block text-xs font-semibold text-gold">02</span><strong className="mt-1 block text-navy">공고별 지원 자료 정리</strong></li>
+                  <li className="bg-white px-4 py-4"><span className="block text-xs font-semibold text-gold">03</span><strong className="mt-1 block text-navy">다음 지원에 다시 사용</strong></li>
+                </ol>
               </div>
               <aside className="border-l-2 border-gold pl-6">
                 <p className="text-sm font-semibold text-muted">Resume Pro 1회 이용권</p>
@@ -130,12 +131,26 @@ export default async function ResumeProPage({ searchParams }: Props) {
               </aside>
             </div>
             <div className="mt-10 flex flex-wrap items-start gap-3">
-              <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">이력서가 없다면 무료로 먼저 만들기</Link>
-              <span className="inline-flex min-h-12 items-center justify-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted">{checkoutAvailable ? "Pro 작업 공간 이용 가능" : "Pro 작업 공간 출시 준비 중"}</span>
-              {!checkoutAvailable && (
-                <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">결제 기능 준비 중</span>
+              {checkoutAvailable ? (
+                <a href="#resume-pro-checkout" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">이번 공고 지원서 묶음 만들기 ↓</a>
+              ) : (
+                <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">Pro 작업 공간 출시 준비 중</span>
               )}
+              <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface">경력 초안이 없다면 무료로 시작</Link>
             </div>
+            <section className="mt-8 border-y border-navy/20 bg-white" aria-labelledby="persistent-value-heading">
+              <div className="px-4 py-5 sm:px-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">한 번 답하고 끝나는 도구가 아니에요</p>
+                <h2 id="persistent-value-heading" className="mt-2 text-2xl font-semibold text-navy">지원할수록 내 준비 자료가 쌓입니다.</h2>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">일반적인 문장 하나를 받는 대신, 다음 공고에서도 다시 꺼내 쓸 수 있는 지원 자산을 남겨요.</p>
+              </div>
+              <ol className="grid gap-px bg-border sm:grid-cols-3">
+                <li className="bg-surface p-4 sm:p-5"><span className="font-mono text-xs text-gold">01</span><strong className="mt-2 block text-sm text-navy">회사별 지원서 저장</strong><p className="mt-2 text-xs leading-5 text-muted">공고, 커버레터와 디자인을 회사별로 최대 30개 보관해요.</p></li>
+                <li className="bg-surface p-4 sm:p-5"><span className="font-mono text-xs text-gold">02</span><strong className="mt-2 block text-sm text-navy">STAR 경험 재사용</strong><p className="mt-2 text-xs leading-5 text-muted">한 번 정리한 실제 경험을 다른 면접과 Selection Criteria에 다시 연결해요.</p></li>
+                <li className="bg-surface p-4 sm:p-5"><span className="font-mono text-xs text-gold">03</span><strong className="mt-2 block text-sm text-navy">지원서 묶음 내보내기</strong><p className="mt-2 text-xs leading-5 text-muted">이력서 요약, 공고 점검, 커버레터와 STAR 경험을 한 파일로 저장해요.</p></li>
+              </ol>
+              <p className="px-4 py-4 text-xs leading-5 text-muted sm:px-6">지원 자료는 현재 브라우저에 저장됩니다. 기기를 바꾸기 전에는 지원서 묶음을 내려받아 보관해 주세요.</p>
+            </section>
             {checkoutAvailable && <div id="resume-pro-checkout" className="scroll-mt-24 mt-5"><ResumeProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
             <p className="mt-4 text-xs leading-5 text-muted">
               {testCheckoutAvailable

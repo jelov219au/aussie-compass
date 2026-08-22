@@ -29,7 +29,19 @@ type ProDraft = {
   layout: ProLayout;
   accent: ProAccent;
   coverLetter: string;
+  starStoryId: string;
 };
+type StarStory = {
+  id: string;
+  title: string;
+  competency: string;
+  situation: string;
+  task: string;
+  action: string;
+  result: string;
+  updatedAt: string;
+};
+type StarStoryDraft = Omit<StarStory, "id" | "updatedAt">;
 type SavedApplication = {
   id: string;
   company: string;
@@ -42,6 +54,8 @@ type ApplicationStore = { activeId: string | null; items: SavedApplication[] };
 const RESUME_STORAGE_KEY = "aussie-compass-resume-v1";
 const PRO_STORAGE_KEY = "hoju-compass-resume-pro-preview-v1";
 const APPLICATIONS_STORAGE_KEY = "hoju-compass-resume-pro-applications-v1";
+const STAR_STORIES_STORAGE_KEY = "hoju-compass-resume-pro-star-stories-v1";
+const emptyStarStory: StarStoryDraft = { title: "", competency: "", situation: "", task: "", action: "", result: "" };
 const inputClass = "mt-1.5 min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy outline-none transition placeholder:text-muted/60 focus:border-navy focus:ring-2 focus:ring-navy/15";
 const labelClass = "block text-sm font-medium text-navy";
 const proLayouts: Array<{ id: ProLayout; name: string; description: string }> = [
@@ -149,8 +163,11 @@ function ResumeProDocument({ resume, layout, accent }: { resume: SavedResume; la
 
 export function ResumeProWorkspace() {
   const [savedResume, setSavedResume] = useState<SavedResume>({});
-  const [draft, setDraft] = useState<ProDraft>({ company: "", role: "", hiringManager: "", jobAd: "", tone: "clear", layout: "editorial", accent: "eucalyptus", coverLetter: "" });
+  const [draft, setDraft] = useState<ProDraft>({ company: "", role: "", hiringManager: "", jobAd: "", tone: "clear", layout: "editorial", accent: "eucalyptus", coverLetter: "", starStoryId: "" });
   const [applications, setApplications] = useState<SavedApplication[]>([]);
+  const [starStories, setStarStories] = useState<StarStory[]>([]);
+  const [starStoryDraft, setStarStoryDraft] = useState<StarStoryDraft>(emptyStarStory);
+  const [editingStarStoryId, setEditingStarStoryId] = useState<string | null>(null);
   const [activeApplicationId, setActiveApplicationId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
@@ -165,6 +182,11 @@ export function ResumeProWorkspace() {
         const parsed = JSON.parse(applicationStore) as Partial<ApplicationStore>;
         if (Array.isArray(parsed.items)) setApplications(parsed.items.slice(0, 30));
         if (typeof parsed.activeId === "string") setActiveApplicationId(parsed.activeId);
+      }
+      const storedStarStories = window.localStorage.getItem(STAR_STORIES_STORAGE_KEY);
+      if (storedStarStories) {
+        const parsed = JSON.parse(storedStarStories) as unknown;
+        if (Array.isArray(parsed)) setStarStories(parsed.slice(0, 20) as StarStory[]);
       }
     } catch {
       // The preview remains usable when local storage is unavailable.
@@ -192,12 +214,21 @@ export function ResumeProWorkspace() {
     return () => window.clearTimeout(timer);
   }, [activeApplicationId, applications, loaded]);
 
+  useEffect(() => {
+    if (!loaded) return;
+    const timer = window.setTimeout(() => {
+      try { window.localStorage.setItem(STAR_STORIES_STORAGE_KEY, JSON.stringify(starStories.slice(0, 20))); } catch {}
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [loaded, starStories]);
+
   const resumeText = useMemo(() => JSON.stringify(savedResume).toLowerCase(), [savedResume]);
   const keywords = useMemo(() => extractKeywords(draft.jobAd), [draft.jobAd]);
   const matched = useMemo(() => keywords.filter((keyword) => resumeText.includes(keyword)), [keywords, resumeText]);
   const missing = useMemo(() => keywords.filter((keyword) => !resumeText.includes(keyword)), [keywords, resumeText]);
   const matchRate = keywords.length ? Math.round((matched.length / keywords.length) * 100) : 0;
   const hasResume = Boolean(savedResume.name || savedResume.summary || savedResume.experiences?.some((item) => item.role || item.details));
+  const selectedStarStory = useMemo(() => starStories.find((story) => story.id === draft.starStoryId) ?? null, [draft.starStoryId, starStories]);
 
   const setField = <K extends keyof ProDraft>(field: K, value: ProDraft[K]) => setDraft((current) => ({ ...current, [field]: value }));
 
@@ -222,13 +253,13 @@ export function ResumeProWorkspace() {
   };
 
   const loadApplication = (application: SavedApplication) => {
-    setDraft((current) => ({ ...current, ...application.draft }));
+    setDraft((current) => ({ ...current, ...application.draft, starStoryId: application.draft.starStoryId || "" }));
     setActiveApplicationId(application.id);
     setMessage(`${application.company} 지원서를 불러왔습니다.`);
   };
 
   const startNewApplication = () => {
-    setDraft((current) => ({ company: "", role: savedResume.title || "", hiringManager: "", jobAd: "", tone: current.tone, layout: current.layout, accent: current.accent, coverLetter: "" }));
+    setDraft((current) => ({ company: "", role: savedResume.title || "", hiringManager: "", jobAd: "", tone: current.tone, layout: current.layout, accent: current.accent, coverLetter: "", starStoryId: "" }));
     setActiveApplicationId(null);
     setMessage("새 지원서를 시작했습니다. 기존에 목록에 저장한 지원서는 그대로 남아 있습니다.");
   };
@@ -238,6 +269,53 @@ export function ResumeProWorkspace() {
     setApplications((current) => current.filter((item) => item.id !== application.id));
     if (activeApplicationId === application.id) setActiveApplicationId(null);
     setMessage(`${application.company} 지원서를 목록에서 삭제했습니다.`);
+  };
+
+  const setStarField = <K extends keyof StarStoryDraft>(field: K, value: StarStoryDraft[K]) => setStarStoryDraft((current) => ({ ...current, [field]: value }));
+
+  const saveStarStory = () => {
+    if (!starStoryDraft.title.trim() || !starStoryDraft.action.trim() || !starStoryDraft.result.trim()) {
+      setMessage("경험 이름, 내가 한 행동과 결과를 입력해 주세요.");
+      return;
+    }
+    const id = editingStarStoryId || `star-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const story: StarStory = {
+      id,
+      title: starStoryDraft.title.trim(),
+      competency: starStoryDraft.competency.trim(),
+      situation: starStoryDraft.situation.trim(),
+      task: starStoryDraft.task.trim(),
+      action: starStoryDraft.action.trim(),
+      result: starStoryDraft.result.trim(),
+      updatedAt: new Date().toISOString(),
+    };
+    setStarStories((current) => [story, ...current.filter((item) => item.id !== id)].slice(0, 20));
+    setEditingStarStoryId(id);
+    setField("starStoryId", id);
+    setMessage("STAR 경험을 저장하고 현재 지원서에 연결했습니다.");
+  };
+
+  const applyStarStory = (story: StarStory) => {
+    const { id, updatedAt: _updatedAt, ...editable } = story;
+    void _updatedAt;
+    setStarStoryDraft(editable);
+    setEditingStarStoryId(id);
+    setField("starStoryId", id);
+    setMessage(`‘${story.title}’ 경험을 현재 지원서에 연결했습니다.`);
+  };
+
+  const startNewStarStory = () => {
+    setStarStoryDraft(emptyStarStory);
+    setEditingStarStoryId(null);
+    setMessage("새 STAR 경험을 작성할 수 있습니다. 저장된 경험은 그대로 남아 있습니다.");
+  };
+
+  const deleteStarStory = (story: StarStory) => {
+    if (!window.confirm(`‘${story.title}’ 경험을 보관함에서 삭제할까요?`)) return;
+    setStarStories((current) => current.filter((item) => item.id !== story.id));
+    if (draft.starStoryId === story.id) setField("starStoryId", "");
+    if (editingStarStoryId === story.id) startNewStarStory();
+    setMessage(`‘${story.title}’ 경험을 삭제했습니다.`);
   };
 
   const createCoverLetter = () => {
@@ -318,6 +396,16 @@ export function ResumeProWorkspace() {
       "Education",
       ...(educationLines.length ? educationLines : ["- Not set"]),
       "",
+      "REUSABLE STAR EXPERIENCE",
+      ...(selectedStarStory ? [
+        `Title: ${selectedStarStory.title}`,
+        `Competency: ${selectedStarStory.competency || "Not set"}`,
+        `Situation: ${selectedStarStory.situation || "Not set"}`,
+        `Task: ${selectedStarStory.task || "Not set"}`,
+        `Action: ${selectedStarStory.action}`,
+        `Result: ${selectedStarStory.result}`,
+      ] : ["No STAR experience selected for this application."]),
+      "",
       "COVER LETTER",
       draft.coverLetter || "Not created",
       "",
@@ -329,7 +417,7 @@ export function ResumeProWorkspace() {
     anchor.download = `${safeFileName(`${draft.company}-${draft.role || savedResume.title || "application"}`)}-application-kit.txt`;
     anchor.click();
     URL.revokeObjectURL(url);
-    setMessage("이력서 요약, 공고 점검과 커버레터를 지원서 패키지로 저장했습니다.");
+    setMessage("이력서 요약, 공고 점검, STAR 경험과 커버레터를 지원서 패키지로 저장했습니다.");
   };
 
   return (
@@ -350,6 +438,41 @@ export function ResumeProWorkspace() {
           <label className={`${labelClass} sm:col-span-2`}>담당자 이름 <span className="font-normal text-muted">(선택)</span><input className={inputClass} value={draft.hiringManager} onChange={(event) => setField("hiringManager", event.target.value)} placeholder="Hiring Manager" /></label>
         </div>
         <label className="mt-5 block text-sm font-medium text-navy">채용 공고<textarea className={`${inputClass} min-h-48 resize-y`} value={draft.jobAd} onChange={(event) => setField("jobAd", event.target.value)} placeholder="채용 공고의 Responsibilities, Requirements 부분을 붙여 넣으세요." /></label>
+        <section className="mt-6 border border-border bg-white p-4 sm:p-5" aria-labelledby="star-library-heading">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Reusable experience</p>
+              <h3 id="star-library-heading" className="mt-1 text-lg font-semibold text-navy">다음 지원에도 쓰는 STAR 경험</h3>
+              <p className="mt-2 max-w-xl text-xs leading-5 text-muted">한 번 정리한 실제 경험을 회사가 달라도 다시 불러와 면접 답변과 Selection Criteria 준비에 활용하세요.</p>
+            </div>
+            <button type="button" onClick={startNewStarStory} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 경험</button>
+          </div>
+          {starStories.length > 0 && (
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+              {starStories.map((story) => (
+                <li key={story.id} className={`border p-3 ${draft.starStoryId === story.id ? "border-navy bg-navy/5" : "border-border"}`}>
+                  <button type="button" onClick={() => applyStarStory(story)} className="min-h-10 w-full text-left">
+                    <strong className="block text-sm text-navy">{story.title}</strong>
+                    <span className="mt-1 block text-xs text-muted">{story.competency || "역량 미지정"}{draft.starStoryId === story.id ? " · 현재 지원서에 사용" : ""}</span>
+                  </button>
+                  <button type="button" onClick={() => deleteStarStory(story)} className="mt-1 min-h-9 text-xs text-muted hover:text-red-700">삭제</button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <label className={labelClass}>경험 이름<input className={inputClass} value={starStoryDraft.title} onChange={(event) => setStarField("title", event.target.value)} placeholder="바쁜 시간대 고객 불만 해결" /></label>
+            <label className={labelClass}>보여준 역량 <span className="font-normal text-muted">(선택)</span><input className={inputClass} value={starStoryDraft.competency} onChange={(event) => setStarField("competency", event.target.value)} placeholder="Customer service" /></label>
+            <label className={labelClass}>상황 (Situation)<textarea className={`${inputClass} min-h-24 resize-y`} value={starStoryDraft.situation} onChange={(event) => setStarField("situation", event.target.value)} placeholder="어떤 상황이었나요?" /></label>
+            <label className={labelClass}>내 역할 (Task)<textarea className={`${inputClass} min-h-24 resize-y`} value={starStoryDraft.task} onChange={(event) => setStarField("task", event.target.value)} placeholder="내가 해결해야 했던 일은 무엇이었나요?" /></label>
+            <label className={labelClass}>내가 한 행동 (Action)<textarea className={`${inputClass} min-h-28 resize-y`} value={starStoryDraft.action} onChange={(event) => setStarField("action", event.target.value)} placeholder="내가 직접 한 행동을 순서대로 적어보세요." /></label>
+            <label className={labelClass}>결과 (Result)<textarea className={`${inputClass} min-h-28 resize-y`} value={starStoryDraft.result} onChange={(event) => setStarField("result", event.target.value)} placeholder="무엇이 달라졌고, 무엇을 배웠나요?" /></label>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button type="button" onClick={saveStarStory} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">{editingStarStoryId ? "경험 업데이트" : "경험 저장하고 사용"}</button>
+            <span className="text-xs leading-5 text-muted">현재 브라우저에 최대 20개 저장 · 지원서 패키지에 함께 포함</span>
+          </div>
+        </section>
         <fieldset className="mt-6 border border-border bg-white p-4"><legend className="px-1 text-sm font-semibold text-navy">프리미엄 이력서 디자인</legend><div className="mt-2 grid gap-2 sm:grid-cols-3">{proLayouts.map((option) => <button key={option.id} type="button" onClick={() => setField("layout", option.id)} aria-pressed={draft.layout === option.id} className={`min-h-24 p-3 text-left ${draft.layout === option.id ? "bg-navy text-white" : "bg-surface text-navy"}`}><strong className="block text-sm">{option.name}</strong><span className={`mt-2 block text-xs leading-5 ${draft.layout === option.id ? "text-white/65" : "text-muted"}`}>{option.description}</span></button>)}</div><div className="mt-4 flex flex-wrap gap-2">{(Object.entries(proAccents) as Array<[ProAccent, (typeof proAccents)[ProAccent]]>).map(([id, option]) => <button key={id} type="button" onClick={() => setField("accent", id)} aria-pressed={draft.accent === id} className={`inline-flex min-h-11 items-center gap-2 border px-3 text-sm ${draft.accent === id ? "border-navy font-semibold" : "border-border"}`}><span className="h-4 w-4" style={{ backgroundColor: option.primary }} aria-hidden="true" />{option.name}</button>)}</div></fieldset>
         <fieldset className="mt-5"><legend className="text-sm font-medium text-navy">문장 분위기</legend><div className="mt-2 grid grid-cols-3 gap-2">{([['clear','명확하게'],['warm','친근하게'],['concise','간결하게']] as const).map(([id,label]) => <button key={id} type="button" onClick={() => setField("tone", id)} aria-pressed={draft.tone === id} className={`min-h-11 border px-2 py-2 text-sm ${draft.tone === id ? "border-navy bg-navy text-white" : "border-border bg-white text-navy"}`}>{label}</button>)}</div></fieldset>
         <button type="button" onClick={createCoverLetter} className="mt-6 min-h-12 bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">커버레터 초안 만들기</button>
@@ -369,7 +492,7 @@ export function ResumeProWorkspace() {
           <textarea id="pro-cover-letter" className={`${inputClass} mt-5 min-h-[32rem] resize-y font-serif leading-7`} value={draft.coverLetter} onChange={(event) => setField("coverLetter", event.target.value)} placeholder="왼쪽에서 지원 정보와 채용 공고를 입력한 뒤 초안을 만드세요." />
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <button type="button" onClick={downloadApplicationKit} disabled={!draft.coverLetter} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-35">지원서 패키지 저장</button>
-            <span className="text-xs leading-5 text-muted">TXT 파일 · 이력서 요약, 공고 점검, 커버레터 포함</span>
+            <span className="text-xs leading-5 text-muted">TXT 파일 · 이력서 요약, 공고 점검, STAR 경험, 커버레터 포함</span>
           </div>
           <p className="mt-4 text-xs leading-5 text-muted">초안은 자동 저장되며 이 브라우저 밖으로 전송되지 않습니다. 최종 제출 전 회사명, 담당자, 경력과 자격을 직접 확인하세요.</p>
         </section>
