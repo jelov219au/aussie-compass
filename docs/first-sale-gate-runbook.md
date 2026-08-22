@@ -12,16 +12,32 @@ The application fails closed when `FIRST_SALE_GATE_ENABLED=true`, the Neon entit
 
 1. Keep `PAYMENTS_ENABLED=false`.
 2. Create and verify a current encrypted PostgreSQL backup using `docs/database-recovery.md`.
-3. Apply `docs/entitlement-storage.sql` first, including `schema_migrations.version=20260823_entitlement_negative_event_tombstones_v1`, `20260823_payment_operator_alert_outbox_v1` and `20260823_checkout_activation_once_v1`. The first-sale transaction calls `apply_entitlement_event`; the additive tombstone/link tables prevent a refund or dispute delivered before the grant from being lost, while the non-PII outbox intent commits or rolls back with the entitlement result. The activation receipt makes each paid Checkout success URL a one-time cookie-minting path.
-4. Apply `docs/first-sale-gate.sql` once. It records `schema_migrations.version=20260823_first_sale_gate_charge_link_v2`, removes both historical 9- and 11-argument paid-event overloads, and installs only the 12-argument charge-aware function.
-5. Confirm the migration row, tables, append-only trigger and functions without selecting claim hashes or complete Stripe identifiers.
+3. Confirm the existing entitlement baseline/tombstone schema and `schema_migrations.version=20260823_first_sale_gate_charge_link_v2`. That migration removes both historical 9- and 11-argument paid-event overloads and leaves one 12-argument charge-aware function. If it is absent, stop; do not skip forward or combine files ad hoc.
+4. Apply `docs/migrations/20260823_payment_operator_alert_outbox_v1.sql`. Confirm `20260823_payment_operator_alert_outbox_v1`, the non-PII outbox table, receipt trigger and guarded claim/mark/release functions.
+5. Apply `docs/migrations/20260823_checkout_activation_nonce_v1.sql`. Confirm `20260823_checkout_activation_nonce_v1`, the nonce-hash/release columns, one four-argument consume function, release function and two limited active-entitlement read wrappers. This is the only approved order: **charge-link v2 → outbox v1 → activation nonce v1**.
 6. The migration owner must own the `SECURITY DEFINER` functions and must not be the runtime login. Revoke `CREATE ON SCHEMA public` from both `PUBLIC` and the runtime role, then verify it with `has_schema_privilege`. Every protected table/function reference is also `public.`-qualified as defence-in-depth.
-7. Revoke runtime `EXECUTE` on the original `apply_entitlement_event` and direct `INSERT/UPDATE/DELETE` on `payment_webhook_events`, `purchase_entitlements`, `purchase_restore_tokens`, `purchase_checkout_activations`, `entitlement_event_tombstones`, `stripe_payment_object_links`, `payment_operator_alert_outbox`, `first_sale_gates` and `first_sale_gate_events`. Existing grants from the baseline entitlement rollout must be explicitly removed. Confirm the tombstone trigger rejects update/delete.
-8. Grant the application role only `claim_first_sale_reservation`, `attach_first_sale_checkout`, both verified release functions, `apply_first_sale_paid_event`, `apply_guarded_entitlement_event`, the two restore-token wrappers, `consume_checkout_activation`, and the four public alert-outbox wrappers (`enqueue…`, `claim…`, `mark…`, `release…`). Do not grant the internal `record_payment_operator_alert_intent` function directly. The guarded wrapper rejects a Resume Pro grant outside the atomic first-sale transaction. Do **not** grant it `approve_next_first_sale` or the private lock helper.
-9. Grant `approve_next_first_sale` only to a separate owner-controlled operator role after access review. `PUBLIC` is explicitly revoked in the migration.
+7. Revoke runtime `EXECUTE` on the original `apply_entitlement_event` and all direct `SELECT/INSERT/UPDATE/DELETE` on `payment_webhook_events`, `purchase_entitlements`, `purchase_restore_tokens`, `purchase_checkout_activations`, `entitlement_event_tombstones`, `stripe_payment_object_links`, `payment_operator_alert_outbox`, `first_sale_gates` and `first_sale_gate_events`. Existing grants from the baseline entitlement rollout must be explicitly removed. Confirm the tombstone trigger rejects update/delete.
+8. Grant the application role only the adapter-called wrappers: `claim_first_sale_reservation`, `attach_first_sale_checkout`, both verified reservation release functions, `apply_first_sale_paid_event`, `apply_guarded_entitlement_event`, the two restore-token wrappers, four-argument `consume_checkout_activation`, `release_checkout_activation`, both limited active-entitlement read wrappers, and the four external alert-outbox wrappers (`enqueue…`, `claim…`, `mark…`, `release…`). Do not grant the receipt trigger function, internal alert enqueue function, original entitlement function, private lock helper or owner reopen function.
+9. Grant `approve_next_first_sale` only to a separate owner-controlled operator role after access review. Do **not** grant it `approve_next_first_sale` through the application runtime role. `PUBLIC` is explicitly revoked in the migration.
 10. In the matching Stripe mode, prove there are **zero existing open Checkout Sessions** for Resume Pro. Explicitly expire any pre-gate Session and retain its non-sensitive expiry evidence. An old URL must not remain payable when the gate opens.
 11. Query the PostgreSQL catalog and effective privileges, not only role DDL. Both historical `apply_first_sale_paid_event` signatures must resolve to NULL; runtime must report false for public-schema CREATE, first-sale table DML, original entitlement function execution and owner reopen execution, and true only for the 12-argument paid-event wrapper and other allowlisted wrappers. Attach this non-secret PASS/MISSING/FAIL matrix to the release ticket.
 12. Set `FIRST_SALE_GATE_ENABLED=true` only after the contract test, role matrix and signed-webhook sandbox scenarios pass. Role placeholders in the SQL file are comments, so live remains **HOLD** until an owner-approved migration ticket replaces them and the effective-privilege query passes. Keep `PAYMENTS_ENABLED=false` until the complete launch checklist passes.
+
+### Runtime effective-privilege matrix
+
+Do not reduce this to a count such as “10 checks” or “4 true”; every named result is required.
+
+| Object group | Runtime `EXECUTE` | Direct table `SELECT/INSERT/UPDATE/DELETE` |
+| --- | --- | --- |
+| reservation claim, attach, failed-release, verified-abandoned-release | `true` for all four | first-sale tables: all `false` |
+| 12-argument paid-event and guarded non-Resume-Pro event wrappers | `true` for both | webhook/entitlement/tombstone/link tables: all `false` |
+| restore consume/create | `true` for both | restore-token table: all `false` |
+| activation consume/release and limited active lookup by checkout/id | `true` for all four | activation and entitlement tables: all `false` |
+| outbox enqueue-failure, claim, mark-sent, release-claim | `true` for all four | outbox table: all `false` |
+| original entitlement function, private gate lock, owner reopen | `false` | n/a |
+| receipt trigger function, internal alert-intent writer, append-only guard triggers | `false` | n/a |
+
+`PUBLIC` also has `false` for all listed functions and protected tables. Only the owner-controlled operator role may execute `approve_next_first_sale`; the runtime role must not inherit that operator role. The runtime and `PUBLIC` must both report `false` for `CREATE ON SCHEMA public`.
 
 Required non-secret environment contract:
 
@@ -44,7 +60,7 @@ Required non-secret environment contract:
 - Only the exact same signed paid event is idempotent. A different event received after `LOCKED`, including another event for the same Session, cannot invoke entitlement processing. Refund and dispute commands update entitlement/accounting state only and cannot call the reopen function.
 - A refund, charge-refund or dispute received before its Checkout grant creates an append-only, non-PII tombstone tied to PaymentIntent/Charge identifiers. A later grant compares Stripe `created_at`; for an equal second the priority is `revoke > review > active`. A product-less dispute-win grant may restore only an already matched entitlement and can never create a new one.
 - An entitlement-free tombstone returns `tombstoned`, not a fabricated entitlement. It is still eligible for the fixed operator alert path. Tombstone reasons are fixed application codes; raw webhook bodies and customer text are not stored.
-- Payment, refund and dispute alert intents are inserted by `apply_entitlement_event` before any successful return and in its same transaction. SMTP runs only after commit; failure returns 503 and leaves the intent pending. A duplicate signed delivery may claim pending work but cannot repeat a sent email. A failure to record the outbox row rolls back the entitlement transaction.
+- Payment, refund and dispute alert intents are inserted by the receipt trigger in the same transaction as the webhook receipt and entitlement mutation. SMTP runs only after commit. A live lease returns 503 rather than an early 200; failure releases the lease and returns 503; an expired lease can be reclaimed. A duplicate delivery may claim pending work but cannot repeat a sent intent. Stable privacy-safe Message-ID values reduce the effect of an SMTP success followed by a mark-sent failure. A failure to record the outbox row rolls back the entitlement transaction.
 
 The public Checkout response contains only the existing Stripe-hosted Checkout URL or an allowlisted Korean error. It never contains a claim token/hash, gate generation, database state, full stored Session ID, or database error. Application logs contain an error category only. Append-only gate audit records retain only the last eight characters of Stripe references.
 
@@ -63,7 +79,7 @@ Do not edit `first_sale_gates` directly.
 
 Restore codes expire after at most 30 days. Creation rejects a later timestamp before touching existing tokens. Consumption locks and returns only an entitlement that is still `active`; a revoked/review entitlement cannot consume an already issued code or mint a fresh browser access cookie.
 
-The paid success URL is not a recovery credential. `consume_checkout_activation` locks an exact active entitlement and requires an exact Checkout Session, product and Stripe customer match. The first transaction inserts one hashed/suffix-only activation receipt and may mint a browser cookie; concurrent or later calls return no entitlement. Cookie release, browser history replay and cookie loss never remove the receipt. A different device or lost cookie must use the existing one-time restore-token flow. The successful POST redirects to `/resume-pro/workspace` without the Session query; this URL cleanup is privacy defence-in-depth, not the authorization boundary.
+The paid success URL alone is not a recovery credential. `consume_checkout_activation` locks the exact entitlement and requires an exact Checkout Session, product, Stripe customer and browser nonce hash. The browser keeps the nonce only in `sessionStorage`; PostgreSQL stores only its SHA-256 hash. The first transaction creates one binding, and the same hash may idempotently remint a cookie only while the entitlement is active and the binding is not released. A different hash is denied. Server release permanently timestamps the binding before clearing the cookie; revoked/review entitlements are denied without changing it. A different device or released binding must use the existing one-time restore-token flow. Hydration stores the Session/nonce then immediately removes query state with `history.replaceState`; URL cleanup is defence-in-depth, not the authorization boundary.
 
 Approval creates one append-only `LOCKED → OPEN` event. The next request still has to win a fresh single reservation; this never enables unrestricted multi-sale mode. Record only an incident/approval reference, never a customer name, email, card detail, receipt, full Stripe ID, API key or webhook secret.
 
@@ -98,9 +114,14 @@ select has_function_privilege('hoju_app_runtime', 'public.apply_first_sale_paid_
 select exists(select 1 from schema_migrations where version='20260823_payment_operator_alert_outbox_v1') as alert_outbox_v1_present;
 select has_table_privilege('hoju_app_runtime', 'public.payment_operator_alert_outbox', 'INSERT,UPDATE,DELETE') = false as runtime_has_no_alert_outbox_dml;
 select has_function_privilege('hoju_app_runtime', 'public.claim_payment_operator_alert_intent(text,text,text)', 'EXECUTE') as runtime_can_claim_alert;
-select exists(select 1 from schema_migrations where version='20260823_checkout_activation_once_v1') as checkout_activation_v1_present;
-select has_table_privilege('hoju_app_runtime', 'public.purchase_checkout_activations', 'INSERT,UPDATE,DELETE') = false as runtime_has_no_activation_dml;
-select has_function_privilege('hoju_app_runtime', 'public.consume_checkout_activation(text,text,text)', 'EXECUTE') as runtime_can_consume_activation;
+select exists(select 1 from public.schema_migrations where version='20260823_checkout_activation_nonce_v1') as checkout_activation_nonce_v1_present;
+select has_table_privilege('hoju_app_runtime', 'public.purchase_checkout_activations', 'SELECT,INSERT,UPDATE,DELETE') = false as runtime_has_no_activation_table_access;
+select has_table_privilege('hoju_app_runtime', 'public.purchase_entitlements', 'SELECT,INSERT,UPDATE,DELETE') = false as runtime_has_no_entitlement_table_access;
+select has_function_privilege('hoju_app_runtime', 'public.consume_checkout_activation(text,text,text,text)', 'EXECUTE') as runtime_can_consume_activation;
+select has_function_privilege('hoju_app_runtime', 'public.release_checkout_activation(bigint,text)', 'EXECUTE') as runtime_can_release_activation;
+select has_function_privilege('hoju_app_runtime', 'public.find_active_purchase_entitlement_by_checkout(text,text)', 'EXECUTE') as runtime_can_read_active_by_checkout;
+select has_function_privilege('hoju_app_runtime', 'public.find_active_purchase_entitlement_by_id(bigint,text)', 'EXECUTE') as runtime_can_read_active_by_id;
+select has_function_privilege('hoju_app_runtime', 'public.payment_operator_alert_from_receipt()', 'EXECUTE') = false as runtime_cannot_execute_internal_alert_trigger;
 ```
 
-All four rows must be `true`. Also enumerate `pg_proc` by `proname='apply_first_sale_paid_event'`; exactly one 12-argument row may remain. A missing catalog or effective-privilege result keeps live **NO-GO**.
+Every boolean above must be `true`. Also enumerate `pg_proc` by `proname` and argument count: the 9- and 11-argument paid-event functions and 2-/3-argument activation functions must be absent; exactly one 12-argument row may remain for paid events, and one 4-argument activation function may remain. A missing catalog row, unexpected overload or effective-privilege mismatch keeps live **NO-GO**.

@@ -17,12 +17,12 @@ type EntitlementRow = {
   id: string | number | bigint | null;
   product_code: ProductCode | null;
   status: "active" | "revoked" | "review" | null;
-  stripe_checkout_session_id: string | null;
-  stripe_payment_intent_id: string | null;
-  stripe_charge_id: string | null;
-  stripe_customer_id: string | null;
-  granted_at: Date | string | null;
-  revoked_at: Date | string | null;
+  stripe_checkout_session_id?: string | null;
+  stripe_payment_intent_id?: string | null;
+  stripe_charge_id?: string | null;
+  stripe_customer_id?: string | null;
+  granted_at?: Date | string | null;
+  revoked_at?: Date | string | null;
 };
 
 function getConnectionString() {
@@ -35,7 +35,7 @@ function getConnectionString() {
   return value;
 }
 
-function optionalDate(value: Date | string | null) {
+function optionalDate(value: Date | string | null | undefined) {
   return value ? new Date(value) : undefined;
 }
 
@@ -146,21 +146,10 @@ async function findActiveByCheckoutSession(checkoutSessionId: string, productCod
 
   const sql = neon(getConnectionString());
   const rows = await sql`
-    select
-      id,
-      product_code,
-      status,
-      stripe_checkout_session_id,
-      stripe_payment_intent_id,
-      stripe_charge_id,
-      stripe_customer_id,
-      granted_at,
-      revoked_at
-    from purchase_entitlements
-    where stripe_checkout_session_id = ${checkoutSessionId}
-      and product_code = ${productCode}
-      and status = 'active'
-    limit 1
+    select * from find_active_purchase_entitlement_by_checkout(
+      ${checkoutSessionId},
+      ${productCode}
+    )
   ` as EntitlementRow[];
 
   return rows[0] ? toEntitlementRecord(rows[0]) : null;
@@ -171,21 +160,10 @@ async function findActiveById(entitlementId: string, productCode: ProductCode) {
 
   const sql = neon(getConnectionString());
   const rows = await sql`
-    select
-      id,
-      product_code,
-      status,
-      stripe_checkout_session_id,
-      stripe_payment_intent_id,
-      stripe_charge_id,
-      stripe_customer_id,
-      granted_at,
-      revoked_at
-    from purchase_entitlements
-    where id = ${entitlementId}
-      and product_code = ${productCode}
-      and status = 'active'
-    limit 1
+    select * from find_active_purchase_entitlement_by_id(
+      ${entitlementId},
+      ${productCode}
+    )
   ` as EntitlementRow[];
 
   return rows[0] ? toEntitlementRecord(rows[0]) : null;

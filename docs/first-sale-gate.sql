@@ -793,7 +793,7 @@ $$;
 -- deployment ticket only; do not paste a live role name into this repository.
 revoke create on schema public from public;
 revoke all on table public.first_sale_gates, public.first_sale_gate_events from public;
-revoke insert, update, delete on table public.payment_webhook_events, public.purchase_entitlements, public.purchase_restore_tokens, public.purchase_checkout_activations, public.entitlement_event_tombstones, public.stripe_payment_object_links, public.payment_operator_alert_outbox from public;
+revoke select, insert, update, delete on table public.payment_webhook_events, public.purchase_entitlements, public.purchase_restore_tokens, public.purchase_checkout_activations, public.entitlement_event_tombstones, public.stripe_payment_object_links, public.payment_operator_alert_outbox from public;
 revoke all on function public.apply_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) from public;
 revoke all on function public.claim_first_sale_reservation(text, text, timestamptz, text, text, integer) from public;
 revoke all on function public.attach_first_sale_checkout(text, bigint, text, text, timestamptz) from public;
@@ -814,11 +814,13 @@ revoke all on function public.mark_payment_operator_alert_sent(text, text, text)
 revoke all on function public.release_payment_operator_alert_claim(text, text, text) from public;
 revoke all on function public.consume_checkout_activation(text, text, text, text) from public;
 revoke all on function public.release_checkout_activation(bigint, text) from public;
+revoke all on function public.find_active_purchase_entitlement_by_checkout(text, text) from public;
+revoke all on function public.find_active_purchase_entitlement_by_id(bigint, text) from public;
 
 -- Owner-approved deployment template (intentionally comments):
 -- revoke create on schema public from hoju_app_runtime;
 -- revoke all on public.first_sale_gates, public.first_sale_gate_events from hoju_app_runtime;
--- revoke insert, update, delete on public.payment_webhook_events, public.purchase_entitlements, public.purchase_restore_tokens, public.purchase_checkout_activations, public.entitlement_event_tombstones, public.stripe_payment_object_links, public.payment_operator_alert_outbox from hoju_app_runtime;
+-- revoke all on table public.payment_webhook_events, public.purchase_entitlements, public.purchase_restore_tokens, public.purchase_checkout_activations, public.entitlement_event_tombstones, public.stripe_payment_object_links, public.payment_operator_alert_outbox from hoju_app_runtime;
 -- revoke execute on function public.apply_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) from hoju_app_runtime;
 -- grant execute on function public.claim_first_sale_reservation(text, text, timestamptz, text, text, integer) to hoju_app_runtime;
 -- grant execute on function public.attach_first_sale_checkout(text, bigint, text, text, timestamptz) to hoju_app_runtime;
@@ -834,6 +836,8 @@ revoke all on function public.release_checkout_activation(bigint, text) from pub
 -- grant execute on function public.release_payment_operator_alert_claim(text, text, text) to hoju_app_runtime;
 -- grant execute on function public.consume_checkout_activation(text, text, text, text) to hoju_app_runtime;
 -- grant execute on function public.release_checkout_activation(bigint, text) to hoju_app_runtime;
+-- grant execute on function public.find_active_purchase_entitlement_by_checkout(text, text) to hoju_app_runtime;
+-- grant execute on function public.find_active_purchase_entitlement_by_id(bigint, text) to hoju_app_runtime;
 -- grant execute on function public.approve_next_first_sale(text, text, text, integer, text) to hoju_owner_operator;
 
 insert into public.schema_migrations (version)

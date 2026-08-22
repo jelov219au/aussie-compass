@@ -235,6 +235,45 @@ begin
 end;
 $$;
 
+create or replace function find_active_purchase_entitlement_by_checkout(
+  p_checkout_session_id text,
+  p_product_code text
+)
+returns table (id bigint, product_code text, status text, granted_at timestamptz, revoked_at timestamptz)
+language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin
+  if p_checkout_session_id is null or p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
+    or p_product_code is null or p_product_code not in ('resume_pro', 'rental_application_pro') then
+    raise exception 'Invalid entitlement lookup input';
+  end if;
+  return query select entitlement.id, entitlement.product_code, entitlement.status,
+    entitlement.granted_at, entitlement.revoked_at
+  from public.purchase_entitlements entitlement
+  where entitlement.stripe_checkout_session_id = p_checkout_session_id
+    and entitlement.product_code = p_product_code and entitlement.status = 'active'
+  limit 1;
+end;
+$$;
+
+create or replace function find_active_purchase_entitlement_by_id(
+  p_entitlement_id bigint,
+  p_product_code text
+)
+returns table (id bigint, product_code text, status text, granted_at timestamptz, revoked_at timestamptz)
+language plpgsql stable security definer set search_path = public, pg_temp as $$
+begin
+  if p_entitlement_id is null or p_product_code is null
+    or p_product_code not in ('resume_pro', 'rental_application_pro') then
+    raise exception 'Invalid entitlement lookup input';
+  end if;
+  return query select entitlement.id, entitlement.product_code, entitlement.status,
+    entitlement.granted_at, entitlement.revoked_at
+  from public.purchase_entitlements entitlement
+  where entitlement.id = p_entitlement_id and entitlement.product_code = p_product_code
+    and entitlement.status = 'active' limit 1;
+end;
+$$;
+
 -- Negative Stripe events can arrive before the paid Checkout event that names
 -- the product. Keep a non-PII, append-only receipt keyed by Stripe object IDs so
 -- a late grant cannot revive access that was already refunded or disputed.
@@ -991,6 +1030,8 @@ revoke all on function mark_payment_operator_alert_sent(text, text, text) from p
 revoke all on function release_payment_operator_alert_claim(text, text, text) from public;
 revoke all on function consume_checkout_activation(text, text, text, text) from public;
 revoke all on function release_checkout_activation(bigint, text) from public;
+revoke all on function find_active_purchase_entitlement_by_checkout(text, text) from public;
+revoke all on function find_active_purchase_entitlement_by_id(bigint, text) from public;
 
 insert into schema_migrations (version)
 values ('20260818_entitlement_baseline_v1')

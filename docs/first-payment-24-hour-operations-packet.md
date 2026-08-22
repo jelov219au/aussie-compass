@@ -7,13 +7,33 @@
 | 시점 | 내부 확인 | 완료 기준 |
 | --- | --- | --- |
 | 0~5분 | live Checkout/PaymentIntent의 `paid`, AUD, Resume Pro Price와 서명 웹훅 2xx 확인 | 테스트 거래와 분리된 live 주문 1건이 식별됨 |
-| 5~30분 | 서버 이용권, 작업공간 접근, 운영자 알림, 영수증·invoice/tax 문서, Balance Transaction 확인 | 접근·지원·증빙·수수료의 원본 위치가 확인됨 |
+| 5~15분 | 서버 이용권, gate, outbox, 실제 메일 수신, 활성화 결과 확인 | 아래 15분 필수 증거가 모두 PASS |
+| 15~30분 | 영수증·invoice/tax 문서, Balance Transaction 확인 | 지원·증빙·수수료의 원본 위치가 확인됨 |
 | 30분~4영업시간 | 결제했으나 접근이 없는 건을 최우선 확인 | 재결제 요청 없이 정상 접근 또는 owner 에스컬레이션 |
 | 1영업일 이내 | 모든 문의의 1차 응답 초안을 owner에게 제출 | 승인된 경우에만 고객에게 전송 |
 | 2영업일 이내 | 환불·분쟁·개인정보 요청의 owner 결정 | 결정과 근거가 내부 사건 기록에 남음 |
 | 24시간 마감 | gross·표시 GST·fee·refund 상태·Stripe 잔액을 분리 기록하고 미결 항목 인계 | payout을 매출로 잡지 않고 모든 미결 건에 owner와 다음 기한이 있음 |
 
 다음 중 하나면 신규 판매를 즉시 닫는 **NO-GO 에스컬레이션** 대상으로 표시한다: 결제 환경 또는 가격 불일치, 서명 웹훅 실패, 서버 이용권 불일치, 지원함·알림 미작동, 수수료·Balance 원본 미확보, 첫 live 세금 문서의 발행자·표시 세금·liability party 불명확, 개인정보 또는 보안 사고 의심. 실제 `PAYMENTS_ENABLED=false` 변경은 owner 승인 후 실행한다. 다만 payout이 24시간 안에 생성되지 않은 것만으로는 NO-GO가 아니다. fee와 ending Stripe balance가 원문에 맞으면 payout을 `pending`으로 넘긴다.
+
+### 15분·24시간 HOLD/STOP 기준
+
+- 결제 후 15분 안에 webhook 2xx, first-sale `LOCKED`, active entitlement, outbox `sent`, 실제 mailbox 수신, activation `consumed` 또는 같은 nonce의 `idempotent`가 모두 확인되지 않으면 **STOP**이다. 신규 결제를 열지 말고 같은 고객에게 재결제를 요청하지 않는다.
+- outbox가 `pending`이거나 `busy`, attempts 증가, SMTP 미수신, activation `used/released/revoked/review`, entitlement 불일치가 하나라도 있으면 **HOLD**로 에스컬레이션한다. 내부 해시·전체 Stripe ID·고객 이메일을 증거표에 넣지 않는다.
+- 24시간 안에 gross·표시 GST·fee·refund·ending balance, 영수증/세금 문서 발행자, 실제 알림 수신, 이용권·환불 연결이 모두 PASS가 아니면 다음 판매 재개는 **HOLD**다. payout만 `pending`이고 나머지가 PASS인 경우에만 payout 후속 대사로 넘긴다.
+- STOP/HOLD 중에는 `PAYMENTS_ENABLED=false`를 유지하고, Stripe/DB 재시도나 gate reopen은 owner 승인과 런북 증거 없이 실행하지 않는다.
+
+### 첫 결제 launch packet 비민감 필드
+
+| 영역 | 기록할 필드 | PASS 기준 |
+| --- | --- | --- |
+| Outbox | `pending_count`, `sent_count`, 해당 사건 `attempts`, 마지막 시도/전송 시각, event suffix | intent 1개, 최종 sent, 누락 없음 |
+| Mailbox | purchase/refund `received=true/false`, 수신 시각, 동일 suffix | 실제 모니터링 메일함에 도착 |
+| Activation | `consumed/idempotent/released` 결과, binding 수, response-loss same-nonce PASS, different-nonce DENIED | binding 1개, 쿠키는 consumed/idempotent active에만 발급 |
+| Replay/restore | URL query removed, replay DENIED, release 뒤 same-nonce DENIED, restore PASS | release 후 restore만 가능 |
+| 상태 보호 | refund `revoked`, review `review`, first-sale `LOCKED` | 환불/검토 뒤 자동 재결제·자동 reopen 없음 |
+
+SMTP 재시도나 동일 Message-ID의 중복 이메일은 회계 사건이 아니다. 회계 장부는 Stripe 원거래와 실제 refund/charge/dispute 식별자를 private 원본에서 대사해 각각 한 번만 반영하며, 메일 수신 횟수나 outbox attempts를 매출·환불 건수로 사용하지 않는다.
 
 ### First-sale gate 회계·운영 수용 기준
 

@@ -47,7 +47,8 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 - [x] Enable Production payments for the controlled test.
 - [x] Make one real purchase through the public customer path.
 - [x] Confirm the signed live webhook persists the entitlement and the Resume Pro workspace opens only after that entitlement exists.
-- [ ] Confirm `20260823_checkout_activation_once_v1` is present and one paid success URL grants a cookie once only; immediate replay and a concurrent second activation must route to one-time recovery without minting another cookie.
+- [ ] With payments off, confirm the exact migration order and versions: charge-link v2 → `20260823_payment_operator_alert_outbox_v1` → `20260823_checkout_activation_nonce_v1`. Prove one nonce binding, same-browser response-loss retry, different-nonce denial, permanent release, refund/review denial and independent restore-code recovery.
+- [ ] Confirm outbox pending/sent/attempt counts, SMTP failure 503, busy-worker 503, stale-lease recovery and actual purchase/refund mailbox receipt using suffix-only evidence.
 - [x] Issue a full AUD 19.90 refund in Stripe; `refund.created` and `charge.refunded` both returned HTTP 200 and the workspace was blocked immediately.
 - [ ] Reconcile the gross sale, Stripe fee, refund and bank payout record.
 - [x] Start a private accounting register with the verified sale and full refund; unknown fee and payout values remain explicitly unconfirmed.

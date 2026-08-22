@@ -8,15 +8,25 @@ const firstSaleContract = await readFile(new URL("../docs/first-sale-gate.sql", 
 
 function hasGuardedProductLookups(source) {
   const normalized = source.replace(/\r\n?/g, "\n");
-  return normalized.match(/product_code = \$\{productCode\}/g)?.length >= 2
-    && normalized.includes("${productCode}\n    )");
+  return [
+    "find_active_purchase_entitlement_by_checkout",
+    "find_active_purchase_entitlement_by_id",
+  ].every((functionName) => {
+    const start = normalized.indexOf(`${functionName}(`);
+    const end = normalized.indexOf(")", start);
+    return start >= 0 && end > start && normalized.slice(start, end).includes("${productCode}");
+  });
 }
 
 const productLookupFixture = [
-  "and product_code = ${productCode}",
-  "and product_code = ${productCode}",
-  "${productCode}",
-  "    )",
+  "find_active_purchase_entitlement_by_checkout(",
+  "  ${checkoutSessionId},",
+  "  ${productCode}",
+  ")",
+  "find_active_purchase_entitlement_by_id(",
+  "  ${entitlementId},",
+  "  ${productCode}",
+  ")",
 ].join("\n");
 
 assert.equal(hasGuardedProductLookups(productLookupFixture), true, "LF product guards must be recognized");
@@ -42,7 +52,8 @@ assert.ok(
   "A restore code must be filtered by product before it is consumed",
 );
 assert.ok(
-  hasGuardedProductLookups(entitlementStore),
+  hasGuardedProductLookups(entitlementStore)
+    && storageContract.match(/entitlement\.product_code = p_product_code/g)?.length >= 2,
   "Active-entitlement lookups must be scoped to an explicit product",
 );
 assert.ok(

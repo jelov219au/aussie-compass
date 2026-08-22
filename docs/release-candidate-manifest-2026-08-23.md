@@ -138,12 +138,12 @@ The fixed hashes above are the authoritative complete file inventory. The candid
 
 ### Required only for a full Resume Pro payment/access Preview
 
-`docs/entitlement-storage.sql` is the authoritative, idempotent entitlement schema. A target database must have the tables, indexes, event-order column, constraints, durable non-PII operator-alert outbox and `apply_entitlement_event` routine before a Preview exercises webhook persistence, access activation, recovery or refund/revocation. It records `20260823_payment_operator_alert_outbox_v1` and `20260823_checkout_activation_once_v1`; alert intent and entitlement mutation commit or roll back together, while each verified Checkout Session can mint a browser cookie once only. Apply `docs/first-sale-gate.sql` second; it adds the atomic sale reservation, append-only audit, guarded entitlement/restore/outbox/activation wrappers and records `20260823_first_sale_gate_charge_link_v2`. The baseline records `20260818_entitlement_baseline_v1`.
+The target database must already have the entitlement/tombstone baseline and `20260823_first_sale_gate_charge_link_v2`. With payments off, apply `docs/migrations/20260823_payment_operator_alert_outbox_v1.sql`, then `docs/migrations/20260823_checkout_activation_nonce_v1.sql`. The outbox receipt trigger commits or rolls back with the webhook receipt and entitlement mutation. Activation binds a browser nonce hash, permits idempotent same-nonce recovery after a lost response, denies a different nonce, and is permanently closed by server release. These additive files are independently transactional and may not be combined or reordered.
 
 - A static/UI Preview with `PAYMENTS_ENABLED=false` does not require a database migration.
 - Checkout is now fail-closed without the entitlement database, first-sale migration and `FIRST_SALE_GATE_ENABLED=true`; there is no persistence-free Session mode.
-- A full payment/access Preview requires both schemas plus target-Preview database connection, least-privilege role matrix and signing settings.
-- Required catalog evidence is: migration versions `20260823_first_sale_gate_charge_link_v2` and `20260823_checkout_activation_once_v1` exist; the historical 9- and 11-argument `apply_first_sale_paid_event` signatures are absent and exactly one 12-argument signature exists; obsolete 2-argument `consume_checkout_activation` is absent and exactly one 3-argument signature exists. A missing or additional overload keeps payment launch **NO-GO**.
+- A full payment/access Preview requires all three ordered versions, target-Preview database connection, least-privilege role matrix and signing settings.
+- Required catalog evidence is: all three versions exist; the historical 9- and 11-argument `apply_first_sale_paid_event` signatures are absent and exactly one 12-argument signature exists; obsolete 2-/3-argument `consume_checkout_activation` signatures are absent and exactly one 4-argument signature exists. Runtime must have no protected-table direct access or internal outbox trigger/enqueue execution, and must have only the adapter-called wrappers listed in the runbook. A missing/additional overload or privilege mismatch keeps payment launch **NO-GO**.
 - Do not rerun or alter Production from this manifest. First perform the documented read-only schema check and record whether the version already exists.
 - Never roll back payment tables by dropping them. On an incident, disable payments and roll back application code while preserving webhook and entitlement evidence.
 
@@ -217,7 +217,7 @@ If `operatorAlertsConfigured` is false, `getPaymentReadiness().ready` is false a
 - Stripe test Product/Price/tax-code relationship reviewed in Dashboard.
 - Restricted key has Prices Read, Products Read, Checkout Sessions create/retrieve and PaymentIntents Read; the last permission is required to verify `latest_charge` before the atomic grant.
 - Exact Preview webhook destination and signing secret configured for the required Checkout, refund and dispute events.
-- Preview-scoped Neon database connection and entitlement migration verified.
+- Preview-scoped Neon database connection and ordered charge-link/outbox/activation migrations verified.
 - First-sale migration verified; runtime has no public-schema CREATE, direct protected-table DML, original entitlement-function execution or owner-reopen execution.
 - Zero payable Resume Pro Checkout Sessions exist from before the gate; each old Session is explicitly expired.
 - Preview environment variables assigned to the intended branch/deployment only.
@@ -226,7 +226,8 @@ If `operatorAlertsConfigured` is false, `getPaymentReadiness().ready` is false a
 
 - Stripe live business profile, support details, statement descriptor, Product eligibility, a restricted key with Prices Read, Products Read, Checkout Sessions create/retrieve and PaymentIntents Read, and the webhook destination.
 - Published product-provider legal/registered name, ABN and support information. These fields do not establish the Managed Payments transaction seller; verify that separately from live Checkout and the issued receipt/invoice.
-- Production payment operator alerts are enabled, the support mailbox is monitored, and controlled purchase/refund alerts have been received without exposing sensitive payment data.
+- Production payment operator alerts are enabled, the support mailbox is monitored, and controlled purchase/refund alerts have been received. Evidence includes suffix-only references, outbox pending/sent/attempt counts, SMTP fail→503→retry, busy-worker 503 and stale-lease recovery without sensitive payment data.
+- Activation evidence includes consumed/idempotent/released outcomes, same-nonce response-loss recovery, different-nonce replay denial, refund/review denial, restore-code independence and URL query removal after hydration.
 - GitHub branch protection must mark the new `Quality gate` workflow as required; committing the workflow alone does not enforce it.
 - Vercel environment scoping and deployment-protection review.
 

@@ -116,6 +116,7 @@ const activationForm = fs.readFileSync(new URL("../src/components/tools/ResumePr
 const releaseRoute = fs.readFileSync(new URL("../src/app/api/resume-pro/access/release/route.ts", import.meta.url), "utf8");
 const restoreRoute = fs.readFileSync(new URL("../src/app/api/resume-pro/restore/route.ts", import.meta.url), "utf8");
 const storeSource = fs.readFileSync(new URL("../src/lib/neonEntitlementStore.ts", import.meta.url), "utf8");
+const activationMigration = fs.readFileSync(new URL("../docs/migrations/20260823_checkout_activation_nonce_v1.sql", import.meta.url), "utf8");
 const successPage = fs.readFileSync(new URL("../src/app/resume-pro/success/page.tsx", import.meta.url), "utf8");
 const resumeProPage = fs.readFileSync(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8");
 
@@ -144,6 +145,11 @@ assert.match(gateSchema, /grant execute on function public\.consume_checkout_act
 assert.match(gateSchema, /grant execute on function public\.release_checkout_activation\(bigint, text\) to hoju_app_runtime/);
 assert.match(gateSchema, /purchase_checkout_activations[\s\S]*from hoju_app_runtime/);
 assert.match(storeSource, /select \* from consume_checkout_activation/);
+assert.match(storeSource, /select \* from find_active_purchase_entitlement_by_checkout/);
+assert.match(storeSource, /select \* from find_active_purchase_entitlement_by_id/);
+assert.doesNotMatch(storeSource, /from (?:public\.)?purchase_entitlements/, "the runtime adapter must use limited read wrappers rather than direct table SELECT");
+assert.match(activationMigration, /20260823_payment_operator_alert_outbox_v1[\s\S]*20260823_checkout_activation_nonce_v1/);
+assert.match(activationMigration, /revoke select, insert, update, delete on table public\.purchase_checkout_activations, public\.purchase_entitlements from public/);
 assert.match(activateRoute, /consumeCheckoutActivation/);
 assert.ok(
   activateRoute.indexOf("await store.consumeCheckoutActivation") < activateRoute.indexOf("await setResumeProAccessCookie"),

@@ -101,6 +101,8 @@ for (const contract of [
   "apply_guarded_entitlement_event",
   "consume_entitlement_restore_token",
   "create_entitlement_restore_token",
+  "find_active_purchase_entitlement_by_checkout",
+  "find_active_purchase_entitlement_by_id",
 ]) {
   assert.ok(entitlementStore.includes(contract), `Least-privilege entitlement adapter is missing: ${contract}`);
 }
@@ -125,7 +127,7 @@ for (const contract of [
   "revoke all on function public.apply_entitlement_event",
   "apply_guarded_entitlement_event",
   "Resume Pro grant requires apply_first_sale_paid_event",
-  "revoke insert, update, delete on public.payment_webhook_events",
+  "revoke all on table public.payment_webhook_events",
   "grant execute on function public.apply_first_sale_paid_event",
   "revoke all on function public.approve_next_first_sale",
   "p_evidence_status is distinct from 'PASS'",

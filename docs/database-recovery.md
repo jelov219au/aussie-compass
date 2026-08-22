@@ -25,7 +25,8 @@ Never test a restore over Production. Create a new empty database whose resolved
 2. Restore with `pg_restore --exit-on-error --no-owner --no-privileges --dbname=<isolated-recovery-connection> <approved-backup-path>`.
 3. Confirm the latest `schema_migrations` version is present.
 4. Compare row counts for `payment_webhook_events`, `purchase_entitlements`, `purchase_restore_tokens`, `purchase_checkout_activations`, and `payment_operator_alert_outbox` with the backup source snapshot. Report only counts and pending/sent totals; never select full Stripe IDs, claim hashes or payload data.
-5. Verify every entitlement references a webhook event, restore-token and activation keys are unique, duplicate Stripe event IDs are impossible, and every pending/sent alert row satisfies its fixed kind/type contract. Never delete an activation receipt to repair browser access; use the restore-token path.
+5. Verify every entitlement references a webhook event, restore-token and activation keys are unique, duplicate Stripe event IDs are impossible, and every pending/sent alert row satisfies its fixed kind/type contract. Verify activation rows have at most one nonce hash and preserve `released_at`. Never delete or reset an activation binding to repair browser access; use the restore-token path.
+6. Confirm the ordered versions `20260823_first_sale_gate_charge_link_v2`, `20260823_payment_operator_alert_outbox_v1`, and `20260823_checkout_activation_nonce_v1`. A partial migration keeps payments off; use a reviewed additive forward-fix rather than dropping tables or deleting evidence.
 6. Run read-only checks for one known active and one revoked test entitlement. Do not use real recovery codes.
 7. Delete the isolated drill database only through the approved provider workflow after evidence has been reviewed.
 
