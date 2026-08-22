@@ -51,9 +51,6 @@ for (const directive of ["default-src", "object-src", "base-uri", "form-action",
   assert.ok(productionCsp.has(directive), `Production CSP directive is missing: ${directive}`);
 }
 
-const serviceWorkerCsp = parseCsp(headerValue(productionHeaderRules, "/sw.js", "Content-Security-Policy"));
-assert.deepEqual(serviceWorkerCsp.get("script-src"), ["'self'"], "the service worker must not inherit the framework inline-script exception");
-
 for (const header of [
   "Strict-Transport-Security",
   "X-Content-Type-Options",
@@ -106,8 +103,6 @@ assert.ok(jobTracker.includes("safeExternalHttpUrl(item.link)"), "Imported job l
 
 const guardedRoutes = [
   "src/app/api/checkout/resume-pro/route.ts",
-  "src/app/api/push/reminders/route.ts",
-  "src/app/api/push/subscriptions/route.ts",
   "src/app/api/resume-pro-performance/connection/route.ts",
   "src/app/api/resume-pro/access/activate/route.ts",
   "src/app/api/resume-pro/access/release/route.ts",

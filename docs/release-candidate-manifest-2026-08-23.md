@@ -86,7 +86,7 @@ Exclude from the first-payment candidate:
 - `3e7fabb`, `a39ede9`, `4ddbc45`: push runtime, secret generation and delivery claims are not required and must remain disabled.
 - `c716a65`: superseded Preview HOLD audit tied to the non-mainline candidate; this manifest replaces it.
 
-No English-card, Job Move Pro, visa, pay-guide, calculator, campaign, content-planner or social-card file was deleted or reverted while applying the include list. `package-lock.json` remains byte-for-byte at the current main version. `vercel.json`, `public/sw.js`, push routes, push DDL and push libraries also have zero diff from `origin/main`. The existing main `test:push-reminders` command remains in the quality gate; no `test:push-contract` command or `scripts/check-push-contract.mjs` was added.
+No English-card, Job Move Pro, visa, pay-guide, calculator, campaign, content-planner or social-card file was deleted or reverted while applying the include list. `package-lock.json` remains byte-for-byte at the current main version. `vercel.json`, `public/sw.js`, push routes, push DDL and push libraries also have zero diff from `origin/main`. The `test:push-exclusion` quality check verifies that routes, libraries, DDL, Vercel cron, package dependency and delivery-contract code stay out; no misleading `test:push-reminders` or deferred `test:push-contract` command remains.
 
 ### Candidate-only commit set inspected
 
@@ -241,7 +241,7 @@ After integrating current main and resolving all overlaps:
 
 1. `git diff --name-status origin/main...HEAD` contains no unapproved deletion from the main-only list in section 1.
 2. `git diff --check` passes and the working tree is clean.
-3. `npm run quality:gate` passes, including production build, lint, security/CSP/JSON-LD/navigation, Stripe Checkout/Product/failure handling, entitlement ordering/isolation, Resume Pro mobile/interview/onboarding/privacy, anonymous funnel, the existing main `test:push-reminders`, database operations and secret scan. This release has no `test:push-contract`.
+3. `npm run quality:gate` passes, including production build, lint, security/CSP/JSON-LD/navigation, Stripe Checkout/Product/failure handling, entitlement ordering/isolation, Resume Pro mobile/interview/onboarding/privacy, anonymous funnel, `test:push-exclusion`, database operations and secret scan. This release has no push-delivery test or runtime.
 4. A production-mode local server returns the expected CSP, especially `script-src-attr 'none'`, and Builder hydration still works.
 5. `npm run payments:check -- --strict` runs only inside an intentionally configured target environment. Add `--verify-stripe` only when read-only external verification is separately approved.
 6. If payments remain off, confirm the purchase CTA is unavailable and no Checkout call occurs.

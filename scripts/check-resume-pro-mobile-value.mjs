@@ -4,7 +4,6 @@ import { resolve } from "node:path";
 const page = readFileSync(resolve("src/app/resume-pro/page.tsx"), "utf8");
 const builder = readFileSync(resolve("src/components/tools/ResumeBuilder.tsx"), "utf8");
 const workspace = readFileSync(resolve("src/components/tools/ResumeProWorkspace.tsx"), "utf8");
-const builder = readFileSync(resolve("src/components/tools/ResumeBuilder.tsx"), "utf8");
 const deviceStorage = readFileSync(resolve("src/lib/resumeProDeviceStorage.ts"), "utf8");
 const articlePage = readFileSync(resolve("src/app/resources/[slug]/page.tsx"), "utf8");
 const articleNextStep = readFileSync(resolve("src/components/resources/ArticleNextStep.tsx"), "utf8");
