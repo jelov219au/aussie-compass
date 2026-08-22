@@ -82,6 +82,7 @@ assert.equal(getResumeProCheckoutFailure("price_secret_internal_detail"), null, 
 
 const route = readFileSync(resolve("src/app/api/checkout/resume-pro/route.ts"), "utf8");
 const form = readFileSync(resolve("src/components/tools/ResumeProCheckoutForm.tsx"), "utf8");
+const jumpLink = readFileSync(resolve("src/components/tools/ResumeProCheckoutJumpLink.tsx"), "utf8");
 const failureNotice = readFileSync(resolve("src/components/tools/ResumeProCheckoutFailureNotice.tsx"), "utf8");
 const page = readFileSync(resolve("src/app/resume-pro/page.tsx"), "utf8");
 
@@ -110,6 +111,14 @@ assert.ok(failureNotice.includes('role="status"') && failureNotice.includes('ari
 assert.ok(failureNotice.includes("max-w-full") && !failureNotice.includes("whitespace-nowrap"), "failure actions must wrap safely at 390px");
 assert.equal(form.match(/\btrack\(/g)?.length, 1, "public failures must not add analytics events");
 assert.ok(form.includes('track("Checkout Started", { product: "resume_pro", entry })'), "the only Checkout event must use fixed product and normalized entry values");
+assert.ok(form.includes('id="resume-pro-checkout-heading"') && form.includes("tabIndex={-1}"), "the Checkout section needs a programmatically focusable heading");
+assert.ok(form.includes('focus:ring-2 focus:ring-gold'), "programmatic Checkout focus must remain visibly apparent");
+assert.ok(form.indexOf('type="checkbox"') < form.indexOf('type="submit"') && form.indexOf('type="submit"') < form.indexOf('href="/terms"'), "after the Checkout heading, keyboard order must be checkbox, payment button, then policy links");
+assert.match(jumpLink, /href="#resume-pro-checkout"/);
+assert.match(jumpLink, /requestAnimationFrame[\s\S]*getElementById\(checkoutHeadingId\)\?\.focus\(\{ preventScroll: true \}\)/);
+assert.doesNotMatch(jumpLink, /preventDefault|history\.(?:pushState|replaceState)/, "the jump link must keep native fragment and Back behavior");
+assert.equal(page.match(/<ResumeProCheckoutJumpLink/g)?.length, 2, "every active Resume Pro purchase jump must use the focus-preserving link");
+assert.equal(page.match(/href="#resume-pro-checkout"/g)?.length ?? 0, 0, "raw scroll-only Checkout anchors must not remain on the page");
 
 for (const [outcome, code] of [
   ['result.outcome === "reserved"', '"checkout_retry_later"'],

@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd, ProductJsonLd } from "@/components/seo/JsonLd";
 import { ResumeProCheckoutForm } from "@/components/tools/ResumeProCheckoutForm";
 import { ResumeProCheckoutFailureNotice } from "@/components/tools/ResumeProCheckoutFailureNotice";
+import { ResumeProCheckoutJumpLink } from "@/components/tools/ResumeProCheckoutJumpLink";
 import { Container } from "@/components/ui/Container";
 import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
 import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
@@ -158,7 +159,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
               {existingBuyerIssue ? (
                 <Link href="/resume-pro/restore" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">구매 이용권 복구하기</Link>
               ) : canOfferCheckout ? (
-                <a href="#resume-pro-checkout" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">이번 공고 지원서 묶음 만들기 ↓</a>
+                <ResumeProCheckoutJumpLink className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">이번 공고 지원서 묶음 만들기 ↓</ResumeProCheckoutJumpLink>
               ) : (
                 <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">Pro 작업 공간 출시 준비 중</span>
               )}
@@ -214,7 +215,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 {existingBuyerIssue ? (
                   <Link href="/resume-pro/restore" className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">구매 이용권 복구하기</Link>
                 ) : canOfferCheckout ? (
-                  <a href="#resume-pro-checkout" className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">Resume Pro 시작하기 ↓</a>
+                  <ResumeProCheckoutJumpLink className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">Resume Pro 시작하기 ↓</ResumeProCheckoutJumpLink>
                 ) : (
                   <span className="mt-5 inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted">결제 기능 준비 중</span>
                 )}
