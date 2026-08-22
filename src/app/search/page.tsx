@@ -2,10 +2,11 @@ import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
-import { SiteSearch, type SearchItem } from "@/components/search/SiteSearch";
+import { SiteSearch } from "@/components/search/SiteSearch";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { articles } from "@/data/articles";
 import { createPageMetadata } from "@/lib/site";
+import type { SearchItem } from "@/lib/siteSearch";
 
 export const metadata = {
   ...createPageMetadata({ title: "호주 생활 정보 검색 | Hoju Compass", description: "비자, TFN, 급여, 이력서, 집, 교통, 세금, Super와 귀국 준비 도구·가이드를 한 번에 검색하세요.", path: "/search" }),
@@ -14,7 +15,7 @@ export const metadata = {
 
 const coreItems:SearchItem[]=[
   {href:"/my-compass",type:"도구",title:"나의 진행 상황",description:"이 기기에 저장된 정착·구직·저축·세금 프로젝트 모아보기",keywords:["대시보드","이어하기","저장","진행률","내 프로젝트","my compass"]},
-  {href:"/resume-builder",type:"도구",title:"무료 영문 이력서 빌더",description:"경력 문장을 현재 브라우저에 저장하고 영문 이력서를 PDF로 내보내기",keywords:["이력서","resume","CV","레쥬메","STAR","면접","인터뷰","번역","자기소개","경력","구직"]},
+  {href:"/resume-builder",type:"도구",title:"무료 영문 이력서 빌더",description:"경력 문장을 현재 브라우저에 저장하고 영문 이력서를 PDF로 내보내기",keywords:["이력서","resume","CV","레쥬메","STAR","STAR 예시","면접","인터뷰","selection criteria","cover letter","호주 취업 이력서","번역","자기소개","경력","구직"]},
   {href:"/resume-pro",type:"도구",title:"Resume Pro — 공고별 이력서·커버레터",description:"지원할 공고가 정해진 뒤 STAR 경험을 회사별 지원서와 면접 준비에 재사용하고 묶음으로 내보내기",keywords:["이력서","resume","CV","커버레터","cover letter","STAR","면접","인터뷰","selection criteria","유료","pro"]},
   {href:"/pro",type:"도구",title:"Hoju Compass Pro 비교",description:"현재 이용 가능한 유료 도구와 준비 중인 도구 비교",keywords:["유료","프리미엄","pro","가격","결제","상품","패키지"]},
   {href:"/purchase-information",type:"자료",title:"구매·환불 안내",description:"Resume Pro 가격, 판매자 정보, 영수증, 이용권 복구와 환불 요청 절차",keywords:["환불","결제","영수증","인보이스","ABN","소비자권리","Stripe","구매"]},
@@ -59,7 +60,7 @@ const articleItems: SearchItem[] = articles.map((article) => ({
   type: "자료",
   title: article.title,
   description: article.description,
-  keywords: [article.category, article.toolLabel, ...article.sections.map((section) => section.heading), ...(article.slug === "english-resume-achievement-examples" ? ["이력서", "resume", "CV", "커버레터", "STAR", "면접"] : [])],
+  keywords: [article.category, article.toolLabel, ...article.sections.map((section) => section.heading), ...(article.slug === "english-resume-achievement-examples" ? ["이력서", "resume", "CV", "커버레터", "cover letter", "STAR", "STAR 예시", "면접", "selection criteria", "호주 취업 이력서"] : [])],
 }));
 
 const items = [...coreItems, ...articleItems];
