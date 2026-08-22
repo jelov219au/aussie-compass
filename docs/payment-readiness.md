@@ -26,7 +26,9 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 - Create Checkout Sessions only on the server.
 - In non-production environments, use only test keys (`rk_test_` preferred, `sk_test_` supported). In production, use only live keys (`rk_live_` preferred, `sk_live_` supported).
 - Prefer least-privilege restricted keys (`rk_test_` / `rk_live_`) and grant only the Checkout Session and Price access used by this integration. Review Stripe request logs before adding permissions.
-- Validate the configured Resume Pro price server-side as active, one-time, AUD 19.90 before redirecting.
+- Validate the configured Resume Pro Price server-side as active, one-time, AUD 19.90 and tax-inclusive before redirecting.
+- Expand the Price's Product and require its ID to match the independently configured `STRIPE_RESUME_PRO_PRODUCT_ID`. A same-price Product must fail closed.
+- Require the Product's exact tax code to match `STRIPE_RESUME_PRO_TAX_CODE`. Copy only a code that Stripe Dashboard labels eligible for Managed Payments; `txcd_` values are opaque and must never be guessed from the product description.
 - Enable Managed Payments explicitly for each Checkout Session after confirming product eligibility.
 - Add a unique Checkout `integration_identifier` so Resume Pro sessions can be filtered in Stripe Workbench.
 - Verify signed Stripe webhooks before granting access.
@@ -47,7 +49,8 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 - Run `npm run test:entitlement-commands` to verify paid, unpaid, asynchronous, refund and dispute events map to the intended access state.
 - Run `npm run test:resume-pro-tokens` to verify signed-session tamper resistance, expiry, revoked-access blocking and restore-code hashing.
 - Run `npm run test:stripe-contract` to prevent accidental removal of Checkout consent, server-side price validation, dynamic payment methods or webhook signature checks.
-- Run `npm run payments:check -- --strict` inside the target deployment environment. It reports only pass/wait states and never prints credentials, connection strings, legal names or the ABN.
+- Run `npm run test:stripe-product` to reject a same-price wrong Product, an absent or changed tax code, an unspecified tax behavior, a deleted Product and a test/live mismatch.
+- Run `npm run payments:check -- --strict --verify-stripe` inside the target deployment environment. The optional remote step is read-only: it retrieves the configured Price with its Product, reports only pass/wait states and never prints credentials, IDs, connection strings, legal names or the ABN.
 - Keep `PAYMENTS_ENABLED=false` until test evidence and legal copy are reviewed.
 - Keep live payments disabled until the durable Neon entitlement store, live webhook secret and live-mode recovery flow are configured together and verified with a controlled purchase.
 
@@ -61,11 +64,17 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 
 ## Required environment contract
 
-The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. The registered site name `Hoju Compass` is the default customer-facing business name; `BUSINESS_TRADING_NAME` is only an optional override. `BUSINESS_LEGAL_NAME` is the underlying legal seller and must never be hardcoded. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch. The app accepts the manual `ENTITLEMENT_DB_URL` override or Vercel Neon's managed `ENTITLEMENT_DB_DATABASE_URL`; do not copy the managed connection string into a second variable.
+The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. `STRIPE_RESUME_PRO_PRICE_ID`, `STRIPE_RESUME_PRO_PRODUCT_ID`, and `STRIPE_RESUME_PRO_TAX_CODE` are a three-part deployment contract, not interchangeable labels: the first two must identify the intended Price and its independently reviewed Product, while the third must be the exact Product tax code that Stripe Dashboard marks eligible for Managed Payments. The server additionally requires the Price's immutable tax behavior to be `inclusive`, matching the advertised AUD 19.90 total. If any value is absent or disagrees with Stripe, Checkout fails closed before a Session is created.
+
+Stripe's Product response exposes the exact tax-code ID but does not provide a stable API field that proves the Dashboard's “Eligible for Managed Payments” label. The owner must therefore confirm that label when choosing the code; the app then pins and verifies the approved ID on every Checkout. Stripe performs the final eligibility check when `managed_payments[enabled]` is submitted. Do not create a speculative eligibility allowlist in source code.
+
+Reference the official Stripe guides when reviewing this contract: [Managed Payments Checkout setup](https://docs.stripe.com/payments/managed-payments/set-up), [Managed Payments eligibility](https://docs.stripe.com/payments/managed-payments/eligibility), and [product tax codes and tax behavior](https://docs.stripe.com/tax/products-prices-tax-codes-tax-behavior).
+
+The registered site name `Hoju Compass` is the default customer-facing business name; `BUSINESS_TRADING_NAME` is only an optional override. `BUSINESS_LEGAL_NAME` is the underlying legal seller and must never be hardcoded. `PAYMENTS_ENTITLEMENT_STORE` must identify the approved server-side entitlement service before launch. The app accepts the manual `ENTITLEMENT_DB_URL` override or Vercel Neon's managed `ENTITLEMENT_DB_DATABASE_URL`; do not copy the managed connection string into a second variable.
 
 ## Post-launch owner actions
 
-1. Run the target-environment launch audit with `npm run payments:check -- --strict` after any payment-setting change. Replace the full live key with a least-privilege restricted key when its required Checkout and Price permissions are confirmed.
+1. Run the target-environment launch audit with `npm run payments:check -- --strict --verify-stripe` after any payment-setting change. The key needs read access to the configured Price and expanded Product for this audit, plus the existing Checkout permissions at runtime. Replace the full live key with a least-privilege restricted key when those permissions are confirmed.
 2. Repeat the completed protected-Preview customer-access test after any change to the webhook, entitlement schema, access cookie or recovery-code flow. Recovery-code expiry remains covered by the deterministic token test because the deployed code lasts 30 days.
 3. Add `BUSINESS_LEGAL_NAME`, `BUSINESS_ABN` and `NEXT_PUBLIC_SUPPORT_EMAIL` to Vercel without pasting the sole trader's private details into chat or source control. Confirm the purchase page shows the registered business name and legal seller as separate fields. Add `BUSINESS_TRADING_NAME` only if the displayed business name must differ from `Hoju Compass`.
 4. Confirm the ABN/GST status through the Australian Business Register and with a registered tax agent. Verify that live Managed Payments continues to show Stripe as the tax-liability party and ask how the gross sale, GST shown by Stripe, fees and payout belong in the sole trader's records.

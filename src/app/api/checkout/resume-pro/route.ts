@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 
-import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct, resumeProPurchaseTermsVersion } from "@/lib/commerce";
+import { canCreateTestCheckout, getPaymentReadiness, resumeProPurchaseTermsVersion } from "@/lib/commerce";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
 import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
+import { assertResumeProStripeProduct, getResumeProStripeProductConfig } from "@/lib/resumeProStripeProduct";
 import { siteUrl } from "@/lib/site";
 import { assertSafeStripeEnvironment, getStripe } from "@/lib/stripe";
 
@@ -67,27 +68,15 @@ export async function POST(request: NextRequest) {
     assertSafeStripeEnvironment();
 
     const stripe = getStripe();
-    const priceId = process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim();
-
-    if (!priceId) {
-      throw new Error("Resume Pro price is not configured.");
-    }
-
-    const price = await stripe.prices.retrieve(priceId);
-    const validPrice = price.active
-      && price.type === "one_time"
-      && price.currency === resumeProProduct.currency
-      && price.unit_amount === resumeProProduct.priceCents;
-
-    if (!validPrice) {
-      throw new Error("Resume Pro price does not match the server product definition.");
-    }
+    const productConfig = getResumeProStripeProductConfig();
+    const price = await stripe.prices.retrieve(productConfig.priceId, { expand: ["product"] });
+    assertResumeProStripeProduct(price, productConfig, process.env.VERCEL_ENV === "production");
 
     const origin = getCheckoutOrigin(request);
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       integration_identifier: createIntegrationIdentifier(),
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{ price: productConfig.priceId, quantity: 1 }],
       customer_creation: "always",
       managed_payments: { enabled: true },
       metadata: {

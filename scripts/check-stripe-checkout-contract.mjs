@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const checkout = await readFile(new URL("../src/app/api/checkout/resume-pro/route.ts", import.meta.url), "utf8");
+const productContract = await readFile(new URL("../src/lib/resumeProStripeProduct.ts", import.meta.url), "utf8");
+const launchCheck = await readFile(new URL("./check-payment-launch.mjs", import.meta.url), "utf8");
 const checkoutForm = await readFile(new URL("../src/components/tools/ResumeProCheckoutForm.tsx", import.meta.url), "utf8");
 const attribution = await readFile(new URL("../src/lib/resumeProAttribution.ts", import.meta.url), "utf8");
 const webhook = await readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
@@ -15,13 +17,28 @@ for (const contract of [
   "terms_accepted",
   "purchase_terms_version",
   "stripe.prices.retrieve",
-  "price.type === \"one_time\"",
-  "price.unit_amount === resumeProProduct.priceCents",
+  "expand: [\"product\"]",
+  "assertResumeProStripeProduct",
   "managed_payments: { enabled: true }",
   "acquisition_source",
   "normalizeResumeProEntry",
 ]) {
   assert.ok(checkout.includes(contract), `Checkout safety contract is missing: ${contract}`);
+}
+
+for (const contract of [
+  "STRIPE_RESUME_PRO_PRODUCT_ID",
+  "STRIPE_RESUME_PRO_TAX_CODE",
+  "price.product",
+  "product.id === config.productId",
+  "price.tax_behavior === resumeProStripeProductDefinition.taxBehavior",
+  "getTaxCodeId(product) !== config.taxCode",
+]) {
+  assert.ok(productContract.includes(contract), `Resume Pro Stripe Product contract is missing: ${contract}`);
+}
+
+for (const contract of ["--verify-stripe", "expand: [\"product\"]", "assertResumeProStripeProduct"]) {
+  assert.ok(launchCheck.includes(contract), `Read-only Stripe launch verification is missing: ${contract}`);
 }
 
 assert.ok(checkoutForm.includes('name="source"'), "Resume Pro Checkout must submit its allowlisted acquisition source");

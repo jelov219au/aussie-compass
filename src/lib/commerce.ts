@@ -2,14 +2,15 @@ import "server-only";
 
 import { getEntitlementDatabaseUrl } from "@/lib/entitlementConfig";
 import { isEntitlementSessionConfigured } from "@/lib/resumeProAccess";
+import { resumeProStripeProductDefinition } from "@/lib/resumeProStripeProduct";
 import { siteName } from "@/lib/site";
 import { getStripeSecretMode } from "@/lib/stripe";
 
 export const resumeProProduct = {
   id: "resume-pro",
   name: "Resume Pro",
-  currency: "aud",
-  priceCents: 1990,
+  currency: resumeProStripeProductDefinition.currency,
+  priceCents: resumeProStripeProductDefinition.priceCents,
   billing: "one_time",
 } as const;
 
@@ -18,6 +19,7 @@ export const resumeProPurchaseTermsVersion = "2026-08-19";
 export type PaymentReadiness = {
   enabled: boolean;
   stripeConfigured: boolean;
+  stripeProductContractConfigured: boolean;
   managedPaymentsConfigured: boolean;
   webhookConfigured: boolean;
   entitlementStoreConfigured: boolean;
@@ -34,7 +36,10 @@ export function getPaymentReadiness(): PaymentReadiness {
   const stripeMode = getStripeSecretMode();
   const expectedStripeMode = process.env.VERCEL_ENV === "production" ? "live" : "test";
   const stripePriceConfigured = Boolean(process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_"));
-  const stripeConfigured = stripeMode === expectedStripeMode && stripePriceConfigured;
+  const stripeProductConfigured = Boolean(process.env.STRIPE_RESUME_PRO_PRODUCT_ID?.trim().startsWith("prod_"));
+  const stripeTaxCodeConfigured = Boolean(process.env.STRIPE_RESUME_PRO_TAX_CODE?.trim().startsWith("txcd_"));
+  const stripeProductContractConfigured = stripePriceConfigured && stripeProductConfigured && stripeTaxCodeConfigured;
+  const stripeConfigured = stripeMode === expectedStripeMode && stripeProductContractConfigured;
   const managedPaymentsConfigured = process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true";
   const webhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_"));
   const entitlementStoreConfigured = process.env.PAYMENTS_ENTITLEMENT_STORE === "neon"
@@ -65,6 +70,9 @@ export function getPaymentReadiness(): PaymentReadiness {
       stripeMode,
       expectedStripeMode,
       stripePriceConfigured,
+      stripeProductConfigured,
+      stripeTaxCodeConfigured,
+      stripeProductContractConfigured,
       stripeConfigured,
       managedPaymentsConfigured,
       webhookConfigured,
@@ -75,7 +83,7 @@ export function getPaymentReadiness(): PaymentReadiness {
     });
   }
 
-  return { enabled, stripeConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, ready };
+  return { enabled, stripeConfigured, stripeProductContractConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, ready };
 }
 
 export function canCreateTestCheckout() {

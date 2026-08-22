@@ -1,4 +1,12 @@
+import Stripe from "stripe";
+
+import {
+  assertResumeProStripeProduct,
+  getResumeProStripeProductConfig,
+} from "../src/lib/resumeProStripeProduct.ts";
+
 const strict = process.argv.includes("--strict");
+const verifyStripe = process.argv.includes("--verify-stripe");
 const isProduction = process.env.VERCEL_ENV === "production";
 const expectedStripeMode = isProduction ? "live" : "test";
 
@@ -26,6 +34,8 @@ const checks = [
   ["Stripe 키 환경", stripeMode === expectedStripeMode, `${expectedStripeMode} 모드 키`],
   ["최소 권한 Stripe 키", process.env.STRIPE_SECRET_KEY?.trim().startsWith("rk_") ?? false, "rk_ 제한 키"],
   ["Resume Pro 가격", process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_") ?? false, "price_ ID"],
+  ["Resume Pro 상품", process.env.STRIPE_RESUME_PRO_PRODUCT_ID?.trim().startsWith("prod_") ?? false, "별도 prod_ ID"],
+  ["Managed Payments 세금 분류", process.env.STRIPE_RESUME_PRO_TAX_CODE?.trim().startsWith("txcd_") ?? false, "승인된 txcd_ ID"],
   ["Managed Payments", process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true", "활성화"],
   ["웹훅 서명", process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_") ?? false, "whsec_ 비밀"],
   ["이용권 저장소", process.env.PAYMENTS_ENTITLEMENT_STORE === "neon", "Neon"],
@@ -47,4 +57,26 @@ for (const [label, passed, requirement] of checks) {
 const pending = checks.filter(([, passed]) => !passed).length;
 console.log(`\n결과: ${checks.length - pending}/${checks.length} 통과, ${pending}개 대기`);
 
-if (strict && pending > 0) process.exitCode = 1;
+let stripeProductVerified = !verifyStripe;
+
+if (verifyStripe) {
+  try {
+    const config = getResumeProStripeProductConfig();
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY?.trim() ?? "", {
+      maxNetworkRetries: 2,
+      timeout: 10_000,
+      telemetry: false,
+    });
+    const price = await stripe.prices.retrieve(config.priceId, { expand: ["product"] });
+    assertResumeProStripeProduct(price, config, isProduction);
+    stripeProductVerified = true;
+    console.log("PASS  Stripe 원격 상품·세금 계약 — Product ID, tax code, 포함세 가격 일치");
+  } catch {
+    stripeProductVerified = false;
+    console.log("WAIT  Stripe 원격 상품·세금 계약 — Dashboard 값 또는 읽기 권한 확인 필요");
+  }
+} else {
+  console.log("INFO  원격 상품 검증은 --verify-stripe 옵션으로 실행합니다.");
+}
+
+if (strict && (pending > 0 || !stripeProductVerified)) process.exitCode = 1;
