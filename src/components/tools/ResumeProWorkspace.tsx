@@ -55,6 +55,7 @@ const RESUME_STORAGE_KEY = "aussie-compass-resume-v1";
 const PRO_STORAGE_KEY = "hoju-compass-resume-pro-preview-v1";
 const APPLICATIONS_STORAGE_KEY = "hoju-compass-resume-pro-applications-v1";
 const STAR_STORIES_STORAGE_KEY = "hoju-compass-resume-pro-star-stories-v1";
+const STAR_STORY_LIMIT = 20;
 const emptyStarStory: StarStoryDraft = { title: "", competency: "", situation: "", task: "", action: "", result: "" };
 const inputClass = "mt-1.5 min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy outline-none transition placeholder:text-muted/60 focus:border-navy focus:ring-2 focus:ring-navy/15";
 const labelClass = "block text-sm font-medium text-navy";
@@ -186,7 +187,7 @@ export function ResumeProWorkspace() {
       const storedStarStories = window.localStorage.getItem(STAR_STORIES_STORAGE_KEY);
       if (storedStarStories) {
         const parsed = JSON.parse(storedStarStories) as unknown;
-        if (Array.isArray(parsed)) setStarStories(parsed.slice(0, 20) as StarStory[]);
+        if (Array.isArray(parsed)) setStarStories(parsed.slice(0, STAR_STORY_LIMIT) as StarStory[]);
       }
     } catch {
       // The preview remains usable when local storage is unavailable.
@@ -217,7 +218,7 @@ export function ResumeProWorkspace() {
   useEffect(() => {
     if (!loaded) return;
     const timer = window.setTimeout(() => {
-      try { window.localStorage.setItem(STAR_STORIES_STORAGE_KEY, JSON.stringify(starStories.slice(0, 20))); } catch {}
+      try { window.localStorage.setItem(STAR_STORIES_STORAGE_KEY, JSON.stringify(starStories.slice(0, STAR_STORY_LIMIT))); } catch {}
     }, 400);
     return () => window.clearTimeout(timer);
   }, [loaded, starStories]);
@@ -274,6 +275,10 @@ export function ResumeProWorkspace() {
   const setStarField = <K extends keyof StarStoryDraft>(field: K, value: StarStoryDraft[K]) => setStarStoryDraft((current) => ({ ...current, [field]: value }));
 
   const saveStarStory = () => {
+    if (!editingStarStoryId && starStories.length >= STAR_STORY_LIMIT) {
+      setMessage(`STAR 경험은 최대 ${STAR_STORY_LIMIT}개까지 저장할 수 있습니다. 기존 경험을 삭제한 뒤 새 경험을 추가해 주세요.`);
+      return;
+    }
     if (!starStoryDraft.title.trim() || !starStoryDraft.action.trim() || !starStoryDraft.result.trim()) {
       setMessage("경험 이름, 내가 한 행동과 결과를 입력해 주세요.");
       return;
@@ -289,7 +294,7 @@ export function ResumeProWorkspace() {
       result: starStoryDraft.result.trim(),
       updatedAt: new Date().toISOString(),
     };
-    setStarStories((current) => [story, ...current.filter((item) => item.id !== id)].slice(0, 20));
+    setStarStories((current) => [story, ...current.filter((item) => item.id !== id)].slice(0, STAR_STORY_LIMIT));
     setEditingStarStoryId(id);
     setField("starStoryId", id);
     setMessage("STAR 경험을 저장하고 현재 지원서에 연결했습니다.");
@@ -305,6 +310,10 @@ export function ResumeProWorkspace() {
   };
 
   const startNewStarStory = () => {
+    if (starStories.length >= STAR_STORY_LIMIT) {
+      setMessage(`STAR 경험은 최대 ${STAR_STORY_LIMIT}개까지 저장할 수 있습니다. 기존 경험을 삭제한 뒤 새 경험을 추가해 주세요.`);
+      return;
+    }
     setStarStoryDraft(emptyStarStory);
     setEditingStarStoryId(null);
     setMessage("새 STAR 경험을 작성할 수 있습니다. 저장된 경험은 그대로 남아 있습니다.");
@@ -445,7 +454,7 @@ export function ResumeProWorkspace() {
               <h3 id="star-library-heading" className="mt-1 text-lg font-semibold text-navy">다음 지원에도 쓰는 STAR 경험</h3>
               <p className="mt-2 max-w-xl text-xs leading-5 text-muted">한 번 정리한 실제 경험을 회사가 달라도 다시 불러와 면접 답변과 Selection Criteria 준비에 활용하세요.</p>
             </div>
-            <button type="button" onClick={startNewStarStory} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 경험</button>
+            <button type="button" onClick={startNewStarStory} disabled={starStories.length >= STAR_STORY_LIMIT} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-45">새 경험</button>
           </div>
           {starStories.length > 0 && (
             <ul className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -469,8 +478,8 @@ export function ResumeProWorkspace() {
             <label className={labelClass}>결과 (Result)<textarea className={`${inputClass} min-h-28 resize-y`} value={starStoryDraft.result} onChange={(event) => setStarField("result", event.target.value)} placeholder="무엇이 달라졌고, 무엇을 배웠나요?" /></label>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <button type="button" onClick={saveStarStory} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">{editingStarStoryId ? "경험 업데이트" : "경험 저장하고 사용"}</button>
-            <span className="text-xs leading-5 text-muted">현재 브라우저에 최대 20개 저장 · 지원서 패키지에 함께 포함</span>
+            <button type="button" onClick={saveStarStory} disabled={!editingStarStoryId && starStories.length >= STAR_STORY_LIMIT} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45">{editingStarStoryId ? "경험 업데이트" : "경험 저장하고 사용"}</button>
+            <span className="text-xs leading-5 text-muted">현재 브라우저에 {starStories.length} / {STAR_STORY_LIMIT}개 저장 · 지원서 패키지에 함께 포함</span>
           </div>
         </section>
         <fieldset className="mt-6 border border-border bg-white p-4"><legend className="px-1 text-sm font-semibold text-navy">프리미엄 이력서 디자인</legend><div className="mt-2 grid gap-2 sm:grid-cols-3">{proLayouts.map((option) => <button key={option.id} type="button" onClick={() => setField("layout", option.id)} aria-pressed={draft.layout === option.id} className={`min-h-24 p-3 text-left ${draft.layout === option.id ? "bg-navy text-white" : "bg-surface text-navy"}`}><strong className="block text-sm">{option.name}</strong><span className={`mt-2 block text-xs leading-5 ${draft.layout === option.id ? "text-white/65" : "text-muted"}`}>{option.description}</span></button>)}</div><div className="mt-4 flex flex-wrap gap-2">{(Object.entries(proAccents) as Array<[ProAccent, (typeof proAccents)[ProAccent]]>).map(([id, option]) => <button key={id} type="button" onClick={() => setField("accent", id)} aria-pressed={draft.accent === id} className={`inline-flex min-h-11 items-center gap-2 border px-3 text-sm ${draft.accent === id ? "border-navy font-semibold" : "border-border"}`}><span className="h-4 w-4" style={{ backgroundColor: option.primary }} aria-hidden="true" />{option.name}</button>)}</div></fieldset>
