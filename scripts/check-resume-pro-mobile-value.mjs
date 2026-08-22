@@ -9,6 +9,8 @@ const articlePage = readFileSync(resolve("src/app/resources/[slug]/page.tsx"), "
 const articleNextStep = readFileSync(resolve("src/components/resources/ArticleNextStep.tsx"), "utf8");
 const articles = readFileSync(resolve("src/data/articles.ts"), "utf8");
 const searchPage = readFileSync(resolve("src/app/search/page.tsx"), "utf8");
+const builderPage = readFileSync(resolve("src/app/resume-builder/page.tsx"), "utf8");
+const toolsSection = readFileSync(resolve("src/components/sections/ToolsSection.tsx"), "utf8");
 
 const valueHeading = page.indexOf("지원할수록 내 준비 자료가 쌓입니다.");
 const checkout = page.indexOf("<ResumeProCheckoutForm");
@@ -46,6 +48,10 @@ const checks = [
   [earlyStar >= 0 && earlyStar < firstSavedExperienceInput, "STAR 무료 글은 개인정보나 경력 입력 전에 키보드로 열 수 있어야 합니다."],
   [quickStartSection.includes("실제 경험을 STAR로 정리하는 법") && quickStartSection.includes("focus-visible:ring-2"), "조기 STAR 링크는 목적과 키보드 포커스를 명확히 보여야 합니다."],
   [!quickStartSection.includes("ResumeProCtaLink") && !quickStartSection.includes("/resume-pro"), "이력서 완료 전 빠른 시작 영역에 Pro CTA를 노출하면 안 됩니다."],
+  [toolsSection.includes("내 실제 경험을 브라우저에 저장하고") && toolsSection.includes("PDF와 백업 파일로 내보내") && toolsSection.includes("다음 지원에도 다시 사용"), "홈 Builder 카드는 저장·내보내기·재사용이라는 검증된 가치를 설명해야 합니다."],
+  [builderPage.includes("브라우저 자동 저장") && builderPage.includes("PDF·백업 내보내기") && builderPage.includes("실제 경험 다시 사용"), "Builder 첫 화면은 일반 문장 생성과 다른 세 가지 실제 기능을 보여야 합니다."],
+  [builderPage.includes("입력하지 않은 성과나 자격을 만들어 주지 않아요"), "Builder 첫 화면은 사용자가 입력하지 않은 성과를 만든다는 암시를 금지해야 합니다."],
+  [builderPage.indexOf("브라우저 자동 저장") < builderPage.indexOf("<ResumeBuilder"), "검증된 Builder 가치는 첫 입력 화면보다 먼저 보여야 합니다."],
 ];
 
 const failures = checks.filter(([passed]) => !passed).map(([, message]) => message);

@@ -7,7 +7,7 @@ const essentials = [
   { number: "01", href: "/salary-calculator", eyebrow: "일과 급여", title: "통합 급여 계산기", description: "시급이나 연봉을 넣으면 세전·세후 급여와 Super를 함께 볼 수 있어요." },
   { number: "02", href: "/arrival-checklist", eyebrow: "호주 도착", title: "첫 30일 정착", description: "전화와 교통부터 은행, TFN, 첫 직장 준비까지 순서대로 챙겨보세요." },
   { number: "03", href: "/property-inspection-checklist", eyebrow: "집 구하기", title: "집 방문 체크리스트", description: "집을 보러 간 자리에서 상태와 비용, 계약 조건을 하나씩 확인할 수 있어요." },
-  { number: "04", href: "/resume-builder", eyebrow: "취업 준비", title: "영문 이력서 빌더", description: "막막한 영문 문장은 예시를 참고하고, 내게 맞는 디자인으로 정리해보세요." },
+  { number: "04", href: "/resume-builder", eyebrow: "취업 준비", title: "영문 이력서 빌더", description: "내 실제 경험을 브라우저에 저장하고, PDF와 백업 파일로 내보내 다음 지원에도 다시 사용하세요." },
 ];
 
 export function ToolsSection() {

@@ -27,6 +27,12 @@ export default function ResumeBuilderPage() {
             <p className="text-sm font-semibold text-[#806515]">영문 이력서가 막막할 때</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 영문 이력서 빌더</h1>
             <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">경험과 강점을 먼저 한국어로 적어도 괜찮아요. 영문 예시를 참고해 문장을 다듬고, 마음에 드는 색상과 레이아웃으로 정리해보세요. 입력한 내용은 이 브라우저에만 남습니다.</p>
+            <ul className="mt-6 grid gap-px border-y border-navy/15 bg-border text-sm sm:grid-cols-3" aria-label="무료 이력서 빌더에서 남길 수 있는 결과">
+              <li className="bg-white px-4 py-4"><strong className="block text-navy">브라우저 자동 저장</strong><span className="mt-1 block text-xs leading-5 text-muted">입력한 실제 경험을 현재 기기에 이어서 보관해요.</span></li>
+              <li className="bg-white px-4 py-4"><strong className="block text-navy">PDF·백업 내보내기</strong><span className="mt-1 block text-xs leading-5 text-muted">완성본과 수정 가능한 JSON 백업을 직접 저장해요.</span></li>
+              <li className="bg-white px-4 py-4"><strong className="block text-navy">실제 경험 다시 사용</strong><span className="mt-1 block text-xs leading-5 text-muted">저장한 경험을 다음 지원 때 불러와 다시 다듬어요.</span></li>
+            </ul>
+            <p className="mt-3 text-xs leading-5 text-muted">입력하지 않은 성과나 자격을 만들어 주지 않아요. 예시와 영문 초안은 내 사실에 맞는지 직접 확인하세요.</p>
           </div>
           <ResumeBuilder resumeProLive={resumeProLive} />
           <section className="mt-10 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="resume-tips-heading">
