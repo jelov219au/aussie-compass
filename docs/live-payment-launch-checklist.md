@@ -74,6 +74,8 @@ Evidence timing and sales gate:
 3. At the first payout, match the itemised payout and bank arrival and complete the Stripe clearing reconciliation.
 4. The first customer payment may proceed only after all pre-payment items in sections 1–4 pass. After that payment, a second Resume Pro sale remains `NO-GO` until required evidence has zero `MISSING`/`FAIL`, the cash difference is within ±A$0.01, access and operator alerts are confirmed, any refund is linked to credit-document and revocation evidence, the first payout is matched, and the business owner records `APPROVED`.
 
+The implementation acceptance contract for this control is `OPEN → RESERVED → SOLD → LOCKED` in `docs/first-payment-24-hour-operations-packet.md`. A pre-Checkout atomic reservation must admit one request only; a verified paid event must lock later Checkouts; abandoned reservations require confirmed expiry and no payment; refunds never reopen sales; and only complete 15-minute, 24-hour and first-payout evidence plus an explicit owner approval may move `LOCKED → OPEN`. Operator alerts and a later manual `PAYMENTS_ENABLED=false` deployment are defence-in-depth, not the first-sale concurrency control.
+
 ## 6. Live-key gate versus runtime compatibility
 
 - `rk_live_` is the least-privilege launch requirement. For the first customer sale, a failing `npm run payments:check -- --strict` result is a deployment blocker; the earlier owner-controlled transaction does not waive this gate.

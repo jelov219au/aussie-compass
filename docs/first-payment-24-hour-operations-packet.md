@@ -15,6 +15,78 @@
 
 다음 중 하나면 신규 판매를 즉시 닫는 **NO-GO 에스컬레이션** 대상으로 표시한다: 결제 환경 또는 가격 불일치, 서명 웹훅 실패, 서버 이용권 불일치, 지원함·알림 미작동, 수수료·Balance 원본 미확보, 첫 live 세금 문서의 발행자·표시 세금·liability party 불명확, 개인정보 또는 보안 사고 의심. 실제 `PAYMENTS_ENABLED=false` 변경은 owner 승인 후 실행한다. 다만 payout이 24시간 안에 생성되지 않은 것만으로는 NO-GO가 아니다. fee와 ending Stripe balance가 원문에 맞으면 payout을 `pending`으로 넘긴다.
 
+### First-sale gate 회계·운영 수용 기준
+
+이 gate는 “첫 결제 알림을 받은 뒤 사람이 결제를 끄는 절차”가 아니다. Checkout을 만들기 전에 서버가 한 개의 판매 슬롯을 원자적으로 예약하고, 첫 paid 거래가 확인되는 순간 추가 Checkout을 차단해야 한다. 아래는 개발팀 구현의 수용 기준이며 이 문서만으로 코드·DB·Stripe 설정 변경을 승인하지 않는다.
+
+| 상태 | 의미와 허용 동작 | 다음 상태 |
+| --- | --- | --- |
+| `OPEN` | 사전 출시 gate가 모두 통과했고 예약이 없는 상태다. 한 요청만 원자적으로 슬롯을 얻을 수 있으며 Stripe Checkout 생성은 예약 성공 후에만 허용한다. | 예약 성공 시 `RESERVED` |
+| `RESERVED` | 정확히 한 live Checkout 시도에 슬롯이 귀속된 상태다. 다른 Checkout 생성 요청은 거절하고 재결제를 유도하지 않는다. 예약에는 만료 시각과 축약된 Checkout 참조를 연결한다. | 서명된 paid 사건 확인 시 `SOLD`; 검증된 abandoned 만료 시에만 `OPEN` |
+| `SOLD` | 서명 웹훅으로 첫 live paid 거래, 상품·금액·통화가 확인된 불변 사건이다. 같은 원자적 처리에서 판매 슬롯을 닫고 이용권·사건번호를 연결한다. 외부 요청이 관찰 가능한 열린 상태로 남기지 않는다. | 즉시 `LOCKED` |
+| `LOCKED` | 두 번째 Checkout을 만들 수 없는 상태다. 환불·분쟁·접근 회수 여부와 무관하게 유지하며, 증거 완료와 owner의 명시적 승인 전에는 자동 해제하지 않는다. | 아래 재개 gate를 모두 만족한 owner 승인 시에만 `OPEN` |
+
+상태 전이는 compare-and-set, DB transaction 또는 동등한 단일 승자 보장으로 처리한다. 프로세스 메모리, 이메일 알림, Vercel 환경변수 수동 전환만으로는 동시 요청을 막는 first-sale gate로 인정하지 않는다. 중복 웹훅과 재시도는 같은 사건에 idempotent해야 하며 `SOLD`/`LOCKED`에서 새 판매를 만들면 안 된다.
+
+#### Abandoned 예약 만료
+
+- 단순히 시간이 지났다는 이유만으로 `RESERVED`를 `OPEN`으로 바꾸지 않는다. 연결된 Checkout이 `expired` 또는 결제 불가 상태이고 paid·비동기 성공·Charge가 없다는 서버 측 근거를 확인해야 한다.
+- 예약 만료 시각은 연결된 Checkout의 실제 만료 시각을 기준으로 한다. Checkout 생성 전에 실패한 임시 예약은 “Stripe Session ID가 생성되지 않음”이 확인된 경우에만 실패 사건과 함께 해제한다.
+- 만료 확인 중 상태 조회가 실패하거나 결과가 불명확하면 `RESERVED`를 유지하고 owner에게 에스컬레이션한다. `MISSING`을 abandoned로 간주하지 않는다.
+- 만료·해제와 거의 동시에 paid 웹훅이 도착하는 경쟁 상황에서는 paid 사건이 우선해 `SOLD` 후 `LOCKED`가 되어야 한다. 이미 새 예약이 생겼다면 새 Checkout도 즉시 중단 대상으로 표시하고 결제 가능 여부를 조사한다.
+
+#### 결제·환불·재개 규칙
+
+1. 첫 live paid 웹훅이 검증되면 `RESERVED → SOLD → LOCKED`를 원자적으로 기록하고, 그 뒤의 Checkout 생성 요청은 모두 차단한다.
+2. 전액·부분 환불, chargeback, dispute, 이용권 회수 또는 고객의 제품 데이터 삭제는 `LOCKED → OPEN` 조건이 아니다. 환불 후에도 gate는 자동 재개되지 않는다.
+3. 재개는 15분 증거, 24시간 증거와 첫 payout 증거가 모두 `PASS`, 필수 필드의 `MISSING`/`FAIL`이 0건, cash 차이가 ±A$0.01 이내, 접근·알림·필요한 환불/credit note·revocation 연결이 확인된 경우에만 검토한다.
+4. 위 시스템 gate가 통과해도 사업자 owner가 승인 사건번호, 승인 시각과 재개 사유를 명시적으로 기록해야 한다. 스케줄러·만료 작업·환불 웹훅·배포·서버 재시작은 재개 권한이 없다.
+5. owner 승인 후 `LOCKED → OPEN` 전이는 새 gate 사건으로 남기며, 다음 판매도 다시 한 슬롯만 예약한다. 자동 다건 판매 모드로 전환하지 않는다.
+
+#### 감사 로그의 비민감 필드
+
+감사 로그는 append-only로 남기고 다음 필드만 사용한다.
+
+- gate event ID와 gate version
+- `from_state`, `to_state`, UTC 사건 시각, Australia/Sydney 운영일
+- `product_code=resume_pro`, `environment=live/test`, 통화와 기대 금액
+- actor type(`system`, `webhook`, `owner`)과 허용된 reason code
+- 예약 만료 시각, Checkout·PaymentIntent·Charge·webhook 참조의 마지막 8자
+- FP-/WH-/ENT- 사건번호, idempotency 결과, entitlement와 signed-access 결과
+- 증거 gate의 `PASS/MISSING/FAIL`, cash 대사 차이, payout `pending/matched`
+- owner 승인 사건번호·승인 시각, 배포/스키마 버전처럼 재현에 필요한 비밀이 아닌 버전값
+
+일반 로그에는 고객 이름·이메일·주소, 카드 정보, 전체 Stripe ID, 전체 webhook payload, 영수증 원문, 은행 정보, API key·webhook secret를 남기지 않는다. 전체 객체 참조와 원본 문서는 접근 제한된 원래 시스템 또는 private 회계자료에서 사건번호로 연결한다.
+
+#### 운영자가 수동 삭제하면 안 되는 증거
+
+아래 항목은 일반 운영자가 사건을 “정리”하기 위해 수정·덮어쓰기·수동 삭제하면 안 된다. 보존기간 종료, 법적 요청 또는 오류 정정이 필요하면 owner가 승인한 기록관리 절차로 처리하고 삭제·정정 자체의 감사 흔적을 남긴다.
+
+- append-only gate 상태 전이와 예약 만료·해제 근거
+- 첫 paid 사건의 receipt/invoice, tax 문서와 고객 노출 판매자·발행자·liability 표기 원본
+- Stripe Balance/Ending Balance, `withheld_tax`, `fee_net_of_withheld_tax`, refund/credit note와 itemised payout 원본
+- 첫 payout의 은행 입금 일치 증거와 Stripe clearing 대사
+- 서명 webhook의 event 참조·수신 시각·검증·처리·idempotency 결과와 전달 실패 기록
+- entitlement grant/revoke, signed access와 workspace 차단 결과
+- 환불·분쟁·chargeback 원거래 연결과 관련 FP-/WH-/ENT- 사건 기록
+- 두 번째 판매 system gate 결과와 owner의 승인·거부·재개 기록
+
+원본에 개인정보가 포함될 수 있다는 이유로 일반 티켓이나 소스 저장소에 복사하지 않는다. 반대로 개인정보 최소화 규칙을 이유로 회계·세무·거래 증거를 임의 삭제하지도 않는다.
+
+#### 개발팀 인계 검증 시나리오
+
+| 시나리오 | 수용 결과 |
+| --- | --- |
+| 동시에 두 Checkout 요청 | 정확히 하나만 `OPEN → RESERVED`; 나머지는 Stripe Session 생성 전 차단 |
+| Checkout 생성 실패 | Session 미생성 근거와 실패 사건을 남긴 뒤에만 예약 해제 |
+| abandoned Checkout | 실제 만료·미결제 확인 후 한 번만 `RESERVED → OPEN` |
+| 만료와 paid 웹훅 경쟁 | paid가 승리해 `SOLD → LOCKED`; 새 판매 없음 |
+| 첫 paid 및 중복 웹훅 | 첫 사건 한 건만 기록되고 gate는 `LOCKED`; 중복은 idempotent |
+| 전액/부분 환불 또는 dispute | 접근·장부는 원문대로 조정하되 gate는 `LOCKED` 유지 |
+| 서버 재시작·배포·스케줄러 실행 | 저장된 상태를 유지하고 자동 `OPEN` 금지 |
+| 증거 `MISSING/FAIL` 또는 payout pending | owner가 승인 값을 입력해도 `LOCKED` 유지 |
+| 모든 증거 완료와 owner 명시 승인 | 감사 사건을 남긴 뒤에만 `LOCKED → OPEN` |
+
 ## 2. 개인정보 최소화 규칙
 
 - 원본은 원래 시스템에 둔다: 고객 이메일은 Zoho, 결제 원본은 Stripe, 이용권 상태는 서버 이용권 저장소, 회계 원본은 private accounting 폴더가 기준이다.
@@ -169,6 +241,7 @@
 
 - 사건별 상태를 `확인 중 / owner 승인 대기 / 조치 승인 / 완료 / 판매 중단 후보` 중 하나로 남긴다.
 - 고객별 메모 대신 사건번호, 원본 시스템 reference, 다음 조치와 기한만 인계한다.
+- first-sale gate의 현재 `OPEN/RESERVED/SOLD/LOCKED`, 마지막 gate event ID, 예약 만료 시각, 증거 gate 결과와 owner 승인 상태를 함께 인계한다. 고객 식별정보나 전체 Stripe ID는 복사하지 않는다.
 - 첫 결제의 gross, 표시 GST 검토 상태, fee, refund `nil/발생`, payout `nil/pending/paid`, Stripe ending balance를 회계 워크북에 분리한다. payout 대기 잔액은 다음 대사로 이월한다.
 - 미결 항목 하나라도 owner·기한 없이 남거나 NO-GO 조건이 해소되지 않으면 다음 판매를 열지 않는다.
 
