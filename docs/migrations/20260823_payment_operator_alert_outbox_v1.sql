@@ -96,11 +96,13 @@ create trigger payment_operator_alert_from_receipt
 after insert on public.payment_webhook_events
 for each row execute function public.payment_operator_alert_from_receipt();
 
-create or replace function public.enqueue_payment_operator_alert_failure(
+drop function if exists public.enqueue_payment_operator_alert_failure(text, text, boolean, text, text, text);
+
+create function public.enqueue_payment_operator_alert_failure(
   p_event_id text, p_event_type text, p_livemode boolean, p_product_code text,
   p_checkout_session_id text, p_payment_intent_id text
 )
-returns void
+returns boolean
 language plpgsql
 security definer
 set search_path = public, pg_temp
@@ -123,6 +125,7 @@ begin
     md5(p_event_id), 'fulfillment_attention', p_event_type, right(p_event_id, 8), p_livemode,
     p_product_code, right(p_checkout_session_id, 8), right(p_payment_intent_id, 8)
   ) on conflict (event_key, alert_kind) do nothing;
+  return true;
 end;
 $$;
 

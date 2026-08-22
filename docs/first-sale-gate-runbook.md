@@ -204,6 +204,10 @@ checks as (
       as runtime_can_create_restore_token,
     coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.enqueue_payment_operator_alert_failure(text,text,boolean,text,text,text)'), 'EXECUTE'), false)
       as runtime_can_enqueue_failure_alert,
+    coalesce(
+      pg_get_function_result(to_regprocedure('public.enqueue_payment_operator_alert_failure(text,text,boolean,text,text,text)')) = 'boolean',
+      false
+    ) as failure_alert_enqueue_returns_boolean,
     coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.claim_payment_operator_alert_intent(text,text,text)'), 'EXECUTE'), false)
       as runtime_can_claim_alert,
     coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.mark_payment_operator_alert_sent(text,text,text)'), 'EXECUTE'), false)

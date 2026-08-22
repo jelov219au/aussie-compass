@@ -236,18 +236,36 @@ const abandonedClaim = await staleStore.claim();
 assert.equal(abandonedClaim.outcome, "claimed");
 assert.equal((await staleStore.claim()).outcome, "busy");
 staleStore.advance(120_001);
-let staleLeaseSends = 0;
-const staleRecovered = await deliverDurablePaymentOperatorAlert(
-  concurrentEvent,
-  "payment_completed",
-  staleStore,
-  async () => {
-    staleLeaseSends += 1;
-    return { outcome: "sent" };
-  },
+const takeoverClaim = await staleStore.claim();
+assert.equal(takeoverClaim.outcome, "claimed", "an expired lease must be reclaimable");
+const takeoverToken = takeoverClaim.intent.claimToken;
+const takeoverSnapshot = {
+  status: staleStore.row.status,
+  claimToken: staleStore.row.claimToken,
+  leaseExpiresAt: staleStore.row.leaseExpiresAt,
+};
+assert.equal(
+  await staleStore.markSent(concurrentEvent.id, "payment_completed", abandonedClaim.intent.claimToken),
+  false,
+  "A7: an old lease token must not mark a takeover lease sent",
 );
-assert.equal(staleRecovered.outcome, "sent", "an expired lease must be reclaimable");
-assert.equal(staleLeaseSends, 1);
+assert.deepEqual(
+  { status: staleStore.row.status, claimToken: staleStore.row.claimToken, leaseExpiresAt: staleStore.row.leaseExpiresAt },
+  takeoverSnapshot,
+  "A7: stale markSent must not mutate status or the replacement lease",
+);
+assert.equal(
+  await staleStore.release(concurrentEvent.id, "payment_completed", abandonedClaim.intent.claimToken),
+  false,
+  "A7: an old lease token must not release a takeover lease",
+);
+assert.deepEqual(
+  { status: staleStore.row.status, claimToken: staleStore.row.claimToken, leaseExpiresAt: staleStore.row.leaseExpiresAt },
+  takeoverSnapshot,
+  "A7: stale release must not mutate status or the replacement lease",
+);
+assert.equal(await staleStore.markSent(concurrentEvent.id, "payment_completed", takeoverToken), true);
+assert.equal(staleStore.row.status, "sent");
 
 const responseCrashStore = inMemoryOutbox(concurrentEvent, "payment_completed");
 let responseCrashSends = 0;
@@ -273,6 +291,7 @@ assert.equal((await deliverDurablePaymentOperatorAlert(
 assert.equal(responseCrashSends, 1, "a response-loss retry must not send a second email after mark-sent");
 
 const entitlementSql = fs.readFileSync(new URL("../docs/entitlement-storage.sql", import.meta.url), "utf8");
+const outboxMigrationSql = fs.readFileSync(new URL("../docs/migrations/20260823_payment_operator_alert_outbox_v1.sql", import.meta.url), "utf8");
 const webhookSource = fs.readFileSync(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
 const outboxTable = entitlementSql.slice(
   entitlementSql.indexOf("create table if not exists payment_operator_alert_outbox"),
@@ -297,6 +316,23 @@ for (const contract of [
   assert.ok(entitlementSql.includes(contract), `missing durable alert SQL contract: ${contract}`);
 }
 assert.doesNotMatch(outboxTable, /email|card|payload|json|stripe_event_id/i, "outbox rows must contain no PII, payload or full Stripe ID column");
+
+for (const [name, sql] of [["canonical", entitlementSql], ["split migration", outboxMigrationSql]]) {
+  const functionStart = sql.indexOf("create function public.enqueue_payment_operator_alert_failure");
+  const fallbackStart = sql.indexOf("create function enqueue_payment_operator_alert_failure");
+  const start = functionStart >= 0 ? functionStart : fallbackStart;
+  const end = sql.indexOf("create or replace function", start + 1);
+  const functionSql = sql.slice(start, end);
+  assert.ok(start >= 0, `${name} SQL must install the failure enqueue function exactly once`);
+  assert.match(
+    sql,
+    /drop function if exists (?:public\.)?enqueue_payment_operator_alert_failure\(text, text, boolean, text, text, text\);/,
+    `${name} SQL must drop the old void signature before changing its return type`,
+  );
+  assert.match(functionSql, /returns boolean/);
+  assert.doesNotMatch(functionSql, /returns void/);
+  assert.match(functionSql, /on conflict \(event_key, alert_kind\) do nothing;[\s\S]*return true;/);
+}
 assert.ok(
   entitlementSql.indexOf("perform public.record_payment_operator_alert_intent")
     < entitlementSql.indexOf("insert into purchase_entitlements"),

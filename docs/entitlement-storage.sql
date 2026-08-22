@@ -371,7 +371,9 @@ begin
 end;
 $$;
 
-create or replace function enqueue_payment_operator_alert_failure(
+drop function if exists enqueue_payment_operator_alert_failure(text, text, boolean, text, text, text);
+
+create function enqueue_payment_operator_alert_failure(
   p_event_id text,
   p_event_type text,
   p_livemode boolean,

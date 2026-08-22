@@ -194,6 +194,7 @@ for (const contract of [
   "operator_does_not_inherit_runtime_role",
   "runtime_does_not_inherit_operator_role",
   "all_privilege_checks_pass",
+  "failure_alert_enqueue_returns_boolean",
   "values ('SELECT'), ('INSERT'), ('UPDATE'), ('DELETE'), ('TRUNCATE')",
   "select bool_and(value = 'true')",
 ]) {
