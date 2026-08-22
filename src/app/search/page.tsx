@@ -25,6 +25,7 @@ const coreItems:SearchItem[]=[
   {href:"/install",type:"도구",title:"홈 화면에 앱으로 추가",description:"iPhone·Android에서 Hoju Compass를 앱처럼 사용",keywords:["PWA","설치","홈화면","아이폰","안드로이드","바로가기"]},
   {href:"/glossary",type:"자료",title:"호주 생활 용어집",description:"TFN, ABN, Award, Super, Bond 등 약어 풀이",keywords:["뜻","용어","약어","PAYG","VEVO","Rego","PPSR","HAP ID","OSHC","USI"]},
   {href:"/help-directory",type:"도구",title:"호주 생활 도움 연락처",description:"긴급전화, 의료상담, 통역, 직장 문제와 사기 신고",keywords:["000","응급","lifeline","healthdirect","TIS","한국어","Fair Work","Scamwatch"]},
+  {href:"/english-phrase-cards",type:"도구",title:"호주 생활 영어 문장 카드",description:"은행, 렌트, 직장과 병원에서 바로 쓰는 확인 문장",keywords:["영어","회화","문장","은행","렌트","병원","약국","payslip","통역","천천히","다시 말해 주세요"]},
   {href:"/visa-preparation-guide",type:"도구",title:"비자·신체검사 준비",description:"Visa Finder, ImmiAccount, HAP ID와 지정 병원",keywords:["비자신청","건강검진","Bupa","panel physician","학생비자","워홀비자"]},
   {href:"/arrival-checklist",type:"도구",title:"첫 30일 정착 체크리스트",description:"전화, 교통, 은행, TFN, USI와 의료 준비",keywords:["도착","입국","심카드","계좌","택스파일넘버","학생","정착"]},
   {href:"/salary-calculator",type:"도구",title:"통합 급여 계산기",description:"세전·세후 급여, 세금, Super와 전체 패키지",keywords:["시급","연봉","주급","실수령액","pay","tax","워홀세금","resident"]},

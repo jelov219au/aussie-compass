@@ -65,9 +65,10 @@ export const articles: Article[] = [
     contentType: "experience",
     readingTime: "8분",
     publishedAt: "2026-08-21",
+    updatedAt: "2026-08-22",
     quickSummary: ["못 알아들었을 때 아는 척하지 않고 천천히 다시 말해 달라고 하기", "비용·날짜·다음 행동은 말로만 듣지 않고 글로 받아두기", "계약·급여·의료처럼 중요한 내용은 내 말로 다시 확인하고 통역 요청하기"],
-    toolHref: "/arrival-checklist",
-    toolLabel: "첫 30일 체크리스트 열기",
+    toolHref: "/english-phrase-cards",
+    toolLabel: "생활 영어 문장 카드 열기",
     sections: [
       { heading: "완벽한 영어보다 정확히 확인하는 게 먼저예요", paragraphs: ["처음 호주에 오면 익숙한 단어도 전화나 카운터 앞에서는 잘 안 들릴 수 있어요. 모르는 표현 하나 때문에 대화 전체를 놓쳤다고 생각할 필요는 없어요. 잠깐 멈추고, 천천히 다시 말해 달라고 하고, 내가 이해한 내용을 확인하면 됩니다.", "특히 돈, 계약, 급여, 건강과 관련된 일은 분위기에 맞춰 Yes라고 답하는 것보다 정확히 이해할 때까지 묻는 편이 좋아요. 영어를 잘하는 사람처럼 보이는 것보다 다음에 무엇을 해야 하는지 분명히 아는 게 더 중요해요."] },
       { heading: "막혔을 때는 이 다섯 문장부터 꺼내세요", bullets: ["Sorry, could you say that more slowly? — 죄송하지만 조금 천천히 말씀해 주실 수 있나요?", "Could you say that in a different way? — 다른 표현으로 설명해 주실 수 있나요?", "Could you write that down for me? — 그 내용을 적어 주실 수 있나요?", "Let me check if I understood correctly. — 제가 제대로 이해했는지 확인해 볼게요.", "What do I need to do next? — 제가 다음으로 무엇을 해야 하나요?"], paragraphs: ["길고 어려운 문장을 외우기보다 이 다섯 문장을 휴대폰 메모에 저장해 두세요. 상대가 한 말을 전부 이해하지 못했더라도 날짜, 비용, 준비물과 다음 행동을 하나씩 나눠 물으면 대화가 훨씬 쉬워져요."] },
