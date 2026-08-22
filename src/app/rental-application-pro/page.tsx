@@ -1,8 +1,12 @@
 import Link from "next/link";
+import { RentalApplicationProVisitTracker } from "@/components/analytics/RentalApplicationProVisitTracker";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { RentalApplicationProCheckoutForm } from "@/components/tools/RentalApplicationProCheckoutForm";
 import { Container } from "@/components/ui/Container";
+import { canCreateRentalApplicationTestCheckout, getRentalApplicationPaymentReadiness } from "@/lib/commerce";
+import { normalizeRentalApplicationProEntry } from "@/lib/rentalApplicationProAttribution";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -10,6 +14,8 @@ export const metadata = createPageMetadata({
   description: "마음에 드는 집을 찾았을 때 준비가 늦어지지 않도록 집별 서류, 제출일, 다음 행동, 개인정보와 영문 연락을 한곳에 정리하세요.",
   path: "/rental-application-pro",
 });
+
+export const dynamic = "force-dynamic";
 
 const features = [
   ["01", "Document readiness", "신분·지불 능력·임대 이력·레퍼런스 자료를 올리지 않고, 빠진 준비가 없는지 확인해요."],
@@ -37,12 +43,54 @@ function PackPreview() {
   return <div className="border border-navy/15 bg-white p-5 shadow-[0_24px_60px_rgba(26,39,68,0.1)] sm:p-7"><div className="flex items-start justify-between border-b-2 border-navy pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">렌트 신청 준비</p><p className="mt-2 text-xl font-semibold text-navy">Carlton 후보 1</p></div><span className="font-mono text-sm text-muted">75%</span></div><div className="mt-6 grid grid-cols-3 gap-3"><div className="bg-surface p-3"><p className="text-xs text-muted">준비 완료</p><p className="mt-1 text-xl font-semibold text-navy">06</p></div><div className="bg-gold/15 p-3"><p className="text-xs text-muted">확인 필요</p><p className="mt-1 text-xl font-semibold text-navy">02</p></div><div className="bg-surface p-3"><p className="text-xs text-muted">원본 업로드</p><p className="mt-1 text-xl font-semibold text-navy">0</p></div></div><div className="mt-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">개인정보 다시 확인</p><div className="mt-3 space-y-3"><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">은행 명세서 범위 확인</p><p className="mt-1 text-xs text-muted">거래내역 없이 지불 능력을 증명할 수 있는지 질문</p></div><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">레퍼런스 동의</p><p className="mt-1 text-xs text-muted">연락처 제출 전에 당사자에게 안내</p></div></div></div><p className="mt-7 border-t border-border pt-4 text-xs leading-5 text-muted">예시 화면입니다. 신분증·Payslip·은행 서류의 실제 파일은 받지 않습니다.</p></div>;
 }
 
-export default function RentalApplicationProPage() {
+type Props = { searchParams: Promise<{ access?: string; checkout?: string; from?: string | string[] }> };
+
+export default async function RentalApplicationProPage({ searchParams }: Props) {
+  const { access, checkout, from } = await searchParams;
+  const paymentReadiness = getRentalApplicationPaymentReadiness();
+  const testCheckoutAvailable = canCreateRentalApplicationTestCheckout();
+  const checkoutAvailable = paymentReadiness.ready || testCheckoutAvailable;
+  const entry = normalizeRentalApplicationProEntry(from);
+
   return <>
+    <RentalApplicationProVisitTracker entry={entry} checkoutAvailable={checkoutAvailable} />
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "집 방문 체크리스트", path: "/property-inspection-checklist" }, { name: "Rental Application Pack Pro", path: "/rental-application-pro" }]} />
     <Header />
     <main>
-      <section className="border-b border-navy/15 py-12 sm:py-20"><Container><Link href="/property-inspection-checklist" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 집 방문 체크리스트로 돌아가기</Link><div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end"><div className="max-w-3xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Rental Application Pack Pro</p><h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">한 집에 지원할 때마다,<br /><span className="font-normal text-navy-light">안전한 준비 패키지 하나.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">필요 서류의 준비 상태를 확인하고, 과도한 개인정보 요청을 한 번 더 점검하고, 에이전트에게 보낼 영문 소개문까지 정리합니다.</p></div><aside className="border-l-2 border-gold pl-6"><p className="text-sm font-semibold text-muted">검토 중인 1회 가격</p><p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$14.90</p><p className="mt-2 text-sm leading-6 text-muted">구독 없이 반복해서 집 후보별 패키지를 만드는 방식입니다.</p></aside></div><div className="mt-10 flex flex-wrap gap-3"><Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 체크리스트 사용</Link><span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">Pro 작업 공간 출시 준비 중</span></div></Container></section>
+      <section className="border-b border-navy/15 py-12 sm:py-20">
+        <Container>
+          <Link href="/property-inspection-checklist" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 집 방문 체크리스트로 돌아가기</Link>
+          {access === "required" && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">이 기기의 Rental Pack Pro 접근이 만료됐거나 확인되지 않았습니다. 결제 완료 화면에서 다시 열거나 이용권 복구를 사용해 주세요.</div>}
+          {access === "released" && <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">이 기기의 Rental Pack Pro 접근을 안전하게 해제했습니다. 구매 이용권은 유지됩니다.</div>}
+          {checkout === "cancelled" && <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">결제가 취소됐습니다. 청구되지 않았으며 준비가 되면 다시 시작할 수 있습니다.</div>}
+          <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
+            <div className="max-w-3xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Rental Application Pack Pro</p>
+              <h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">한 집에 지원할 때마다,<br /><span className="font-normal text-navy-light">안전한 준비 패키지 하나.</span></h1>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">필요 서류의 준비 상태를 확인하고, 과도한 개인정보 요청을 한 번 더 점검하고, 에이전트에게 보낼 영문 소개문까지 정리합니다.</p>
+            </div>
+            <aside className="border-l-2 border-gold pl-6">
+              <p className="text-sm font-semibold text-muted">{checkoutAvailable ? "1회 가격" : "검증 중인 1회 가격"}</p>
+              <p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$14.90</p>
+              <p className="mt-2 text-sm leading-6 text-muted">매달 빠져나가는 구독료 없이 한 번만 결제해요.</p>
+            </aside>
+          </div>
+          <div className="mt-10 flex flex-wrap gap-3">
+            <Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 체크리스트 사용</Link>
+            <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">{checkoutAvailable ? "Pro 작업 공간 이용 가능" : "유료 검증 준비 중"}</span>
+            <Link href="/rental-application-pro/restore" className="inline-flex min-h-12 items-center border border-navy px-5 text-sm font-semibold text-navy">이용권 복구</Link>
+          </div>
+          {checkoutAvailable && <div id="rental-pro-checkout" className="mt-5 scroll-mt-24"><RentalApplicationProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
+          <p className="mt-4 text-xs leading-5 text-muted">
+            {testCheckoutAvailable
+              ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다. 테스트 이용권과 결제 처리 기술 기록만 생성됩니다."
+              : checkoutAvailable
+                ? "결제는 Stripe의 보안 결제 페이지에서 진행되며, 결제와 이용권 확인 뒤 작업 공간을 열 수 있어요."
+                : "현재는 가격과 결제 흐름을 검증하는 단계입니다. 실제 결제는 열리지 않았고 원본 서류도 수집하지 않습니다."}
+          </p>
+          {!checkoutAvailable && <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-navy"><Link href="/purchase-information" className="underline decoration-gold underline-offset-4">구매·환불 안내</Link><Link href="/privacy" className="underline decoration-gold underline-offset-4">결제 데이터 처리 안내</Link></div>}
+        </Container>
+      </section>
 
       <section className="py-14 sm:py-20"><Container><div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">많이 보내는 것보다, 필요한 것만</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">신청 서류가 많다고<br />꼭 유리한 것은 아니에요.</h2><p className="mt-4 text-sm leading-7 text-muted">경쟁이 치열하더라도 TFN이나 은행 로그인처럼 렌트 신청에 필요하지 않은 정보까지 보낼 이유는 없어요. 왜 필요한 정보인지, 어떻게 보관되는지 한 번 더 확인할 수 있게 구성했어요.</p></div><PackPreview /></div></Container></section>
 

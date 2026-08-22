@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 const issues = {
   pending: {
     label: "결제했는데 이용권이 열리지 않음",
-    steps: ["같은 결제를 다시 하지 않기", "결제 완료 탭에서 Resume Pro 열기 다시 시도", "Stripe 영수증의 결제일과 제품명 확인"],
+    steps: ["같은 결제를 다시 하지 않기", "결제 완료 탭에서 제품 열기 다시 시도", "Stripe 영수증의 결제일과 제품명 확인"],
   },
   access: {
     label: "이 기기의 접근이 만료되거나 사라짐",
@@ -27,12 +27,21 @@ const issues = {
 
 type IssueKey = keyof typeof issues;
 
+const products = {
+  resume_pro: "Resume Pro",
+  rental_application_pro: "Rental Application Pack Pro",
+} as const;
+
+type ProductKey = keyof typeof products;
+
 export function PaymentSupportHelper({ supportEmail }: { supportEmail: string | null }) {
+  const [product, setProduct] = useState<ProductKey>("resume_pro");
   const [issue, setIssue] = useState<IssueKey>("pending");
   const [status, setStatus] = useState("");
   const selected = issues[issue];
+  const productLabel = products[product];
   const template = useMemo(() => [
-    "Hoju Compass Resume Pro 지원 요청",
+    `Hoju Compass ${productLabel} 지원 요청`,
     "",
     `문제 유형: ${selected.label}`,
     "결제일: [직접 입력]",
@@ -42,7 +51,7 @@ export function PaymentSupportHelper({ supportEmail }: { supportEmail: string | 
     "이미 시도한 방법: [직접 입력]",
     "",
     "카드번호 전체, CVC, 비밀번호, 신분증 사본은 포함하지 않았습니다.",
-  ].join("\n"), [selected]);
+  ].join("\n"), [productLabel, selected]);
 
   async function copyTemplate() {
     try {
@@ -54,14 +63,18 @@ export function PaymentSupportHelper({ supportEmail }: { supportEmail: string | 
   }
 
   const mailHref = supportEmail
-    ? `mailto:${supportEmail}?subject=${encodeURIComponent(`Resume Pro 지원 요청 — ${selected.label}`)}&body=${encodeURIComponent(template)}`
+    ? `mailto:${supportEmail}?subject=${encodeURIComponent(`${productLabel} 지원 요청 — ${selected.label}`)}&body=${encodeURIComponent(template)}`
     : null;
 
   return (
     <section className="border border-navy/15 bg-white p-5 sm:p-7" aria-labelledby="payment-support-helper-heading">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Support request helper</p>
       <h2 id="payment-support-helper-heading" className="mt-2 text-2xl font-semibold text-navy">문제 유형에 맞는 문의를 준비하세요.</h2>
-      <label className="mt-6 block text-sm font-semibold text-navy" htmlFor="payment-issue">현재 상황</label>
+      <label className="mt-6 block text-sm font-semibold text-navy" htmlFor="payment-product">구매한 제품</label>
+      <select id="payment-product" value={product} onChange={(event) => setProduct(event.target.value as ProductKey)} className="mt-2 min-h-12 w-full border border-border bg-surface px-3 text-sm text-navy outline-none focus:border-gold">
+        {Object.entries(products).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+      </select>
+      <label className="mt-5 block text-sm font-semibold text-navy" htmlFor="payment-issue">현재 상황</label>
       <select id="payment-issue" value={issue} onChange={(event) => setIssue(event.target.value as IssueKey)} className="mt-2 min-h-12 w-full border border-border bg-surface px-3 text-sm text-navy outline-none focus:border-gold">
         {Object.entries(issues).map(([value, item]) => <option key={value} value={value}>{item.label}</option>)}
       </select>
