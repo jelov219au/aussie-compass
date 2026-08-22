@@ -104,24 +104,200 @@ npm run quality:gate
 
 Before a live release, separately test signed sandbox events for concurrent requests, duplicate paid webhooks, refund-before-grant, dispute-before-grant, same-second revoke/review/grant priority, late grant, newer dispute-win recovery, expiry verification failure, verified abandonment, and owner-role denial. Live Stripe/DB execution requires a new explicit approval.
 
-Catalog/effective-privilege evidence template (replace the role placeholder only in the approved migration session):
+Catalog/effective-privilege evidence template (replace the two role placeholders only in the approved migration session). `enqueue_payment_operator_alert_failure` is the narrow pre-mutation failure wrapper used by the application and is allowlisted; the receipt trigger and `record_payment_operator_alert_intent` are the internal outbox enqueue paths and must remain unreachable by both runtime and operator roles.
 
 ```sql
-select to_regprocedure('public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,text,text,text)') is null as old_9_arg_removed;
-select to_regprocedure('public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text)') is null as old_11_arg_removed;
-select to_regprocedure('public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)') is not null as charge_aware_12_arg_present;
-select has_function_privilege('hoju_app_runtime', 'public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)', 'EXECUTE') as runtime_can_execute_charge_aware;
-select exists(select 1 from schema_migrations where version='20260823_payment_operator_alert_outbox_v1') as alert_outbox_v1_present;
-select has_table_privilege('hoju_app_runtime', 'public.payment_operator_alert_outbox', 'INSERT,UPDATE,DELETE') = false as runtime_has_no_alert_outbox_dml;
-select has_function_privilege('hoju_app_runtime', 'public.claim_payment_operator_alert_intent(text,text,text)', 'EXECUTE') as runtime_can_claim_alert;
-select exists(select 1 from public.schema_migrations where version='20260823_checkout_activation_nonce_v1') as checkout_activation_nonce_v1_present;
-select has_table_privilege('hoju_app_runtime', 'public.purchase_checkout_activations', 'SELECT,INSERT,UPDATE,DELETE') = false as runtime_has_no_activation_table_access;
-select has_table_privilege('hoju_app_runtime', 'public.purchase_entitlements', 'SELECT,INSERT,UPDATE,DELETE') = false as runtime_has_no_entitlement_table_access;
-select has_function_privilege('hoju_app_runtime', 'public.consume_checkout_activation(text,text,text,text)', 'EXECUTE') as runtime_can_consume_activation;
-select has_function_privilege('hoju_app_runtime', 'public.release_checkout_activation(bigint,text)', 'EXECUTE') as runtime_can_release_activation;
-select has_function_privilege('hoju_app_runtime', 'public.find_active_purchase_entitlement_by_checkout(text,text)', 'EXECUTE') as runtime_can_read_active_by_checkout;
-select has_function_privilege('hoju_app_runtime', 'public.find_active_purchase_entitlement_by_id(bigint,text)', 'EXECUTE') as runtime_can_read_active_by_id;
-select has_function_privilege('hoju_app_runtime', 'public.payment_operator_alert_from_receipt()', 'EXECUTE') = false as runtime_cannot_execute_internal_alert_trigger;
+with
+runtime_wrappers(signature) as (
+  values
+    ('public.claim_first_sale_reservation(text,text,timestamptz,text,text,integer)'),
+    ('public.attach_first_sale_checkout(text,bigint,text,text,timestamptz)'),
+    ('public.release_failed_first_sale_reservation(text,bigint,text,text)'),
+    ('public.release_verified_abandoned_first_sale(text,bigint,text)'),
+    ('public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)'),
+    ('public.apply_guarded_entitlement_event(text,text,boolean,timestamptz,text,text,text,text,text,text,text)'),
+    ('public.consume_entitlement_restore_token(text,text)'),
+    ('public.create_entitlement_restore_token(bigint,text,text,timestamptz)'),
+    ('public.enqueue_payment_operator_alert_failure(text,text,boolean,text,text,text)'),
+    ('public.claim_payment_operator_alert_intent(text,text,text)'),
+    ('public.mark_payment_operator_alert_sent(text,text,text)'),
+    ('public.release_payment_operator_alert_claim(text,text,text)'),
+    ('public.consume_checkout_activation(text,text,text,text)'),
+    ('public.release_checkout_activation(bigint,text)'),
+    ('public.find_active_purchase_entitlement_by_checkout(text,text)'),
+    ('public.find_active_purchase_entitlement_by_id(bigint,text)')
+),
+private_helpers(signature) as (
+  values
+    ('public.apply_entitlement_event(text,text,boolean,timestamptz,text,text,text,text,text,text,text)'),
+    ('public.lock_first_sale_from_paid_event(text,text,text,boolean,timestamptz)'),
+    ('public.record_payment_operator_alert_intent(text,text,boolean,text)'),
+    ('public.payment_operator_alert_from_receipt()'),
+    ('public.prevent_first_sale_gate_event_mutation()'),
+    ('public.prevent_entitlement_tombstone_mutation()')
+),
+operator_functions(signature) as (
+  values ('public.approve_next_first_sale(text,text,text,integer,text)')
+),
+protected_functions(signature) as (
+  select signature from runtime_wrappers
+  union all select signature from private_helpers
+  union all select signature from operator_functions
+),
+protected_tables(qualified_name) as (
+  values
+    ('public.payment_webhook_events'),
+    ('public.purchase_entitlements'),
+    ('public.purchase_restore_tokens'),
+    ('public.purchase_checkout_activations'),
+    ('public.entitlement_event_tombstones'),
+    ('public.stripe_payment_object_links'),
+    ('public.payment_operator_alert_outbox'),
+    ('public.first_sale_gates'),
+    ('public.first_sale_gate_events')
+),
+protected_table_privileges(privilege_name) as (
+  values ('SELECT'), ('INSERT'), ('UPDATE'), ('DELETE'), ('TRUNCATE')
+),
+checks as (
+  select
+    to_regprocedure('public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,text,text,text)') is null
+      as old_9_arg_paid_event_removed,
+    to_regprocedure('public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text)') is null
+      as old_11_arg_paid_event_removed,
+    to_regprocedure('public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)') is not null
+      as charge_aware_12_arg_paid_event_present,
+    to_regprocedure('public.consume_checkout_activation(text,text)') is null
+      as old_2_arg_activation_removed,
+    to_regprocedure('public.consume_checkout_activation(text,text,text)') is null
+      as old_3_arg_activation_removed,
+    to_regprocedure('public.consume_checkout_activation(text,text,text,text)') is not null
+      as nonce_4_arg_activation_present,
+    exists (
+      select 1 from public.schema_migrations
+      where version = '20260823_first_sale_gate_charge_link_v2'
+    ) as charge_link_v2_present,
+    exists (
+      select 1 from public.schema_migrations
+      where version = '20260823_payment_operator_alert_outbox_v1'
+    ) as alert_outbox_v1_present,
+    exists (
+      select 1 from public.schema_migrations
+      where version = '20260823_checkout_activation_nonce_v1'
+    ) as activation_nonce_v1_present,
+
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.claim_first_sale_reservation(text,text,timestamptz,text,text,integer)'), 'EXECUTE'), false)
+      as runtime_can_claim_reservation,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.attach_first_sale_checkout(text,bigint,text,text,timestamptz)'), 'EXECUTE'), false)
+      as runtime_can_attach_checkout,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.release_failed_first_sale_reservation(text,bigint,text,text)'), 'EXECUTE'), false)
+      as runtime_can_release_failed_reservation,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.release_verified_abandoned_first_sale(text,bigint,text)'), 'EXECUTE'), false)
+      as runtime_can_release_verified_abandoned_reservation,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)'), 'EXECUTE'), false)
+      as runtime_can_apply_charge_aware_paid_event,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.apply_guarded_entitlement_event(text,text,boolean,timestamptz,text,text,text,text,text,text,text)'), 'EXECUTE'), false)
+      as runtime_can_apply_guarded_entitlement_event,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.consume_entitlement_restore_token(text,text)'), 'EXECUTE'), false)
+      as runtime_can_consume_restore_token,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.create_entitlement_restore_token(bigint,text,text,timestamptz)'), 'EXECUTE'), false)
+      as runtime_can_create_restore_token,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.enqueue_payment_operator_alert_failure(text,text,boolean,text,text,text)'), 'EXECUTE'), false)
+      as runtime_can_enqueue_failure_alert,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.claim_payment_operator_alert_intent(text,text,text)'), 'EXECUTE'), false)
+      as runtime_can_claim_alert,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.mark_payment_operator_alert_sent(text,text,text)'), 'EXECUTE'), false)
+      as runtime_can_mark_alert_sent,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.release_payment_operator_alert_claim(text,text,text)'), 'EXECUTE'), false)
+      as runtime_can_release_alert_claim,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.consume_checkout_activation(text,text,text,text)'), 'EXECUTE'), false)
+      as runtime_can_consume_activation,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.release_checkout_activation(bigint,text)'), 'EXECUTE'), false)
+      as runtime_can_release_activation,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.find_active_purchase_entitlement_by_checkout(text,text)'), 'EXECUTE'), false)
+      as runtime_can_read_active_by_checkout,
+    coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.find_active_purchase_entitlement_by_id(bigint,text)'), 'EXECUTE'), false)
+      as runtime_can_read_active_by_id,
+
+    coalesce(has_function_privilege('hoju_owner_operator', to_regprocedure('public.approve_next_first_sale(text,text,text,integer,text)'), 'EXECUTE'), false)
+      as operator_can_approve_next_sale,
+    not coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.approve_next_first_sale(text,text,text,integer,text)'), 'EXECUTE'), false)
+      as runtime_cannot_approve_next_sale,
+    (
+      select bool_and(not coalesce(has_function_privilege('hoju_owner_operator', to_regprocedure(signature), 'EXECUTE'), false))
+      from runtime_wrappers
+    ) as operator_cannot_execute_runtime_wrappers,
+    (
+      select bool_and(to_regprocedure(signature) is not null)
+      from private_helpers
+    ) as private_helpers_present,
+    (
+      select bool_and(not coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure(signature), 'EXECUTE'), false))
+      from private_helpers
+    ) as runtime_cannot_execute_private_helpers,
+    (
+      select bool_and(not coalesce(has_function_privilege('hoju_owner_operator', to_regprocedure(signature), 'EXECUTE'), false))
+      from private_helpers
+    ) as operator_cannot_execute_private_helpers,
+    not coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.record_payment_operator_alert_intent(text,text,boolean,text)'), 'EXECUTE'), false)
+      as runtime_cannot_execute_internal_alert_enqueue,
+    not coalesce(has_function_privilege('hoju_owner_operator', to_regprocedure('public.record_payment_operator_alert_intent(text,text,boolean,text)'), 'EXECUTE'), false)
+      as operator_cannot_execute_internal_alert_enqueue,
+    not coalesce(has_function_privilege('hoju_app_runtime', to_regprocedure('public.payment_operator_alert_from_receipt()'), 'EXECUTE'), false)
+      as runtime_cannot_execute_alert_receipt_trigger,
+    not coalesce(has_function_privilege('hoju_owner_operator', to_regprocedure('public.payment_operator_alert_from_receipt()'), 'EXECUTE'), false)
+      as operator_cannot_execute_alert_receipt_trigger,
+    not exists (
+      select 1
+      from protected_functions f
+      join pg_proc p on p.oid = to_regprocedure(f.signature)
+      cross join lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) acl
+      where acl.grantee = 0 and acl.privilege_type = 'EXECUTE'
+    ) as public_cannot_execute_protected_functions,
+
+    (select bool_and(to_regclass(qualified_name) is not null) from protected_tables)
+      as protected_tables_present,
+    (
+      select bool_and(not coalesce(has_table_privilege('hoju_app_runtime', to_regclass(t.qualified_name), p.privilege_name), false))
+      from protected_tables t cross join protected_table_privileges p
+    ) as runtime_has_no_protected_table_privileges,
+    (
+      select bool_and(not coalesce(has_table_privilege('hoju_owner_operator', to_regclass(t.qualified_name), p.privilege_name), false))
+      from protected_tables t cross join protected_table_privileges p
+    ) as operator_has_no_protected_table_privileges,
+    not exists (
+      select 1
+      from protected_tables t
+      join pg_class c on c.oid = to_regclass(t.qualified_name)
+      cross join lateral aclexplode(coalesce(c.relacl, acldefault('r', c.relowner))) acl
+      where acl.grantee = 0
+        and acl.privilege_type in ('SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')
+    ) as public_has_no_protected_table_privileges,
+
+    not coalesce(has_schema_privilege('hoju_app_runtime', 'public', 'CREATE'), false)
+      as runtime_cannot_create_in_public_schema,
+    not coalesce(has_schema_privilege('hoju_owner_operator', 'public', 'CREATE'), false)
+      as operator_cannot_create_in_public_schema,
+    not exists (
+      select 1
+      from pg_namespace n
+      cross join lateral aclexplode(coalesce(n.nspacl, acldefault('n', n.nspowner))) acl
+      where n.nspname = 'public'
+        and acl.grantee = 0
+        and acl.privilege_type = 'CREATE'
+    ) as public_cannot_create_in_public_schema,
+    not pg_has_role('hoju_owner_operator', 'hoju_app_runtime', 'MEMBER')
+      as operator_does_not_inherit_runtime_role,
+    not pg_has_role('hoju_app_runtime', 'hoju_owner_operator', 'MEMBER')
+      as runtime_does_not_inherit_operator_role
+)
+select
+  checks.*,
+  (
+    select bool_and(value = 'true')
+    from jsonb_each_text(to_jsonb(checks))
+  ) as all_privilege_checks_pass
+from checks;
 ```
 
-Every boolean above must be `true`. Also enumerate `pg_proc` by `proname` and argument count: the 9- and 11-argument paid-event functions and 2-/3-argument activation functions must be absent; exactly one 12-argument row may remain for paid events, and one 4-argument activation function may remain. A missing catalog row, unexpected overload or effective-privilege mismatch keeps live **NO-GO**.
+Every named boolean, including `all_privilege_checks_pass`, must be `true`; accepting a subset or a row count is prohibited. Also enumerate `pg_proc` by `proname` and argument count: the 9- and 11-argument paid-event functions and 2-/3-argument activation functions must be absent; exactly one 12-argument row may remain for paid events, and one 4-argument activation function may remain. A missing catalog row, unexpected overload, role-membership mismatch or effective-privilege mismatch keeps live **NO-GO**.

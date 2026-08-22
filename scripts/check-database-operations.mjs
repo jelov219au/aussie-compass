@@ -1,7 +1,20 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [schema, firstSaleSchema, outboxMigration, activationMigration, recovery, runbook, launchPacket, manifest, paymentReadiness] = await Promise.all([
+const [
+  schema,
+  firstSaleSchema,
+  outboxMigration,
+  activationMigration,
+  recovery,
+  runbook,
+  launchPacket,
+  manifest,
+  paymentReadiness,
+  firstSaleAdapter,
+  entitlementAdapter,
+  alertOutboxAdapter,
+] = await Promise.all([
   readFile(new URL("../docs/entitlement-storage.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/first-sale-gate.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/migrations/20260823_payment_operator_alert_outbox_v1.sql", import.meta.url), "utf8"),
@@ -11,7 +24,195 @@ const [schema, firstSaleSchema, outboxMigration, activationMigration, recovery, 
   readFile(new URL("../docs/first-payment-24-hour-operations-packet.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/release-candidate-manifest-2026-08-23.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/payment-readiness.md", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/neonFirstSaleGate.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/neonEntitlementStore.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/neonPaymentAlertOutbox.ts", import.meta.url), "utf8"),
 ]);
+
+const runtimeWrapperSignatures = new Map([
+  ["claim_first_sale_reservation", "public.claim_first_sale_reservation(text,text,timestamptz,text,text,integer)"],
+  ["attach_first_sale_checkout", "public.attach_first_sale_checkout(text,bigint,text,text,timestamptz)"],
+  ["release_failed_first_sale_reservation", "public.release_failed_first_sale_reservation(text,bigint,text,text)"],
+  ["release_verified_abandoned_first_sale", "public.release_verified_abandoned_first_sale(text,bigint,text)"],
+  ["apply_first_sale_paid_event", "public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)"],
+  ["apply_guarded_entitlement_event", "public.apply_guarded_entitlement_event(text,text,boolean,timestamptz,text,text,text,text,text,text,text)"],
+  ["consume_entitlement_restore_token", "public.consume_entitlement_restore_token(text,text)"],
+  ["create_entitlement_restore_token", "public.create_entitlement_restore_token(bigint,text,text,timestamptz)"],
+  ["enqueue_payment_operator_alert_failure", "public.enqueue_payment_operator_alert_failure(text,text,boolean,text,text,text)"],
+  ["claim_payment_operator_alert_intent", "public.claim_payment_operator_alert_intent(text,text,text)"],
+  ["mark_payment_operator_alert_sent", "public.mark_payment_operator_alert_sent(text,text,text)"],
+  ["release_payment_operator_alert_claim", "public.release_payment_operator_alert_claim(text,text,text)"],
+  ["consume_checkout_activation", "public.consume_checkout_activation(text,text,text,text)"],
+  ["release_checkout_activation", "public.release_checkout_activation(bigint,text)"],
+  ["find_active_purchase_entitlement_by_checkout", "public.find_active_purchase_entitlement_by_checkout(text,text)"],
+  ["find_active_purchase_entitlement_by_id", "public.find_active_purchase_entitlement_by_id(bigint,text)"],
+]);
+const runtimeWrapperCheckNames = new Map([
+  ["claim_first_sale_reservation", "runtime_can_claim_reservation"],
+  ["attach_first_sale_checkout", "runtime_can_attach_checkout"],
+  ["release_failed_first_sale_reservation", "runtime_can_release_failed_reservation"],
+  ["release_verified_abandoned_first_sale", "runtime_can_release_verified_abandoned_reservation"],
+  ["apply_first_sale_paid_event", "runtime_can_apply_charge_aware_paid_event"],
+  ["apply_guarded_entitlement_event", "runtime_can_apply_guarded_entitlement_event"],
+  ["consume_entitlement_restore_token", "runtime_can_consume_restore_token"],
+  ["create_entitlement_restore_token", "runtime_can_create_restore_token"],
+  ["enqueue_payment_operator_alert_failure", "runtime_can_enqueue_failure_alert"],
+  ["claim_payment_operator_alert_intent", "runtime_can_claim_alert"],
+  ["mark_payment_operator_alert_sent", "runtime_can_mark_alert_sent"],
+  ["release_payment_operator_alert_claim", "runtime_can_release_alert_claim"],
+  ["consume_checkout_activation", "runtime_can_consume_activation"],
+  ["release_checkout_activation", "runtime_can_release_activation"],
+  ["find_active_purchase_entitlement_by_checkout", "runtime_can_read_active_by_checkout"],
+  ["find_active_purchase_entitlement_by_id", "runtime_can_read_active_by_id"],
+]);
+const compactFunctionContractSql = [firstSaleSchema, outboxMigration, activationMigration]
+  .join("\n")
+  .replace(/\s+/g, "");
+
+const expectedAdapterCalls = new Map([
+  ["neonFirstSaleGate.ts", new Set([
+    "claim_first_sale_reservation",
+    "attach_first_sale_checkout",
+    "release_failed_first_sale_reservation",
+    "release_verified_abandoned_first_sale",
+    "apply_first_sale_paid_event",
+  ])],
+  ["neonEntitlementStore.ts", new Set([
+    "apply_guarded_entitlement_event",
+    "consume_entitlement_restore_token",
+    "create_entitlement_restore_token",
+    "consume_checkout_activation",
+    "release_checkout_activation",
+    "find_active_purchase_entitlement_by_checkout",
+    "find_active_purchase_entitlement_by_id",
+  ])],
+  ["neonPaymentAlertOutbox.ts", new Set([
+    "enqueue_payment_operator_alert_failure",
+    "claim_payment_operator_alert_intent",
+    "mark_payment_operator_alert_sent",
+    "release_payment_operator_alert_claim",
+  ])],
+]);
+
+function extractSqlFunctionCalls(source) {
+  const calls = new Map();
+  const starts = source.matchAll(/\bselect\s+(?:\*\s+from\s+)?([a-z_][a-z0-9_]*)\s*\(/gi);
+
+  for (const match of starts) {
+    const functionName = match[1];
+    const openParen = match.index + match[0].lastIndexOf("(");
+    let sqlDepth = 1;
+    let interpolationDepth = 0;
+    let argumentCount = 0;
+
+    for (let index = openParen + 1; index < source.length && sqlDepth > 0; index += 1) {
+      if (interpolationDepth === 0 && source[index] === "$" && source[index + 1] === "{") {
+        interpolationDepth = 1;
+        argumentCount += 1;
+        index += 1;
+        continue;
+      }
+      if (interpolationDepth > 0) {
+        if (source[index] === "{") interpolationDepth += 1;
+        if (source[index] === "}") interpolationDepth -= 1;
+        continue;
+      }
+      if (source[index] === "(") sqlDepth += 1;
+      if (source[index] === ")") sqlDepth -= 1;
+    }
+
+    calls.set(functionName, argumentCount);
+  }
+
+  return calls;
+}
+
+for (const [fileName, source] of [
+  ["neonFirstSaleGate.ts", firstSaleAdapter],
+  ["neonEntitlementStore.ts", entitlementAdapter],
+  ["neonPaymentAlertOutbox.ts", alertOutboxAdapter],
+]) {
+  const extractedCalls = extractSqlFunctionCalls(source);
+  const actual = [...extractedCalls.keys()].sort();
+  const expected = [...expectedAdapterCalls.get(fileName)].sort();
+  assert.deepEqual(actual, expected, `${fileName} DB calls and the privilege allowlist diverged`);
+
+  for (const [functionName, actualArgumentCount] of extractedCalls) {
+    const signature = runtimeWrapperSignatures.get(functionName);
+    const signatureArguments = signature.slice(signature.indexOf("(") + 1, -1);
+    const expectedArgumentCount = signatureArguments === "" ? 0 : signatureArguments.split(",").length;
+    assert.equal(
+      actualArgumentCount,
+      expectedArgumentCount,
+      `${fileName} call arity and catalog signature diverged for ${functionName}`,
+    );
+  }
+}
+
+assert.deepEqual(
+  [...new Set([...expectedAdapterCalls.values()].flatMap((calls) => [...calls]))].sort(),
+  [...runtimeWrapperSignatures.keys()].sort(),
+  "every runtime wrapper must be called by an audited adapter exactly once in the allowlist",
+);
+
+for (const [functionName, signature] of runtimeWrapperSignatures) {
+  assert.ok(runbook.includes(`('${signature}')`), `Privilege SQL is missing runtime wrapper ${signature}`);
+  assert.ok(compactFunctionContractSql.includes(`function${signature}`), `Migration grant/revoke template is missing ${signature}`);
+  assert.ok(runbook.includes(`has_function_privilege('hoju_app_runtime', to_regprocedure('${signature}')`), `Privilege SQL does not test runtime EXECUTE for ${functionName}`);
+  assert.ok(runbook.includes(`as ${runtimeWrapperCheckNames.get(functionName)}`), `Privilege SQL does not name the result for ${functionName}`);
+}
+
+for (const signature of [
+  "public.apply_entitlement_event(text,text,boolean,timestamptz,text,text,text,text,text,text,text)",
+  "public.lock_first_sale_from_paid_event(text,text,text,boolean,timestamptz)",
+  "public.record_payment_operator_alert_intent(text,text,boolean,text)",
+  "public.payment_operator_alert_from_receipt()",
+  "public.prevent_first_sale_gate_event_mutation()",
+  "public.prevent_entitlement_tombstone_mutation()",
+]) {
+  assert.ok(runbook.includes(`('${signature}')`), `Privilege SQL is missing private helper ${signature}`);
+  assert.ok(compactFunctionContractSql.includes(`function${signature}`), `Migration revoke template is missing private helper ${signature}`);
+}
+
+for (const contract of [
+  "runtime_cannot_execute_private_helpers",
+  "operator_cannot_execute_private_helpers",
+  "runtime_cannot_execute_internal_alert_enqueue",
+  "operator_cannot_execute_internal_alert_enqueue",
+  "runtime_cannot_execute_alert_receipt_trigger",
+  "operator_cannot_execute_alert_receipt_trigger",
+  "public_cannot_execute_protected_functions",
+  "operator_can_approve_next_sale",
+  "runtime_cannot_approve_next_sale",
+  "operator_cannot_execute_runtime_wrappers",
+  "runtime_has_no_protected_table_privileges",
+  "operator_has_no_protected_table_privileges",
+  "public_has_no_protected_table_privileges",
+  "runtime_cannot_create_in_public_schema",
+  "operator_cannot_create_in_public_schema",
+  "public_cannot_create_in_public_schema",
+  "operator_does_not_inherit_runtime_role",
+  "runtime_does_not_inherit_operator_role",
+  "all_privilege_checks_pass",
+  "values ('SELECT'), ('INSERT'), ('UPDATE'), ('DELETE'), ('TRUNCATE')",
+  "select bool_and(value = 'true')",
+]) {
+  assert.ok(runbook.includes(contract), `Executable privilege evidence is missing: ${contract}`);
+}
+
+for (const tableName of [
+  "payment_webhook_events",
+  "purchase_entitlements",
+  "purchase_restore_tokens",
+  "purchase_checkout_activations",
+  "entitlement_event_tombstones",
+  "stripe_payment_object_links",
+  "payment_operator_alert_outbox",
+  "first_sale_gates",
+  "first_sale_gate_events",
+]) {
+  assert.ok(runbook.includes(`('public.${tableName}')`), `Privilege SQL is missing protected table public.${tableName}`);
+}
 
 for (const contract of [
   "begin;",

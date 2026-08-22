@@ -279,8 +279,9 @@ for (const contract of [
   "live remains **HOLD**",
   "A refund does not constitute rollback",
   "PaymentIntents Read",
-  "old_9_arg_removed",
-  "old_11_arg_removed",
+  "old_9_arg_paid_event_removed",
+  "old_11_arg_paid_event_removed",
+  "all_privilege_checks_pass",
   "exactly one 12-argument row",
 ]) {
   assert.ok(runbook.includes(contract), `Operations runbook is missing: ${contract}`);
