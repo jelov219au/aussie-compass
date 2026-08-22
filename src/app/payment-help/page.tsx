@@ -39,10 +39,23 @@ export default function PaymentHelpPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">개인정보를 지키면서</p><h2 id="safety-first-heading" className="mt-2 text-xl font-semibold">문의하기 전에 이것만 확인해 주세요.</h2>
             <ul className="mt-4 space-y-3 text-sm leading-6 text-white/75">{warnings.map((warning) => <li key={warning}>• {warning}</li>)}</ul>
           </section>
+          <section className="mt-8 grid gap-4 sm:grid-cols-2" aria-label="Resume Pro 지원 역할 구분">
+            <article className="border-t-2 border-gold bg-white p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">제품·접근 지원</p>
+              <h2 className="mt-2 text-xl font-semibold text-navy">Hoju Compass</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">이용권이 열리지 않거나 복구 코드·기능·작성 데이터에 문제가 있으면 Hoju Compass에 문의하세요. 아래 도구는 이 제품 지원 요청을 안전하게 준비합니다.</p>
+            </article>
+            <article className="border-t-2 border-navy bg-white p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">결제·거래 지원</p>
+              <h2 className="mt-2 text-xl font-semibold text-navy">결제 화면·영수증의 지원 경로</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">Stripe Managed Payments 거래의 결제, 영수증, 인보이스와 거래 환불은 최종 결제 화면이나 영수증에 표시된 거래상 판매자와 지원 경로를 확인하세요. 실제 거래 문서를 확인하기 전에는 여기서 그 사업자명을 단정하지 않습니다.</p>
+            </article>
+            <p className="border-l-2 border-gold bg-surface p-4 text-sm leading-6 text-muted sm:col-span-2">거래 문제를 Hoju Compass에 먼저 알려도 제품 사실 확인과 필요한 절차 조율을 도와드립니다. 이 역할 구분은 Australian Consumer Law에 따른 권리를 제한하지 않습니다.</p>
+          </section>
           <div className="mt-8"><PaymentSupportHelper supportEmail={seller.email} /></div>
           <section className="mt-8 grid gap-4 sm:grid-cols-3">
             <Link href="/resume-pro/restore" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Access</span><strong className="mt-2 block text-navy">복구 코드 사용하기 →</strong><span className="mt-2 block text-sm leading-6 text-muted">유효한 1회용 코드가 있다면 이 기기의 접근을 복구합니다.</span></Link>
-            <Link href="/purchase-information" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Policy</span><strong className="mt-2 block text-navy">구매·환불 조건 보기 →</strong><span className="mt-2 block text-sm leading-6 text-muted">가격, 제공 방식, 판매자 정보와 소비자 권리를 확인합니다.</span></Link>
+            <Link href="/purchase-information" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Policy</span><strong className="mt-2 block text-navy">구매·환불 조건 보기 →</strong><span className="mt-2 block text-sm leading-6 text-muted">가격, 제공 방식, 제품·거래 지원 구분과 소비자 권리를 확인합니다.</span></Link>
             <Link href="/privacy" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Data</span><strong className="mt-2 block text-navy">결제 데이터 처리 보기 →</strong><span className="mt-2 block text-sm leading-6 text-muted">Stripe와 Hoju Compass가 처리하는 정보 범위를 확인합니다.</span></Link>
           </section>
         </Container>

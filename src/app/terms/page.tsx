@@ -71,6 +71,7 @@ export default function TermsPage() {
               <div><p className="font-mono text-xs text-gold">03 / PAYMENT</p><h2 className="mt-2 text-xl font-semibold text-navy">결제와 제공 방식</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>Resume Pro는 {price} AUD 1회 결제 상품입니다. 결제 전에 Stripe 화면에서 최종 금액, 결제수단과 인보이스 정보를 확인할 수 있으며 Hoju Compass는 전체 카드번호나 CVC를 직접 받지 않습니다.</p>
+                <p>Stripe Managed Payments 결제의 거래상 판매자(Merchant of Record)와 결제·거래 지원 주체는 최종 결제 화면과 영수증에 표시된 정보를 기준으로 확인합니다. Hoju Compass는 Resume Pro 제품 제공과 접근·기능 지원을 담당하며, 실제 거래 문서를 확인하기 전에는 이 조건에서 거래상 판매자의 사업자명을 단정하지 않습니다.</p>
                 <p>결제가 확인되면 현재 기기에 30일짜리 접근 세션을 발급합니다. 30일은 구매 이용권의 소멸일이 아니라 이 기기의 로그인 확인 기간이며, 활성 이용권은 복구 절차를 통해 다시 확인할 수 있습니다.</p>
                 <p>새 기기로 옮길 때 사용하는 복구 코드는 발급 후 30일 안에 한 번만 사용할 수 있습니다. 새 코드를 만들면 이전에 사용하지 않은 코드는 무효화됩니다.</p>
                 <Link href="/purchase-information" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">가격·제공·환불 안내 자세히 보기 →</Link>
@@ -97,7 +98,7 @@ export default function TermsPage() {
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
               <div><p className="font-mono text-xs text-gold">06 / PROBLEMS</p><h2 className="mt-2 text-xl font-semibold text-navy">오류·중단과 해결 방법</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
-                <p>보안 업데이트, 장애 또는 유지보수로 서비스가 일시적으로 중단될 수 있습니다. 결제한 기능이 정상적으로 제공되지 않으면 먼저 재접속·복구 절차를 안내하고, 해결되지 않으면 문제의 성격과 적용 법률에 따라 재제공, 수정 또는 환불 같은 해결 방법을 확인합니다.</p>
+                <p>보안 업데이트, 장애 또는 유지보수로 서비스가 일시적으로 중단될 수 있습니다. 결제한 기능이 정상적으로 제공되지 않으면 Hoju Compass가 먼저 재접속·복구 절차를 안내하고, 해결되지 않으면 거래상 판매자와 필요한 절차를 조율해 문제의 성격과 적용 법률에 따라 재제공, 수정 또는 환불 같은 해결 방법을 확인합니다.</p>
                 <p>Australian Consumer Law의 소비자 보장은 자동으로 적용되며 이 이용 조건으로 제외되지 않습니다. 문제의 정도에 따라 가능한 해결 방법은 달라질 수 있습니다.</p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">
                   <Link href="/payment-help" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">결제·접근 문제 해결 →</Link>
@@ -107,15 +108,16 @@ export default function TermsPage() {
             </section>
 
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
-              <div><p className="font-mono text-xs text-gold">07 / SELLER</p><h2 className="mt-2 text-xl font-semibold text-navy">판매자와 문의</h2></div>
+              <div><p className="font-mono text-xs text-gold">07 / ROLES</p><h2 className="mt-2 text-xl font-semibold text-navy">제품 제공자와 거래 지원</h2></div>
               <div className="max-w-3xl text-sm leading-7 text-muted">
+                <p className="mb-4">아래 정보는 Resume Pro 제품을 제공하고 접근·기능 문제를 지원하는 Hoju Compass의 사업자 정보입니다. Managed Payments 거래상 판매자와 결제·거래 지원 정보는 최종 결제 화면과 영수증에서 확인하세요.</p>
                 <dl className="grid gap-x-5 gap-y-2 sm:grid-cols-[7rem_1fr]">
-                  <dt className="font-semibold text-navy">사업명</dt><dd>{seller.tradingName ?? "Hoju Compass"}</dd>
-                  <dt className="font-semibold text-navy">법적 판매자</dt><dd>{seller.legalName ?? "라이브 결제 전에 공개"}</dd>
+                  <dt className="font-semibold text-navy">제품 사업명</dt><dd>{seller.tradingName ?? "Hoju Compass"}</dd>
+                  <dt className="font-semibold text-navy">제품 제공 사업자</dt><dd>{seller.legalName ?? "라이브 결제 전에 공개"}</dd>
                   <dt className="font-semibold text-navy">ABN</dt><dd>{seller.abn ?? "라이브 결제 전에 공개"}</dd>
-                  <dt className="font-semibold text-navy">지원 이메일</dt><dd>{seller.email ? <a href={`mailto:${seller.email}`} className="font-semibold text-navy underline decoration-gold underline-offset-4">{seller.email}</a> : "준비 중"}</dd>
+                  <dt className="font-semibold text-navy">제품 지원</dt><dd>{seller.email ? <a href={`mailto:${seller.email}`} className="font-semibold text-navy underline decoration-gold underline-offset-4">{seller.email}</a> : "준비 중"}</dd>
                 </dl>
-                {(!seller.legalName || !seller.abn) && <p className="mt-4 border-l-2 border-gold bg-surface p-4">법적 판매자와 ABN이 모두 표시되기 전에는 실제 결제가 열리지 않습니다.</p>}
+                {(!seller.legalName || !seller.abn) && <p className="mt-4 border-l-2 border-gold bg-surface p-4">제품 제공 사업자명과 ABN이 모두 표시되기 전에는 실제 결제가 열리지 않습니다.</p>}
                 <Link href="/contact" className="mt-4 inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Hoju Compass에 문의하기 →</Link>
               </div>
             </section>
