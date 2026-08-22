@@ -1,4 +1,6 @@
 import { TrackedLink } from "@/components/analytics/TrackedLink";
+import { ResumeProCtaLink } from "@/components/analytics/ResumeFunnelAnalytics";
+import { resumeFunnelContexts, resumeFunnelSurfaces, type ResumeProCtaHref } from "@/lib/resumeFunnelAnalyticsContract";
 
 type ArticleNextStepProps = {
   slug: string;
@@ -13,7 +15,7 @@ const nextSteps: Record<
     description: string;
     freeLabel: string;
     proLabel: string;
-    proHref: string;
+    proHref: ResumeProCtaHref;
     note: string;
   }
 > = {
@@ -73,14 +75,14 @@ export function ArticleNextStep({ slug, toolHref, toolLabel }: ArticleNextStepPr
         >
           {nextStep.freeLabel}
         </TrackedLink>
-        <TrackedLink
+        <ResumeProCtaLink
           href={nextStep.proHref}
-          eventName="Article Next Step"
-          properties={{ article: slug, destination: "resume_pro" }}
+          surface={resumeFunnelSurfaces.articleNextStep}
+          context={slug === "australia-job-search-plan" ? resumeFunnelContexts.jobSearchGuide : resumeFunnelContexts.achievementGuide}
           className="inline-flex min-h-12 items-center justify-center border border-navy/30 px-5 py-3 text-center font-semibold text-navy transition hover:border-gold hover:bg-surface"
         >
           {nextStep.proLabel}
-        </TrackedLink>
+        </ResumeProCtaLink>
       </div>
       <p className="mt-4 text-xs leading-6 text-muted">{nextStep.note}</p>
     </aside>

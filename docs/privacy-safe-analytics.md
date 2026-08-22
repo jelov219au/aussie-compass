@@ -7,6 +7,7 @@ Hoju Compass uses Vercel Web Analytics for aggregate product decisions without a
 - Every page-view URL has its query string and fragment removed before transmission.
 - A homepage search sends only a predefined topic such as `tax`, `pay`, `housing`, or `other`.
 - Search text, calculator inputs, resume content, email addresses, payment IDs, local storage, and checklist details are never included in custom events.
+- Resume funnel events use only the allowlisted `surface` and anonymous page `context`. Names, STAR text, company names, search terms, full URLs and URL queries are never read or sent.
 - Navigation events contain only an allowlisted internal destination and a homepage section or route category.
 - Share, save, install, and checkout events contain only a broad content or product category and the completed action. They never contain document content, page titles, payment values, or identifiers.
 
@@ -22,9 +23,12 @@ Hoju Compass uses Vercel Web Analytics for aggregate product decisions without a
 | `Page Shared` | `content`, `method` | Whether readers find resource guides useful enough to share |
 | `Page Saved` | `content`, `action` | Whether readers use the local return-visit workflow |
 | `App Install` | `entry`, `outcome` | Whether the install page leads to a prompt or manual instructions |
+| `Resume Builder Started` | `surface`, `context` | Whether a visitor begins interacting with the free resume builder |
+| `Resume Pro CTA Clicked` | `surface`, `context` | Which fixed, anonymous page surface sends interest to Resume Pro |
 | `Checkout Started` | `product`, `mode` | Whether product interest becomes a Stripe checkout attempt |
 
 The properties are deliberately limited to two per event so their meaning stays stable and compatible with the standard Vercel custom-event limits.
+The two resume funnel events also fire at most once per fixed event, surface and context during the current client session. Analytics failures are ignored so editing and navigation continue normally.
 
 ## Activation and review
 

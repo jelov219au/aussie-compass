@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
 import { track } from "@vercel/analytics";
-import { TrackedLink } from "@/components/analytics/TrackedLink";
+import { ResumeProCtaLink, trackResumeBuilderStarted } from "@/components/analytics/ResumeFunnelAnalytics";
+import { resumeFunnelContexts, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
 
 type Experience = { id: string; role: string; company: string; period: string; details: string };
 type Education = { id: string; course: string; school: string; period: string };
@@ -233,9 +234,15 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
     window.print();
   };
 
+  const trackBuilderInteraction = (event: SyntheticEvent<HTMLElement>) => {
+    if (!(event.target instanceof Element)) return;
+    if (!event.target.closest("input, textarea, select, button")) return;
+    trackResumeBuilderStarted();
+  };
+
   return (
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(620px,1.1fr)]">
-      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-form-heading">
+      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-form-heading" onClickCapture={trackBuilderInteraction} onInputCapture={trackBuilderInteraction}>
         <div className="flex items-start justify-between gap-4">
           <div><h2 id="resume-form-heading" className="text-xl font-semibold text-navy">이력서 내용</h2><p className="mt-1 text-sm leading-6 text-muted">영문으로 작성하면 오른쪽에 바로 반영됩니다.</p></div>
           <span className="min-w-16 text-right text-xs text-muted" aria-live="polite">{saved ? "저장됨" : "자동 저장"}</span>
@@ -328,10 +335,10 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
               <strong className="text-base">무료 PDF로 저장하기</strong>
               <span className="mt-1 text-xs leading-5 text-white/65">인쇄 창에서 PDF 저장을 선택하세요.</span>
             </button>
-            <TrackedLink href="/resume-pro?from=resume-builder-complete" eventName="Pro Interest" properties={{ product: "resume_pro", entry: "resume_builder_complete" }} className="flex min-h-24 flex-col items-start justify-center border border-navy bg-white px-5 py-4 text-left text-navy hover:bg-surface">
+            <ResumeProCtaLink href="/resume-pro?from=resume-builder-complete" surface={resumeFunnelSurfaces.builderCompletion} context={resumeFunnelContexts.resumeBuilder} className="flex min-h-24 flex-col items-start justify-center border border-navy bg-white px-5 py-4 text-left text-navy hover:bg-surface">
               <strong className="text-base">{resumeProLive ? "지원할 공고에 맞게 다듬기" : "공고 맞춤 준비 방식 보기"}</strong>
               <span className="mt-1 text-xs leading-5 text-muted">이력서·커버레터와 빠진 항목을 함께 확인해요.</span>
-            </TrackedLink>
+            </ResumeProCtaLink>
           </div>
           <p className="mt-4 text-xs leading-5 text-muted">무료 이력서는 그대로 이용할 수 있어요. Resume Pro는 경력을 새로 만들거나 취업 결과를 보장하는 기능이 아니에요.</p>
         </section>}

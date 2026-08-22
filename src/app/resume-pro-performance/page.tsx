@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   ...createPageMetadata({
     title: "Resume Pro 성과 확인 | Hoju Compass",
-    description: "유입 출처별 Resume Pro 방문, 결제 시작과 구매 전환을 비교하는 운영자용 화면입니다.",
+    description: "Builder 시작, Resume Pro CTA 클릭, 방문, 결제 시작과 구매 전환을 익명 합계로 비교하는 운영자용 화면입니다.",
     path: "/resume-pro-performance",
   }),
   robots: { index: false, follow: false },
@@ -60,7 +60,7 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
             <div className="max-w-4xl">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro funnel</p>
               <h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">어느 글이 방문을 넘어<br /><span className="font-normal text-navy-light">실제 구매로 이어지는지 봅니다.</span></h1>
-              <p className="mt-5 max-w-3xl leading-7 text-muted">출처별 방문, 결제 시작과 결제 완료를 같은 기간으로 비교합니다. 이름, 이메일, 카드 정보나 개인별 행동은 가져오지 않아요.</p>
+              <p className="mt-5 max-w-3xl leading-7 text-muted">Builder 시작, Pro CTA 클릭, 방문, 결제 시작과 결제 완료를 같은 기간의 익명 합계로 비교합니다. 이름, 이력서 내용, 회사명, 검색어나 URL 쿼리는 가져오지 않아요.</p>
             </div>
             <form method="get" className="border-l-2 border-gold pl-5">
               <label className="text-sm font-semibold text-navy">확인 기간
@@ -76,7 +76,7 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
 
           <section className="mt-8 grid gap-4 lg:grid-cols-2" aria-label="데이터 연결 상태">
             <div className={`border-l-2 p-5 ${report.vercel.connected ? "border-emerald-600 bg-emerald-50" : "border-gold bg-white"}`}>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">방문·결제 시작</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">익명 퍼널 합계</p>
               <h2 className="mt-2 text-lg font-semibold text-navy">Vercel Analytics {report.vercel.connected ? "연결됨" : "연결 필요"}</h2>
               <p className="mt-2 text-sm leading-6 text-muted">{report.vercel.message}</p>
             </div>
@@ -114,7 +114,9 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
               <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">{report.since} – {report.until}</p><h2 id="funnel-summary-heading" className="mt-2 text-2xl font-semibold text-navy">전체 흐름</h2></div>
               <p className="text-xs leading-5 text-muted">수치는 선택한 기간 안에 발생한 합계입니다.</p>
             </div>
-            <dl className="grid gap-px bg-border sm:grid-cols-4">
+            <dl className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-6">
+              <div className="bg-white p-5"><dt className="text-xs text-muted">Builder 시작</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.builderStarts.toLocaleString() : "—"}</dd></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">Pro CTA 클릭</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.proCtaClicks.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">Resume Pro 방문</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? totals.visits.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">결제 시작</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? totals.checkoutStarts.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">방문 대비 {connected.vercel ? rate(totals.checkoutStarts, totals.visits) : "—"}</p></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">결제 완료</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.stripe ? totals.purchases.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">시작 대비 {connected.vercel && connected.stripe ? rate(totals.purchases, totals.checkoutStarts) : "—"}</p></div>

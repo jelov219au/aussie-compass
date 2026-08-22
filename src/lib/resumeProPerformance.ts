@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { resumeProProduct } from "@/lib/commerce";
 import { getLocalOperatorConnectionValue } from "@/lib/localOperatorConnection";
 import { normalizeResumeProEntry, type ResumeProEntry } from "@/lib/resumeProAttribution";
+import { resumeFunnelEvents, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
 
 export type ResumeProPerformanceRow = {
   entry: ResumeProEntry;
@@ -22,6 +23,8 @@ type ConnectionState = {
 
 export type ResumeProPerformance = {
   rows: ResumeProPerformanceRow[];
+  builderStarts: number;
+  proCtaClicks: number;
   since: string;
   until: string;
   vercel: ConnectionState;
@@ -56,6 +59,10 @@ function aggregateMap(payload: VercelAggregateResponse) {
   return totals;
 }
 
+function aggregateTotal(payload: VercelAggregateResponse) {
+  return (payload.data ?? []).reduce((total, row) => total + safeCount(row.count), 0);
+}
+
 async function fetchVercelEvent(params: {
   token: string;
   projectId: string;
@@ -64,13 +71,14 @@ async function fetchVercelEvent(params: {
   until: string;
   eventName: string;
   extraFilter?: string;
+  groupBy?: "entry" | "context";
 }) {
   const url = new URL("https://api.vercel.com/v1/query/web-analytics/events/aggregate");
   url.searchParams.set("projectId", params.projectId);
   if (params.teamId) url.searchParams.set("teamId", params.teamId);
   url.searchParams.set("since", params.since);
   url.searchParams.set("until", params.until);
-  url.searchParams.set("by", "eventData/entry");
+  url.searchParams.set("by", `eventData/${params.groupBy ?? "entry"}`);
   url.searchParams.set("limit", "20");
   url.searchParams.set("filter", `eventName eq '${params.eventName}'${params.extraFilter ? ` and ${params.extraFilter}` : ""}`);
 
@@ -92,27 +100,35 @@ async function loadVercelTotals(since: string, until: string) {
 
   if (!token || !projectId) {
     return {
-      state: { connected: false, message: "VERCEL_TOKEN과 VERCEL_PROJECT_ID를 연결하면 방문·결제 시작 수를 자동으로 불러옵니다." },
+      state: { connected: false, message: "VERCEL_TOKEN과 VERCEL_PROJECT_ID를 연결하면 Builder 시작부터 결제 시작까지 익명 합계를 자동으로 불러옵니다." },
       visits: new Map<ResumeProEntry, number>(),
       checkouts: new Map<ResumeProEntry, number>(),
+      builderStarts: 0,
+      proCtaClicks: 0,
     };
   }
 
   try {
-    const [visits, checkouts] = await Promise.all([
+    const [visits, checkouts, builderStarts, proCtaClicks] = await Promise.all([
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Resume Pro Viewed" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Checkout Started", extraFilter: "eventData/product eq 'resume_pro'" }),
+      fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.builderStarted, extraFilter: `eventData/surface eq '${resumeFunnelSurfaces.builderForm}'`, groupBy: "context" }),
+      fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.proCtaClicked, groupBy: "context" }),
     ]);
     return {
       state: { connected: true, message: "Vercel의 익명 집계 데이터가 연결됐습니다." },
       visits: aggregateMap(visits),
       checkouts: aggregateMap(checkouts),
+      builderStarts: aggregateTotal(builderStarts),
+      proCtaClicks: aggregateTotal(proCtaClicks),
     };
   } catch {
     return {
       state: { connected: false, message: "Vercel 연결을 확인해 주세요. 토큰 권한과 프로젝트·팀 ID가 맞아야 합니다." },
       visits: new Map<ResumeProEntry, number>(),
       checkouts: new Map<ResumeProEntry, number>(),
+      builderStarts: 0,
+      proCtaClicks: 0,
     };
   }
 }
@@ -185,6 +201,8 @@ export async function getResumeProPerformance(days: 7 | 30 | 90): Promise<Resume
     until,
     vercel: vercel.state,
     stripe: stripe.state,
+    builderStarts: vercel.builderStarts,
+    proCtaClicks: vercel.proCtaClicks,
     rows: entries.map(({ entry, label }) => ({
       entry,
       label,
