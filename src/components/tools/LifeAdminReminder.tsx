@@ -1,8 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { PushReminderManager } from "@/components/tools/PushReminderManager";
 
-type Reminder = {
+export type LifeAdminReminderItem = {
   id: string;
   title: string;
   category: string;
@@ -11,6 +12,8 @@ type Reminder = {
   note: string;
   createdAt: string;
 };
+
+type Reminder = LifeAdminReminderItem;
 
 const storageKey = "aussie-compass-life-reminders-v1";
 const presets = [
@@ -98,6 +101,10 @@ export function LifeAdminReminder() {
 
   function addReminder(event: FormEvent) {
     event.preventDefault();
+    if (items.length >= 50) {
+      setStatus("일정은 한 기기에 최대 50개까지 저장할 수 있습니다. 지난 일정을 정리한 뒤 추가해 주세요.");
+      return;
+    }
     if (!title.trim() || !date) {
       setStatus("일정 이름과 실제 날짜를 입력해 주세요.");
       return;
@@ -140,7 +147,8 @@ export function LifeAdminReminder() {
         const preparationDate = addDays(item.date, -item.leadDays);
         return <li key={item.id} className="border-t border-border py-5 first:border-navy/20"><div className="flex gap-4"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-start justify-between gap-2"><div><span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{item.category}</span><h3 className="mt-1 text-lg font-semibold text-navy">{item.title}</h3></div><span className={`text-xs font-semibold ${remaining < 0 ? "text-red-700" : remaining <= item.leadDays ? "text-gold" : "text-muted"}`}>{remaining < 0 ? `${Math.abs(remaining)}일 지남` : remaining === 0 ? "오늘" : `${remaining}일 남음`}</span></div><dl className="mt-3 grid gap-1 text-sm sm:grid-cols-2"><div><dt className="inline text-muted">준비 시작 </dt><dd className="inline font-medium text-navy">{displayDate(preparationDate)}</dd></div><div><dt className="inline text-muted">실제 날짜 </dt><dd className="inline font-medium text-navy">{displayDate(item.date)}</dd></div></dl>{item.note && <p className="mt-3 text-sm leading-6 text-muted">{item.note}</p>}<div className="mt-4 flex gap-5"><button type="button" onClick={() => downloadCalendar([item], `${item.date}-${item.title}.ics`)} className="min-h-10 border-b border-gold text-xs font-semibold text-navy">캘린더에 추가</button><button type="button" onClick={() => removeReminder(item.id)} className="min-h-10 text-xs font-medium text-muted hover:text-red-700">삭제</button></div></div></div></li>;
       })}</ol>}
-      <p className="mt-6 border-t border-border pt-4 text-xs leading-5 text-muted">캘린더 파일을 저장한 뒤 휴대폰 캘린더에서 열어 추가하세요. 이 사이트가 푸시 알림을 보내거나 캘린더 계정에 직접 접근하지는 않습니다.</p>
+      <p className="mt-6 border-t border-border pt-4 text-xs leading-5 text-muted">캘린더 파일을 저장한 뒤 휴대폰 캘린더에서 열어 추가하세요. Hoju Compass가 캘린더 계정에 직접 접근하지는 않습니다.</p>
     </section>
+    <PushReminderManager reminders={items} />
   </div>;
 }

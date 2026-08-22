@@ -52,3 +52,50 @@ self.addEventListener("fetch", (event) => {
     })());
   }
 });
+
+self.addEventListener("push", (event) => {
+  let message = {};
+  try {
+    message = event.data?.json() || {};
+  } catch {
+    message = {};
+  }
+
+  const title = typeof message.title === "string" && message.title.trim()
+    ? message.title.slice(0, 80)
+    : "Hoju Compass 일정 알림";
+  const body = typeof message.body === "string"
+    ? message.body.slice(0, 180)
+    : "저장한 일정을 확인해 보세요.";
+  const url = typeof message.url === "string" && message.url.startsWith("/") && !message.url.startsWith("//")
+    ? message.url
+    : "/life-admin-reminder";
+  const tag = typeof message.tag === "string"
+    ? message.tag.slice(0, 160)
+    : "hoju-compass-reminder";
+
+  event.waitUntil(self.registration.showNotification(title, {
+    body,
+    icon: "/app-icon-192",
+    badge: "/app-icon-192",
+    tag,
+    data: { url },
+  }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const requestedPath = event.notification.data?.url;
+  const target = typeof requestedPath === "string" && requestedPath.startsWith("/") && !requestedPath.startsWith("//")
+    ? new URL(requestedPath, self.location.origin).href
+    : new URL("/life-admin-reminder", self.location.origin).href;
+
+  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+    const existing = windows.find((client) => new URL(client.url).origin === self.location.origin);
+    if (existing) {
+      existing.navigate(target);
+      return existing.focus();
+    }
+    return self.clients.openWindow(target);
+  }));
+});

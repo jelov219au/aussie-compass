@@ -15,6 +15,7 @@
     "test:product-entitlements": "node scripts/check-product-entitlement-isolation.mjs",
     "test:payment-alerts": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-payment-alerts.mjs",
     "test:accounting-contract": "node scripts/check-accounting-export-contract.mjs",
+    "test:push-reminders": "node scripts/check-push-reminder-contract.mjs",
     "accounting:export": "node scripts/export-stripe-accounting.mjs",
     "accounting:merge": "node scripts/merge-stripe-accounting.mjs",
     "security:secrets": "node scripts/check-secrets.mjs"
@@ -26,7 +27,8 @@
     "nodemailer": "^9.0.5",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "stripe": "^22.5.0"
+    "stripe": "^22.5.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.8",
@@ -34,6 +36,7 @@
     "@types/nodemailer": "^8.0.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@types/web-push": "^3.6.4",
     "eslint": "^9.27.0",
     "eslint-config-next": "^16.3.1",
     "tailwindcss": "^4.1.8",
