@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
 import { hashRestoreCode, setResumeProAccessCookie } from "@/lib/resumeProAccess";
+import { trackProAccessAttempt, trackProAccessFailure } from "@/lib/proAccessAnalytics";
 
 export const runtime = "nodejs";
 
@@ -19,14 +20,17 @@ export async function POST(request: NextRequest) {
   }
 
   const formData = await request.formData();
+  await trackProAccessAttempt("resume_pro", "restore");
   const code = String(formData.get("restore_code") ?? "").trim();
   const store = getConfiguredEntitlementStore();
   if (!store || code.length < 32 || code.length > 128) {
+    await trackProAccessFailure("resume_pro", "restore_invalid");
     return NextResponse.redirect(new URL("/resume-pro/restore?status=invalid", request.url), 303);
   }
 
   const entitlement = await store.consumeRestoreTokenHash(hashRestoreCode(code), "resume_pro");
   if (!entitlement || entitlement.productCode !== "resume_pro" || entitlement.status !== "active") {
+    await trackProAccessFailure("resume_pro", "restore_denied");
     return NextResponse.redirect(new URL("/resume-pro/restore?status=invalid", request.url), 303);
   }
 

@@ -32,6 +32,10 @@ const entries: Array<{ entry: ResumeProEntry; label: string }> = [
   { entry: "article-job-search-plan", label: "구직 관리 안내 글" },
   { entry: "article-achievement-examples", label: "이력서 성과 문장 안내 글" },
   { entry: "resume-builder-complete", label: "무료 이력서 완성 화면" },
+  { entry: "launch-instagram", label: "2주 출시 · Instagram" },
+  { entry: "launch-naver", label: "2주 출시 · Naver" },
+  { entry: "launch-youtube", label: "2주 출시 · YouTube" },
+  { entry: "launch-community", label: "2주 출시 · 커뮤니티" },
   { entry: "direct", label: "직접 방문·기타" },
 ];
 

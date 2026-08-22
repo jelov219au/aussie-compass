@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
+import { trackProAccessAttempt, trackProAccessFailure } from "@/lib/proAccessAnalytics";
 import { setResumeProAccessCookie } from "@/lib/resumeProAccess";
 import { getVerifiedResumeProCheckout } from "@/lib/resumeProPurchase";
 
@@ -20,16 +21,19 @@ export async function POST(request: NextRequest) {
   }
 
   const formData = await request.formData();
+  await trackProAccessAttempt("resume_pro", "activate");
   const sessionId = String(formData.get("session_id") ?? "").trim();
   const session = await getVerifiedResumeProCheckout(sessionId);
   const store = getConfiguredEntitlementStore();
 
   if (!session || !store) {
+    await trackProAccessFailure("resume_pro", "activate_checkout_unavailable");
     return NextResponse.redirect(new URL("/resume-pro/success?status=unavailable", request.url), 303);
   }
 
   const entitlement = await store.findActiveByCheckoutSession(session.id, "resume_pro");
   if (!entitlement) {
+    await trackProAccessFailure("resume_pro", "activate_entitlement_pending");
     return NextResponse.redirect(new URL(`/resume-pro/success?session_id=${encodeURIComponent(session.id)}&status=pending`, request.url), 303);
   }
 

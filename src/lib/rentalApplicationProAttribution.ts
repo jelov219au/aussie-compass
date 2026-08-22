@@ -3,6 +3,10 @@ export const rentalApplicationProEntries = [
   "property-inspection-checklist",
   "pro-hub",
   "rental-application-pro",
+  "launch-instagram",
+  "launch-naver",
+  "launch-youtube",
+  "launch-community",
 ] as const;
 
 export type RentalApplicationProEntry = (typeof rentalApplicationProEntries)[number];

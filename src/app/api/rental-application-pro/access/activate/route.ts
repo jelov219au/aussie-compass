@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
+import { trackProAccessAttempt, trackProAccessFailure } from "@/lib/proAccessAnalytics";
 import { setRentalApplicationProAccessCookie } from "@/lib/rentalApplicationProAccess";
 import { getVerifiedRentalApplicationProCheckout } from "@/lib/rentalApplicationProPurchase";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
@@ -20,16 +21,19 @@ export async function POST(request: NextRequest) {
   }
 
   const formData = await request.formData();
+  await trackProAccessAttempt("rental_application_pro", "activate");
   const sessionId = String(formData.get("session_id") ?? "").trim();
   const session = await getVerifiedRentalApplicationProCheckout(sessionId);
   const store = getConfiguredEntitlementStore();
 
   if (!session || !store) {
+    await trackProAccessFailure("rental_application_pro", "activate_checkout_unavailable");
     return NextResponse.redirect(new URL("/rental-application-pro/success?status=unavailable", request.url), 303);
   }
 
   const entitlement = await store.findActiveByCheckoutSession(session.id, "rental_application_pro");
   if (!entitlement) {
+    await trackProAccessFailure("rental_application_pro", "activate_entitlement_pending");
     return NextResponse.redirect(new URL(`/rental-application-pro/success?session_id=${encodeURIComponent(session.id)}&status=pending`, request.url), 303);
   }
 
