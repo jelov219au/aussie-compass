@@ -11,9 +11,12 @@ This manifest is a read-only release-scope audit. It records repository contract
 | Merge base | `39cc9b1922b6751458b5a3af8a742ca0ebff4785` |
 | Divergence | candidate has 28 commits not in main; main has 19 commits not in candidate |
 | Two-endpoint file delta | 115 files, 3,858 insertions, 2,206 deletions |
-| Preview decision | **HOLD** until current `origin/main` is integrated without losing main-only work |
+| Reconstructed mainline base | `origin/main` at `7910525c539408535e343ea1eff7fe8ebc510bec` |
+| Reconstructed functional head before manifest finalization | `1b99f07f92e651cba672544f579fa880dc94d8c2` |
+| Mainline delta at that head | 65 files, 2,735 insertions, 204 deletions, unintended deletions **0** |
+| Preview decision | **HOLD** until the pending internal-search patch and final local quality/CSP checks pass |
 
-The candidate is not a descendant of the current deployment reference. Deploying it directly would remove current main features, including the English phrase-card pages/assets and Job Move Pro research/survey files. This is a release blocker even though the candidate's own quality gate passes.
+The historical `7904086` candidate is not a descendant of the current deployment reference. Deploying it directly would remove current main features, including the English phrase-card pages/assets and Job Move Pro research/survey files. That route remains prohibited. The replacement branch `codex/resume-pro-mainline-release` was created exactly from the frozen `origin/main`; at the functional head above, the English-card and Job Move paths remain unchanged and `git diff --diff-filter=D origin/main..HEAD` returns no file.
 
 The reproducible, local-only inventory commands are:
 
@@ -60,9 +63,9 @@ The current two-endpoint diff reports these main files as deleted; none is an ap
 - `src/lib/jobMoveSurvey.ts`
 - `src/lib/researchSurveyEmail.ts`
 
-### Mainline reconstruction include/exclude plan
+### Mainline reconstruction result
 
-The deployable candidate must be rebuilt on a new `codex/resume-pro-mainline-release` branch created exactly from `origin/main` at `7910525c539408535e343ea1eff7fe8ebc510bec`. The old `7904086` candidate is audit evidence only.
+The release candidate has been rebuilt on `codex/resume-pro-mainline-release`, created exactly from `origin/main` at `7910525c539408535e343ea1eff7fe8ebc510bec`. The old `7904086` candidate is audit evidence only.
 
 Include, in dependency order, after reviewing each actual diff:
 
@@ -73,7 +76,8 @@ Include, in dependency order, after reviewing each actual diff:
 5. First-customer operational notes: `a581a17`, `dd41458`.
 6. Checkout failure UX, CSP, Managed Payments role copy and privacy-safe funnel: `bf6732f`, `d7aaf7e`, `942a1d1`, `752f078`.
 7. Support contact, JSON-LD/navigation security and their contracts: `b9f98e2`, `ae68d2f`, `7503f1a`, `7904086`.
-8. Pending approved changes: `d62ab9e` for product-data deletion versus transaction-record retention, and `ad8a227` for the mobile Builder first saved input.
+8. Product-data deletion versus transaction-record retention, mobile Builder first saved input, product-provider legal-name boundary and mobile free-Builder entry: `d62ab9e`, `ad8a227`, `15111ea`, `34db7ce`.
+9. First-payment customer-support routing from `3a25eb1`. Its required content was already present after the privacy/record-retention document integration, so the later cherry-pick was empty and correctly skipped; the final document still preserves product-access versus transaction-support roles, last-eight-character references, sensitive-data exclusions and no automatic refund or legal-outcome promise.
 
 Exclude from the first-payment candidate:
 
@@ -82,7 +86,7 @@ Exclude from the first-payment candidate:
 - `3e7fabb`, `a39ede9`, `4ddbc45`: push runtime, secret generation and delivery claims are not required and must remain disabled.
 - `c716a65`: superseded Preview HOLD audit tied to the non-mainline candidate; this manifest replaces it.
 
-No English-card, Job Move Pro, visa, pay-guide, calculator, campaign, content-planner or social-card file may be deleted or reverted while applying the include list. `package-lock.json` must remain byte-for-byte at the current main version unless an included commit demonstrates an unavoidable dependency change; none in the include list is expected to require one.
+No English-card, Job Move Pro, visa, pay-guide, calculator, campaign, content-planner or social-card file was deleted or reverted while applying the include list. `package-lock.json` remains byte-for-byte at the current main version. `vercel.json`, `public/sw.js`, push routes, push DDL and push libraries also have zero diff from `origin/main`. The existing main `test:push-reminders` command remains in the quality gate; no `test:push-contract` command or `scripts/check-push-contract.mjs` was added.
 
 ### Candidate-only commit set inspected
 
@@ -115,7 +119,7 @@ No English-card, Job Move Pro, visa, pay-guide, calculator, campaign, content-pl
 - `a3fc981` Improve installable app experience
 - `e83e9f6` Add secure local performance connections
 
-## 2. Candidate release file groups
+## 2. Reconstructed mainline release file groups
 
 The fixed hashes above are the authoritative complete file inventory. The candidate work is grouped as follows:
 
@@ -123,9 +127,9 @@ The fixed hashes above are the authoritative complete file inventory. The candid
 - Paid-access security: `src/app/api/resume-pro/**`, `src/app/api/stripe/webhook/route.ts`, `src/lib/requestSecurity.ts`, `docs/entitlement-storage.sql`, `docs/database-recovery.md`.
 - Purchase, support and privacy copy: `src/app/contact/page.tsx`, `src/app/payment-help/page.tsx`, `src/app/privacy/page.tsx`, `src/app/purchase-information/page.tsx`, `src/app/terms/page.tsx`, `src/components/tools/PaymentSupportHelper.tsx`.
 - Funnel measurement: `src/components/analytics/ResumeFunnelAnalytics.tsx`, `src/lib/resumeFunnelAnalyticsContract.ts`, `src/lib/resumeProPerformance.ts`, `src/app/resume-pro-performance/**`.
-- Optional PWA/push: `src/app/api/push/**`, `src/app/api/cron/push-reminders/route.ts`, `src/components/tools/PushReminderManager.tsx`, `src/lib/pushReminderStore.ts`, `src/lib/webPush.ts`, `public/sw.js`, `vercel.json`, `docs/push-reminder-*.{md,sql}`.
+- PWA/push: explicitly excluded from this first-payment reconstruction. The listed push routes, DDL, libraries, `public/sw.js` and `vercel.json` remain exactly as they are on `origin/main`.
 - CSP and navigation security: `next.config.ts`, `src/lib/jsonLd.ts`, `src/lib/safeNavigation.ts`, `src/components/seo/JsonLd.tsx`, `src/components/dashboard/MyCompassDashboard.tsx`, `src/components/tools/JobApplicationTracker.tsx`, `docs/csp-hardening.md`.
-- Automated gates: `.github/workflows/quality-gate.yml`, `package.json`, `package-lock.json`, and `scripts/check-*.mjs` files added or modified in the frozen diff.
+- Automated gates: `.github/workflows/quality-gate.yml`, `package.json` and the non-push `scripts/check-*.mjs` files added or modified in the mainline diff. `package-lock.json` is unchanged.
 - Content/search: `src/data/articles.ts`, `src/app/resources/[slug]/page.tsx`, `src/components/resources/ArticleNextStep.tsx`.
 
 ## 3. Database migration classification
@@ -140,13 +144,11 @@ The fixed hashes above are the authoritative complete file inventory. The candid
 - Do not rerun or alter Production from this manifest. First perform the documented read-only schema check and record whether the version already exists.
 - Never roll back payment tables by dropping them. On an incident, disable payments and roll back application code while preserving webhook and entitlement evidence.
 
-### Optional push migration — not approved for this release
+### Push migration — excluded and not approved for this release
 
 Production currently returns 404 for the push surface according to the supplied operating observation; this audit did not access Production. Keep `PUSH_REMINDERS_ENABLED=false` or unset.
 
-`docs/push-reminder-storage.sql` is required before push can be enabled. It must include `push_subscriptions`, `push_reminders` and the durable unique-claim table `push_deliveries`. **Do not enable push if `push_deliveries` is absent.** The candidate code claims a delivery before contacting a provider, so enabling it against an older partial schema is prohibited.
-
-The included `vercel.json` schedules `/api/cron/push-reminders` even while the feature is disabled. With no valid cron secret the route rejects the call; with push disabled it cannot send. Review expected 401/503 log noise before any Preview, and do not treat the presence of a cron declaration as approval to enable push.
+This mainline candidate adds no push route, subscription/reminder/delivery DDL, delivery library, Web Push dependency, service-worker change or Vercel cron change. A future push release must independently introduce and verify `push_subscriptions`, `push_reminders` and the durable unique-claim table `push_deliveries`; **do not enable push if `push_deliveries` is absent.** None of that future work is implied by this release.
 
 ## 4. Environment contract without values
 
@@ -230,7 +232,7 @@ Do not copy legal identity, ABN, keys or connection strings into this repository
 - `.github/workflows/quality-gate.yml` runs locked `npm ci` on Node 22 and `npm run quality:gate` for pull requests and main pushes.
 - `next.config.ts` adds production CSP and security headers. Production keeps `script-src 'self'`, isolates the audited Next.js hydration exception in `script-src-elem 'self' 'unsafe-inline'`, and blocks inline event attributes with `script-src-attr 'none'`.
 - The residual inline hydration risk and removal path remain documented in `docs/csp-hardening.md`.
-- `/sw.js` receives a JavaScript content type, no-store cache policy and its own restrictive CSP.
+- `public/sw.js` and its response handling are unchanged from `origin/main`; no service-worker durability claim is part of this candidate.
 - Preview verification must inspect the actual HTTP response header and exercise hydrated Builder input; a source-only CSP check is insufficient.
 
 ## 7. Required checks before Preview
@@ -239,7 +241,7 @@ After integrating current main and resolving all overlaps:
 
 1. `git diff --name-status origin/main...HEAD` contains no unapproved deletion from the main-only list in section 1.
 2. `git diff --check` passes and the working tree is clean.
-3. `npm run quality:gate` passes, including production build, lint, security/CSP/JSON-LD/navigation, Stripe Checkout/Product/failure handling, entitlement ordering/isolation, Resume Pro mobile/interview/onboarding/privacy, anonymous funnel, push durability, database operations and secret scan.
+3. `npm run quality:gate` passes, including production build, lint, security/CSP/JSON-LD/navigation, Stripe Checkout/Product/failure handling, entitlement ordering/isolation, Resume Pro mobile/interview/onboarding/privacy, anonymous funnel, the existing main `test:push-reminders`, database operations and secret scan. This release has no `test:push-contract`.
 4. A production-mode local server returns the expected CSP, especially `script-src-attr 'none'`, and Builder hydration still works.
 5. `npm run payments:check -- --strict` runs only inside an intentionally configured target environment. Add `--verify-stripe` only when read-only external verification is separately approved.
 6. If payments remain off, confirm the purchase CTA is unavailable and no Checkout call occurs.
@@ -247,7 +249,7 @@ After integrating current main and resolving all overlaps:
 
 ## 8. Rollback and stop criteria
 
-- **Current blocker:** do not create a Preview from the frozen candidate until all 19 main-only commits are preserved.
+- **Current blocker:** do not create a Preview until the pending internal-search patch is integrated and the final quality gate, build, CSP response and mainline-diff checks pass. The 19 main-only commits are now preserved; the historical `7904086` branch remains permanently non-deployable.
 - **Build, CSP or hydration failure:** stop and restore the last known-good application deployment; do not weaken CSP ad hoc.
 - **Checkout/Product/tax/support/seller failure:** keep or set `PAYMENTS_ENABLED=false`; no customer should reach Checkout.
 - **Webhook, entitlement, recovery, refund or shared-device privacy failure:** disable payments and retain all database/event evidence. Do not repair by granting access from a success URL.
