@@ -344,6 +344,76 @@ assert.ok(
   "the runbook must apply restore activation after access sessions v1",
 );
 
+const expectedRestoreEvidence = new Map([
+  ["restore_binding_row_count", "1"],
+  ["same_token_hash", "true"],
+  ["same_nonce_hash", "true"],
+  ["same_pair_retry_outcome", "idempotent"],
+  ["access_session_suffix_same", "true"],
+  ["access_session_reference_scope", "suffix_only"],
+  ["retry_new_access_session_count", "0"],
+  ["retry_new_binding_count", "0"],
+  ["different_nonce_outcome", "used"],
+  ["different_nonce_cookie_issued", "false"],
+  ["released_same_pair_outcome", "released"],
+  ["released_retry_cookie_issued", "false"],
+  ["raw_nonce_in_same_tab_session_storage", "true"],
+  ["raw_nonce_persisted_server_side", "false"],
+  ["raw_nonce_copied_to_operational_packet", "false"],
+  ["raw_restore_code_in_session_storage", "false"],
+  ["raw_restore_code_persisted_server_side", "false"],
+  ["pii_persisted_server_side", "false"],
+  ["full_identifier_persisted_server_side", "false"],
+]);
+
+function parseRestoreEvidence(source) {
+  const sectionStart = source.indexOf("#### Restore-session 응답 유실 증거");
+  const sectionEnd = source.indexOf("- **15분 PASS:**", sectionStart);
+  if (sectionStart < 0 || sectionEnd < 0) return null;
+
+  const parsed = new Map();
+  for (const line of source.slice(sectionStart, sectionEnd).split(/\r?\n/)) {
+    const cells = line.split("|").slice(1, -1).map((cell) => cell.trim());
+    const field = cells[0]?.match(/^`([^`]+)`$/)?.[1];
+    const value = cells[1]?.match(/^`([^`]+)`$/)?.[1];
+    if (!field || !value) continue;
+    if (parsed.has(field)) return null;
+    parsed.set(field, value);
+  }
+  return parsed;
+}
+
+function restoreEvidencePasses(source) {
+  const parsed = parseRestoreEvidence(source);
+  return Boolean(parsed)
+    && parsed.size === expectedRestoreEvidence.size
+    && [...expectedRestoreEvidence].every(([field, value]) => parsed.get(field) === value);
+}
+
+assert.equal(restoreEvidencePasses(launchPacket), true, "restore-session evidence must contain every exact expected value");
+const restoreEvidenceMutations = new Map([
+  ["1", "2"],
+  ["true", "false"],
+  ["idempotent", "duplicate"],
+  ["suffix_only", "full_id"],
+  ["0", "1"],
+  ["used", "duplicate"],
+  ["released", "idempotent"],
+  ["false", "true"],
+]);
+for (const [field, value] of expectedRestoreEvidence) {
+  const unsafeValue = restoreEvidenceMutations.get(value);
+  assert.ok(unsafeValue, `missing restore evidence mutation fixture for ${field}=${value}`);
+  const exactRowPrefix = `| \`${field}\` | \`${value}\` |`;
+  assert.ok(launchPacket.includes(exactRowPrefix), `restore evidence row is missing: ${field}`);
+  const mutated = launchPacket.replace(exactRowPrefix, `| \`${field}\` | \`${unsafeValue}\` |`);
+  assert.equal(
+    restoreEvidencePasses(mutated),
+    false,
+    `restore evidence mutation must fail: ${field}=${value} -> ${unsafeValue}`,
+  );
+}
+
 for (const contract of [
   "Outbox",
   "pending_count",
@@ -359,17 +429,9 @@ for (const contract of [
   "active·unexpired·unrevoked",
   "`created_at`·`expires_at`·`revoked_at` 증거 시각",
   "Restore-session 응답 유실 증거",
-  "`restore_binding_row_count`",
-  "`same_token_hash` / `same_nonce_hash`",
-  "`same_pair_retry_outcome`",
-  "`idempotent`",
-  "`first_access_session_suffix` / `retry_access_session_suffix` / `access_session_suffix_same`",
-  "`retry_new_access_session_count` / `retry_new_binding_count`",
-  "`different_nonce_outcome` / `different_nonce_cookie_issued`",
-  "`used` / `false`",
-  "`released_same_pair_outcome` / `released_retry_cookie_issued`",
-  "`released` / `false`",
-  "`raw_restore_code_stored` / `raw_nonce_stored` / `pii_stored` / `full_identifier_stored`",
+  "원문 nonce는 동일 탭 재시도를 위해 `sessionStorage`에만 일시 저장",
+  "원문 nonce는 DB·서버 로그·분석·운영 패킷에는 저장하지 않으며",
+  "raw restore code는 `sessionStorage`에 저장하지 않는다",
   "15분 PASS",
   "15분 HOLD",
   "24시간 PASS",

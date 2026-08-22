@@ -37,23 +37,34 @@
 
 #### Restore-session 응답 유실 증거
 
-실제 token hash·nonce hash를 출력하거나 복사하지 않고, 동일성 비교 결과와 suffix·count·outcome만 기록한다. 아래 필드는 `docs/first-sale-gate-runbook.md`의 migration 순서, 함수 overload 부재와 effective-privilege 증거가 모두 PASS인 동일 Preview 환경에서 수집해야 한다.
+실제 token hash·nonce hash를 출력하거나 복사하지 않고, 동일성 비교 결과와 suffix·count·outcome만 기록한다. 원문 nonce는 동일 탭 재시도를 위해 `sessionStorage`에만 일시 저장한다. 원문 nonce는 DB·서버 로그·분석·운영 패킷에는 저장하지 않으며, raw restore code는 `sessionStorage`에 저장하지 않는다. 아래 필드는 `docs/first-sale-gate-runbook.md`의 migration 순서, 함수 overload 부재와 effective-privilege 증거가 모두 PASS인 동일 Preview 환경에서 수집해야 한다.
 
 | 필드 | 15분 PASS 값 | 실패·불명확 시 처리 |
 | --- | --- | --- |
 | `restore_binding_row_count` | `1` | `0`, `2+`, 조회 불가면 **STOP** |
-| `same_token_hash` / `same_nonce_hash` | 둘 다 `true` | 하나라도 `false` 또는 확인 불가면 **STOP** |
-| `same_pair_retry_outcome` | `idempotent` | 다른 outcome 또는 확인 불가면 **STOP** |
-| `first_access_session_suffix` / `retry_access_session_suffix` / `access_session_suffix_same` | 두 suffix가 같고 `access_session_suffix_same=true` | 전체 session ID를 기록하지 말고, 불일치·누락이면 **STOP** |
-| `retry_new_access_session_count` / `retry_new_binding_count` | 둘 다 `0` | 하나라도 1 이상이면 **STOP** |
-| `different_nonce_outcome` / `different_nonce_cookie_issued` | `used` / `false` | 다른 nonce에 cookie가 발급되거나 outcome이 다르면 **STOP** |
-| `released_same_pair_outcome` / `released_retry_cookie_issued` | `released` / `false` | release 뒤 cookie가 발급되거나 outcome이 다르면 **STOP** |
-| `raw_restore_code_stored` / `raw_nonce_stored` / `pii_stored` / `full_identifier_stored` | 모두 `false` | 하나라도 `true`이거나 확인 불가면 개인정보·보안 **STOP** |
+| `same_token_hash` | `true` | 다른 token hash이거나 확인 불가면 **STOP** |
+| `same_nonce_hash` | `true` | 다른 nonce hash이거나 확인 불가면 **STOP** |
+| `same_pair_retry_outcome` | `idempotent` | `duplicate` 등 다른 outcome 또는 확인 불가면 **STOP** |
+| `access_session_suffix_same` | `true` | 최초·재시도 suffix 불일치·누락이면 **STOP**; 전체 session ID는 기록하지 않음 |
+| `access_session_reference_scope` | `suffix_only` | suffix 외 전체 ID가 들어가면 개인정보·보안 **STOP** |
+| `retry_new_access_session_count` | `0` | 1 이상이면 **STOP** |
+| `retry_new_binding_count` | `0` | 1 이상이면 **STOP** |
+| `different_nonce_outcome` | `used` | 다른 outcome 또는 확인 불가면 **STOP** |
+| `different_nonce_cookie_issued` | `false` | 다른 nonce에 cookie가 발급되면 **STOP** |
+| `released_same_pair_outcome` | `released` | 다른 outcome 또는 확인 불가면 **STOP** |
+| `released_retry_cookie_issued` | `false` | release 뒤 cookie가 발급되면 **STOP** |
+| `raw_nonce_in_same_tab_session_storage` | `true` | 동일 탭 응답 유실 재시도 동안만 허용; 다른 저장소·운영 증거로 복사되면 **STOP** |
+| `raw_nonce_persisted_server_side` | `false` | DB·서버 로그·분석 저장이 확인되거나 불명확하면 **STOP** |
+| `raw_nonce_copied_to_operational_packet` | `false` | 운영 패킷에 원문 nonce가 있으면 **STOP** |
+| `raw_restore_code_in_session_storage` | `false` | raw restore code가 브라우저 저장소에 들어가면 **STOP** |
+| `raw_restore_code_persisted_server_side` | `false` | DB·서버 로그·분석 저장이 확인되거나 불명확하면 **STOP** |
+| `pii_persisted_server_side` | `false` | PII가 DB·서버 로그·분석에 저장되거나 불명확하면 **STOP** |
+| `full_identifier_persisted_server_side` | `false` | 전체 Stripe/session ID가 DB·서버 로그·분석에 저장되거나 불명확하면 **STOP** |
 
 - **15분 PASS:** 위 필드가 모두 정확한 PASS 값이고, access session도 active·unexpired·unrevoked이며 `created_at`·`expires_at`·`revoked_at` 증거 시각과 suffix-only 참조가 연결돼야 한다.
 - **15분 HOLD:** Preview fault injection, catalog 또는 effective-privilege 증거를 아직 실행하지 못해 결과가 `MISSING`인 경우다. `PAYMENTS_ENABLED=false`를 유지하고 재결제·임의 DB 재시도·gate reopen을 하지 않는다. 이미 실제 결제가 발생한 뒤 핵심 필드가 불일치하면 HOLD가 아니라 **STOP**으로 올린다.
 - **24시간 PASS:** 15분 PASS가 그대로 유지되고 새 access session/binding이 생기지 않았으며 refund/review/release 사건과 cookie 발급 결과가 문서의 상태 보호 규칙과 일치해야 한다.
-- **24시간 HOLD:** 15분 증거가 나중에 바뀌거나, 필수 필드가 `MISSING`/`FAIL`, 새 session/binding 발생, raw code·nonce·PII·전체 ID 저장 의심 중 하나라도 있으면 두 번째 판매를 열지 않는다.
+- **24시간 HOLD:** 15분 증거가 나중에 바뀌거나, 필수 필드가 `MISSING`/`FAIL`, 새 session/binding 발생, 서버 측 raw code·nonce 저장, raw restore code의 브라우저 저장, PII·전체 ID의 운영 증거 저장 의심 중 하나라도 있으면 두 번째 판매를 열지 않는다.
 
 이 증거는 `20260823_first_sale_gate_charge_link_v2` → `20260823_payment_operator_alert_outbox_v1` → `20260823_checkout_activation_nonce_v1` → `20260823_purchase_access_sessions_v1` → `20260823_restore_activation_nonce_v1` 순서와, 2-/5-argument restore consume 부재·6-argument 단일 존재·PUBLIC EXECUTE false·runtime 직접 보호 테이블 권한 false를 확인한 뒤에만 유효하다. Runbook, release manifest 또는 privilege 결과가 다르면 restore-session 필드가 PASS여도 출시는 **HOLD**다.
 
