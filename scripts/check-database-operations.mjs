@@ -358,7 +358,36 @@ for (const contract of [
   "24시간 안에",
   "active·unexpired·unrevoked",
   "`created_at`·`expires_at`·`revoked_at` 증거 시각",
+  "Restore-session 응답 유실 증거",
+  "`restore_binding_row_count`",
+  "`same_token_hash` / `same_nonce_hash`",
+  "`same_pair_retry_outcome`",
+  "`idempotent`",
+  "`first_access_session_suffix` / `retry_access_session_suffix` / `access_session_suffix_same`",
+  "`retry_new_access_session_count` / `retry_new_binding_count`",
+  "`different_nonce_outcome` / `different_nonce_cookie_issued`",
+  "`used` / `false`",
+  "`released_same_pair_outcome` / `released_retry_cookie_issued`",
+  "`released` / `false`",
+  "`raw_restore_code_stored` / `raw_nonce_stored` / `pii_stored` / `full_identifier_stored`",
+  "15분 PASS",
+  "15분 HOLD",
+  "24시간 PASS",
+  "24시간 HOLD",
+  "2-/5-argument restore consume 부재·6-argument 단일 존재",
+  "PUBLIC EXECUTE false",
+  "runtime 직접 보호 테이블 권한 false",
 ]) assert.ok(launchPacket.includes(contract), `launch packet is missing: ${contract}`);
+assert.ok(
+  launchPacket.indexOf("same_pair_retry_outcome") < launchPacket.indexOf("retry_new_access_session_count")
+    && launchPacket.indexOf("different_nonce_outcome") < launchPacket.indexOf("released_same_pair_outcome"),
+  "restore-session evidence must preserve idempotent retry, different-nonce denial and released-pair denial",
+);
+assert.doesNotMatch(
+  launchPacket,
+  /\b(?:cs_(?:test|live)|pi_|ch_|re_)[A-Za-z0-9]{16,}\b/,
+  "the launch packet must not contain a full payment or session identifier example",
+);
 
 for (const contract of [
   "20260823_payment_operator_alert_outbox_v1",
