@@ -13,7 +13,7 @@ The feature is deliberately disabled unless every required server setting is pre
 ## Production setup
 
 1. Apply `docs/push-reminder-storage.sql` to the private Neon database.
-2. Generate one VAPID key pair. Never reuse the private key in client code or chat.
+2. Run `npm run push:generate-secrets` once to create `.env.push.local`. The ignored file contains one VAPID key pair and a cron secret without printing them. Never reuse the private key in client code or chat.
 3. Add these Vercel environment variables to Production and the intended Preview environment:
    - `PUSH_REMINDERS_ENABLED=true`
    - `NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY`

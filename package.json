@@ -16,6 +16,7 @@
     "test:payment-alerts": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-payment-alerts.mjs",
     "test:accounting-contract": "node scripts/check-accounting-export-contract.mjs",
     "test:push-reminders": "node scripts/check-push-reminder-contract.mjs",
+    "push:generate-secrets": "node scripts/generate-push-secrets.mjs",
     "accounting:export": "node scripts/export-stripe-accounting.mjs",
     "accounting:merge": "node scripts/merge-stripe-accounting.mjs",
     "security:secrets": "node scripts/check-secrets.mjs"
