@@ -53,6 +53,10 @@ export default function InstallPage() {
               현재 버전은 웹앱(PWA)입니다. App Store·Google Play에서 검색해 받는 네이티브 앱은 아니지만,
               설치 후 홈 화면에서 사용하는 방식은 일반 앱과 비슷해요.
             </p>
+            <aside className="mt-5 border border-border bg-surface p-5 text-sm leading-6 text-muted">
+              <strong className="block text-navy">기존 기록이 있다면 설치 전에 확인해 주세요</strong>
+              <p className="mt-2">iPhone과 iPad에서는 Safari와 홈 화면 앱의 저장 공간이 분리되어 기존 체크리스트·계산 기록이 앱으로 자동 이동하지 않을 수 있어요. 필요한 기록은 <Link href="/data-transfer" className="font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">기기 간 데이터 이동</Link>에서 백업한 뒤 앱에서 불러오세요.</p>
+            </aside>
           </section>
 
           <section id="manual-install" className="mt-12 scroll-mt-24" aria-labelledby="manual-install-heading">
