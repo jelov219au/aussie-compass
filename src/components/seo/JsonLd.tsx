@@ -1,4 +1,5 @@
 import { siteName, siteUrl } from "@/lib/site";
+import { getPublicSellerDetails } from "@/lib/publicSeller";
 
 type BreadcrumbItem = {
   name: string;
@@ -42,6 +43,8 @@ export function SiteJsonLd() {
 }
 
 export function OrganizationJsonLd() {
+  const { email } = getPublicSellerDetails();
+
   return (
     <JsonLd
       data={{
@@ -56,12 +59,12 @@ export function OrganizationJsonLd() {
           width: 512,
           height: 512,
         },
-        contactPoint: {
+        contactPoint: email ? {
           "@type": "ContactPoint",
           contactType: "customer support",
-          email: "support@hojucompass.com",
+          email,
           availableLanguage: ["Korean", "English"],
-        },
+        } : undefined,
       }}
     />
   );

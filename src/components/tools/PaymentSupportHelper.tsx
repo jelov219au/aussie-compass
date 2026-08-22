@@ -37,11 +37,11 @@ export function PaymentSupportHelper({ supportEmail }: { supportEmail: string | 
     `문제 유형: ${selected.label}`,
     "결제일: [직접 입력]",
     "구매에 사용한 이메일: [직접 입력]",
-    "Stripe 영수증 또는 결제 참조: [있다면 마지막 몇 글자만 입력]",
+    "Stripe 영수증 또는 결제 참조: [있다면 마지막 8자만 입력]",
     "발생한 문제: [개인정보를 제외하고 설명]",
     "이미 시도한 방법: [직접 입력]",
     "",
-    "카드번호 전체, CVC, 비밀번호, 신분증 사본은 포함하지 않았습니다.",
+    "카드번호 전체·일부, CVC, 비밀번호, 영수증 전체, 신분증 사본은 포함하지 않았습니다.",
   ].join("\n"), [selected]);
 
   async function copyTemplate() {
