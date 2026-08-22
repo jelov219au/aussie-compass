@@ -40,6 +40,7 @@ Resume Pro is a one-time AUD 19.90 product provided by Hoju Compass's Australian
 - Treat partial refunds and ambiguous payment states as manual review instead of automatically granting or revoking access.
 - Never place `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in variables prefixed with `NEXT_PUBLIC_`.
 - Sign access cookies with a separate `ENTITLEMENT_SESSION_SECRET` of at least 32 random characters and keep it server-only.
+- Require `operatorAlertsConfigured=true` in Production. `getPaymentReadiness().ready` remains false when `paymentAlertsConfigured()` rejects the payment-alert mail configuration, including when alerts are disabled or required SMTP authentication/port values are invalid.
 - Run `npm run security:secrets` before publishing changes to catch accidentally tracked Stripe or Vercel credentials.
 - Require the GitHub Actions `Quality gate` check on pull requests. It runs lint, a production build, payment and entitlement contracts, and the tracked-source secret scan through `npm run quality:gate` without using live credentials.
 - Apply `docs/entitlement-storage.sql` as a transactional, recorded migration before deploying code that depends on a new schema version. Follow `docs/database-recovery.md` for backup and isolated restore drills; a production restore always requires explicit approval.
@@ -65,6 +66,8 @@ Resume Pro is a one-time AUD 19.90 product provided by Hoju Compass's Australian
 ## Required environment contract
 
 The repository includes placeholders in `.env.example`. Production secrets belong in the hosting provider’s encrypted environment settings. `STRIPE_RESUME_PRO_PRICE_ID`, `STRIPE_RESUME_PRO_PRODUCT_ID`, and `STRIPE_RESUME_PRO_TAX_CODE` are a three-part deployment contract, not interchangeable labels: the first two must identify the intended Price and its independently reviewed Product, while the third must be the exact Product tax code that Stripe Dashboard marks eligible for Managed Payments. The server additionally requires the Price's immutable tax behavior to be `inclusive`, matching the advertised AUD 19.90 total. If any value is absent or disagrees with Stripe, Checkout fails closed before a Session is created.
+
+Production readiness also requires `paymentAlertsConfigured()` to return true; otherwise `operatorAlertsConfigured` and the overall `ready` result are false, so `isResumeProLive()` cannot open live Checkout. This readiness check confirms configuration only. Before accepting a customer payment, separately prove that controlled purchase and refund alerts arrive in the monitored support mailbox without exposing sensitive payment data.
 
 ### Checkout preflight failure contract
 

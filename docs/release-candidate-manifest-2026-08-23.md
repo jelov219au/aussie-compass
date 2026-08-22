@@ -204,10 +204,11 @@ Production `getPaymentReadiness()` additionally fails closed unless all of these
 - `BUSINESS_LEGAL_NAME`
 - `BUSINESS_ABN` as 11 digits
 - `NEXT_PUBLIC_SUPPORT_EMAIL` as a valid published address
+- `operatorAlertsConfigured=true`, meaning `paymentAlertsConfigured()` accepts the Production payment-alert mail configuration
 - optional `BUSINESS_TRADING_NAME`; the site name is the fallback
 - explicit `PAYMENTS_ENABLED=true`
 
-Production launch approval additionally requires configured and tested payment operator alerts. This operational requirement is not represented by `getPaymentReadiness()` and must be verified separately before enabling live payments. Do not copy legal identity, ABN, keys or connection strings into this repository or a release report.
+If `operatorAlertsConfigured` is false, `getPaymentReadiness().ready` is false and Production Checkout remains unavailable. A controlled purchase/refund alert reaching the monitored mailbox is still required as delivery evidence because configuration readiness alone does not prove SMTP delivery. Do not copy legal identity, ABN, keys or connection strings into this repository or a release report.
 
 ## 5. External settings classification
 
