@@ -72,7 +72,7 @@ export default function TermsPage() {
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>Resume Pro는 {price} AUD 1회 결제 상품입니다. 결제 전에 Stripe 화면에서 최종 금액, 결제수단과 인보이스 정보를 확인할 수 있으며 Hoju Compass는 전체 카드번호나 CVC를 직접 받지 않습니다.</p>
                 <p>Stripe Managed Payments 결제의 거래상 판매자(Merchant of Record)와 결제·거래 지원 주체는 최종 결제 화면과 영수증에 표시된 정보를 기준으로 확인합니다. Hoju Compass는 Resume Pro 제품 제공과 접근·기능 지원을 담당하며, 실제 거래 문서를 확인하기 전에는 이 조건에서 거래상 판매자의 사업자명을 단정하지 않습니다.</p>
-                <p>결제가 확인되면 현재 기기에 30일짜리 접근 세션을 발급합니다. 30일은 구매 이용권의 소멸일이 아니라 이 기기의 로그인 확인 기간이며, 활성 이용권은 복구 절차를 통해 다시 확인할 수 있습니다.</p>
+                <p>결제가 확인되면 현재 기기에서 30일 동안 Resume Pro를 열 수 있도록 연결합니다. 30일은 구매 이용권의 소멸일이 아니라 이 기기의 이용 확인 기간이며, 활성 이용권은 복구 절차를 통해 다시 연결할 수 있습니다.</p>
                 <p>새 기기로 옮길 때 사용하는 복구 코드는 발급 후 30일 안에 한 번만 사용할 수 있습니다. 새 코드를 만들면 이전에 사용하지 않은 코드는 무효화됩니다.</p>
                 <Link href="/purchase-information" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">가격·제공·환불 안내 자세히 보기 →</Link>
               </div>

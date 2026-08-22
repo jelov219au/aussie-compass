@@ -13,6 +13,7 @@ import type {
 
 type EntitlementRow = {
   outcome?: "processed" | "duplicate" | "ignored_stale" | "tombstoned";
+  activation_outcome?: "consumed" | "idempotent" | "used" | "released" | "revoked" | "review" | "missing";
   id: string | number | bigint | null;
   product_code: ProductCode | null;
   status: "active" | "revoked" | "review" | null;
@@ -104,20 +105,40 @@ async function consumeCheckoutActivation(input: {
   checkoutSessionId: string;
   productCode: ProductCode;
   customerId: string;
+  nonceHash: string;
 }) {
   if (!/^cs_(?:test|live)_[A-Za-z0-9]+$/.test(input.checkoutSessionId)
-    || !/^cus_[A-Za-z0-9]+$/.test(input.customerId)) return null;
+    || !/^cus_[A-Za-z0-9]+$/.test(input.customerId)
+    || !/^[a-f0-9]{64}$/.test(input.nonceHash)) return { outcome: "missing" as const };
 
   const sql = neon(getConnectionString());
   const rows = await sql`
     select * from consume_checkout_activation(
       ${input.checkoutSessionId},
       ${input.productCode},
-      ${input.customerId}
+      ${input.customerId},
+      ${input.nonceHash}
     )
   ` as EntitlementRow[];
 
-  return rows[0] ? toEntitlementRecord(rows[0]) : null;
+  const row = rows[0];
+  if (!row?.activation_outcome) return { outcome: "missing" as const };
+  return {
+    outcome: row.activation_outcome,
+    ...(row.id === null ? {} : { entitlement: toEntitlementRecord(row) }),
+  };
+}
+
+async function releaseCheckoutActivation(input: { entitlementId: string; productCode: ProductCode }) {
+  if (!/^\d+$/.test(input.entitlementId)) return false;
+  const sql = neon(getConnectionString());
+  const rows = await sql`
+    select release_checkout_activation(
+      ${input.entitlementId},
+      ${input.productCode}
+    ) as released
+  ` as { released: boolean }[];
+  return rows[0]?.released === true;
 }
 
 async function findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode) {
@@ -197,6 +218,7 @@ export const neonEntitlementStore: EntitlementStore = {
   applyStripeEvent,
   consumeRestoreTokenHash,
   consumeCheckoutActivation,
+  releaseCheckoutActivation,
   findActiveByCheckoutSession,
   findActiveById,
   createRestoreTokenHash,

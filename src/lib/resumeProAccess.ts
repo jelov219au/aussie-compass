@@ -59,12 +59,16 @@ export async function clearResumeProAccessCookie() {
   });
 }
 
+export async function getResumeProAccessPayload() {
+  const cookieStore = await cookies();
+  return decodeAccessToken(cookieStore.get(accessCookieName)?.value);
+}
+
 export async function getActiveResumeProEntitlement() {
   const store = getConfiguredEntitlementStore();
   if (!store) return null;
 
-  const cookieStore = await cookies();
-  const payload = decodeAccessToken(cookieStore.get(accessCookieName)?.value);
+  const payload = await getResumeProAccessPayload();
   if (!payload) return null;
   return store.findActiveById(payload.entitlementId, "resume_pro");
 }

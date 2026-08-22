@@ -812,7 +812,8 @@ revoke all on function public.enqueue_payment_operator_alert_failure(text, text,
 revoke all on function public.claim_payment_operator_alert_intent(text, text, text) from public;
 revoke all on function public.mark_payment_operator_alert_sent(text, text, text) from public;
 revoke all on function public.release_payment_operator_alert_claim(text, text, text) from public;
-revoke all on function public.consume_checkout_activation(text, text, text) from public;
+revoke all on function public.consume_checkout_activation(text, text, text, text) from public;
+revoke all on function public.release_checkout_activation(bigint, text) from public;
 
 -- Owner-approved deployment template (intentionally comments):
 -- revoke create on schema public from hoju_app_runtime;
@@ -831,7 +832,8 @@ revoke all on function public.consume_checkout_activation(text, text, text) from
 -- grant execute on function public.claim_payment_operator_alert_intent(text, text, text) to hoju_app_runtime;
 -- grant execute on function public.mark_payment_operator_alert_sent(text, text, text) to hoju_app_runtime;
 -- grant execute on function public.release_payment_operator_alert_claim(text, text, text) to hoju_app_runtime;
--- grant execute on function public.consume_checkout_activation(text, text, text) to hoju_app_runtime;
+-- grant execute on function public.consume_checkout_activation(text, text, text, text) to hoju_app_runtime;
+-- grant execute on function public.release_checkout_activation(bigint, text) to hoju_app_runtime;
 -- grant execute on function public.approve_next_first_sale(text, text, text, integer, text) to hoju_owner_operator;
 
 insert into public.schema_migrations (version)

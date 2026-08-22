@@ -43,7 +43,7 @@ export default function PurchaseInformationPage() {
 
           <section className="mt-10 grid gap-5 md:grid-cols-3" aria-label="Resume Pro 구매 요약">
             <article className="border-t-2 border-gold bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">가격</p><p className="mt-3 text-3xl font-semibold text-navy">{price}</p><p className="mt-2 text-sm leading-6 text-muted">AUD 기준 1회 결제이며 자동 갱신 구독이 아닙니다.</p></article>
-            <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">제공 방식</p><p className="mt-3 text-xl font-semibold text-navy">디지털 작업 공간</p><p className="mt-2 text-sm leading-6 text-muted">결제와 서버 이용권 확인 후 현재 브라우저에 접근 세션을 발급합니다.</p></article>
+            <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">제공 방식</p><p className="mt-3 text-xl font-semibold text-navy">디지털 작업 공간</p><p className="mt-2 text-sm leading-6 text-muted">결제와 이용권 확인 후 현재 브라우저에 Resume Pro 이용을 연결합니다.</p></article>
             <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">이용권 복구</p><p className="mt-3 text-xl font-semibold text-navy">1회용 복구 코드</p><p className="mt-2 text-sm leading-6 text-muted">작업 공간에서 발급한 코드는 30일 안에 한 번만 사용할 수 있습니다.</p></article>
           </section>
 
@@ -65,7 +65,7 @@ export default function PurchaseInformationPage() {
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
               <div><p className="font-mono text-xs text-gold">02 / DELIVERY</p><h2 className="mt-2 text-xl font-semibold text-navy">결제와 디지털 제공</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
-                <p>결제 화면과 거래는 Stripe Managed Payments가 처리하며 Hoju Compass는 전체 카드번호나 카드 보안번호를 직접 받지 않습니다. 결제·거래 관련 지원은 최종 결제 화면과 영수증에 표시된 거래 지원 경로를 이용할 수 있습니다. 결제가 완료되고 서명된 결제 알림으로 활성 이용권이 확인돼야 작업 공간을 열 수 있습니다.</p>
+                <p>결제 화면과 거래는 Stripe Managed Payments가 처리하며 Hoju Compass는 전체 카드번호나 카드 보안번호를 직접 받지 않습니다. 결제·거래 관련 지원은 최종 결제 화면과 영수증에 표시된 거래 지원 경로를 이용할 수 있습니다. 결제가 완료되고 이용권 확인이 끝나야 작업 공간을 열 수 있습니다.</p>
                 <p>웹훅 처리가 늦으면 결제 완료 화면에서 잠시 기다린 뒤 다시 확인할 수 있습니다. 결제는 확인됐지만 접근이 계속 열리지 않으면 지원 이메일로 결제 시각과 Stripe 영수증 정보를 보내 주세요. 카드번호 전체나 보안번호는 보내지 마세요.</p>
                 <Link href="/payment-help" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">결제·접근 문제 해결 순서 보기 →</Link>
               </div>
@@ -94,7 +94,7 @@ export default function PurchaseInformationPage() {
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>Stripe 결제 과정의 연락처와 결제 상태는 Stripe에서 처리됩니다. Hoju Compass 서버에는 이용권 제공과 환불·분쟁 대응에 필요한 결제 식별자, 이용권 상태와 처리 시각 같은 기술 기록이 저장될 수 있습니다.</p>
                 <p>이력서와 커버레터 작성 내용은 별도 안내가 없는 한 현재 브라우저에서 처리되며 결제 이용권 데이터베이스에 저장되지 않습니다. 자세한 내용은 <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내</Link>를 확인하세요.</p>
-                <p>브라우저 작성 내용이나 접근 세션의 삭제는 결제 취소·환불 또는 거래 기록 삭제와 별개입니다. 삭제 요청을 받으면 더 이상 필요하지 않은 제품·지원 데이터와 세무·회계 또는 소비자 문제 대응에 필요할 수 있는 최소 거래 증거를 시스템별로 구분하며, 후자는 적용되는 보존기간 동안 제한된 목적으로 남을 수 있습니다.</p>
+                <p>브라우저 작성 내용이나 이 기기의 이용 연결을 삭제하는 일은 결제 취소·환불 또는 거래 기록 삭제와 별개입니다. 삭제 요청을 받으면 더 이상 필요하지 않은 제품·지원 데이터와 세무·회계 또는 소비자 문제 대응에 필요할 수 있는 최소 거래 증거를 시스템별로 구분하며, 후자는 적용되는 보존기간 동안 제한된 목적으로 남을 수 있습니다.</p>
               </div>
             </section>
           </div>

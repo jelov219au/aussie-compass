@@ -47,6 +47,11 @@ export type EntitlementRecord = {
   revokedAt?: Date;
 };
 
+export type CheckoutActivationResult = {
+  outcome: "consumed" | "idempotent" | "used" | "released" | "revoked" | "review" | "missing";
+  entitlement?: EntitlementRecord;
+};
+
 export interface EntitlementStore {
   applyStripeEvent(input: {
     receipt: StripeEventReceipt;
@@ -62,7 +67,13 @@ export interface EntitlementStore {
     checkoutSessionId: string;
     productCode: ProductCode;
     customerId: string;
-  }): Promise<EntitlementRecord | null>;
+    nonceHash: string;
+  }): Promise<CheckoutActivationResult>;
+
+  releaseCheckoutActivation(input: {
+    entitlementId: string;
+    productCode: ProductCode;
+  }): Promise<boolean>;
 
   findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
 
