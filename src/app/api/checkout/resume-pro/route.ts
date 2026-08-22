@@ -16,6 +16,7 @@ import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
 import {
   classifyResumeProCheckoutFailure,
   getResumeProCheckoutConfigurationFailure,
+  type ResumeProCheckoutFailureCode,
   type ResumeProCheckoutFailure,
 } from "@/lib/resumeProCheckoutFailure";
 import { assertResumeProStripeProduct, getResumeProStripeProductConfig } from "@/lib/resumeProStripeProduct";
@@ -42,6 +43,13 @@ function acceptsJson(request: NextRequest) {
 
 class FirstSaleGateClosedError extends Error {
   override name = "FirstSaleGateClosedError";
+
+  constructor(readonly publicFailureCode?: Extract<
+    ResumeProCheckoutFailureCode,
+    "checkout_retry_later" | "checkout_sales_closed" | "checkout_support_required"
+  >) {
+    super("Resume Pro Checkout is not publicly available.");
+  }
 }
 
 async function claimFirstSale(
@@ -69,7 +77,7 @@ async function claimFirstSale(
     try {
       session = await stripe.checkout.sessions.retrieve(result.checkoutSessionId);
     } catch {
-      throw new FirstSaleGateClosedError();
+      throw new FirstSaleGateClosedError("checkout_support_required");
     }
 
     const paymentIntentId = typeof session.payment_intent === "string"
@@ -81,7 +89,7 @@ async function claimFirstSale(
       paymentStatus: session.payment_status,
       paymentIntentId,
     })) {
-      throw new FirstSaleGateClosedError();
+      throw new FirstSaleGateClosedError("checkout_support_required");
     }
 
     const released = await gate.releaseVerifiedAbandoned({
@@ -90,11 +98,22 @@ async function claimFirstSale(
       checkoutSessionId: result.checkoutSessionId,
     });
 
-    if (!released) throw new FirstSaleGateClosedError();
+    if (!released) throw new FirstSaleGateClosedError("checkout_support_required");
     result = await reserve();
   }
 
-  if (result.outcome !== "claimed") throw new FirstSaleGateClosedError();
+  if (result.outcome === "reserved") {
+    throw new FirstSaleGateClosedError("checkout_retry_later");
+  }
+  if (result.outcome === "locked") {
+    throw new FirstSaleGateClosedError("checkout_sales_closed");
+  }
+  if (result.outcome === "manual_review" || result.outcome === "verify_expiry") {
+    throw new FirstSaleGateClosedError("checkout_support_required");
+  }
+  if (result.outcome !== "claimed") {
+    throw new FirstSaleGateClosedError("checkout_support_required");
+  }
   return result;
 }
 
@@ -208,7 +227,7 @@ export async function POST(request: NextRequest) {
         expiresAt: new Date(session.expires_at * 1000),
       });
 
-      if (!attached) throw new FirstSaleGateClosedError();
+      if (!attached) throw new FirstSaleGateClosedError("checkout_support_required");
 
       if (acceptsJson(request)) {
         return NextResponse.json({ checkoutUrl: session.url }, {

@@ -34,11 +34,46 @@ const productFailure = classifyResumeProCheckoutFailure({ name: "ResumeProStripe
 assert.equal(productFailure.code, "checkout_unavailable", "Product identity or tax mismatch must fail closed");
 assert.equal(productFailure.retryable, false);
 
+const firstSaleFailures = [
+  ["checkout_retry_later", true, undefined],
+  ["checkout_sales_closed", false, "/resume-builder"],
+  ["checkout_support_required", false, "/contact"],
+];
+for (const [code, retryable, actionHref] of firstSaleFailures) {
+  const failure = classifyResumeProCheckoutFailure({ name: "FirstSaleGateClosedError", publicFailureCode: code });
+  assert.equal(failure.code, code, `${code} must remain a fixed public action result`);
+  assert.equal(failure.retryable, retryable);
+  assert.equal(failure.action?.href, actionHref);
+  assert.doesNotMatch(
+    failure.message,
+    /\b(?:RESERVED|LOCKED|manual_review|Stripe|database|session)\b|다른 고객|세션 식별자/i,
+    `${code} must not expose gate, customer or provider internals`,
+  );
+  assert.doesNotMatch(
+    failure.message,
+    /카드 (?:정보는 )?입력되지|청구되지 않았|결제되지 않았/,
+    `${code} must not claim that an ambiguous earlier attempt was uncharged or had no card entry`,
+  );
+}
+
+const forgedFirstSaleFailure = classifyResumeProCheckoutFailure({
+  name: "FirstSaleGateClosedError",
+  publicFailureCode: "checkout_secret_state",
+});
+assert.equal(forgedFirstSaleFailure.code, "checkout_unavailable", "unknown first-sale details must fail closed to generic copy");
+
 const unknownFailure = classifyResumeProCheckoutFailure(new Error("price_secret_internal_detail"));
 assert.equal(unknownFailure.code, "checkout_failed");
 assert.equal(unknownFailure.status, 500);
 
-for (const code of ["checkout_unavailable", "checkout_temporarily_unavailable", "checkout_failed"]) {
+for (const code of [
+  "checkout_unavailable",
+  "checkout_temporarily_unavailable",
+  "checkout_retry_later",
+  "checkout_sales_closed",
+  "checkout_support_required",
+  "checkout_failed",
+]) {
   const failure = getResumeProCheckoutFailure(code);
   assert.ok(failure, `${code} must have an allowlisted public result`);
   assert.doesNotMatch(failure.message, /(sk|rk)_(test|live)_|price_|prod_|txcd_|STRIPE_/i, "public copy must not expose Stripe or environment identifiers");
@@ -47,6 +82,7 @@ assert.equal(getResumeProCheckoutFailure("price_secret_internal_detail"), null, 
 
 const route = readFileSync(resolve("src/app/api/checkout/resume-pro/route.ts"), "utf8");
 const form = readFileSync(resolve("src/components/tools/ResumeProCheckoutForm.tsx"), "utf8");
+const failureNotice = readFileSync(resolve("src/components/tools/ResumeProCheckoutFailureNotice.tsx"), "utf8");
 const page = readFileSync(resolve("src/app/resume-pro/page.tsx"), "utf8");
 
 const readinessGate = route.indexOf("if (!allowed)");
@@ -67,5 +103,22 @@ assert.ok(form.includes('headers: { Accept: "application/json" }'), "enhanced ch
 assert.ok(!form.includes('onSubmit={() => track("Checkout Started"'), "form submission alone must not count as Checkout Started");
 assert.ok(form.includes('url.hostname === "checkout.stripe.com"'), "client redirect must accept only Stripe-hosted Checkout URLs");
 assert.ok(page.includes("getResumeProCheckoutFailure(checkout)"), "native form fallback must render only allowlisted Korean error copy");
+assert.ok(page.includes("ResumeProCheckoutFailureNotice"), "native redirect must use the shared public failure notice");
+assert.ok(form.includes("ResumeProCheckoutFailureNotice"), "enhanced JSON failures must use the shared public failure notice");
+assert.ok(form.includes('"resume-pro-checkout-requirement resume-pro-checkout-failure"'), "Checkout control must describe the current failure as well as its prerequisite");
+assert.ok(failureNotice.includes('role="status"') && failureNotice.includes('aria-live="polite"') && failureNotice.includes('aria-atomic="true"'), "failure copy must be announced accessibly without an interrupting alert");
+assert.ok(failureNotice.includes("max-w-full") && !failureNotice.includes("whitespace-nowrap"), "failure actions must wrap safely at 390px");
+assert.equal(form.match(/\btrack\(/g)?.length, 1, "public failures must not add analytics events");
+assert.ok(form.includes('track("Checkout Started", { product: "resume_pro", entry })'), "the only Checkout event must use fixed product and normalized entry values");
+
+for (const [outcome, code] of [
+  ['result.outcome === "reserved"', '"checkout_retry_later"'],
+  ['result.outcome === "locked"', '"checkout_sales_closed"'],
+  ['result.outcome === "manual_review"', '"checkout_support_required"'],
+]) {
+  const outcomeIndex = route.indexOf(outcome);
+  assert.ok(outcomeIndex >= 0 && route.indexOf(code, outcomeIndex) > outcomeIndex, `${outcome} must map to ${code}`);
+}
+assert.ok(route.includes('new URL(`/resume-pro?${query}`'), "native failure redirects must carry only the allowlisted public code");
 
 console.log("Resume Pro Checkout resilience and analytics contract checks passed.");

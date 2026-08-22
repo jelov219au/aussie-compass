@@ -5,6 +5,7 @@ import { type FormEvent, useState } from "react";
 import { track } from "@vercel/analytics";
 import type { ResumeProEntry } from "@/lib/resumeProAttribution";
 import { getResumeProCheckoutFailure } from "@/lib/resumeProCheckoutFailure";
+import { ResumeProCheckoutFailureNotice } from "@/components/tools/ResumeProCheckoutFailureNotice";
 
 function getSafeCheckoutUrl(value: unknown) {
   if (typeof value !== "string") return null;
@@ -92,10 +93,7 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
         <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">결제 데이터 처리 안내</Link>를 확인해 주세요.
       </p>
       {failure && (
-        <div className="mt-4 border-l-2 border-amber-600 bg-surface px-4 py-3 text-sm leading-6 text-navy" role="alert">
-          {failure.message}
-          {failure.retryable && <span className="block text-xs text-muted">이 페이지에서 다시 눌러도 중복 청구되지 않습니다.</span>}
-        </div>
+        <ResumeProCheckoutFailureNotice failure={failure} id="resume-pro-checkout-failure" />
       )}
       <p id="resume-pro-checkout-requirement" className="mt-4 text-sm leading-6 text-muted" aria-live="polite">
         {accepted
@@ -106,7 +104,9 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
         type="submit"
         disabled={!accepted || submitting}
         aria-busy={submitting}
-        aria-describedby="resume-pro-checkout-requirement"
+        aria-describedby={failure
+          ? "resume-pro-checkout-requirement resume-pro-checkout-failure"
+          : "resume-pro-checkout-requirement"}
         className="mt-4 inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy enabled:hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
       >
         {submitting

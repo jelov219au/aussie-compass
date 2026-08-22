@@ -21,6 +21,12 @@ for (const contract of [
   "isVerifiedAbandonedCheckout",
   "releaseVerifiedAbandoned",
   "session.payment_intent",
+  'result.outcome === "reserved"',
+  '"checkout_retry_later"',
+  'result.outcome === "locked"',
+  '"checkout_sales_closed"',
+  'result.outcome === "manual_review"',
+  '"checkout_support_required"',
 ]) {
   assert.ok(checkout.includes(contract), `Checkout first-sale contract is missing: ${contract}`);
 }

@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd, ProductJsonLd } from "@/components/seo/JsonLd";
 import { ResumeProCheckoutForm } from "@/components/tools/ResumeProCheckoutForm";
+import { ResumeProCheckoutFailureNotice } from "@/components/tools/ResumeProCheckoutFailureNotice";
 import { Container } from "@/components/ui/Container";
 import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
 import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
@@ -128,10 +129,11 @@ export default async function ResumeProPage({ searchParams }: Props) {
               </div>
             )}
             {checkoutFailure && (
-              <div className="mt-5 border-l-2 border-amber-600 bg-white p-4 text-sm leading-6 text-navy" role="alert">
-                {checkoutFailure.message}
-                {checkoutFailure.retryable && <span className="block text-xs text-muted">이 페이지에서 다시 눌러도 중복 청구되지 않습니다.</span>}
-              </div>
+              <ResumeProCheckoutFailureNotice
+                failure={checkoutFailure}
+                id="resume-pro-checkout-page-failure"
+                className="mt-5"
+              />
             )}
             <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
               <div className="max-w-3xl">
