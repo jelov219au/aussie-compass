@@ -15,6 +15,7 @@ const contactPage = await readFile(new URL("../src/app/contact/page.tsx", import
 const privacyPage = await readFile(new URL("../src/app/privacy/page.tsx", import.meta.url), "utf8");
 const paymentSupport = await readFile(new URL("../src/components/tools/PaymentSupportHelper.tsx", import.meta.url), "utf8");
 const jsonLd = await readFile(new URL("../src/components/seo/JsonLd.tsx", import.meta.url), "utf8");
+const jsonLdSerializer = await readFile(new URL("../src/lib/jsonLd.ts", import.meta.url), "utf8");
 
 for (const contract of [
   "checkout.sessions.create",
@@ -70,7 +71,8 @@ for (const publicSupportSurface of [contactPage, privacyPage, paymentSupport, js
   assert.ok(!publicSupportSurface.includes("support@hojucompass.com"), "public support surfaces must not hardcode an email address");
 }
 assert.ok(jsonLd.includes("getPublicSellerDetails()") && jsonLd.includes("contactPoint: email ?"), "Organization JSON-LD must omit an unconfigured support email");
-assert.ok(jsonLd.includes('JSON.stringify(data).replace(/</g, "\\\\u003c")'), "JSON-LD must preserve injection-safe serialization");
+assert.ok(jsonLd.includes("serializeJsonLd(data)"), "Organization JSON-LD must use the shared safe serializer");
+assert.ok(jsonLdSerializer.includes('JSON.stringify(data).replace(/</g, "\\\\u003c")'), "JSON-LD must preserve injection-safe serialization");
 
 assert.ok(checkoutForm.includes('name="source"'), "Resume Pro Checkout must submit its allowlisted acquisition source");
 for (const entry of ["article-job-search-plan", "article-achievement-examples", "resume-builder-complete"]) {
