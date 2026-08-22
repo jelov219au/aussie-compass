@@ -138,7 +138,7 @@ The fixed hashes above are the authoritative complete file inventory. The candid
 
 ### Required only for a full Resume Pro payment/access Preview
 
-`docs/entitlement-storage.sql` is the authoritative, idempotent entitlement schema. A target database must have the tables, indexes, event-order column, constraints and `apply_entitlement_event` routine before a Preview exercises webhook persistence, access activation, recovery or refund/revocation. Apply `docs/first-sale-gate.sql` second; it adds the atomic sale reservation, append-only audit, guarded entitlement/restore wrappers and records `20260823_first_sale_gate_charge_link_v2`. The baseline records `20260818_entitlement_baseline_v1`.
+`docs/entitlement-storage.sql` is the authoritative, idempotent entitlement schema. A target database must have the tables, indexes, event-order column, constraints, durable non-PII operator-alert outbox and `apply_entitlement_event` routine before a Preview exercises webhook persistence, access activation, recovery or refund/revocation. It records `20260823_payment_operator_alert_outbox_v1`; alert intent and entitlement mutation commit or roll back together. Apply `docs/first-sale-gate.sql` second; it adds the atomic sale reservation, append-only audit, guarded entitlement/restore/outbox wrappers and records `20260823_first_sale_gate_charge_link_v2`. The baseline records `20260818_entitlement_baseline_v1`.
 
 - A static/UI Preview with `PAYMENTS_ENABLED=false` does not require a database migration.
 - Checkout is now fail-closed without the entitlement database, first-sale migration and `FIRST_SALE_GATE_ENABLED=true`; there is no persistence-free Session mode.

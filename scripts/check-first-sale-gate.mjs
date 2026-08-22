@@ -171,7 +171,8 @@ for (const contract of [
 }
 
 assert.ok(
-  webhook.includes('result.outcome === "processed" || result.outcome === "tombstoned"'),
+  webhook.includes("getPaymentOperatorAlertKind(event)")
+    && webhook.includes("deliverDurablePaymentOperatorAlert"),
   "entitlement-free refund/dispute tombstones must still reach the operator alert path",
 );
 assert.ok(!entitlementCommands.includes("`refund_${"), "refund reasons must not interpolate provider or customer text");
@@ -227,8 +228,9 @@ assert.ok(
 );
 assert.ok(!webhook.includes("approve_next_first_sale"), "webhook code must never reopen sales");
 assert.ok(webhook.includes("stripeReferenceSuffix(event.id)"), "logs must use only the final eight reference characters");
-assert.equal(webhook.match(/eventId: event\.id/g)?.length, 1, "the complete event ID must be used only for the private DB receipt");
-assert.ok(webhook.includes("sendStripeOperatorAlert(event)"), "a failed paid transaction must reach the operator alert path");
+assert.equal(webhook.match(/eventId: event\.id/g)?.length, 2, "the complete event ID may enter only the private DB receipt and guarded failure-outbox wrapper");
+assert.ok(webhook.includes("enqueueFulfillmentAttention"), "a failed paid transaction must durably record the operator alert path");
+assert.ok(webhook.includes("deliverDurablePaymentOperatorAlert"), "pending operator alerts must be delivered through the durable outbox");
 assert.ok(commerce.includes('process.env.FIRST_SALE_GATE_ENABLED === "true"'), "readiness must require the first-sale gate");
 assert.ok(commerce.includes("&& readiness.firstSaleGateConfigured"), "test Checkout must also fail closed");
 

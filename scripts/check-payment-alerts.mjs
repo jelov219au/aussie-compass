@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 
 import { supportedProductCodes } from "../src/lib/entitlements.ts";
 import { buildStripeOperatorAlert } from "../src/lib/paymentAlerts.ts";
+import {
+  deliverDurablePaymentOperatorAlert,
+  getPaymentOperatorAlertKind,
+} from "../src/lib/paymentAlertOutbox.ts";
 
 function stripeEvent(type, object, id) {
   return { id, type, livemode: true, data: { object } };
@@ -86,5 +91,120 @@ const disputeAlert = buildStripeOperatorAlert(stripeEvent("charge.dispute.create
 
 assert.match(disputeAlert?.subject ?? "", /결제 분쟁 needs_response/);
 assert.match(disputeAlert?.text ?? "", /답변 기한/);
+
+assert.equal(getPaymentOperatorAlertKind(stripeEvent("checkout.session.completed", {}, "evt_kind")), "payment_completed");
+assert.equal(getPaymentOperatorAlertKind(stripeEvent("refund.created", {}, "evt_kind")), "refund_event");
+assert.equal(getPaymentOperatorAlertKind(stripeEvent("charge.dispute.created", {}, "evt_kind")), "dispute_event");
+
+function inMemoryOutbox(event, alertKind) {
+  const row = {
+    alertKind,
+    eventType: event.type,
+    eventRefLast8: event.id.slice(-8),
+    attempts: 0,
+    status: "pending",
+    claimToken: null,
+  };
+  return {
+    row,
+    async enqueueFulfillmentAttention() {},
+    async claim() {
+      if (row.status !== "pending" || row.claimToken) return null;
+      row.attempts += 1;
+      row.claimToken = `claim-${row.attempts}`;
+      return { ...row, claimToken: row.claimToken };
+    },
+    async markSent(_eventId, _kind, claimToken) {
+      if (row.status !== "pending" || row.claimToken !== claimToken) return false;
+      row.status = "sent";
+      row.claimToken = null;
+      return true;
+    },
+    async release(_eventId, _kind, claimToken) {
+      if (row.status !== "pending" || row.claimToken !== claimToken) return false;
+      row.claimToken = null;
+      return true;
+    },
+  };
+}
+
+const retryEvent = stripeEvent("checkout.session.completed", {
+  id: "cs_live_retry",
+  payment_status: "paid",
+  amount_total: 1990,
+  currency: "aud",
+  metadata: { product_code: "resume_pro" },
+  payment_intent: "pi_live_retry",
+}, "evt_alert_retry_12345678");
+const retryStore = inMemoryOutbox(retryEvent, "payment_completed");
+let sendAttempts = 0;
+await assert.rejects(() => deliverDurablePaymentOperatorAlert(
+  retryEvent,
+  "payment_completed",
+  retryStore,
+  async () => {
+    sendAttempts += 1;
+    throw new Error("temporary SMTP failure");
+  },
+));
+assert.equal(retryStore.row.status, "pending", "SMTP failure must leave a pending durable intent");
+assert.equal(retryStore.row.attempts, 1);
+
+const retryResult = await deliverDurablePaymentOperatorAlert(
+  retryEvent,
+  "payment_completed",
+  retryStore,
+  async () => {
+    sendAttempts += 1;
+    return { outcome: "sent" };
+  },
+);
+assert.equal(retryResult.outcome, "sent");
+assert.equal(retryStore.row.status, "sent");
+assert.equal(retryStore.row.attempts, 2);
+
+const sentDuplicate = await deliverDurablePaymentOperatorAlert(
+  retryEvent,
+  "payment_completed",
+  retryStore,
+  async () => {
+    sendAttempts += 1;
+    return { outcome: "sent" };
+  },
+);
+assert.equal(sentDuplicate.outcome, "not_pending");
+assert.equal(sendAttempts, 2, "a sent duplicate must not send another email");
+
+const entitlementSql = fs.readFileSync(new URL("../docs/entitlement-storage.sql", import.meta.url), "utf8");
+const webhookSource = fs.readFileSync(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
+const outboxTable = entitlementSql.slice(
+  entitlementSql.indexOf("create table if not exists payment_operator_alert_outbox"),
+  entitlementSql.indexOf("create or replace function record_payment_operator_alert_intent"),
+);
+
+for (const contract of [
+  "primary key (event_key, alert_kind)",
+  "status in ('pending', 'sent')",
+  "attempts integer not null default 0",
+  "last_attempt_at timestamptz",
+  "sent_at timestamptz",
+  "lease_token_hash text",
+  "20260823_payment_operator_alert_outbox_v1",
+  "revoke all on table payment_operator_alert_outbox from public",
+  "perform public.record_payment_operator_alert_intent",
+]) {
+  assert.ok(entitlementSql.includes(contract), `missing durable alert SQL contract: ${contract}`);
+}
+assert.doesNotMatch(outboxTable, /email|card|payload|json|stripe_event_id/i, "outbox rows must contain no PII, payload or full Stripe ID column");
+assert.ok(
+  entitlementSql.indexOf("perform public.record_payment_operator_alert_intent")
+    < entitlementSql.indexOf("insert into purchase_entitlements"),
+  "the outbox intent must be written before the entitlement mutation so rollback cannot orphan it",
+);
+assert.doesNotMatch(webhookSource, /\bafter\s*\(/, "durable alert delivery must not happen after the HTTP response");
+assert.match(webhookSource, /deliverDurablePaymentOperatorAlert/);
+assert.match(webhookSource, /entitlementPersisted[\s\S]*payment_alert_delivery/);
+assert.match(webhookSource, /enqueueFulfillmentAttention/);
+assert.match(webhookSource, /return webhookResponse\(\{ error: "Entitlement persistence failed\." \}, 503\)/);
 
 console.log("Stripe operator-alert checks passed.");

@@ -1,6 +1,8 @@
 import nodemailer from "nodemailer";
 import type Stripe from "stripe";
 
+import type { PaymentOperatorAlertKind } from "./paymentAlertOutbox";
+
 const defaultAlertEmail = "support@hojucompass.com";
 
 const productLabels = {
@@ -148,7 +150,25 @@ function disputeAlert(event: Stripe.Event, dispute: Stripe.Dispute): OperatorAle
   };
 }
 
-export function buildStripeOperatorAlert(event: Stripe.Event): OperatorAlert | null {
+function fulfillmentAttentionAlert(event: Stripe.Event): OperatorAlert {
+  return {
+    subject: "[Hoju Compass] 결제 처리 확인 필요",
+    text: [
+      "결제 후 접근 처리 전에 운영 확인이 필요한 상황이 발생했습니다.",
+      "",
+      dashboardReference(event),
+      "",
+      "새 결제를 시작하거나 접근을 수동 부여하지 말고 Stripe Dashboard와 first-sale gate 기록을 함께 확인하세요.",
+    ].join("\n"),
+  };
+}
+
+export function buildStripeOperatorAlert(
+  event: Stripe.Event,
+  alertKind?: PaymentOperatorAlertKind,
+): OperatorAlert | null {
+  if (alertKind === "fulfillment_attention") return fulfillmentAttentionAlert(event);
+
   switch (event.type) {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded":
@@ -194,10 +214,14 @@ export function paymentAlertsConfigured() {
   return getMailConfig() !== null;
 }
 
-export async function sendStripeOperatorAlert(event: Stripe.Event) {
-  const alert = buildStripeOperatorAlert(event);
+export async function sendStripeOperatorAlert(
+  event: Stripe.Event,
+  alertKind?: PaymentOperatorAlertKind,
+) {
+  const alert = buildStripeOperatorAlert(event, alertKind);
   const config = getMailConfig();
-  if (!alert || !config) return { outcome: "skipped" as const };
+  if (!alert) throw new Error("The signed Stripe event has no allowlisted operator alert.");
+  if (!config) throw new Error("Payment operator alerts are not configured.");
 
   const transporter = nodemailer.createTransport({
     host: config.host,
@@ -215,7 +239,7 @@ export async function sendStripeOperatorAlert(event: Stripe.Event) {
     replyTo: defaultAlertEmail,
     subject: alert.subject,
     text: alert.text,
-    messageId: `<stripe-${referenceSuffix(event.id)}@hojucompass.com>`,
+    messageId: `<stripe-${alertKind ?? "event"}-${referenceSuffix(event.id)}@hojucompass.com>`,
     headers: {
       "X-Hoju-Compass-Stripe-Event-Ref": referenceSuffix(event.id),
     },

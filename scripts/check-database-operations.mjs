@@ -37,6 +37,8 @@ for (const contract of [
   "pg_advisory_xact_lock",
   "on conflict (stripe_event_id) do nothing",
   "token_hash text primary key",
+  "create table if not exists payment_operator_alert_outbox",
+  "20260823_payment_operator_alert_outbox_v1",
   "commit;",
 ]) {
   assert.ok(schema.includes(contract), `Database migration contract is missing: ${contract}`);
@@ -48,6 +50,7 @@ for (const contract of [
   "Never test a restore over Production",
   "requires explicit owner approval",
   "schema_migrations",
+  "payment_operator_alert_outbox",
   "SHA-256",
 ]) {
   assert.ok(recovery.includes(contract), `Database recovery runbook is missing: ${contract}`);

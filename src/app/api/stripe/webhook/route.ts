@@ -1,4 +1,4 @@
-import { after, NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 
 import { getEntitlementCommand } from "@/lib/entitlements";
@@ -6,6 +6,11 @@ import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import { FIRST_SALE_PRODUCT_CODE } from "@/lib/firstSaleGate";
 import { FirstSalePaymentIntentContractError, verifyFirstSalePaymentIntent } from "@/lib/firstSalePaymentIntent";
 import { getConfiguredFirstSaleGate } from "@/lib/neonFirstSaleGate";
+import { getConfiguredPaymentAlertOutbox } from "@/lib/neonPaymentAlertOutbox";
+import {
+  deliverDurablePaymentOperatorAlert,
+  getPaymentOperatorAlertKind,
+} from "@/lib/paymentAlertOutbox";
 import { paymentAlertsConfigured, sendStripeOperatorAlert } from "@/lib/paymentAlerts";
 import { getStripe } from "@/lib/stripe";
 
@@ -70,6 +75,7 @@ export async function POST(request: NextRequest) {
   }
 
   const entitlementStore = getConfiguredEntitlementStore();
+  const alertOutbox = getConfiguredPaymentAlertOutbox();
 
   if (!entitlementStore) {
     // Returning a failure keeps Stripe retrying instead of silently losing a paid order.
@@ -85,6 +91,8 @@ export async function POST(request: NextRequest) {
     });
     return webhookResponse({ received: true, testOnly: true, persisted: false });
   }
+
+  let entitlementPersisted = false;
 
   try {
     const receipt = {
@@ -153,50 +161,71 @@ export async function POST(request: NextRequest) {
       outcome: result.outcome,
       entitlementAction: entitlementCommand.action,
     });
+    entitlementPersisted = true;
 
-    if ((result.outcome === "processed" || result.outcome === "tombstoned") && paymentAlertsConfigured()) {
-      after(async () => {
-        try {
-          const notification = await sendStripeOperatorAlert(event);
-          console.info("Handled Stripe operator alert", {
-            eventRef: stripeReferenceSuffix(event.id),
-            type: event.type,
-            outcome: notification.outcome,
-          });
-        } catch (error) {
-          // Entitlement delivery must stay independent from an operator email outage.
-          console.error("Unable to send Stripe operator alert", {
-            eventRef: stripeReferenceSuffix(event.id),
-            type: event.type,
-            message: error instanceof Error ? error.message : "Unknown error",
-          });
-        }
-      });
+    const alertKind = getPaymentOperatorAlertKind(event);
+    if (alertKind) {
+      if (!alertOutbox || !paymentAlertsConfigured()) {
+        if (event.livemode) throw new Error("Payment operator alert delivery is unavailable.");
+      } else {
+        const notification = await deliverDurablePaymentOperatorAlert(
+          event,
+          alertKind,
+          alertOutbox,
+          sendStripeOperatorAlert,
+        );
+        console.info("Handled durable Stripe operator alert", {
+          eventRef: stripeReferenceSuffix(event.id),
+          type: event.type,
+          outcome: notification.outcome,
+        });
+      }
     }
 
     return webhookResponse({ received: true, testOnly: !event.livemode, persisted: true, outcome: result.outcome });
   } catch {
-    console.error("Unable to persist Stripe entitlement event", {
+    console.error(entitlementPersisted
+      ? "Unable to deliver durable Stripe operator alert"
+      : "Unable to persist Stripe entitlement event", {
       eventRef: stripeReferenceSuffix(event.id),
       type: event.type,
-      category: "payment_persistence",
+      category: entitlementPersisted ? "payment_alert_delivery" : "payment_persistence",
     });
 
     if (
-      entitlementCommand.action === "grant"
+      !entitlementPersisted
+      && entitlementCommand.action === "grant"
       && entitlementCommand.productCode === FIRST_SALE_PRODUCT_CODE
-      && paymentAlertsConfigured()
+      && alertOutbox
     ) {
-      after(async () => {
-        try {
-          await sendStripeOperatorAlert(event);
-        } catch {
-          console.error("Unable to send failed-payment operator alert", {
-            eventRef: stripeReferenceSuffix(event.id),
-            type: event.type,
+      try {
+        if (entitlementCommand.checkoutSessionId && entitlementCommand.paymentIntentId) {
+          await alertOutbox.enqueueFulfillmentAttention({
+            eventId: event.id,
+            eventType: event.type,
+            livemode: event.livemode,
+            productCode: FIRST_SALE_PRODUCT_CODE,
+            checkoutSessionId: entitlementCommand.checkoutSessionId,
+            paymentIntentId: entitlementCommand.paymentIntentId,
           });
+          if (paymentAlertsConfigured()) {
+            await deliverDurablePaymentOperatorAlert(
+              event,
+              "fulfillment_attention",
+              alertOutbox,
+              sendStripeOperatorAlert,
+            );
+          }
         }
-      });
+      } catch {
+        // The response remains 503. Stripe retries the signed event; a durable
+        // pending intent, when present, is claimed again without reapplying the
+        // entitlement mutation.
+        console.error("Unable to persist or deliver fulfillment alert", {
+          eventRef: stripeReferenceSuffix(event.id),
+          type: event.type,
+        });
+      }
     }
 
     return webhookResponse({ error: "Entitlement persistence failed." }, 503);

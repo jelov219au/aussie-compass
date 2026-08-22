@@ -99,6 +99,187 @@ create table if not exists entitlement_event_tombstones (
   check (stripe_payment_intent_id is not null or stripe_charge_id is not null)
 );
 
+-- Crash-safe, non-PII delivery intents for the private operator mailbox. The
+-- Stripe event identifier is never stored here: md5(event_id) is only an
+-- idempotency lookup key and the visible reference is limited to its suffix.
+create table if not exists payment_operator_alert_outbox (
+  event_key text not null check (event_key ~ '^[a-f0-9]{32}$'),
+  alert_kind text not null check (alert_kind in (
+    'payment_completed', 'refund_event', 'dispute_event', 'fulfillment_attention'
+  )),
+  event_type text not null,
+  event_ref_last8 text not null check (event_ref_last8 ~ '^[A-Za-z0-9_]{1,8}$'),
+  livemode boolean not null,
+  product_code text check (product_code in ('resume_pro', 'rental_application_pro')),
+  checkout_ref_last8 text check (checkout_ref_last8 ~ '^[A-Za-z0-9_]{1,8}$'),
+  payment_intent_ref_last8 text check (payment_intent_ref_last8 ~ '^[A-Za-z0-9_]{1,8}$'),
+  charge_ref_last8 text check (charge_ref_last8 ~ '^[A-Za-z0-9_]{1,8}$'),
+  status text not null default 'pending' check (status in ('pending', 'sent')),
+  attempts integer not null default 0 check (attempts >= 0),
+  last_attempt_at timestamptz,
+  sent_at timestamptz,
+  lease_token_hash text check (lease_token_hash ~ '^[a-f0-9]{64}$'),
+  lease_expires_at timestamptz,
+  created_at timestamptz not null default now(),
+  primary key (event_key, alert_kind),
+  check (
+    (alert_kind = 'payment_completed' and event_type in (
+      'checkout.session.completed', 'checkout.session.async_payment_succeeded'
+    ))
+    or (alert_kind = 'refund_event' and event_type in (
+      'refund.created', 'refund.updated', 'refund.failed', 'charge.refunded'
+    ))
+    or (alert_kind = 'dispute_event' and event_type in (
+      'charge.dispute.created', 'charge.dispute.updated',
+      'charge.dispute.closed', 'charge.dispute.funds_reinstated'
+    ))
+    or (alert_kind = 'fulfillment_attention' and event_type in (
+      'checkout.session.completed', 'checkout.session.async_payment_succeeded'
+    ))
+  ),
+  check (
+    (status = 'pending' and sent_at is null)
+    or (status = 'sent' and sent_at is not null and lease_token_hash is null and lease_expires_at is null)
+  )
+);
+
+drop function if exists record_payment_operator_alert_intent(text, text, boolean);
+
+create or replace function record_payment_operator_alert_intent(
+  p_event_id text,
+  p_event_type text,
+  p_livemode boolean,
+  p_action text
+)
+returns boolean
+language plpgsql
+security invoker
+set search_path = public, pg_temp
+as $$
+declare
+  v_alert_kind text;
+begin
+  v_alert_kind := case
+    when p_event_type in ('checkout.session.completed', 'checkout.session.async_payment_succeeded')
+      and p_action = 'grant' then 'payment_completed'
+    when p_event_type in ('refund.created', 'refund.updated', 'refund.failed', 'charge.refunded') then 'refund_event'
+    when p_event_type in ('charge.dispute.created', 'charge.dispute.updated', 'charge.dispute.closed', 'charge.dispute.funds_reinstated') then 'dispute_event'
+  end;
+
+  if v_alert_kind is null then return false; end if;
+  if p_event_id is null or p_event_id !~ '^evt_[A-Za-z0-9]+$' or p_livemode is null then
+    raise exception 'Invalid payment operator alert intent';
+  end if;
+
+  insert into public.payment_operator_alert_outbox (
+    event_key, alert_kind, event_type, event_ref_last8, livemode
+  ) values (
+    md5(p_event_id), v_alert_kind, p_event_type, right(p_event_id, 8), p_livemode
+  ) on conflict (event_key, alert_kind) do nothing;
+  return true;
+end;
+$$;
+
+create or replace function enqueue_payment_operator_alert_failure(
+  p_event_id text,
+  p_event_type text,
+  p_livemode boolean,
+  p_product_code text,
+  p_checkout_session_id text,
+  p_payment_intent_id text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if p_event_id is null or p_event_id !~ '^evt_[A-Za-z0-9]+$'
+    or p_event_type not in ('checkout.session.completed', 'checkout.session.async_payment_succeeded')
+    or p_livemode is null or p_product_code <> 'resume_pro'
+    or p_checkout_session_id is null or p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
+    or p_payment_intent_id is null or p_payment_intent_id !~ '^pi_[A-Za-z0-9]+$'
+  then
+    raise exception 'Invalid fulfillment alert intent';
+  end if;
+
+  insert into public.payment_operator_alert_outbox (
+    event_key, alert_kind, event_type, event_ref_last8, livemode, product_code,
+    checkout_ref_last8, payment_intent_ref_last8
+  ) values (
+    md5(p_event_id), 'fulfillment_attention', p_event_type, right(p_event_id, 8),
+    p_livemode, p_product_code, right(p_checkout_session_id, 8), right(p_payment_intent_id, 8)
+  ) on conflict (event_key, alert_kind) do nothing;
+  return true;
+end;
+$$;
+
+create or replace function claim_payment_operator_alert_intent(
+  p_event_id text,
+  p_alert_kind text,
+  p_claim_token_hash text
+)
+returns table (
+  alert_kind text, event_type text, event_ref_last8 text, product_code text,
+  checkout_ref_last8 text, payment_intent_ref_last8 text, charge_ref_last8 text,
+  attempts integer
+)
+language sql
+security definer
+set search_path = public, pg_temp
+as $$
+  update public.payment_operator_alert_outbox alert
+  set attempts = alert.attempts + 1,
+      last_attempt_at = now(),
+      lease_token_hash = p_claim_token_hash,
+      lease_expires_at = now() + interval '2 minutes'
+  where alert.event_key = md5(p_event_id)
+    and alert.alert_kind = p_alert_kind
+    and p_event_id ~ '^evt_[A-Za-z0-9]+$'
+    and p_claim_token_hash ~ '^[a-f0-9]{64}$'
+    and alert.status = 'pending'
+    and (alert.lease_expires_at is null or alert.lease_expires_at < now())
+  returning alert.alert_kind, alert.event_type, alert.event_ref_last8, alert.product_code,
+    alert.checkout_ref_last8, alert.payment_intent_ref_last8, alert.charge_ref_last8,
+    alert.attempts;
+$$;
+
+create or replace function mark_payment_operator_alert_sent(
+  p_event_id text, p_alert_kind text, p_claim_token_hash text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  update public.payment_operator_alert_outbox alert
+  set status = 'sent', sent_at = now(), lease_token_hash = null, lease_expires_at = null
+  where alert.event_key = md5(p_event_id) and alert.alert_kind = p_alert_kind
+    and alert.status = 'pending' and alert.lease_token_hash = p_claim_token_hash
+    and p_event_id ~ '^evt_[A-Za-z0-9]+$' and p_claim_token_hash ~ '^[a-f0-9]{64}$';
+  return found;
+end;
+$$;
+
+create or replace function release_payment_operator_alert_claim(
+  p_event_id text, p_alert_kind text, p_claim_token_hash text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  update public.payment_operator_alert_outbox alert
+  set lease_token_hash = null, lease_expires_at = null
+  where alert.event_key = md5(p_event_id) and alert.alert_kind = p_alert_kind
+    and alert.status = 'pending' and alert.lease_token_hash = p_claim_token_hash
+    and p_event_id ~ '^evt_[A-Za-z0-9]+$' and p_claim_token_hash ~ '^[a-f0-9]{64}$';
+  return found;
+end;
+$$;
+
 create index if not exists entitlement_event_tombstones_payment_intent_idx
   on entitlement_event_tombstones (stripe_payment_intent_id)
   where stripe_payment_intent_id is not null;
@@ -330,6 +511,16 @@ begin
   )
   on conflict (stripe_event_id) do nothing
   returning stripe_event_id into v_inserted_event_id;
+
+  -- The delivery intent is part of the same transaction as the receipt and
+  -- entitlement mutation. A duplicate signed Stripe delivery can backfill an
+  -- intent created before this migration, but cannot create a second one.
+  perform public.record_payment_operator_alert_intent(
+    p_event_id,
+    p_event_type,
+    p_livemode,
+    p_action
+  );
 
   if v_inserted_event_id is not null
     and p_payment_intent_id is not null
@@ -594,10 +785,19 @@ $$;
 -- 7. Preserve revoked when later refund lifecycle events only request manual review.
 -- 8. Persist refund/dispute tombstones before any matching grant and compare by
 --    Stripe created_at, with revoke > review > active for same-second events.
--- 9. Store only Stripe object identifiers and reason codes; never webhook payloads.
+-- 9. Store only Stripe object identifiers and reason codes in entitlement
+--    records; operator outbox rows store only hashed lookup keys and suffixes.
+-- 10. Never store customer email, card data, a full Stripe ID, arbitrary JSON
+--     or a webhook payload in payment_operator_alert_outbox.
 
+revoke all on table payment_operator_alert_outbox from public;
 revoke insert, update, delete on entitlement_event_tombstones, stripe_payment_object_links from public;
 revoke all on function prevent_entitlement_tombstone_mutation() from public;
+revoke all on function record_payment_operator_alert_intent(text, text, boolean, text) from public;
+revoke all on function enqueue_payment_operator_alert_failure(text, text, boolean, text, text, text) from public;
+revoke all on function claim_payment_operator_alert_intent(text, text, text) from public;
+revoke all on function mark_payment_operator_alert_sent(text, text, text) from public;
+revoke all on function release_payment_operator_alert_claim(text, text, text) from public;
 
 insert into schema_migrations (version)
 values ('20260818_entitlement_baseline_v1')
@@ -605,6 +805,10 @@ on conflict (version) do nothing;
 
 insert into schema_migrations (version)
 values ('20260823_entitlement_negative_event_tombstones_v1')
+on conflict (version) do nothing;
+
+insert into schema_migrations (version)
+values ('20260823_payment_operator_alert_outbox_v1')
 on conflict (version) do nothing;
 
 commit;
