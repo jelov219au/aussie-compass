@@ -39,6 +39,9 @@ Resume Pro is a one-time AUD 19.90 product sold by an Australian sole trader. Pr
 - Never place `STRIPE_SECRET_KEY` or `STRIPE_WEBHOOK_SECRET` in variables prefixed with `NEXT_PUBLIC_`.
 - Sign access cookies with a separate `ENTITLEMENT_SESSION_SECRET` of at least 32 random characters and keep it server-only.
 - Run `npm run security:secrets` before publishing changes to catch accidentally tracked Stripe or Vercel credentials.
+- Require the GitHub Actions `Quality gate` check on pull requests. It runs lint, a production build, payment and entitlement contracts, and the tracked-source secret scan through `npm run quality:gate` without using live credentials.
+- Apply `docs/entitlement-storage.sql` as a transactional, recorded migration before deploying code that depends on a new schema version. Follow `docs/database-recovery.md` for backup and isolated restore drills; a production restore always requires explicit approval.
+- Do not add a push-delivery surface until it has a durable unique delivery ID and duplicate claim. The quality gate treats that deduplication as a release prerequisite.
 - Test successful payment, cancellation, duplicate webhook, refund, chargeback and failed payment in Stripe test mode.
 - Run `npm run test:entitlement-ordering` before publishing payment changes.
 - Run `npm run test:entitlement-commands` to verify paid, unpaid, asynchronous, refund and dispute events map to the intended access state.

@@ -7,7 +7,7 @@ import { hashRestoreCode, setResumeProAccessCookie } from "@/lib/resumeProAccess
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const requestCheck = validateSameOriginMutation(request, {
+  const requestCheck = await validateSameOriginMutation(request, {
     maxBodyBytes: 2 * 1024,
     allowedContentTypes: ["application/x-www-form-urlencoded", "multipart/form-data"],
   });

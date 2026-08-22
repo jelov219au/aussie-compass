@@ -21,7 +21,7 @@ function createIntegrationIdentifier() {
 }
 
 export async function POST(request: NextRequest) {
-  const requestCheck = validateSameOriginMutation(request, {
+  const requestCheck = await validateSameOriginMutation(request, {
     maxBodyBytes: 4 * 1024,
     allowedContentTypes: checkoutRequestContentTypes,
   });

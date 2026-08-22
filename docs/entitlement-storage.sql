@@ -2,6 +2,13 @@
 -- This is provider-neutral PostgreSQL DDL and is not connected to any live database.
 -- Apply a Stripe event and its entitlement change in one database transaction.
 
+begin;
+
+create table if not exists schema_migrations (
+  version text primary key,
+  applied_at timestamptz not null default now()
+);
+
 create table if not exists payment_webhook_events (
   stripe_event_id text primary key,
   event_type text not null,
@@ -286,3 +293,9 @@ $$;
 -- 5. Do not store the full Stripe webhook payload unless a separate retention and privacy policy is approved.
 -- 6. Preserve last_stripe_event_created_at so delayed events cannot overwrite a newer entitlement state.
 -- 7. Preserve revoked when later refund lifecycle events only request manual review.
+
+insert into schema_migrations (version)
+values ('20260818_entitlement_baseline_v1')
+on conflict (version) do nothing;
+
+commit;

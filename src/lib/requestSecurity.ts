@@ -1,7 +1,5 @@
 import "server-only";
 
-import type { NextRequest } from "next/server";
-
 type MutationRequestOptions = {
   maxBodyBytes?: number;
   allowedContentTypes?: string[];
@@ -15,10 +13,10 @@ function normalizedContentType(value: string | null) {
   return value?.split(";", 1)[0]?.trim().toLowerCase() ?? "";
 }
 
-export function validateSameOriginMutation(
-  request: NextRequest,
+export async function validateSameOriginMutation(
+  request: Request,
   options: MutationRequestOptions = {},
-): MutationRequestCheck {
+): Promise<MutationRequestCheck> {
   const origin = request.headers.get("origin");
   const fetchSite = request.headers.get("sec-fetch-site")?.toLowerCase();
   const requiresOrigin = process.env.VERCEL_ENV === "production";
@@ -29,7 +27,7 @@ export function validateSameOriginMutation(
 
   if (origin) {
     try {
-      if (new URL(origin).origin !== request.nextUrl.origin) {
+      if (new URL(origin).origin !== new URL(request.url).origin) {
         return { ok: false, status: 403, error: "Invalid request origin." };
       }
     } catch {
@@ -56,6 +54,17 @@ export function validateSameOriginMutation(
     const contentType = normalizedContentType(request.headers.get("content-type"));
     if (!options.allowedContentTypes.includes(contentType)) {
       return { ok: false, status: 400, error: "Unsupported request content type." };
+    }
+  }
+
+  if (options.maxBodyBytes) {
+    try {
+      const body = await request.clone().arrayBuffer();
+      if (body.byteLength > options.maxBodyBytes) {
+        return { ok: false, status: 413, error: "Request body is too large." };
+      }
+    } catch {
+      return { ok: false, status: 400, error: "Invalid request body." };
     }
   }
 

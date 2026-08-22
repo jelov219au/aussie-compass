@@ -14,6 +14,7 @@ const operatorRoutes = new Map([
 
 const operatorOnlyFiles = new Set([
   ...operatorRoutes.values(),
+  "src/app/api/resume-pro-performance/connection/route.ts",
   "src/components/tools/CampaignLinkBuilder.tsx",
   "src/components/tools/ContentPerformanceTracker.tsx",
   "src/components/tools/ContentPublishingPlanner.tsx",

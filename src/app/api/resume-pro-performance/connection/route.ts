@@ -1,5 +1,6 @@
 import { requireLocalOperatorAccess } from "@/lib/operatorOnly";
 import { saveLocalOperatorConnection } from "@/lib/localOperatorConnection";
+import { validateSameOriginMutation } from "@/lib/requestSecurity";
 
 function isLoopback(hostname: string) {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
@@ -13,12 +14,17 @@ export async function POST(request: Request) {
   requireLocalOperatorAccess();
 
   const requestUrl = new URL(request.url);
-  const originText = request.headers.get("origin");
-  if (!isLoopback(requestUrl.hostname) || !originText) return new Response("Forbidden", { status: 403 });
+  if (!isLoopback(requestUrl.hostname)) return new Response("Forbidden", { status: 403 });
 
-  const origin = new URL(originText);
-  if (origin.origin !== requestUrl.origin || !isLoopback(origin.hostname)) {
-    return new Response("Forbidden", { status: 403 });
+  const security = await validateSameOriginMutation(request, {
+    maxBodyBytes: 4 * 1024,
+    allowedContentTypes: ["application/x-www-form-urlencoded", "multipart/form-data"],
+  });
+  if (!security.ok) {
+    return new Response(security.error, {
+      status: security.status,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   const form = await request.formData();

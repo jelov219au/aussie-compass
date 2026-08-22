@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . && node scripts/check-public-boundaries.mjs",
+    "lint": "eslint . --max-warnings=0 && node scripts/check-public-boundaries.mjs",
     "payments:check": "node scripts/check-payment-launch.mjs",
     "test:stripe-contract": "node scripts/check-stripe-checkout-contract.mjs",
     "test:entitlement-commands": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-entitlement-commands.mjs",
@@ -20,7 +20,10 @@
     "test:accounting-contract": "node scripts/check-accounting-export-contract.mjs",
     "accounting:export": "node scripts/export-stripe-accounting.mjs",
     "accounting:merge": "node scripts/merge-stripe-accounting.mjs",
-    "security:secrets": "node scripts/check-secrets.mjs"
+    "security:secrets": "node scripts/check-secrets.mjs",
+    "test:security-contract": "node scripts/check-security-contract.mjs",
+    "test:database-operations": "node scripts/check-database-operations.mjs",
+    "quality:gate": "npm run lint && npm run build && npm run test:security-contract && npm run test:stripe-contract && npm run test:entitlement-commands && npm run test:resume-pro-tokens && npm run test:resume-mobile-value && npm run test:resume-interview && npm run test:resume-onboarding && npm run test:entitlement-ordering && npm run test:product-entitlements && npm run test:payment-alerts && npm run test:accounting-contract && npm run test:push-reminders && npm run test:database-operations && npm run security:secrets"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
