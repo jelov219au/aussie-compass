@@ -51,7 +51,11 @@ export default async function ResumeProSuccessPage({ searchParams }: Props) {
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
             {paid ? "결제가 확인됐습니다." : "구매 내역을 안전하게 확인해 주세요."}
           </h1>
-          <ResumeProActivationForm initialSessionId={sessionId} initialNotice={initialNotice} />
+          <ResumeProActivationForm
+            initialSessionId={sessionId}
+            initialNotice={initialNotice}
+            hasExplicitNotice={Boolean(status)}
+          />
         </Container>
       </main>
       <Footer />

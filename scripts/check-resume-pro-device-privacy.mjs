@@ -71,6 +71,9 @@ for (const contract of [
   "삭제한 내용은 복구할 수 없습니다",
   "disabled={!deleteConfirmed || deleting}",
   "접근 해제 + 이 기기 데이터 완전 삭제",
+  "요청 결과를 확인하지 못했어요. 다시 결제하지 마세요.",
+  "접근 상태 다시 확인",
+  "고객지원 문의",
 ]) assert.ok(privacyTools.includes(contract), `device-deletion safety copy is missing: ${contract}`);
 
 assert.ok(
@@ -78,9 +81,16 @@ assert.ok(
   "local data must only be purged after the cookie-release response succeeds",
 );
 assert.ok(privacyTools.includes('"X-Hoju-Compass-Mutation": "device-purge"'), "the cookie-release request must carry non-simple same-origin mutation proof");
+assert.ok(privacyTools.includes('Accept: "application/json"'), "client releases must request a non-redirecting, machine-checkable result");
+assert.ok(privacyTools.includes('result?.released !== true') && privacyTools.includes('result.destination !== "/resume-pro?access=released"'), "success must be claimed only after the exact release result");
+assert.doesNotMatch(privacyTools, /result\?\.error|caught\.message|Unable to release/, "raw server and English errors must never reach the customer");
+assert.match(privacyTools, /role="alert" aria-live="assertive"/);
+assert.equal((privacyTools.match(/min-h-1[12] w-full/g) ?? []).length >= 3, true, "release and recovery actions must remain full-width at 390px");
 assert.ok(accessRoute.includes("clearResumeProAccessCookie"), "the release route must expire the entitlement cookie");
-assert.ok(accessRoute.indexOf("clearResumeProAccessCookie") < accessRoute.indexOf("{ released: true }"), "the device-purge API must clear the cookie before returning a non-redirecting success response");
+assert.ok(accessRoute.indexOf("clearResumeProAccessCookie") < accessRoute.indexOf("NextResponse.json({ released: true"), "the device-purge API must clear the cookie before returning a non-redirecting success response");
 assert.ok(accessRoute.includes('"Cache-Control": "no-store"'), "the device-purge success response must not be cached");
+assert.ok(accessRoute.includes('code: "release_unavailable"') && accessRoute.includes('code: "release_request_rejected"'), "release failures must return sanitized fixed codes");
+assert.doesNotMatch(accessRoute, /Unable to release|requestCheck\.error/, "release APIs must not expose raw English or request errors");
 assert.ok(requestSecurity.includes('fetchSite !== "same-origin" && !explicitMutationProof'), "production mutations must require standard or explicit non-simple same-origin proof when Origin is omitted");
 assert.ok(requestSecurity.includes('x-hoju-compass-mutation') && requestSecurity.includes('=== "device-purge"'), "only the allowlisted device-purge mutation proof may replace an omitted Origin");
 assert.ok(requestSecurity.includes('if (origin && !explicitMutationProof)'), "proxy-rewritten Origin values may only be replaced by the non-simple device-purge proof");

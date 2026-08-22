@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
   const requestCheck = await validateSameOriginMutation(request, { maxBodyBytes: 1024 });
   if (!requestCheck.ok) {
-    return NextResponse.json({ error: requestCheck.error }, {
+    return NextResponse.json({ code: "release_request_rejected" }, {
       status: requestCheck.status,
       headers: { "Cache-Control": "no-store" },
     });
@@ -23,15 +23,17 @@ export async function POST(request: NextRequest) {
       productCode: "resume_pro",
       accessSessionHash: hashAccessSessionId(payload.accessSessionId),
     })) {
-      return NextResponse.json({ error: "Unable to release this device." }, {
+      return NextResponse.json({ code: "release_unavailable" }, {
         status: 503,
         headers: { "Cache-Control": "no-store" },
       });
     }
   }
   await clearResumeProAccessCookie();
-  if (request.headers.get("x-hoju-compass-mutation") === "device-purge") {
-    return NextResponse.json({ released: true }, {
+  const wantsJson = request.headers.get("accept")?.includes("application/json")
+    || request.headers.get("x-hoju-compass-mutation") === "device-purge";
+  if (wantsJson) {
+    return NextResponse.json({ released: true, destination: "/resume-pro?access=released" }, {
       headers: { "Cache-Control": "no-store" },
     });
   }

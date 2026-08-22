@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type FormEvent, useEffect, useState } from "react";
 
 const activationStorageKey = "hoju_compass_resume_pro_activation_v1";
+const postPurchaseNoticeStorageKey = "hoju_compass_resume_pro_notice_v1";
 const sessionPattern = /^cs_(?:test|live)_[A-Za-z0-9]+$/;
 const noncePattern = /^[A-Za-z0-9_-]{40,128}$/;
 
@@ -38,12 +39,19 @@ function readStoredActivation() {
   }
 }
 
+function readStoredPostPurchaseNotice(): NoticeKind | null {
+  const value = window.sessionStorage.getItem(postPurchaseNoticeStorageKey);
+  return value === "refunded" || value === "review" ? value : null;
+}
+
 export function ResumeProActivationForm({
   initialSessionId,
   initialNotice,
+  hasExplicitNotice,
 }: {
   initialSessionId?: string;
   initialNotice: NoticeKind;
+  hasExplicitNotice: boolean;
 }) {
   const [activation, setActivation] = useState<ActivationState | null>(null);
   const [notice, setNotice] = useState<NoticeKind>(initialNotice);
@@ -62,6 +70,18 @@ export function ResumeProActivationForm({
 
   useEffect(() => {
     let next = readStoredActivation();
+    try {
+      if (initialNotice === "refunded" || initialNotice === "review") {
+        window.sessionStorage.setItem(postPurchaseNoticeStorageKey, initialNotice);
+      } else if (initialSessionId || hasExplicitNotice) {
+        window.sessionStorage.removeItem(postPurchaseNoticeStorageKey);
+      } else {
+        const storedNotice = readStoredPostPurchaseNotice();
+        if (storedNotice) setNotice(storedNotice);
+      }
+    } catch {
+      setNotice("unavailable");
+    }
     if (initialSessionId && sessionPattern.test(initialSessionId)) {
       if (!next || next.sessionId !== initialSessionId) {
         next = { sessionId: initialSessionId, nonce: createActivationNonce() };
@@ -78,7 +98,7 @@ export function ResumeProActivationForm({
     if (window.location.search) {
       window.history.replaceState(window.history.state, "", window.location.pathname);
     }
-  }, [initialSessionId]);
+  }, [hasExplicitNotice, initialNotice, initialSessionId]);
 
   async function activate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -110,6 +130,15 @@ export function ResumeProActivationForm({
               : body?.code === "activation_missing" ? "pending"
                 : "unavailable";
       setNotice(nextNotice);
+      try {
+        if (nextNotice === "refunded" || nextNotice === "review") {
+          window.sessionStorage.setItem(postPurchaseNoticeStorageKey, nextNotice);
+        } else {
+          window.sessionStorage.removeItem(postPurchaseNoticeStorageKey);
+        }
+      } catch {
+        setNotice("unavailable");
+      }
       if (nextNotice === "used" || nextNotice === "released" || nextNotice === "refunded") {
         window.sessionStorage.removeItem(activationStorageKey);
         setActivation(null);

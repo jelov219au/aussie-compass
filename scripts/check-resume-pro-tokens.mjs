@@ -430,6 +430,12 @@ assert.match(activateRoute, /\/resume-pro\/restore\?status=activation-used/);
 assert.match(activateRoute, /\/resume-pro\/restore\?status=activation-released/);
 assert.match(activationForm, /window\.crypto\.getRandomValues/);
 assert.match(activationForm, /window\.sessionStorage\.setItem\(activationStorageKey/);
+assert.match(activationForm, /postPurchaseNoticeStorageKey = "hoju_compass_resume_pro_notice_v1"/);
+assert.match(activationForm, /value === "refunded" \|\| value === "review"/);
+assert.match(activationForm, /window\.sessionStorage\.setItem\(postPurchaseNoticeStorageKey, initialNotice\)/);
+assert.match(activationForm, /const storedNotice = readStoredPostPurchaseNotice\(\);[\s\S]*if \(storedNotice\) setNotice\(storedNotice\)/);
+assert.match(activationForm, /initialSessionId \|\| hasExplicitNotice/);
+assert.doesNotMatch(activationForm, /sessionStorage\.setItem\(postPurchaseNoticeStorageKey, (?:session|body|status|error)/, "only the sanitized refund/review enum may persist");
 assert.match(activationForm, /window\.history\.replaceState\(window\.history\.state, "", window\.location\.pathname\)/);
 assert.ok(
   activationForm.indexOf("window.history.replaceState") < activationForm.indexOf("async function activate"),
@@ -452,7 +458,7 @@ for (const noticeCopy of [
   "결제 상태를 확인하고 있습니다. 다시 결제하지 마세요.",
 ]) assert.ok(activationForm.includes(noticeCopy), `post-purchase copy must block repurchase in its first two sentences: ${noticeCopy}`);
 assert.doesNotMatch(activationForm, /track\(/, "activation recovery must not add a new analytics event");
-assert.match(successPage, /<ResumeProActivationForm initialSessionId=\{sessionId\}/);
+assert.match(successPage, /<ResumeProActivationForm[\s\S]*initialSessionId=\{sessionId\}[\s\S]*hasExplicitNotice=\{Boolean\(status\)\}/);
 assert.match(restorePage, /<ResumeProRestoreForm initialStatus=\{status\}/);
 assert.match(restoreForm, /window\.crypto\.getRandomValues/);
 assert.match(restoreForm, /window\.sessionStorage\.setItem\(restoreNonceStorageKey, nonce\)/);
@@ -470,6 +476,9 @@ assert.match(resumeProPage, /const canOfferCheckout = checkoutAvailable && !exis
 assert.doesNotMatch(successPage, /서명된 웹훅|접근 세션/);
 assert.doesNotMatch(activateRoute, /setResumeProAccessCookie\([^)]*findActiveByCheckoutSession/);
 assert.match(releaseRoute, /releaseAccessSession/);
+assert.match(releaseRoute, /release_request_rejected/);
+assert.match(releaseRoute, /release_unavailable/);
+assert.doesNotMatch(releaseRoute, /Unable to release|requestCheck\.error/);
 assert.ok(
   releaseRoute.indexOf("await store.releaseAccessSession") < releaseRoute.indexOf("await clearResumeProAccessCookie"),
   "server release must revoke the exact access session before clearing the cookie",
