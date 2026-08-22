@@ -240,6 +240,22 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
     trackResumeBuilderStarted();
   };
 
+  const updateFirstExperienceDetails = (value: string) => {
+    setResume((current) => {
+      const [firstExperience, ...remainingExperiences] = current.experiences;
+      if (!firstExperience) {
+        return {
+          ...current,
+          experiences: [{ id: makeId("experience"), role: "", company: "", period: "", details: value }],
+        };
+      }
+      return {
+        ...current,
+        experiences: [{ ...firstExperience, details: value }, ...remainingExperiences],
+      };
+    });
+  };
+
   return (
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(620px,1.1fr)]">
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-form-heading" onClickCapture={trackBuilderInteraction} onInputCapture={trackBuilderInteraction}>
@@ -251,6 +267,14 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
           <div className="flex items-center justify-between gap-4 text-sm"><span className="font-medium text-navy">필수 내용 {completedEssentials}/7</span><button type="button" onClick={loadExample} className="min-h-11 font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">예시 불러오기</button></div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white" role="progressbar" aria-label="이력서 필수 내용 완성도" aria-valuemin={0} aria-valuemax={7} aria-valuenow={completedEssentials}><div className="h-full rounded-full bg-gold transition-[width]" style={{ width: `${(completedEssentials / 7) * 100}%` }} /></div>
         </div>
+
+        <section className="mt-4 border-l-2 border-gold bg-gold/5 p-3 sm:mt-5 sm:p-4" aria-labelledby="resume-quick-start-heading">
+          <h3 id="resume-quick-start-heading" className="text-lg font-semibold leading-7 text-navy">내 경험 한 줄부터 저장하세요.</h3>
+          <p id="resume-quick-start-help" className="mt-2 text-sm leading-6 text-muted">AI 예시 대신, 내가 한 행동과 확인 가능한 결과를 적어요. 브라우저에 자동 저장되고 아래 경력란에도 이어집니다.</p>
+          <label className="mt-3 block text-sm font-medium text-navy" htmlFor="resume-quick-achievement">저장할 경험 한 줄</label>
+          <input id="resume-quick-achievement" aria-describedby="resume-quick-start-help resume-quick-start-next" className={inputClass} value={resume.experiences[0]?.details ?? ""} onChange={(event) => updateFirstExperienceDetails(event.target.value)} placeholder="[내가 한 행동] + [상황] + [확인 가능한 결과]" />
+          <p id="resume-quick-start-next" className="mt-3 text-xs leading-5 text-muted">나머지를 채우면 무료 PDF로 내보내고, 공고가 정해진 뒤에만 Pro로 이어갈 수 있어요.</p>
+        </section>
 
         <fieldset className="mt-7 rounded-xl border border-border p-4">
           <legend className="px-1 text-base font-semibold text-navy">디자인</legend>
