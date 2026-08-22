@@ -175,6 +175,7 @@ const activationMigration = fs.readFileSync(new URL("../docs/migrations/20260823
 const accessSessionMigration = fs.readFileSync(new URL("../docs/migrations/20260823_purchase_access_sessions_v1.sql", import.meta.url), "utf8");
 const successPage = fs.readFileSync(new URL("../src/app/resume-pro/success/page.tsx", import.meta.url), "utf8");
 const resumeProPage = fs.readFileSync(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8");
+const restorePage = fs.readFileSync(new URL("../src/app/resume-pro/restore/page.tsx", import.meta.url), "utf8");
 const tokenSource = fs.readFileSync(new URL("../src/lib/resumeProTokens.ts", import.meta.url), "utf8");
 const accessSource = fs.readFileSync(new URL("../src/lib/resumeProAccess.ts", import.meta.url), "utf8");
 
@@ -272,8 +273,26 @@ assert.ok(
 assert.match(activationForm, /aria-live="polite"/);
 assert.match(activationForm, /min-h-12 w-full[\s\S]*sm:w-auto/);
 assert.match(activationForm, /activation_used[\s\S]*activation_released[\s\S]*activation_revoked[\s\S]*activation_review/);
+assert.match(activationForm, /notice !== "review"/, "review state must not offer workspace activation");
+assert.match(activationForm, /canUseRestoreCode = notice !== "refunded" && notice !== "review"/, "refund and review states must not prioritize restore");
+assert.match(activationForm, /notice === "refunded"[\s\S]*href="\/contact"[\s\S]*환불 내역 문의하기/);
+assert.match(activationForm, /notice === "review"[\s\S]*결제 상태 재확인 순서 보기[\s\S]*고객지원 문의하기/);
+for (const noticeCopy of [
+  "결제가 확인됐습니다. 다시 결제하지 마세요.",
+  "결제 처리를 확인하고 있습니다. 다시 결제하지 마세요.",
+  "이용 준비 상태를 확인할 수 없습니다. 다시 결제하지 마세요.",
+  "이 결제 완료 주소는 이미 다른 브라우저에서 사용됐습니다. 다시 결제하지 마세요.",
+  "이 기기의 이용 연결은 이미 해제됐습니다. 다시 결제하지 마세요.",
+  "환불 완료로 Resume Pro 이용이 종료됐습니다. 다시 결제하지 마세요.",
+  "결제 상태를 확인하고 있습니다. 다시 결제하지 마세요.",
+]) assert.ok(activationForm.includes(noticeCopy), `post-purchase copy must block repurchase in its first two sentences: ${noticeCopy}`);
 assert.doesNotMatch(activationForm, /track\(/, "activation recovery must not add a new analytics event");
 assert.match(successPage, /<ResumeProActivationForm initialSessionId=\{sessionId\}/);
+assert.match(restorePage, /코드가 잘못됐거나 만료·사용 처리됐습니다\. 다시 결제하지 마세요\./);
+assert.match(restorePage, /href="\/payment-help"/);
+assert.match(restorePage, /href="\/resume-builder"[\s\S]*무료 이력서 빌더 이용하기/);
+assert.doesNotMatch(restorePage, /href="\/resume-pro"/, "replay and restore screens must lead to the free Builder, not the purchase page");
+assert.doesNotMatch(restorePage, /track\(|ResumeProVisitTracker/, "restore visits must stay outside the Resume Pro funnel");
 assert.match(resumeProPage, /!existingBuyerIssue && <ResumeProVisitTracker/);
 assert.match(resumeProPage, /const canOfferCheckout = checkoutAvailable && !existingBuyerIssue/);
 assert.doesNotMatch(successPage, /서명된 웹훅|접근 세션/);

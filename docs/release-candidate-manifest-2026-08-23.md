@@ -228,6 +228,7 @@ If `operatorAlertsConfigured` is false, `getPaymentReadiness().ready` is false a
 - Published product-provider legal/registered name, ABN and support information. These fields do not establish the Managed Payments transaction seller; verify that separately from live Checkout and the issued receipt/invoice.
 - Production payment operator alerts are enabled, the support mailbox is monitored, and controlled purchase/refund alerts have been received. Evidence includes suffix-only references, outbox pending/sent/attempt counts, SMTP fail→503→retry, busy-worker 503 and stale-lease recovery without sensitive payment data.
 - Access evidence includes activation/restore session issuance, consumed/idempotent/released outcomes, same-nonce stable-session response-loss recovery, old-cookie denial after release-response loss, another device remaining active, different-nonce replay denial, refund/review/expiry denial, legacy-cookie denial and URL query removal after hydration.
+- Post-purchase UX evidence distinguishes refunded support from under-review status recheck, keeps restore/replay paths on the free Builder instead of the purchase page, suppresses activation/restore priority for refund/review, and emits none of the six fixed Resume funnel events from those issue pages.
 - GitHub branch protection must mark the new `Quality gate` workflow as required; committing the workflow alone does not enforce it.
 - Vercel environment scoping and deployment-protection review.
 

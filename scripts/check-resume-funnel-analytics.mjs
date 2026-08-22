@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [contract, client, builder, articleStep, homeSection, finder, report, reportPage, privacyDoc] = await Promise.all([
+const [contract, client, builder, articleStep, homeSection, finder, report, reportPage, privacyDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage] = await Promise.all([
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeFunnelAnalytics.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeBuilder.tsx", import.meta.url), "utf8"),
@@ -11,6 +11,11 @@ const [contract, client, builder, articleStep, homeSection, finder, report, repo
   readFile(new URL("../src/lib/resumeProPerformance.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-pro-performance/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../docs/privacy-safe-analytics.md", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/analytics/ResumeProVisitTracker.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/ResumeProCheckoutForm.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/ResumeProActivationForm.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/resume-pro/success/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/resume-pro/restore/page.tsx", import.meta.url), "utf8"),
 ]);
 
 for (const eventName of ["Resume Builder Started", "Resume Pro CTA Clicked"]) {
@@ -46,5 +51,18 @@ for (const source of [builder, articleStep, homeSection, finder]) {
 
 assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("report.proCtaClicks"), "operator report must show both new aggregate steps");
 assert.ok(privacyDoc.includes("Names, STAR text, company names, search terms, full URLs and URL queries are never read or sent."), "privacy boundary must name prohibited resume and URL values");
+
+assert.equal((contract.match(/^\s+\w+:\s+"Resume /gm) ?? []).length, 2, "the fixed resume funnel contract must keep exactly two shared event names");
+for (const [source, eventNames] of [
+  [builder, ["Resume Builder Completed", "Resume Export Started"]],
+  [visitTracker, ["Resume Pro Viewed"]],
+  [checkoutForm, ["Checkout Started"]],
+]) {
+  const literalEvents = [...source.matchAll(/track\("([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(literalEvents, eventNames, "the existing six-event resume boundary changed unexpectedly");
+}
+for (const postPurchaseSource of [activationForm, successPage, restorePage]) {
+  assert.doesNotMatch(postPurchaseSource, /\btrack\(|ResumeProVisitTracker/, "post-purchase issue pages must not emit a resume funnel event");
+}
 
 console.log("Privacy-safe resume funnel analytics contract passed.");

@@ -33,6 +33,7 @@
 | Replay/restore | URL query removed, replay DENIED, release-response-loss old-cookie DENIED, restore-session PASS, other-session ACTIVE | 해제한 기기만 차단되고 다른 기기 세션은 유지 |
 | Access session | activation/restore source, active/expired/revoked boolean, legacy-cookie DENIED | 서버 검증 wrapper만 접근 허용, 원문 session ID·cookie 미기록 |
 | 상태 보호 | refund `revoked`, review `review`, first-sale `LOCKED` | 환불/검토 뒤 자동 재결제·자동 reopen 없음 |
+| 고객 다음 행동 | 환불 완료는 환불 내역 문의, 검토 중은 상태 재확인·지원, replay/restore는 무료 Builder로 연결 | 환불·검토 화면에서 작업공간 열기·복구를 우선하지 않고 구매 페이지나 `Resume Pro Viewed`로 되돌리지 않음 |
 
 SMTP 재시도나 동일 Message-ID의 중복 이메일은 회계 사건이 아니다. 회계 장부는 Stripe 원거래와 실제 refund/charge/dispute 식별자를 private 원본에서 대사해 각각 한 번만 반영하며, 메일 수신 횟수나 outbox attempts를 매출·환불 건수로 사용하지 않는다.
 

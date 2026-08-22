@@ -48,6 +48,17 @@ export function ResumeProActivationForm({
   const [activation, setActivation] = useState<ActivationState | null>(null);
   const [notice, setNotice] = useState<NoticeKind>(initialNotice);
   const [submitting, setSubmitting] = useState(false);
+  const canAttemptActivation = Boolean(activation)
+    && notice !== "refunded"
+    && notice !== "released"
+    && notice !== "used"
+    && notice !== "review";
+  const canUseRestoreCode = notice !== "refunded" && notice !== "review";
+  const heading = notice === "refunded"
+    ? "환불 내역 확인"
+    : notice === "review"
+      ? "결제 상태 확인"
+      : "구매한 Resume Pro 열기";
 
   useEffect(() => {
     let next = readStoredActivation();
@@ -112,19 +123,32 @@ export function ResumeProActivationForm({
 
   return (
     <section className="mt-8 border-l-2 border-gold bg-white p-5 sm:p-6" aria-labelledby="resume-pro-activation-heading">
-      <h2 id="resume-pro-activation-heading" className="text-lg font-semibold text-navy">구매한 Resume Pro 열기</h2>
+      <h2 id="resume-pro-activation-heading" className="text-lg font-semibold text-navy">{heading}</h2>
       <p className="mt-3 text-sm leading-7 text-muted" role="status" aria-live="polite" aria-atomic="true">{notices[notice]}</p>
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        {activation && notice !== "refunded" && notice !== "released" && notice !== "used" && (
-          <form action="/api/resume-pro/access/activate" method="post" onSubmit={activate}>
+        {canAttemptActivation && (
+          <form action="/api/resume-pro/access/activate" method="post" onSubmit={activate} className="w-full sm:w-auto">
             <button type="submit" disabled={submitting} aria-busy={submitting} className="inline-flex min-h-12 w-full items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy disabled:cursor-wait disabled:opacity-60 sm:w-auto">
               {submitting ? "이용권 확인 중…" : "Resume Pro 열기"}
             </button>
           </form>
         )}
-        <Link href="/resume-pro/restore" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy">1회용 코드로 복구</Link>
-        <Link href="/payment-help" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy">고객지원 확인 순서</Link>
-        <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 py-3 text-sm font-semibold text-navy">무료 이력서 빌더</Link>
+        {notice === "refunded" && (
+          <Link href="/contact" className="inline-flex min-h-12 w-full items-center justify-center bg-navy px-5 py-3 text-center text-sm font-semibold text-white sm:w-auto">환불 내역 문의하기</Link>
+        )}
+        {notice === "review" && (
+          <>
+            <Link href="/payment-help" className="inline-flex min-h-12 w-full items-center justify-center bg-navy px-5 py-3 text-center text-sm font-semibold text-white sm:w-auto">결제 상태 재확인 순서 보기</Link>
+            <Link href="/contact" className="inline-flex min-h-12 w-full items-center justify-center border border-navy px-5 py-3 text-center text-sm font-semibold text-navy sm:w-auto">고객지원 문의하기</Link>
+          </>
+        )}
+        {canUseRestoreCode && (
+          <Link href="/resume-pro/restore" className="inline-flex min-h-12 w-full items-center justify-center border border-navy px-5 py-3 text-center text-sm font-semibold text-navy sm:w-auto">1회용 코드로 복구</Link>
+        )}
+        {notice !== "refunded" && notice !== "review" && (
+          <Link href="/payment-help" className="inline-flex min-h-12 w-full items-center justify-center border border-navy px-5 py-3 text-center text-sm font-semibold text-navy sm:w-auto">고객지원 확인 순서</Link>
+        )}
+        <Link href="/resume-builder" className="inline-flex min-h-12 w-full items-center justify-center border border-navy px-5 py-3 text-center text-sm font-semibold text-navy sm:w-auto">무료 이력서 빌더</Link>
       </div>
     </section>
   );
