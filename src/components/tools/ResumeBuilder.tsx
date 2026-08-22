@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
+import Link from "next/link";
 import { track } from "@vercel/analytics";
 import { ResumeProCtaLink, trackResumeBuilderStarted } from "@/components/analytics/ResumeFunnelAnalytics";
 import { resumeFunnelContexts, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
@@ -355,10 +356,15 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
           <h2 id="resume-next-step-heading" className="mt-2 text-xl font-semibold text-navy">이제 어떻게 준비할까요?</h2>
           <p className="mt-2 text-sm leading-6 text-muted">지금 만든 이력서는 무료로 저장할 수 있어요. 지원할 공고가 있다면 같은 내용을 다시 쓰지 않고 회사에 맞춰 이어서 준비할 수도 있고요.</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <button type="button" onClick={() => saveAsPdf("completion_choice")} className="flex min-h-24 flex-col items-start justify-center bg-navy px-5 py-4 text-left text-white hover:bg-navy-light">
-              <strong className="text-base">무료 PDF로 저장하기</strong>
-              <span className="mt-1 text-xs leading-5 text-white/65">인쇄 창에서 PDF 저장을 선택하세요.</span>
-            </button>
+            <div className="grid gap-2">
+              <button type="button" onClick={() => saveAsPdf("completion_choice")} className="flex min-h-24 flex-col items-start justify-center bg-navy px-5 py-4 text-left text-white hover:bg-navy-light">
+                <strong className="text-base">무료 PDF로 저장하기</strong>
+                <span className="mt-1 text-xs leading-5 text-white/65">인쇄 창에서 PDF 저장을 선택하세요.</span>
+              </button>
+              <Link href="/resources/english-resume-achievement-examples" className="inline-flex min-h-11 items-center justify-center px-3 py-2 text-center text-sm font-semibold leading-5 text-navy underline decoration-gold decoration-2 underline-offset-4 hover:bg-white">
+                저장한 경험을 STAR로 다시 정리하기
+              </Link>
+            </div>
             <ResumeProCtaLink href="/resume-pro?from=resume-builder-complete" surface={resumeFunnelSurfaces.builderCompletion} context={resumeFunnelContexts.resumeBuilder} className="flex min-h-24 flex-col items-start justify-center border border-navy bg-white px-5 py-4 text-left text-navy hover:bg-surface">
               <strong className="text-base">{resumeProLive ? "지원할 공고에 맞게 다듬기" : "공고 맞춤 준비 방식 보기"}</strong>
               <span className="mt-1 text-xs leading-5 text-muted">이력서·커버레터와 빠진 항목을 함께 확인해요.</span>

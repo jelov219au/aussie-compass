@@ -12,6 +12,9 @@ const searchPage = readFileSync(resolve("src/app/search/page.tsx"), "utf8");
 
 const valueHeading = page.indexOf("지원할수록 내 준비 자료가 쌓입니다.");
 const checkout = page.indexOf("<ResumeProCheckoutForm");
+const completionPdf = builder.indexOf('saveAsPdf("completion_choice")');
+const completionStar = builder.indexOf('href="/resources/english-resume-achievement-examples"');
+const completionPro = builder.indexOf('href="/resume-pro?from=resume-builder-complete"');
 const articleMobileCta = articlePage.indexOf("내 사례를 무료로 저장하기");
 const articleShare = articlePage.indexOf("<PageShareButton");
 
@@ -33,6 +36,8 @@ const checks = [
   [builder.indexOf('id="resume-quick-achievement"') >= 0 && builder.indexOf('id="resume-quick-achievement"') < builder.indexOf(">디자인</legend>"), "모바일의 첫 저장 입력은 디자인 선택보다 먼저 보여야 합니다."],
   [builder.includes('value={resume.experiences[0]?.details ?? ""}') && builder.includes("updateFirstExperienceDetails"), "빠른 시작 입력은 실제 경력 데이터와 같은 로컬 저장 상태를 사용해야 합니다."],
   [builder.includes("AI 예시 대신") && builder.includes("무료 PDF로 내보내고"), "빠른 시작은 저장·내보내기 가치를 먼저 설명해야 합니다."],
+  [completionPdf >= 0 && completionStar > completionPdf && completionPro > completionStar, "완료 화면은 무료 PDF, STAR 학습, Pro 순서여야 합니다."],
+  [builder.includes("저장한 경험을 STAR로 다시 정리하기") && builder.includes("min-h-11"), "STAR 보조 링크는 내부 자료와 모바일 터치 크기를 보존해야 합니다."],
 ];
 
 const failures = checks.filter(([passed]) => !passed).map(([, message]) => message);
