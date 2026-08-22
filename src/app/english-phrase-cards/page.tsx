@@ -18,7 +18,25 @@ const steps = [
   ["보여주거나 복사", "말하기 어렵다면 영어 문장을 화면으로 보여주거나 복사해 사용하세요."],
 ];
 
-export default function EnglishPhraseCardsPage() {
+const situations = [
+  { id: "bank", label: "은행", title: "수수료가 있는지 물어볼 때", english: "Are there any monthly or ATM fees?", phrase: "bank-fees" },
+  { id: "home", label: "집·렌트", title: "돈을 보내기 전 계약서를 받을 때", english: "Could you send me the agreement before I pay?", phrase: "rent-agreement" },
+  { id: "work", label: "직장·급여", title: "시급과 등급을 글로 확인할 때", english: "Could you confirm my hourly rate in writing?", phrase: "work-rate" },
+  { id: "health", label: "병원·약국", title: "한국어 통역이 필요할 때", english: "I need a Korean interpreter, please.", phrase: "health-interpreter" },
+] as const;
+
+type SearchParams = Promise<{ situation?: string | string[]; phrase?: string | string[] }>;
+
+function readParam(value: string | string[] | undefined) {
+  return typeof value === "string" ? value : "";
+}
+
+export default async function EnglishPhraseCardsPage({ searchParams }: { searchParams: SearchParams }) {
+  const params = await searchParams;
+  const requestedSituation = readParam(params.situation);
+  const requestedPhrase = readParam(params.phrase);
+  const matchedSituation = situations.find((item) => item.id === requestedSituation && item.phrase === requestedPhrase);
+
   return (
     <>
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "생활 영어 문장 카드", path: "/english-phrase-cards" }]} />
@@ -35,11 +53,31 @@ export default function EnglishPhraseCardsPage() {
             <p className="border-l-2 border-gold pl-4 text-sm leading-6 text-muted"><strong className="block text-navy">개인정보를 적지 않아도 돼요.</strong>저장한 문장만 현재 브라우저에 남습니다.</p>
           </div>
 
+          <section className="mt-8" aria-labelledby="situation-heading">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Start with your situation</p>
+                <h2 id="situation-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">어디에서 말이 막혔나요?</h2>
+              </div>
+              <p className="max-w-xl text-sm leading-6 text-muted">지금 겪는 상황을 누르면 카드에서 본 문장부터 보여드려요.</p>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {situations.map((item) => (
+                <Link key={item.id} href={`/english-phrase-cards?situation=${item.id}&phrase=${item.phrase}#phrase-${item.phrase}`} className="group border border-border bg-white p-5 transition hover:border-gold focus-visible:border-gold focus-visible:outline-none">
+                  <span className="text-xs font-semibold text-gold">{item.label}</span>
+                  <strong className="mt-2 block text-base leading-6 text-navy">{item.title}</strong>
+                  <span lang="en" className="mt-4 block text-sm leading-6 text-muted group-hover:text-navy">{item.english}</span>
+                  <span className="mt-4 block text-sm font-semibold text-navy">이 문장 보기 →</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+
           <ol className="mt-8 grid gap-4 md:grid-cols-3">
             {steps.map(([title, body], index) => <li key={title} className="border-t border-navy/20 pt-4"><span className="font-mono text-xs text-gold">0{index + 1}</span><h2 className="mt-2 font-semibold text-navy">{title}</h2><p className="mt-2 text-sm leading-6 text-muted">{body}</p></li>)}
           </ol>
 
-          <EnglishPhraseCards />
+          <EnglishPhraseCards initialCategory={matchedSituation?.id} focusPhraseId={matchedSituation?.phrase} />
 
           <section className="mt-10 grid gap-4 md:grid-cols-3" aria-label="함께 확인할 자료">
             <Link href="/resources/australia-arrival-english-clarifying-phrases" className="border border-border bg-white p-5 transition hover:border-gold"><span className="text-xs font-semibold text-gold">문장을 쓰는 방법</span><strong className="mt-2 block text-lg text-navy">생활 영어 확인 가이드 →</strong><span className="mt-2 block text-sm leading-6 text-muted">비용·날짜·다음 행동을 다시 확인하는 순서</span></Link>

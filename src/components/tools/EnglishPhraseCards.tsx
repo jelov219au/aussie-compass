@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type PhraseCategory = "essential" | "bank" | "home" | "work" | "health";
+export type PhraseCategory = "essential" | "bank" | "home" | "work" | "health";
 
 type Phrase = {
   id: string;
@@ -51,10 +51,11 @@ const phrases: Phrase[] = [
   { id: "health-avoid", category: "health", context: "복용 중 주의사항", english: "Is there anything I should avoid while taking this medicine?", korean: "이 약을 복용하는 동안 피해야 할 것이 있나요?" },
 ];
 
-export function EnglishPhraseCards() {
-  const [category, setCategory] = useState<PhraseCategory | "saved">("essential");
+export function EnglishPhraseCards({ initialCategory = "essential", focusPhraseId }: { initialCategory?: PhraseCategory; focusPhraseId?: string }) {
+  const [category, setCategory] = useState<PhraseCategory | "saved">(initialCategory);
   const [query, setQuery] = useState("");
   const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [focusedPhraseId, setFocusedPhraseId] = useState(focusPhraseId);
   const [hydrated, setHydrated] = useState(false);
   const [status, setStatus] = useState("");
 
@@ -72,6 +73,20 @@ export function EnglishPhraseCards() {
     if (!hydrated) return;
     window.localStorage.setItem(storageKey, JSON.stringify(savedIds));
   }, [hydrated, savedIds]);
+
+  useEffect(() => {
+    setCategory(initialCategory);
+    setFocusedPhraseId(focusPhraseId);
+    setQuery("");
+  }, [focusPhraseId, initialCategory]);
+
+  useEffect(() => {
+    if (!focusedPhraseId || category !== initialCategory) return;
+    const timer = window.setTimeout(() => {
+      document.getElementById(`phrase-${focusedPhraseId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [category, focusedPhraseId, initialCategory]);
 
   const visiblePhrases = useMemo(() => {
     const normalisedQuery = query.trim().toLocaleLowerCase();
@@ -122,7 +137,7 @@ export function EnglishPhraseCards() {
 
       <div className="mt-6 flex gap-x-6 gap-y-2 overflow-x-auto border-b border-border pb-2" role="group" aria-label="상황별 문장 필터">
         {categories.map((item) => (
-          <button key={item.id} type="button" aria-pressed={category === item.id} onClick={() => setCategory(item.id)} className={`min-h-11 shrink-0 border-b-2 px-0 text-sm font-semibold transition ${category === item.id ? "border-gold text-navy" : "border-transparent text-muted hover:border-border hover:text-navy"}`}>
+          <button key={item.id} type="button" aria-pressed={category === item.id} onClick={() => { setCategory(item.id); setFocusedPhraseId(undefined); }} className={`min-h-11 shrink-0 border-b-2 px-0 text-sm font-semibold transition ${category === item.id ? "border-gold text-navy" : "border-transparent text-muted hover:border-border hover:text-navy"}`}>
             {item.label}{item.id === "saved" ? ` ${savedIds.length}` : ""}
           </button>
         ))}
@@ -137,10 +152,11 @@ export function EnglishPhraseCards() {
         <ol className="mt-4 grid gap-4 lg:grid-cols-2">
           {visiblePhrases.map((phrase, index) => {
             const isSaved = savedIds.includes(phrase.id);
+            const isFocused = focusedPhraseId === phrase.id;
             return (
-              <li key={phrase.id} className="grid min-h-64 grid-rows-[auto_1fr_auto] border border-border bg-white p-5 sm:p-6">
+              <li id={`phrase-${phrase.id}`} key={phrase.id} className={`scroll-mt-24 grid min-h-64 grid-rows-[auto_1fr_auto] border bg-white p-5 sm:p-6 ${isFocused ? "border-gold ring-2 ring-gold/20" : "border-border"}`}>
                 <div className="flex items-start justify-between gap-4">
-                  <div><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><p className="mt-2 text-xs font-semibold text-muted">{phrase.context}</p></div>
+                  <div><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><p className="mt-2 text-xs font-semibold text-muted">{phrase.context}</p>{isFocused ? <p className="mt-2 text-xs font-semibold text-navy">카드에서 본 문장</p> : null}</div>
                   <button type="button" aria-pressed={isSaved} onClick={() => toggleSaved(phrase)} className={`inline-flex min-h-10 items-center border px-3 text-xs font-semibold transition ${isSaved ? "border-gold bg-gold text-navy" : "border-border text-muted hover:border-gold hover:text-navy"}`}>{isSaved ? "저장됨" : "저장"}</button>
                 </div>
                 <div className="self-center py-6">

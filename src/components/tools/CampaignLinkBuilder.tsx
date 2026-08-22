@@ -28,6 +28,13 @@ const campaignCardCopy: Record<string, Pick<Target, "title" | "body" | "cta">> =
   "english-phrase-health": { title: "I need a Korean interpreter, please.", body: "한국어 통역이 필요합니다. 증상, 동의서와 약 복용처럼 중요한 내용은 정확히 이해할 때까지 물어보세요.", cta: "병원에서 쓰는 문장 더 보기" },
 };
 
+const campaignPhraseDestination: Record<string, { situation: string; phrase: string }> = {
+  "english-phrase-bank": { situation: "bank", phrase: "bank-fees" },
+  "english-phrase-rent": { situation: "home", phrase: "rent-agreement" },
+  "english-phrase-work": { situation: "work", phrase: "work-rate" },
+  "english-phrase-health": { situation: "health", phrase: "health-interpreter" },
+};
+
 const sourceOptions = [
   ["instagram", "Instagram", "social"], ["youtube", "YouTube", "video"], ["naver", "Naver Blog·Cafe", "community"],
   ["facebook", "Facebook", "social"], ["kakao", "Kakao", "messenger"], ["newsletter", "Email newsletter", "email"], ["other", "직접 입력", "referral"],
@@ -64,12 +71,17 @@ export function CampaignLinkBuilder({ baseUrl, initialValues }: { baseUrl: strin
 
   const trackedPath = useMemo(() => {
     const params = new URLSearchParams();
+    const phraseDestination = target.path === "/english-phrase-cards" ? campaignPhraseDestination[cleanTag(campaign)] : undefined;
+    if (phraseDestination) {
+      params.set("situation", phraseDestination.situation);
+      params.set("phrase", phraseDestination.phrase);
+    }
     if (source) params.set("utm_source", source);
     if (cleanTag(medium)) params.set("utm_medium", cleanTag(medium));
     if (cleanTag(campaign)) params.set("utm_campaign", cleanTag(campaign));
     if (cleanTag(content)) params.set("utm_content", cleanTag(content));
     const query = params.toString();
-    return `${target.path}${query ? `?${query}` : ""}`;
+    return `${target.path}${query ? `?${query}` : ""}${phraseDestination ? `#phrase-${phraseDestination.phrase}` : ""}`;
   }, [campaign, content, medium, source, target.path]);
   const trackedUrl = `${baseUrl.replace(/\/$/, "")}${trackedPath}`;
   const ready = Boolean(source && cleanTag(medium) && cleanTag(campaign));
