@@ -21,6 +21,9 @@ create table if not exists payment_webhook_events (
   processed_at timestamptz
 );
 
+-- Historical revoked test entitlements remain append-only accounting evidence.
+-- Their legacy product codes are storage-compatible only; the application
+-- runtime allowlist still permits new grants for Resume Pro and Rental Pro only.
 create table if not exists purchase_entitlements (
   id bigint generated always as identity primary key,
   product_code text not null check (product_code in ('resume_pro', 'rental_application_pro')),
@@ -62,7 +65,10 @@ alter table purchase_entitlements
 
 alter table purchase_entitlements
   add constraint purchase_entitlements_product_code_check
-  check (product_code in ('resume_pro', 'rental_application_pro'));
+  check (product_code in (
+    'resume_pro', 'rental_application_pro',
+    'car_buy_pro', 'eofy_pro', 'pay_evidence_pro'
+  ));
 
 create index if not exists purchase_entitlements_customer_idx
   on purchase_entitlements (stripe_customer_id)
