@@ -43,6 +43,12 @@ export function ResumeJobAdChecker() {
   const [result, setResult] = useState<ReturnType<typeof analyseResumeJobAd> | null>(null);
   const [message, setMessage] = useState("");
   const [resultActionMessage, setResultActionMessage] = useState("");
+  const priorityTerms = result
+    ? (result.missingCount > 0
+      ? result.terms.filter((item) => !item.matched)
+      : result.terms.filter((item) => item.matched)
+    ).slice(0, 3)
+    : [];
 
   function compare() {
     if (resumeText.trim().length < 80 || jobAdText.trim().length < 80) {
@@ -82,6 +88,12 @@ export function ResumeJobAdChecker() {
     if (!result) return;
     const matched = result.terms.filter((item) => item.matched).map((item) => `• ${item.term}`);
     const missing = result.terms.filter((item) => !item.matched).map((item) => `• ${item.term} — 언제, 어떤 행동을 했고 어떤 결과가 있었는지 확인`);
+    const priority = priorityTerms.map((item, index) => [
+      `${index + 1}. ${item.term}`,
+      "   - 언제·어디서 한 일인가?",
+      "   - 내가 직접 한 행동은 무엇인가?",
+      "   - 숫자·변화·피드백으로 확인할 결과가 있는가?",
+    ].join("\n"));
     const memo = [
       "Hoju Compass · Job Ad 맞춤 근거 메모",
       "",
@@ -90,6 +102,9 @@ export function ResumeJobAdChecker() {
       "",
       `추가 전 실제 경험 근거 확인 ${result.missingCount}개`,
       ...(missing.length ? missing : ["• 없음"]),
+      "",
+      "이번 지원 준비 우선순위",
+      ...priority,
       "",
       "공고 문구를 그대로 복사하거나 없는 경험을 만들지 않습니다.",
       "https://hojucompass.com/resume-job-ad-checker",
@@ -147,9 +162,33 @@ export function ResumeJobAdChecker() {
         <div className="grid gap-6 lg:grid-cols-[1fr_18rem] lg:items-end"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Evidence check</p><h2 id="job-ad-result-heading" className="mt-2 text-2xl font-semibold text-navy">공고 표현 후보와 현재 이력서</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-muted">공고에서 반복되거나 구직과 관련 있는 표현 후보만 비교했습니다. ‘찾음’은 같은 문구가 있다는 뜻이지, 실제 경험이 충분하다는 뜻은 아닙니다.</p></div><dl className="grid grid-cols-2 gap-px bg-border text-center"><div className="bg-white p-4"><dt className="text-xs text-muted">문구 확인</dt><dd className="mt-1 text-3xl font-semibold text-emerald-700">{result.matchedCount}</dd></div><div className="bg-white p-4"><dt className="text-xs text-muted">근거 확인</dt><dd className="mt-1 text-3xl font-semibold text-gold-ink">{result.missingCount}</dd></div></dl></div>
         <ul className="mt-6 border-t border-border">{result.terms.map((item) => <TermRow key={item.term} item={item} />)}</ul>
         <div className="mt-7 border-l-2 border-gold bg-surface p-5"><h3 className="font-semibold text-navy">빠진 표현을 그대로 추가하지 마세요</h3><p className="mt-2 text-sm leading-6 text-muted">먼저 “내가 실제로 언제, 어떤 행동을 했고 어떤 결과가 있었는가?”를 답할 수 있는지 확인하세요. 근거가 있을 때만 내 말로 작성하고, 없으면 공고 문구를 복사하거나 AI로 경험을 만들지 않습니다.</p></div>
+        <section className="mt-7 border border-navy/15 bg-white p-5 sm:p-6" aria-labelledby="evidence-priority-heading">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Your next evidence</p>
+          <h3 id="evidence-priority-heading" className="mt-2 text-xl font-semibold text-navy">이번 지원 준비 우선순위</h3>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+            {result.missingCount > 0
+              ? "아래 표현부터 실제 사례가 있는지 확인하세요. 답할 수 없는 항목은 이력서에 추가하지 않습니다."
+              : "문구는 확인됐지만 사실의 깊이까지 확인된 것은 아닙니다. 아래 표현부터 면접에서도 설명할 수 있는 사례로 점검하세요."}
+          </p>
+          <ol className="mt-5 grid gap-4 lg:grid-cols-3">
+            {priorityTerms.map((item, index) => <li key={item.term} className="border-t-2 border-gold bg-surface p-4">
+              <div className="flex items-start gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white" aria-hidden="true">{index + 1}</span><strong className="pt-0.5 text-navy">{item.term}</strong></div>
+              <ul className="mt-3 space-y-2 pl-10 text-sm leading-5 text-muted">
+                <li>언제·어디서 한 일인가?</li>
+                <li>내가 직접 한 행동은 무엇인가?</li>
+                <li>숫자·변화·피드백으로 확인할 결과가 있는가?</li>
+              </ul>
+            </li>)}
+          </ol>
+          <p className="mt-4 text-xs leading-5 text-muted">최대 3개만 먼저 보여줍니다. 근거 메모를 복사하면 같은 질문을 원문 없이 가져갈 수 있어요.</p>
+        </section>
         <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2"><button type="button" onClick={copyEvidenceMemo} className="inline-flex min-h-11 items-center border-b-2 border-gold text-sm font-semibold text-navy">근거 메모 복사</button><button type="button" onClick={shareChecker} className="inline-flex min-h-11 items-center border-b-2 border-border text-sm font-semibold text-navy">점검기 링크 공유 ↗</button></div>
         <p className="mt-2 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{resultActionMessage}</p>
-        <div className="mt-7 grid gap-3 sm:grid-cols-2"><Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-center font-semibold text-white">확인한 사실로 무료 이력서 수정하기</Link><ResumeProCtaLink href="/resume-pro?from=job-ad-checker" surface={resumeFunnelSurfaces.jobAdCheckerResult} context={resumeFunnelContexts.jobAdChecker} className="inline-flex min-h-12 items-center justify-center border border-navy/30 px-5 py-3 text-center font-semibold text-navy">공고별 지원서 묶음으로 이어가기</ResumeProCtaLink></div>
+        <div className="mt-7 grid gap-px bg-border sm:grid-cols-2">
+          <div className="bg-surface p-5"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">무료로 직접 진행</p><h3 className="mt-2 font-semibold text-navy">사실을 확인하고 이력서 한 장 수정</h3><p className="mt-2 text-sm leading-6 text-muted">위 질문에 답한 뒤 무료 빌더에서 검증한 내용만 내 말로 정리합니다.</p></div>
+          <div className="bg-navy p-5 text-white"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Resume Pro가 줄이는 반복</p><h3 className="mt-2 font-semibold">같은 근거를 지원서 묶음에 다시 연결</h3><p className="mt-2 text-sm leading-6 text-white/75">검증한 경험을 공고별 이력서·커버레터·면접 메모에 이어 쓰되, 없는 사실은 만들지 않습니다.</p></div>
+        </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2"><Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-center font-semibold text-white">확인한 사실로 무료 이력서 수정하기</Link><ResumeProCtaLink href="/resume-pro?from=job-ad-checker" surface={resumeFunnelSurfaces.jobAdCheckerResult} context={resumeFunnelContexts.jobAdChecker} className="inline-flex min-h-12 items-center justify-center border border-navy/30 px-5 py-3 text-center font-semibold text-navy">이 근거를 공고별 지원서에 연결하기</ResumeProCtaLink></div>
         <p className="mt-4 text-xs leading-5 text-muted">Resume Pro는 지원할 공고가 정해졌고 같은 실제 경험을 이력서·커버레터·면접 메모에 다시 연결해야 할 때만 검토하세요. 면접이나 취업 결과를 보장하지 않습니다.</p>
       </section> : null}
     </div>

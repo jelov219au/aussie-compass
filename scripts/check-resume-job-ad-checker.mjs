@@ -46,6 +46,13 @@ assert.match(component, /trackResumeJobAdChecked\(\)/, "a completed comparison n
 assert.doesNotMatch(component, /track\([^)]*(resumeText|jobAdText)|properties=.*(resumeText|jobAdText)/s, "analytics must never include pasted text");
 assert.match(component, /navigator\.clipboard\.writeText\(memo\)/, "the result needs an explicit local evidence-memo copy action");
 assert.match(component, /공고 원문이나 이력서 원문 없이/, "the copy result must explain that raw input was excluded");
+assert.match(component, /aria-labelledby="evidence-priority-heading"/, "the personalised next-step plan needs an accessible section name");
+assert.match(component, /priorityTerms[\s\S]*\.slice\(0, 3\)/, "the next-step plan must stay focused on at most three terms");
+for (const prompt of ["언제·어디서 한 일인가", "내가 직접 한 행동은 무엇인가", "숫자·변화·피드백으로 확인할 결과가 있는가"]) {
+  assert.ok(component.includes(prompt), `the evidence plan is missing its factual prompt: ${prompt}`);
+}
+assert.ok(component.includes("Resume Pro가 줄이는 반복") && component.includes("공고별 이력서·커버레터·면접 메모"), "the result must explain the paid reuse value without promising an outcome");
+assert.match(component, /이 근거를 공고별 지원서에 연결하기/, "the checker CTA needs to describe the next paid job clearly");
 assert.match(component, /window\.location\.origin.*\/resume-job-ad-checker/, "sharing must build a canonical query-free checker URL");
 assert.match(component, /track\("Page Shared", \{ content: "resume_job_ad_checker", method \}\)/, "sharing needs a fixed privacy-safe event");
 assert.match(component, /trackCheckerShare\("native"\)/, "native sharing needs the fixed privacy-safe helper");
