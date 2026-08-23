@@ -10,11 +10,13 @@ credential, full Stripe identifier or database connection string is recorded.
 **NO-GO for the first customer payment.** The application runtime and separate
 audit-login privilege matrices are ready, the live Stripe account can charge
 and pay out, and live Resume Pro has no existing open Checkout Session. The
-strict audit still reports `required_migrations_present=false` because
-`20260824_entitlement_link_conflict_v1` has not been applied. Launch also
-requires Stripe's missing public support email, a proven live restricted
-runtime key, a separate Account-Read-only operator audit key, the missing strict-audit Neon endpoint pin, and a controlled
-Production post-migration alert/access rehearsal.
+Production entitlement-link forward fix is now applied and its postflight and
+complete effective-privilege matrix pass. Launch still requires Stripe's
+missing public support email, a proven live restricted runtime key, a separate
+Account-Read-only operator audit key, the missing strict-audit Neon endpoint
+pin, real SMTP transport proof and a controlled Production functional
+rehearsal. The target-environment strict audit has not been rerun after the
+migration, so the first customer remains **NO-GO**.
 
 ## Read-only evidence
 
@@ -66,6 +68,22 @@ Production post-migration alert/access rehearsal.
   no forward-fix version and `preflight_can_apply_once=true`. Baseline counts
   were gate 0, gate events 0, webhook receipts 23, entitlements 7, alerts 0,
   access sessions 0 and restore activations 0. No mutation was executed.
+- After explicit owner approval, only
+  `docs/migrations/20260824_entitlement_link_conflict_v1.sql` was applied on
+  Neon Primary / `neondb`. The migration completed through `COMMIT`. The
+  read-only postflight at `2026-08-23 23:35:11.614767+00` returned
+  `postflight_pass=true`, `preflight_can_apply_once=false`, the migration
+  version and named constraint present, the ambiguous target absent, no
+  reservation in flight and unchanged counts: gate 0, gate events 0, webhook
+  receipts 23, entitlements 7, alerts 0, access sessions 0 and restore
+  activations 0. The complete named effective-privilege matrix was rerun and
+  every boolean, including `all_privilege_checks_pass`, returned true.
+- Production functional rehearsal is still missing. The migration postflight
+  proves schema shape and privileges, not reservation, paid-event, alert,
+  activation, release or restore behavior under the live runtime connection.
+- Real SMTP transport proof is still missing. Neither configuration presence
+  nor the isolated database outbox rehearsal proves that the monitored mailbox
+  receives a Production payment/refund alert.
 
 ## Complete Neon named-result matrix
 
@@ -128,25 +146,22 @@ Production post-migration alert/access rehearsal.
 
 ## Remaining pre-customer blockers
 
-1. Apply `20260824_entitlement_link_conflict_v1` in an owner-approved Production
-   backup window and repeat the paid-event rehearsal. The isolated fresh-schema
-   rehearsal exposed SQLSTATE `42702` before the forward fix and passed all 34
-   checks after the fix; Production has not received it. Use the read-only
-   before/after audit and HOLD procedure in
-   `docs/production-entitlement-link-forward-fix-ticket.md`.
-2. Add `support@hojucompass.com` as the Stripe live business-profile support
+1. Add `support@hojucompass.com` as the Stripe live business-profile support
    email through an authenticated Dashboard session, then re-read the account
    and confirm it is present. Do not add a different address by assumption.
-3. Prove the Production runtime uses an `rk_live_` key with only Prices Read,
+2. Prove the Production runtime uses an `rk_live_` key with only Prices Read,
    Products Read, Checkout Sessions create/retrieve and PaymentIntents Read.
    Create a different one-off `rk_live_` operator-audit key with Account Read
    only for Account/support-profile evidence; never grant Account Read to the
    runtime key or deploy the audit key. Run the target-environment strict remote
    audit without printing either key, IDs or product values.
-4. Inject the approved non-secret endpoint ID as
+3. Inject the approved non-secret endpoint ID as
    `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` only for the strict operator audit and
    prove both the runtime and `hoju_payment_auditor` connections resolve to it.
    Do not persist the audit DB credential in Preview or application runtime.
+4. Run the protected no-send SMTP authentication check, then the separately
+   approved labelled test-message path, and confirm receipt in the monitored
+   mailbox. Keep credentials out of shell history, chat and logs.
 5. With payments still off, run one approved controlled Production
    post-migration rehearsal that proves reservation, attached Checkout expiry
    handling, payment/refund alert outbox delivery, activation same-nonce
@@ -159,6 +174,8 @@ Production post-migration alert/access rehearsal.
    wording for transaction seller, document issuer and transaction support.
 8. Complete ABN/GST and bookkeeping treatment review with the registered tax
    agent and preserve it outside the repository.
+9. Run the protected live accounting preflight with its dedicated restricted
+   key and retain only the PASS result outside the repository.
 
 After these pass, the owner may approve a single opt-in first-customer notice
 under `docs/live-payment-launch-checklist.md`. Keep `PAYMENTS_ENABLED=false`

@@ -97,6 +97,22 @@ contention times out and leaves the transaction unapplied.
    `docs/first-sale-gate-runbook.md`; every boolean must be true.
 4. Record booleans, counts, timestamps, commit and backup references only.
 
+### Applied outcome — 24 August 2026
+
+After explicit owner approval, the prepared single migration was applied on
+Neon Primary `main` / `neondb` and completed through `COMMIT`. The postflight at
+`2026-08-23 23:35:11.614767+00` returned `postflight_pass=true`,
+`preflight_can_apply_once=false`, `forward_fix_recorded=true`,
+`named_constraint_active=true`, `ambiguous_column_list_active=false` and
+`no_reservation_in_flight=true`. Counts remained gate 0, gate events 0, webhook
+receipts 23, entitlements 7, alerts 0, access sessions 0 and restore
+activations 0. The complete named effective-privilege matrix was rerun and
+every boolean, including `all_privilege_checks_pass`, returned true.
+
+This closes only the forward-fix change ticket. It does not prove the pending
+Production functional rehearsal and does not change the first-customer
+payment **NO-GO** decision.
+
 ## Stop boundary
 
 Successful postflight does not open sales. Keep `PAYMENTS_ENABLED=false` and

@@ -43,11 +43,11 @@ requireText(decision, 'auditedAt: "2026-08-24"', "decision evidence date");
 requireText(decision, 'import "server-only";', "server-only decision source");
 if ((decision.match(/^    "/gm) ?? []).length !== 8) errors.push("current NO-GO decision must enumerate eight known blockers");
 for (const [decisionMarker, evidenceSource, evidenceMarker] of [
-  ["Production entitlement-link forward fix", compactProductionAudit, "20260824_entitlement_link_conflict_v1"],
+  ["Production post-migration", compactProductionAudit, "Production functional rehearsal is still missing"],
   ["공개 support email", compactProductionAudit, "business-profile support email is absent"],
   ["live runtime key", compactProductionAudit, "proven live restricted runtime key"],
   ["Neon endpoint pin", compactProductionAudit, "missing strict-audit Neon endpoint pin"],
-  ["Production 결제·환불 alert", compactProductionAudit, "Production post-migration alert/access rehearsal"],
+  ["실 SMTP", compactProductionAudit, "Real SMTP transport proof is still missing"],
   ["Managed Payments Checkout·영수증", compactProductionAudit, "Managed Payments Checkout and issued receipt/invoice wording"],
   ["등록 세무사", compactProductionAudit, "registered tax agent"],
   ["accounting preflight", checklist, ".\\scripts\\run-accounting-preflight.ps1"],
