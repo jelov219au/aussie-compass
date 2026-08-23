@@ -39,22 +39,34 @@ app password in shell history:
 .\scripts\run-payment-alert-transport-check.ps1
 ```
 
-This command prompts for the dedicated Zoho app password using a masked secure
-input, authenticates, sends no message, prints no address or credential, clears
-all temporary environment values and zeroes the converted password buffer.
+This command is pinned to `smtppro.zoho.com:465`, refuses a preloaded app
+password or send acknowledgement, and prompts for the dedicated Zoho app
+password using masked secure input. It authenticates, sends no message, prints
+no address or credential, restores the previous non-secret process environment,
+removes the password and zeroes the converted password buffer.
 After the mailbox owner approves exactly one harmless delivery test, run:
 
 ```powershell
 .\scripts\run-payment-alert-transport-check.ps1 -SendTest
 ```
 
-The second command authenticates first and sends one message clearly labelled
+The second command is the only wrapper path that supplies the exact send
+acknowledgement. It authenticates first and sends one message clearly labelled
 `실제 결제 아님` to the monitored support inbox. Record only the received
-boolean and UTC timestamp. It does not simulate a Stripe event and therefore
-does not replace the controlled purchase/refund webhook rehearsal.
+boolean and UTC timestamp. It restores the previous non-secret process
+environment and clears the password and acknowledgement after the attempt. It
+does not simulate a Stripe event and therefore does not replace the controlled
+purchase/refund webhook rehearsal.
 3. After `20260823_first_sale_gate_charge_link_v2`, apply `docs/migrations/20260823_payment_operator_alert_outbox_v1.sql` and verify its version, table, receipt trigger, explicit claim outcomes, guarded delivery functions and effective runtime privileges described in `docs/first-sale-gate-runbook.md`.
 4. Redeploy Production.
 5. Complete one controlled live purchase and full refund, then confirm that one purchase alert and one refund alert actually arrive in the monitored mailbox. Record only received booleans, timestamps and reference suffixes. Inject one SMTP failure and two-worker interleaving in Sandbox and prove `claimed + busy → 503`, `pending → retry → sent + 200`, stale-lease recovery, and sent duplicate without another send attempt.
 6. Revoke the app password immediately if it is ever pasted into source code, chat, logs or a public environment.
 
-The default host is `smtppro.zoho.com`, but Zoho says the exact host depends on the account type and data centre. Use the value displayed in the mailbox's own server-configuration screen.
+Zoho's [official SMTP guide](https://www.zoho.com/mail/help/zoho-smtp.html)
+lists `smtppro.zoho.com:465` with SSL for paid organisations using a custom
+domain and says the exact account/data-centre target must be confirmed in the
+mailbox's Server Configuration Details. This wrapper currently pins that
+documented target so an operator cannot redirect the app password with a
+command-line host override. Before the first real check, the mailbox owner must
+confirm the screen matches. If it does not, update and review the source pin and
+contract together; do not bypass the pin at run time.

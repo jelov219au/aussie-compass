@@ -38,7 +38,7 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 - [x] Create an active one-time AUD 19.90 Resume Pro Price.
 - [ ] Create a least-privilege `rk_live_` key with Prices Read, Products Read, Checkout Sessions create/retrieve and PaymentIntents Read so the paid webhook can verify `latest_charge` before the atomic grant.
 - [x] Create the live `/api/stripe/webhook` endpoint and subscribe to the same 11 Checkout, refund and dispute events verified in test mode.
-- [ ] Configure Production payment operator alerts, confirm the support mailbox is monitored, and receive controlled purchase/refund alerts before accepting a customer payment.
+- [ ] Configure Production payment operator alerts, run `.\scripts\run-payment-alert-transport-check.ps1` for the no-send authentication check, then separately run the explicitly approved `-SendTest` path and confirm the monitored support mailbox receives the labelled non-customer message. Controlled purchase/refund alerts are still required before accepting a customer payment.
 - [x] Store the live key, Price ID and webhook signing secret only in Vercel Production. Replacing the full live key with a least-privilege restricted key remains a security follow-up.
 - [x] Do not add a separate app-controlled automatic-tax setting or manual tax rate. The controlled live Checkout included AUD 1.81 GST inside the AUD 19.90 total under Managed Payments.
 

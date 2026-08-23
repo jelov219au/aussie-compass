@@ -32,8 +32,18 @@ for (const boundary of [
   '[Environment]::SetEnvironmentVariable("ZOHO_SMTP_APP_PASSWORD", $plainPassword, "Process")',
   '$env:PAYMENTS_ENABLED = "false"',
   '$env:PAYMENT_ALERT_TEST_ACK = "SEND_ONE_MONITORED_SUPPORT_TEST"',
-  'Remove-Item -LiteralPath "Env:$name"',
+  '$SmtpHost -cne "smtppro.zoho.com"',
+  "$SmtpPort -ne 465",
+  'Test-Path -LiteralPath "Env:ZOHO_SMTP_APP_PASSWORD"',
+  'Test-Path -LiteralPath "Env:PAYMENT_ALERT_TEST_ACK"',
+  "$originalEnvironment[$name]",
+  '[Environment]::SetEnvironmentVariable($name, $originalEnvironment[$name], "Process")',
+  'Remove-Item -LiteralPath "Env:ZOHO_SMTP_APP_PASSWORD"',
+  'Remove-Item -LiteralPath "Env:PAYMENT_ALERT_TEST_ACK"',
 ]) assert.ok(wrapper.includes(boundary), `secure alert wrapper is missing: ${boundary}`);
+assert.ok(wrapper.indexOf('SetEnvironmentVariable("ZOHO_SMTP_APP_PASSWORD"') < wrapper.indexOf("npm.cmd run payments:alerts:verify"), "the masked app password must be process-scoped before transport verification starts");
+assert.ok(wrapper.indexOf("npm.cmd run payments:alerts:verify") < wrapper.indexOf('Remove-Item -LiteralPath "Env:ZOHO_SMTP_APP_PASSWORD"'), "the app password must be removed after the transport verification attempt");
+assert.doesNotMatch(wrapper, /\$env:ZOHO_SMTP_APP_PASSWORD\s*=\s*["']/, "the wrapper must not assign a plaintext SMTP password literal");
 
 assert.ok(manifest.includes('"payments:alerts:verify"'), "package scripts must expose the operator transport check");
 assert.ok(manifest.includes('"test:payment-alert-delivery"'), "package scripts must expose the delivery contract test");
