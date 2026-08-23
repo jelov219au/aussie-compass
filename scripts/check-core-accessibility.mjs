@@ -70,6 +70,17 @@ for (const background of ["#ffffff", "#f8f7f4", "#f1efe9", "#edf3f2"]) {
   assert.ok(contrast("#806515", background) >= 4.5, `gold ink misses AA contrast on ${background}`);
 }
 assert.ok(contrast("#874b32", "#edf3f2") >= 4.5, "the hero rust label misses AA contrast");
+assert.ok(contrast("#1a2744", "#ffffff") >= 3, "the outer focus ring misses non-text contrast on white");
+assert.ok(contrast("#f8f7f4", "#1a2744") >= 3, "the inner focus ring misses non-text contrast on navy");
+for (const focusContract of [
+  ":where(a, button, input, select, textarea, summary):focus-visible",
+  "outline: 3px solid var(--color-background);",
+  "box-shadow: 0 0 0 5px var(--color-navy);",
+  "@media (forced-colors: active)",
+  "outline: 3px solid ButtonText;",
+]) {
+  assert.ok(globalStyles.includes(focusContract), `global keyboard focus contract is missing: ${focusContract}`);
+}
 
 for (const [source, marker] of [
   [hero, 'text-[#874b32]'],
@@ -99,4 +110,4 @@ for (const source of [resumeBuilder, resumeProWorkspace]) {
   assert.doesNotMatch(source, /<h1[^>]*>\{resume\.name \|\| "Your Name"\}<\/h1>/, "an embedded resume preview must not create another page-level h1");
 }
 
-console.log("Core acquisition contrast and resume-preview heading contracts passed.");
+console.log("Core acquisition contrast, keyboard focus, and resume-preview heading contracts passed.");
