@@ -37,6 +37,8 @@ type MailConfig = {
   to: string;
 };
 
+const paymentAlertTestAck = "SEND_ONE_MONITORED_SUPPORT_TEST";
+
 function expandableId(value: string | { id: string } | null | undefined) {
   if (!value) return undefined;
   return typeof value === "string" ? value : value.id;
@@ -233,6 +235,56 @@ export function paymentAlertsConfigured() {
   return getMailConfig() !== null;
 }
 
+function createPaymentAlertTransport(config: MailConfig) {
+  return nodemailer.createTransport({
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    auth: { user: config.user, pass: config.password },
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 15_000,
+  });
+}
+
+export async function runPaymentAlertTransportCheck({ sendTest = false } = {}) {
+  if (process.env.VERCEL_ENV !== "production" || process.env.PAYMENTS_ENABLED !== "false") {
+    throw new Error("Payment alert delivery checks require Production settings with Checkout explicitly off.");
+  }
+
+  const config = getMailConfig();
+  if (!config) throw new Error("Payment operator alerts are not configured.");
+  if (sendTest && process.env.PAYMENT_ALERT_TEST_ACK !== paymentAlertTestAck) {
+    throw new Error("The one-message delivery test was not explicitly acknowledged.");
+  }
+
+  const transporter = createPaymentAlertTransport(config);
+  try {
+    await transporter.verify();
+
+    if (sendTest) {
+      const checkedAt = new Date();
+      await transporter.sendMail({
+        from: `Hoju Compass 결제 알림 <${config.from}>`,
+        to: config.to,
+        replyTo: defaultAlertEmail,
+        subject: "[Hoju Compass] 결제 알림 전달 테스트 — 실제 결제 아님",
+        text: [
+          "Hoju Compass 운영자가 요청한 단일 결제 알림 전달 테스트입니다.",
+          "실제 결제, 환불 또는 고객 활동이 아닙니다.",
+          "받은 편지함 도착 여부와 Reply-To가 support@hojucompass.com인지 확인하세요.",
+          `요청 시각(UTC): ${checkedAt.toISOString()}`,
+        ].join("\n"),
+        messageId: `<payment-alert-delivery-test-${checkedAt.getTime()}@hojucompass.com>`,
+      });
+    }
+
+    return { transportVerified: true as const, testSent: sendTest };
+  } finally {
+    transporter.close();
+  }
+}
+
 export async function sendStripeOperatorAlert(
   event: Stripe.Event,
   alertKind?: PaymentOperatorAlertKind,
@@ -242,27 +294,23 @@ export async function sendStripeOperatorAlert(
   if (!alert) throw new Error("The signed Stripe event has no allowlisted operator alert.");
   if (!config) throw new Error("Payment operator alerts are not configured.");
 
-  const transporter = nodemailer.createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.secure,
-    auth: { user: config.user, pass: config.password },
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 15_000,
-  });
+  const transporter = createPaymentAlertTransport(config);
 
-  await transporter.sendMail({
-    from: `Hoju Compass 결제 알림 <${config.from}>`,
-    to: config.to,
-    replyTo: defaultAlertEmail,
-    subject: alert.subject,
-    text: alert.text,
-    messageId: `<stripe-${alertKind ?? "event"}-${referenceSuffix(event.id)}@hojucompass.com>`,
-    headers: {
-      "X-Hoju-Compass-Stripe-Event-Ref": referenceSuffix(event.id),
-    },
-  });
+  try {
+    await transporter.sendMail({
+      from: `Hoju Compass 결제 알림 <${config.from}>`,
+      to: config.to,
+      replyTo: defaultAlertEmail,
+      subject: alert.subject,
+      text: alert.text,
+      messageId: `<stripe-${alertKind ?? "event"}-${referenceSuffix(event.id)}@hojucompass.com>`,
+      headers: {
+        "X-Hoju-Compass-Stripe-Event-Ref": referenceSuffix(event.id),
+      },
+    });
+  } finally {
+    transporter.close();
+  }
 
   return { outcome: "sent" as const };
 }

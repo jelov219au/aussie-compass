@@ -31,6 +31,27 @@ require the SMTP user and From address to match, and the To address to match
 `NEXT_PUBLIC_SUPPORT_EMAIL` case-insensitively. A disabled alert switch, invalid
 email, invalid port or missing app password keeps live Checkout closed. This
 configuration proof does not replace the controlled real-email delivery test.
+
+With `PAYMENTS_ENABLED=false`, verify SMTP authentication without placing the
+app password in shell history:
+
+```powershell
+.\scripts\run-payment-alert-transport-check.ps1
+```
+
+This command prompts for the dedicated Zoho app password using a masked secure
+input, authenticates, sends no message, prints no address or credential, clears
+all temporary environment values and zeroes the converted password buffer.
+After the mailbox owner approves exactly one harmless delivery test, run:
+
+```powershell
+.\scripts\run-payment-alert-transport-check.ps1 -SendTest
+```
+
+The second command authenticates first and sends one message clearly labelled
+`실제 결제 아님` to the monitored support inbox. Record only the received
+boolean and UTC timestamp. It does not simulate a Stripe event and therefore
+does not replace the controlled purchase/refund webhook rehearsal.
 3. After `20260823_first_sale_gate_charge_link_v2`, apply `docs/migrations/20260823_payment_operator_alert_outbox_v1.sql` and verify its version, table, receipt trigger, explicit claim outcomes, guarded delivery functions and effective runtime privileges described in `docs/first-sale-gate-runbook.md`.
 4. Redeploy Production.
 5. Complete one controlled live purchase and full refund, then confirm that one purchase alert and one refund alert actually arrive in the monitored mailbox. Record only received booleans, timestamps and reference suffixes. Inject one SMTP failure and two-worker interleaving in Sandbox and prove `claimed + busy → 503`, `pending → retry → sent + 200`, stale-lease recovery, and sent duplicate without another send attempt.
