@@ -142,9 +142,6 @@ alter default privileges in schema public
 
 reset role;
 
-revoke hoju_migration_owner, hoju_owner_operator from hoju_app_runtime;
-revoke hoju_app_runtime from hoju_owner_operator;
-
 insert into public.schema_migrations (version)
 values ('20260823_payment_least_privilege_roles_v1')
 on conflict (version) do nothing;
