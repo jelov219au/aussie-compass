@@ -6,18 +6,17 @@ This manifest is a read-only release-scope audit. It records repository contract
 
 | Item | Frozen value |
 | --- | --- |
-| Current deployment reference inspected | `origin/main` at `7910525c539408535e343ea1eff7fe8ebc510bec` |
-| Resume Pro candidate inspected | `codex/resume-pro-release-candidate-ops` at `7904086e676ec40f2f8d3207546728b08d74b1d8` |
-| Merge base | `39cc9b1922b6751458b5a3af8a742ca0ebff4785` |
-| Divergence | candidate has 28 commits not in main; main has 19 commits not in candidate |
-| Two-endpoint file delta | 115 files, 3,858 insertions, 2,206 deletions |
-| Reconstructed mainline base | `origin/main` at `7910525c539408535e343ea1eff7fe8ebc510bec` |
-| Final tested application head before manifest finalization | `307c75add5b786812dd25b99cbcf3a2ddde7cb8c` |
-| Mainline delta at that head | 70 files, 2,868 insertions, 221 deletions, unintended deletions **0** |
-| Protected Preview decision | **READY** with payments off by default, or with an intentionally configured test-only Stripe/Neon environment |
+| Local deployment reference inspected | local `origin/main` at `7910525c539408535e343ea1eff7fe8ebc510bec` |
+| Current application branch | `codex/first-customer-discovery-accessibility` |
+| Application head before this manifest finalization | `b0434caefe345ed8fb3cda17a3fe5d18880044d6` |
+| Application delta from local `origin/main` | 108 files, 10,233 insertions, 554 deletions, deleted files **0** |
+| Historical non-deployable candidate | `7904086e676ec40f2f8d3207546728b08d74b1d8` (audit evidence only) |
+| Protected Preview decision | **HOLD** until the actual Vercel Source SHA, Preview environment and variable scopes, Deployment Protection, global `noindex` response, alias isolation and analytics isolation are verified |
 | Production/live decision | **HOLD** until target environment, migration and actual Checkout/receipt seller evidence are verified |
 
-The historical `7904086` candidate is not a descendant of the current deployment reference. Deploying it directly would remove current main features, including the English phrase-card pages/assets and Job Move Pro research/survey files. That route remains prohibited. The replacement branch `codex/resume-pro-mainline-release` was created exactly from the frozen `origin/main`; at the functional head above, the English-card and Job Move paths remain unchanged and `git diff --diff-filter=D origin/main..HEAD` returns no file.
+The historical `7904086` candidate is not a descendant of the current deployment reference. Deploying it directly would remove current main features, including the English phrase-card pages/assets and Job Move Pro research/survey files. That route remains prohibited. The application candidate now being finalized is `codex/first-customer-discovery-accessibility`; at application head `b0434ca`, the English-card and Job Move paths remain present and `git diff --name-only --diff-filter=D origin/main..HEAD` returns no file.
+
+The application-head hash above identifies the code state before this document-only finalization. It is not a deploy instruction. After the manifest commit is created, obtain the deploy candidate with `git rev-parse HEAD` and require the full result to equal the full Vercel Source SHA. Do not hardcode that self-referential post-finalization hash into this document, accept an abbreviated match or infer identity from a branch name, deployment URL or build timestamp.
 
 The reproducible, local-only inventory commands are:
 
@@ -64,9 +63,9 @@ The current two-endpoint diff reports these main files as deleted; none is an ap
 - `src/lib/jobMoveSurvey.ts`
 - `src/lib/researchSurveyEmail.ts`
 
-### Mainline reconstruction result
+### Mainline reconstruction result and current application candidate
 
-The release candidate has been rebuilt on `codex/resume-pro-mainline-release`, created exactly from `origin/main` at `7910525c539408535e343ea1eff7fe8ebc510bec`. The old `7904086` candidate is audit evidence only.
+The historical release candidate was rebuilt on `codex/resume-pro-mainline-release`, created exactly from `origin/main` at `7910525c539408535e343ea1eff7fe8ebc510bec`. Subsequent reviewed work now places the application candidate on `codex/first-customer-discovery-accessibility` at the pre-manifest application head recorded in the table. The old `7904086` candidate remains audit evidence only.
 
 Include, in dependency order, after reviewing each actual diff:
 
@@ -121,9 +120,9 @@ No English-card, Job Move Pro, visa, pay-guide, calculator, campaign, content-pl
 - `a3fc981` Improve installable app experience
 - `e83e9f6` Add secure local performance connections
 
-## 2. Reconstructed mainline release file groups
+## 2. Current application release file groups
 
-The fixed hashes above are the authoritative complete file inventory. The candidate work is grouped as follows:
+The historical hashes above explain the reconstruction lineage. The authoritative deploy inventory is the clean tree at the full post-finalization `git rev-parse HEAD`, which must match the full Vercel Source SHA. The application work is grouped as follows:
 
 - Resume Pro product and Checkout: `src/app/api/checkout/resume-pro/route.ts`, `src/app/resume-pro/**`, `src/components/tools/ResumePro*.tsx`, `src/lib/resumePro*.ts`, `src/lib/commerce.ts`.
 - Paid-access security: `src/app/api/resume-pro/**`, `src/app/api/stripe/webhook/route.ts`, `src/lib/requestSecurity.ts`, `docs/entitlement-storage.sql`, `docs/database-recovery.md`.
@@ -160,15 +159,36 @@ No value was read during this audit.
 ### Safe initial Preview
 
 - `PAYMENTS_ENABLED=false`
+- `FIRST_SALE_GATE_ENABLED=false`
+- `PAYMENT_ALERTS_ENABLED=false`
+- `STRIPE_MANAGED_PAYMENTS_ENABLED=false` or unset
 - `PUSH_REMINDERS_ENABLED=false` or unset
-- `PAYMENT_ALERTS_ENABLED=false` unless the alert mailbox path is intentionally tested
 - Operator-only routes remain production-build 404 through `requireLocalOperatorAccess`; do not add deployment credentials for them.
 
-This mode supports layout, mobile, content, CSP and free Builder testing without Stripe, Neon or Web Push external calls.
+Assign none of the following variables to the Stage 1 Preview scope:
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_RESUME_PRO_PRICE_ID`
+- `STRIPE_RESUME_PRO_PRODUCT_ID`
+- `STRIPE_RESUME_PRO_TAX_CODE`
+- `PAYMENTS_ENTITLEMENT_STORE`
+- `ENTITLEMENT_DB_URL`
+- `ENTITLEMENT_DB_DATABASE_URL`
+- `ENTITLEMENT_DB_HMAC_SECRET`
+- `ENTITLEMENT_SESSION_SECRET`
+- `ZOHO_SMTP_APP_PASSWORD`
+- `STRIPE_ACCOUNTING_KEY`
+
+No value may be copied into this manifest, build log, smoke report or chat. These names are the complete Stage 1 assignment exclusion list; inherited team/project values count as assigned and must be removed from the Preview scope before deployment.
+
+`PAYMENTS_ENABLED=false` is the Checkout/readiness switch, not a global network kill switch. It makes a valid Resume Pro Checkout request fail closed before Stripe Session creation, but it does not independently disable the signed webhook route, purchase restore/access routes, Job Move survey email or a future Web Push runtime. Those paths are controlled by their own signing secret, store/database, session, SMTP and push settings. Stage 1 therefore requires both the explicit false switches and the complete Preview variable non-assignment above.
+
+This mode supports layout, mobile, content, CSP and free Builder testing without intentionally invoking Stripe, Neon, SMTP or Web Push. The guarantee comes from environment isolation plus GET-only smoke coverage, not from `PAYMENTS_ENABLED` alone.
 
 ### Resume Pro Checkout test Preview
 
-Only if Checkout is intentionally in scope, use Preview-scoped test values for all of:
+This is not part of Stage 1. Only under a later, separate approval may Checkout use Preview-scoped test values for all of:
 
 - `PAYMENTS_ENABLED=true`
 - `STRIPE_SECRET_KEY` in test mode, preferably least-privilege `rk_test_`
@@ -181,7 +201,7 @@ The Price must be active, one-time, AUD 19.90, tax-inclusive and test-mode. Its 
 
 ### Full test Checkout-to-access Preview
 
-In addition to the Checkout variables, require:
+This is also outside Stage 1 and requires a separate approval. In addition to the Checkout variables, require:
 
 - `STRIPE_WEBHOOK_SECRET` for the exact Preview endpoint
 - `PAYMENTS_ENTITLEMENT_STORE=neon`
@@ -232,6 +252,15 @@ If `operatorAlertsConfigured` is false, `getPaymentReadiness().ready` is false a
 - GitHub branch protection must mark the new `Quality gate` workflow as required; committing the workflow alone does not enforce it.
 - Vercel environment scoping and deployment-protection review.
 
+### Required before the protected Stage 1 GET-only Preview
+
+- Vercel identifies the deployment as `Preview`, and the full Source SHA exactly equals the full local `git rev-parse HEAD` captured after this manifest finalization. A branch label, abbreviated SHA, deployment URL or build timestamp is not identity evidence.
+- The Stage 1 false switches and non-assignment list in section 4 are verified at both project and team inheritance levels. Production values may not be copied, temporarily shared or exposed to Preview.
+- Deployment Protection blocks unauthenticated access. The generated Preview deployment has no Production/custom-domain alias, and the existing Production deployment and alias set remain unchanged.
+- The actual Preview response for every smoke page carries a global `X-Robots-Tag` containing `noindex`. `src/app/robots.ts` currently allows crawling and therefore cannot substitute for this platform response evidence.
+- Preview analytics are disabled or demonstrably isolated from Production reporting. Evidence must show that Preview page views and the six fixed Resume funnel events cannot enter Production metrics; assumption based on the shared Vercel project is insufficient.
+- Capture only the variable names, booleans, status codes, full deploy SHA comparison result and masked deployment references. Do not record a secret, connection string, raw URL, legal identity value or customer data.
+
 ### Optional and held disabled
 
 - Web Push VAPID keys, provider delivery, `CRON_SECRET` and push tables.
@@ -244,22 +273,54 @@ If `operatorAlertsConfigured` is false, `getPaymentReadiness().ready` is false a
 - The residual inline hydration risk and removal path remain documented in `docs/csp-hardening.md`.
 - `public/sw.js` and its response handling are unchanged from `origin/main`; no service-worker durability claim is part of this candidate.
 - Preview verification must inspect the actual HTTP response header and exercise hydrated Builder input; a source-only CSP check is insufficient.
+- `src/app/robots.ts` is allow-all, so the protected Preview remains **HOLD** unless every GET-only smoke response proves platform-level `X-Robots-Tag: noindex` and Deployment Protection. Do not promote a Preview merely because individual private pages contain metadata-level `noindex`.
 
 ## 7. Completed local checks and remaining Preview conditions
 
-After integrating current main and resolving all overlaps, the local candidate produced these results:
+At pre-manifest application head `b0434caefe345ed8fb3cda17a3fe5d18880044d6`, the current branch produced these local facts:
 
-1. `git diff --name-only --diff-filter=D origin/main..HEAD` returns no file. English-card and Job Move routes remain in the successful production build.
-2. `git diff --check` passes. The manifest finalization commit must leave the working tree clean.
-3. `npm run quality:gate` passes, including the production build of 108 pages, lint, security/CSP/JSON-LD/navigation, Stripe Checkout/Product/failure handling, entitlement ordering/isolation, Resume Pro mobile/interview/onboarding/privacy, anonymous funnel, `test:push-exclusion`, database operations and secret scan. This release has no push-delivery test or runtime.
-4. A production-mode local server returned HTTP 200 for `/resume-pro` with the expected CSP, including `script-src 'self'`, `script-src-attr 'none'`, `object-src 'none'`, `form-action 'self'` and `frame-ancestors 'none'`.
-5. `npm run payments:check -- --strict` runs only inside an intentionally configured target environment. Add `--verify-stripe` only when read-only external verification is separately approved.
-6. If payments remain off, confirm the purchase CTA is unavailable and no Checkout call occurs.
-7. Confirm push remains disabled; do not invoke a provider or cron test in this release.
+1. The current branch is `codex/first-customer-discovery-accessibility`; local `origin/main` is `7910525c539408535e343ea1eff7fe8ebc510bec`.
+2. The application delta is 108 files, 10,233 insertions and 554 deletions; `git diff --name-only --diff-filter=D origin/main..HEAD` returns no file. English-card and Job Move routes remain in the successful production build.
+3. `git diff --check` passes. The manifest finalization commit must leave the working tree clean and must not alter `package-lock.json`.
+4. `npm run quality:gate` passes, including the production build of 108 pages, lint, security/CSP/JSON-LD/navigation, Stripe Checkout/Product/failure handling, entitlement ordering/isolation, Resume Pro Builder storage/mobile/interview/onboarding/privacy, anonymous funnel, `test:push-exclusion`, database operations and secret scan. This release has no push-delivery test or runtime.
+5. A production-mode local server returned HTTP 200 for `/resume-pro` with the expected CSP, including `script-src 'self'`, `script-src-attr 'none'`, `object-src 'none'`, `form-action 'self'` and `frame-ancestors 'none'`.
+6. `npm run payments:check -- --strict` runs only inside an intentionally configured target environment. Add `--verify-stripe` only when read-only external verification is separately approved; neither command is part of Stage 1.
+7. If payments remain off, confirm the purchase CTA is unavailable and no Checkout request occurs. Confirm push remains disabled; do not invoke a provider or cron test in this release.
+
+### Stage 1 GET-only smoke contract
+
+After explicit Preview approval, use authenticated GET requests only for `/`, `/resume-builder`, `/resume-pro`, `/resources/english-resume-achievement-examples`, `/terms`, `/purchase-information`, `/privacy`, `/contact`, `/payment-help`, `/robots.txt` and `/sitemap.xml`. Application pages must return 200, hydrated Builder input must work, `/resume-pro` must omit the Checkout form and show the unavailable/preview state, and every response must carry the required CSP and platform-level `X-Robots-Tag` containing `noindex`. An unauthenticated request must be intercepted by Deployment Protection rather than return the application page with HTTP 200.
+
+Do not send any Stage 1 POST, do not add a `session_id` to the success URL and do not open the paid workspace as a smoke test. In particular, never call:
+
+- `POST /api/checkout/resume-pro`
+- `POST /api/stripe/webhook`
+- `POST /api/resume-pro/access/activate`
+- `POST /api/resume-pro/access/release`
+- `POST /api/resume-pro/restore`
+- `POST /api/resume-pro/restore-code`
+- `POST /api/job-move-survey`
+- operator/performance connection endpoints, database migrations, accounting export, SMTP delivery or Web Push delivery
+
+The following are code-level environment-isolation expectations, not Stage 1 smoke instructions. Verifying them with POST belongs to a separately approved integration stage.
+
+| Normal-form request with Stage 1 environment | Expected fail-closed result | External boundary not reached |
+| --- | --- | --- |
+| Valid same-origin Checkout POST, accepted terms and JSON response requested while `PAYMENTS_ENABLED=false` | HTTP 503, `Cache-Control: no-store`, public `checkout_unavailable`, `retryable=false` | no Stripe Price lookup, first-sale DB claim or Checkout Session creation |
+| Webhook POST while `STRIPE_WEBHOOK_SECRET` is unassigned | HTTP 503 with `Cache-Control: no-store` before signature processing | no Stripe client, entitlement/first-sale DB or SMTP/outbox delivery |
+| Restore POST while `PAYMENTS_ENTITLEMENT_STORE` and database variables are unassigned | HTTP 503 `restore_unavailable` with `Cache-Control: no-store` | no Neon query, access-session issuance or cookie grant |
+| Otherwise valid Job Move survey POST while `ZOHO_SMTP_APP_PASSWORD` is unassigned | HTTP 503 survey-unavailable response | no SMTP connection or survey email delivery |
+
+Stage 1 records these as static/runtime contract expectations only and sends none of the POST requests.
 
 ## 8. Rollback and stop criteria
 
 - **Historical candidate:** `7904086` remains permanently non-deployable. The rebuilt mainline preserves the 19 main-only commits and has passed the local Preview gate.
+- **Protected Preview HOLD:** do not create, promote or alias the Preview until the full local post-finalization SHA can be compared with the full Vercel Source SHA and the Preview scope, protection, global `noindex`, analytics isolation and alias isolation evidence plan is ready.
+- **Credential scope leak:** stop if any live/Production Stripe, Neon, SMTP, accounting, session-signing or other Production credential is assigned or inherited in the Preview environment, even when a feature switch is false.
+- **Wrong environment or alias:** stop immediately if Vercel reports Production, any Production/custom-domain alias changes, the Source SHA differs, or the deployment URL is being used as identity evidence. Leave the existing Production deployment untouched and restore its prior alias only through a separately approved operation.
+- **External-call evidence:** stop if Stage 1 invokes Stripe, Neon, SMTP, Web Push, accounting export, migrations or any prohibited POST. Setting `PAYMENTS_ENABLED=false` does not waive this stop condition.
+- **Indexing or analytics leakage:** stop if any smoke response lacks platform-level `noindex`, if Deployment Protection permits unauthenticated application HTTP 200, or if Preview analytics can enter Production metrics.
 - **Live evidence HOLD:** do not enable Production payments until the actual customer-visible Checkout transaction seller, issued receipt/invoice issuer and tax-liability presentation are recorded. `BUSINESS_LEGAL_NAME` identifies the product provider only and is not proof of the Managed Payments Merchant of Record.
 - **Build, CSP or hydration failure:** stop and restore the last known-good application deployment; do not weaken CSP ad hoc.
 - **Checkout/Product/tax/support/seller failure:** keep or set `PAYMENTS_ENABLED=false`; no customer should reach Checkout.
@@ -268,4 +329,6 @@ After integrating current main and resolving all overlaps, the local candidate p
 - **CI not required or bypassed:** no release, even if a local gate passed.
 - **Secret scan finding:** stop immediately, rotate the affected credential outside this repository, remove it from history using the approved incident process, then rerun the full gate.
 
-This manifest authorises no deployment, migration, key change, external API call, payment, refund, customer contact or production configuration change.
+Stage 1 rollback means do not promote the Preview and preserve the last known-good Production deployment, aliases, environment variables and external-service state. Do not drop or mutate a database, expire a Stripe object, send an email, retry a webhook or change a Production secret as part of Preview rollback. Disabling/deleting the Preview, removing a remote branch or restoring an alias is itself a separately approved external change.
+
+This manifest authorises no deployment, push, remote branch, alias change, migration, key change, external API call, payment, refund, customer contact or Production configuration change.
