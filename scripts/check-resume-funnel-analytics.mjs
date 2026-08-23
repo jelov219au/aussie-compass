@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [contract, client, builder, articleStep, homeSection, finder, report, reportPage, privacyDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage] = await Promise.all([
+const [contract, client, builder, checker, articleStep, homeSection, finder, report, reportPage, privacyDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage] = await Promise.all([
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeFunnelAnalytics.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeBuilder.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/ResumeJobAdChecker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/resources/ArticleNextStep.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/PremiumToolsSection.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ProProductFinder.tsx", import.meta.url), "utf8"),
@@ -18,19 +19,23 @@ const [contract, client, builder, articleStep, homeSection, finder, report, repo
   readFile(new URL("../src/app/resume-pro/restore/page.tsx", import.meta.url), "utf8"),
 ]);
 
-for (const eventName of ["Resume Builder Started", "Resume Pro CTA Clicked"]) {
+for (const eventName of ["Resume Builder Started", "Resume Job Ad Checked", "Resume Pro CTA Clicked"]) {
   assert.ok(contract.includes(eventName), `missing fixed funnel event: ${eventName}`);
-  assert.ok(report.includes(eventName === "Resume Builder Started" ? "resumeFunnelEvents.builderStarted" : "resumeFunnelEvents.proCtaClicked"), `report does not aggregate ${eventName}`);
+  const reportEvent = eventName === "Resume Builder Started" ? "resumeFunnelEvents.builderStarted" : eventName === "Resume Job Ad Checked" ? "resumeFunnelEvents.jobAdChecked" : "resumeFunnelEvents.proCtaClicked";
+  assert.ok(report.includes(reportEvent), `report does not aggregate ${eventName}`);
   assert.ok(privacyDoc.includes(eventName), `privacy documentation is missing ${eventName}`);
 }
 
 for (const value of [
   "resume_builder_form",
   "resume_builder_completion",
+  "resume_job_ad_checker_form",
+  "resume_job_ad_checker_result",
   "article_next_step",
   "home_resume_pro",
   "pro_finder",
   "resume_builder",
+  "resume_job_ad_checker",
   "resume_template_guide",
   "resume_achievement_guide",
   "job_search_guide",
@@ -41,6 +46,8 @@ assert.ok(articleStep.includes('/resume-pro?from=article-cover-letter-checklist'
 assert.ok(contract.includes('/resume-pro?from=article-cover-letter-checklist'), "CTA href contract is missing the cover-letter acquisition entry");
 assert.ok(articleStep.includes('/resume-pro?from=article-resume-template'), "resume-template guidance is missing its fixed acquisition entry");
 assert.ok(contract.includes('/resume-pro?from=article-resume-template'), "CTA href contract is missing the resume-template acquisition entry");
+assert.ok(checker.includes('/resume-pro?from=job-ad-checker'), "job-ad checker is missing its fixed acquisition entry");
+assert.ok(contract.includes('/resume-pro?from=job-ad-checker'), "CTA href contract is missing the job-ad-checker acquisition entry");
 
 for (const [source, href] of [
   [homeSection, '/resume-pro?from=home-premium'],
@@ -60,14 +67,14 @@ assert.ok(builder.includes("onClickCapture={trackBuilderInteraction}") && builde
 assert.ok(builder.includes('closest("input, textarea, select, button")'), "Builder start must ignore passive page views and links");
 assert.ok(builder.includes("trackResumeBuilderStarted()"), "Builder start helper is not connected");
 
-for (const source of [builder, articleStep, homeSection, finder]) {
+for (const source of [builder, checker, articleStep, homeSection, finder]) {
   assert.ok(source.includes("ResumeProCtaLink"), "a primary Resume Pro CTA is missing the fixed analytics link");
 }
 
-assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("report.proCtaClicks"), "operator report must show both new aggregate steps");
+assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("report.jobAdChecks") && reportPage.includes("report.proCtaClicks"), "operator report must show all anonymous pre-offer aggregate steps");
 assert.ok(privacyDoc.includes("Names, STAR text, company names, search terms, full URLs and URL queries are never read or sent."), "privacy boundary must name prohibited resume and URL values");
 
-assert.equal((contract.match(/^\s+\w+:\s+"Resume /gm) ?? []).length, 2, "the fixed resume funnel contract must keep exactly two shared event names");
+assert.equal((contract.match(/^\s+\w+:\s+"Resume /gm) ?? []).length, 3, "the fixed resume funnel contract must keep exactly three shared event names");
 for (const [source, eventNames] of [
   [builder, ["Resume Builder Completed", "Resume Export Started"]],
   [visitTracker, ["Resume Pro Viewed"]],

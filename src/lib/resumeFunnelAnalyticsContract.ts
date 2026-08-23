@@ -1,11 +1,14 @@
 export const resumeFunnelEvents = {
   builderStarted: "Resume Builder Started",
+  jobAdChecked: "Resume Job Ad Checked",
   proCtaClicked: "Resume Pro CTA Clicked",
 } as const;
 
 export const resumeFunnelSurfaces = {
   builderForm: "resume_builder_form",
   builderCompletion: "resume_builder_completion",
+  jobAdCheckerForm: "resume_job_ad_checker_form",
+  jobAdCheckerResult: "resume_job_ad_checker_result",
   articleNextStep: "article_next_step",
   homePremium: "home_resume_pro",
   proFinder: "pro_finder",
@@ -13,6 +16,7 @@ export const resumeFunnelSurfaces = {
 
 export const resumeFunnelContexts = {
   resumeBuilder: "resume_builder",
+  jobAdChecker: "resume_job_ad_checker",
   resumeTemplateGuide: "resume_template_guide",
   achievementGuide: "resume_achievement_guide",
   jobSearchGuide: "job_search_guide",
@@ -27,6 +31,7 @@ export type ResumeFunnelContext = (typeof resumeFunnelContexts)[keyof typeof res
 export type ResumeProCtaSurface = Exclude<ResumeFunnelSurface, typeof resumeFunnelSurfaces.builderForm>;
 export type ResumeProCtaHref =
   | "/resume-pro"
+  | "/resume-pro?from=job-ad-checker"
   | "/resume-pro?from=article-resume-template"
   | "/resume-pro?from=article-job-search-plan"
   | "/resume-pro?from=article-achievement-examples"

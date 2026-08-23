@@ -21,6 +21,7 @@ const routes = [
   "/life-admin-reminder",
   "/salary-calculator",
   "/resume-builder",
+  "/resume-job-ad-checker",
   "/resume-pro",
   "/eofy-pro",
   "/rental-application-pro",

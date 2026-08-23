@@ -9,6 +9,7 @@ const fixtures = [
   { href: "/salary-calculator", type: "도구", title: "급여 계산기", description: "급여 계산", keywords: ["급여"] },
   { href: "/resources/english-resume-achievement-examples", type: "자료", title: "호주 이력서 성과 문장", description: "근거를 확인하는 STAR 글", keywords: ["이력서", "resume", "CV", "STAR 예시", "STAR examples", "selection criteria", "cover letter", "호주 취업 이력서"] },
   { href: "/resources/australia-resume-template-submission-checklist", type: "자료", title: "호주 이력서 양식", description: "무료 PDF 작성과 제출 전 체크리스트", keywords: ["이력서", "이력서 양식", "resume", "resume template", "CV", "호주 취업 이력서"] },
+  { href: "/resume-job-ad-checker", type: "도구", title: "이력서·Job Ad 공고 맞춤 점검기", description: "공고 표현과 실제 경력 근거를 로컬에서 비교", keywords: ["이력서", "공고 맞춤", "ATS", "ATS 이력서", "job ad", "job ad checker"] },
   { href: "/resources/australia-cover-letter-job-ad-checklist", type: "자료", title: "호주 커버레터 작성법", description: "공고별 제출 전 점검", keywords: ["커버레터", "cover letter", "호주 커버레터"] },
   { href: "/resume-builder", type: "도구", title: "무료 영문 이력서 빌더", description: "브라우저 저장과 PDF", keywords: ["이력서", "resume", "CV", "STAR 예시", "STAR examples", "selection criteria", "cover letter", "호주 취업 이력서"] },
 ];
@@ -16,13 +17,23 @@ const fixtures = [
 const discoveryOrder = [
   "/resume-builder",
   "/resources/australia-resume-template-submission-checklist",
+  "/resume-job-ad-checker",
   "/resources/english-resume-achievement-examples",
   "/resume-pro",
 ];
 
 for (const query of ["이력서", "이력서 양식", "resume", "resume template", "CV", "STAR 예시", "STAR examples", "selection criteria", "호주 취업 이력서"]) {
   assert.equal(getSiteSearchIntent(query), "resume", `${query} must use the allowlisted resume intent`);
-  assert.deepEqual(rankSiteSearchItems(fixtures, query).slice(0, 4).map((item) => item.href), discoveryOrder, `${query} must lead with free Builder, template checklist, evidence article, then Pro`);
+  assert.deepEqual(rankSiteSearchItems(fixtures, query).slice(0, 5).map((item) => item.href), discoveryOrder, `${query} must lead with free Builder, template checklist, local checker, evidence article, then Pro`);
+}
+
+for (const query of ["ATS", "ATS 이력서", "공고 맞춤", "Job Ad", "Job Ad Checker"]) {
+  assert.equal(getSiteSearchIntent(query), "resume", `${query} must use the allowlisted resume intent`);
+  assert.deepEqual(
+    rankSiteSearchItems(fixtures, query).slice(0, 5).map((item) => item.href),
+    ["/resume-job-ad-checker", "/resume-builder", "/resources/australia-resume-template-submission-checklist", "/resources/english-resume-achievement-examples", "/resume-pro"],
+    `${query} must lead with the local checker and keep the paid product last`,
+  );
 }
 
 for (const query of ["cover letter", "커버레터"]) {

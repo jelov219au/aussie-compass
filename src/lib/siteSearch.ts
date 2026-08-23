@@ -19,10 +19,26 @@ const resumeIntentAliases = new Set([
   "커버레터",
   "이력서양식",
   "resumetemplate",
+  "ats",
+  "ats이력서",
+  "공고맞춤",
+  "이력서공고맞춤",
+  "jobad",
+  "jobadchecker",
   "호주취업이력서",
 ]);
 
 const resumeDiscoveryPriority = new Map([
+  ["/resume-builder", 5],
+  ["/resources/australia-resume-template-submission-checklist", 4],
+  ["/resume-job-ad-checker", 3],
+  ["/resources/english-resume-achievement-examples", 2],
+  ["/resume-pro", 1],
+]);
+
+const jobAdCheckerAliases = new Set(["ats", "ats이력서", "공고맞춤", "이력서공고맞춤", "jobad", "jobadchecker"]);
+const jobAdCheckerDiscoveryPriority = new Map([
+  ["/resume-job-ad-checker", 5],
   ["/resume-builder", 4],
   ["/resources/australia-resume-template-submission-checklist", 3],
   ["/resources/english-resume-achievement-examples", 2],
@@ -60,7 +76,9 @@ export function rankSiteSearchItems(items: SearchItem[], query: string) {
   const intent = getSiteSearchIntent(query);
   const discoveryPriority = normalizedQuery === "coverletter" || normalizedQuery === "커버레터"
     ? coverLetterDiscoveryPriority
-    : resumeDiscoveryPriority;
+    : jobAdCheckerAliases.has(normalizedQuery)
+      ? jobAdCheckerDiscoveryPriority
+      : resumeDiscoveryPriority;
   const indexed = items.map((item, index) => ({ item, index }));
   const paid = (item: SearchItem) => item.href === "/pro" || item.href.includes("-pro");
   const searchable = (item: SearchItem) => normalizeSiteSearchText([item.title, item.description, ...item.keywords].join(" "));

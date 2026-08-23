@@ -96,6 +96,15 @@ const availableTools: DirectoryTool[] = [
     categories: ["work"],
   },
   {
+    href: "/resume-job-ad-checker",
+    eyebrow: "실제 공고가 생겼을 때",
+    title: "이력서·Job Ad 공고 맞춤 점검기",
+    description: "이력서와 채용 공고를 서버 전송 없이 비교하고, 같은 문구와 실제 경력을 먼저 확인할 항목을 구분해요.",
+    features: ["로컬 텍스트 비교", "ATS 점수·합격 예측 없음", "무료 Builder 연결"],
+    cta: "공고 맞춤 근거 확인하기",
+    categories: ["work"],
+  },
+  {
     href: "/savings-goal-calculator",
     eyebrow: "저축과 비상금",
     title: "저축 목표 계산기",

@@ -35,6 +35,7 @@ export default function ResumeBuilderPage() {
             <p className="mt-3 text-xs leading-5 text-muted">입력하지 않은 성과나 자격을 만들어 주지 않아요. 예시와 영문 초안은 내 사실에 맞는지 직접 확인하세요.</p>
           </div>
           <ResumeBuilder resumeProLive={resumeProLive} />
+          <section className="mt-10 border-l-2 border-gold bg-surface p-6 sm:p-8" aria-labelledby="resume-job-ad-check-heading"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">실제 공고가 생겼다면</p><h2 id="resume-job-ad-check-heading" className="mt-2 text-xl font-semibold text-navy">이력서와 Job Ad를 로컬에서 비교하세요</h2><p className="mt-3 max-w-4xl text-sm leading-7 text-muted">공고의 표현을 무조건 복사하지 않고, 현재 이력서에서 같은 문구를 찾은 뒤 실제로 설명할 수 있는 경험인지 확인할 수 있어요. 입력 내용은 저장하거나 서버로 보내지 않습니다.</p><Link href="/resume-job-ad-checker" className="mt-4 inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">공고 맞춤 근거 점검하기 &rarr;</Link></section>
           <section className="mt-10 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="resume-tips-heading">
             <h2 id="resume-tips-heading" className="text-xl font-semibold text-navy">작성할 때 기억하세요</h2>
             <ul className="mt-4 grid gap-3 text-sm leading-6 text-muted md:grid-cols-3">

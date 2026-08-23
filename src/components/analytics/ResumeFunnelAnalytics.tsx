@@ -36,6 +36,14 @@ export function trackResumeBuilderStarted() {
   );
 }
 
+export function trackResumeJobAdChecked() {
+  emitOnce(
+    resumeFunnelEvents.jobAdChecked,
+    resumeFunnelSurfaces.jobAdCheckerForm,
+    resumeFunnelContexts.jobAdChecker,
+  );
+}
+
 export function ResumeProCtaLink({
   href,
   surface,

@@ -25,6 +25,7 @@ type ConnectionState = {
 export type ResumeProPerformance = {
   rows: ResumeProPerformanceRow[];
   builderStarts: number;
+  jobAdChecks: number;
   proCtaClicks: number;
   since: string;
   until: string;
@@ -33,6 +34,7 @@ export type ResumeProPerformance = {
 };
 
 const entries: Array<{ entry: ResumeProEntry; label: string }> = [
+  { entry: "job-ad-checker", label: "이력서·공고 맞춤 점검기" },
   { entry: "article-resume-template", label: "무료 이력서 양식 안내 글" },
   { entry: "article-job-search-plan", label: "구직 관리 안내 글" },
   { entry: "article-achievement-examples", label: "이력서 성과 문장 안내 글" },
@@ -110,16 +112,18 @@ async function loadVercelTotals(since: string, until: string) {
       launchInterests: new Map<ResumeProEntry, number>(),
       checkouts: new Map<ResumeProEntry, number>(),
       builderStarts: 0,
+      jobAdChecks: 0,
       proCtaClicks: 0,
     };
   }
 
   try {
-    const [visits, launchInterests, checkouts, builderStarts, proCtaClicks] = await Promise.all([
+    const [visits, launchInterests, checkouts, builderStarts, jobAdChecks, proCtaClicks] = await Promise.all([
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Resume Pro Viewed" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Resume Pro Launch Interest" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Checkout Started", extraFilter: "eventData/product eq 'resume_pro'" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.builderStarted, extraFilter: `eventData/surface eq '${resumeFunnelSurfaces.builderForm}'`, groupBy: "context" }),
+      fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.jobAdChecked, extraFilter: `eventData/surface eq '${resumeFunnelSurfaces.jobAdCheckerForm}'`, groupBy: "context" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.proCtaClicked, groupBy: "context" }),
     ]);
     return {
@@ -128,6 +132,7 @@ async function loadVercelTotals(since: string, until: string) {
       launchInterests: aggregateMap(launchInterests),
       checkouts: aggregateMap(checkouts),
       builderStarts: aggregateTotal(builderStarts),
+      jobAdChecks: aggregateTotal(jobAdChecks),
       proCtaClicks: aggregateTotal(proCtaClicks),
     };
   } catch {
@@ -137,6 +142,7 @@ async function loadVercelTotals(since: string, until: string) {
       launchInterests: new Map<ResumeProEntry, number>(),
       checkouts: new Map<ResumeProEntry, number>(),
       builderStarts: 0,
+      jobAdChecks: 0,
       proCtaClicks: 0,
     };
   }
@@ -211,6 +217,7 @@ export async function getResumeProPerformance(days: 7 | 30 | 90): Promise<Resume
     vercel: vercel.state,
     stripe: stripe.state,
     builderStarts: vercel.builderStarts,
+    jobAdChecks: vercel.jobAdChecks,
     proCtaClicks: vercel.proCtaClicks,
     rows: entries.map(({ entry, label }) => ({
       entry,
