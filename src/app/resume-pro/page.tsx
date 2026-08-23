@@ -229,7 +229,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                   : "현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다."}
             </p>
             {!existingBuyerIssue && !canOfferCheckout && seller.email && (
-              <p className="mt-2 max-w-3xl text-xs leading-5 text-muted">안내 요청을 누르면 이메일 앱이 열립니다. 직접 보낸 주소로 판매 시작 시 한 번만 답하며 자동 마케팅 구독 명단에 추가하지 않습니다. 지원 직무와 마감일만 적고 이력서 원문이나 민감정보는 보내지 마세요.</p>
+              <p className="mt-2 max-w-3xl text-xs leading-5 text-muted">안내 요청을 누르면 이메일 앱이 열립니다. 직접 보낸 주소로 판매 시작 시 한 번만 답하며 자동 마케팅 구독 명단에 추가하지 않습니다. 지원 직무, 마감일, 공개 채용 공고 링크와 무료 경력 초안 여부만 적고 이력서 원문이나 민감정보는 보내지 마세요.</p>
             )}
             {!canOfferCheckout && (
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-navy">

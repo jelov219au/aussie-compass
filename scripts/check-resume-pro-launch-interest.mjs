@@ -28,7 +28,8 @@ for (const stateText of ["요청문과 이메일 주소를 복사했어요", "�
 }
 for (const text of [
   "지원하려는 직무:",
-  "지원 마감일(알고 있다면):",
+  "지원 마감일(YYYY-MM-DD, 모르면 미정):",
+  "공개 채용 공고 링크(있다면, 개인 초대·추적 링크 제외):",
   "무료 이력서 경력 초안: 있음 / 아직 없음",
   "자동 마케팅 구독 신청이 아닙니다.",
   "이력서 원문",
@@ -38,6 +39,7 @@ assert.doesNotMatch(link, /fetch\(|<form|localStorage|sessionStorage/, "launch i
 assert.ok(page.includes("getPublicSellerDetails()"), "Resume Pro must use the validated public support email");
 assert.ok(page.includes("!existingBuyerIssue && !canOfferCheckout && seller.email"), "launch interest must appear only for non-buyers while checkout is closed");
 assert.ok(page.includes("판매 시작 시 한 번만 답하며 자동 마케팅 구독 명단에 추가하지 않습니다"), "the product page must explain the one-time reply boundary");
+assert.ok(page.includes("지원 직무, 마감일, 공개 채용 공고 링크와 무료 경력 초안 여부만 적고"), "the product page must explain the fixed first-customer fit fields");
 assert.ok(page.includes("이력서 원문이나 민감정보는 보내지 마세요"), "the product page must prevent unnecessary resume or sensitive-data sharing");
 assert.equal((page.match(/<ResumeProLaunchInterestCopyButton/g) ?? []).length, 2, "both closed-checkout notice surfaces must offer a webmail copy fallback");
 assert.equal(
