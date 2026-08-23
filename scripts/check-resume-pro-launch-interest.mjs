@@ -40,6 +40,16 @@ assert.ok(page.includes("!existingBuyerIssue && !canOfferCheckout && seller.emai
 assert.ok(page.includes("판매 시작 시 한 번만 답하며 자동 마케팅 구독 명단에 추가하지 않습니다"), "the product page must explain the one-time reply boundary");
 assert.ok(page.includes("이력서 원문이나 민감정보는 보내지 마세요"), "the product page must prevent unnecessary resume or sensitive-data sharing");
 assert.equal((page.match(/<ResumeProLaunchInterestCopyButton/g) ?? []).length, 2, "both closed-checkout notice surfaces must offer a webmail copy fallback");
+assert.equal(
+  (page.match(/<ResumeProLaunchInterestCopyButton[^>]+border border-navy\/30 bg-white[^>]+text-navy/g) ?? []).length,
+  2,
+  "both webmail fallbacks must keep visible navy text and borders on their light backgrounds",
+);
+assert.doesNotMatch(
+  page,
+  /<ResumeProLaunchInterestCopyButton[^>]+border-white[^>]+text-white/,
+  "a closed-checkout fallback must not render white text and a white border on the light product page",
+);
 
 assert.ok(performance.includes('eventName: "Resume Pro Launch Interest"'), "the operator report must query the launch-interest event");
 assert.ok(performance.includes("launchInterests: aggregateMap(launchInterests)"), "launch-interest counts must remain grouped by allowlisted entry");

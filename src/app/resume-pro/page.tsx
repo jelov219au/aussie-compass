@@ -173,7 +173,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 </ResumeProLaunchInterestLink>
               )}
               {!existingBuyerIssue && !canOfferCheckout && seller.email && (
-                <ResumeProLaunchInterestCopyButton email={seller.email} entry={entry} className="inline-flex min-h-12 items-center justify-center border border-white/60 px-5 py-3 text-sm font-semibold text-white hover:bg-white hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold" />
+                <ResumeProLaunchInterestCopyButton email={seller.email} entry={entry} className="inline-flex min-h-12 items-center justify-center border border-navy/30 bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold" />
               )}
               <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface">경력 초안이 없다면 무료로 시작</Link>
             </div>
