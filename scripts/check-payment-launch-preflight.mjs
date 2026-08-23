@@ -99,6 +99,10 @@ assert.ok(
 assert.ok(productionAudit.includes("`required_migrations_present=false`"), "the Production audit must preserve the fail-closed migration result");
 assert.ok(compactProductionAudit.includes("found no `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` result"), "the Production audit must preserve the observed missing endpoint-pin state");
 assert.ok(envExample.includes("PAYMENTS_EXPECTED_NEON_ENDPOINT_ID="), "the environment example must expose the required non-secret endpoint pin by name");
+assert.ok(envExample.includes("STRIPE_MANAGED_PAYMENTS_ENABLED=false") && !envExample.includes("STRIPE_MANAGED_PAYMENTS_ENABLED=true"), "the environment example must keep Managed Payments fail-closed by default");
+assert.ok(!readiness.includes("Production payments were opened after"), "payment readiness must not present the historical controlled test as current availability");
+assert.ok(readiness.includes("historical test does not prove current launch readiness") && readiness.includes("authoritative 24 August Production audit is `NO-GO`"), "payment readiness must identify the current source of truth and safe defaults");
+assert.ok(checklist.includes("then disabled again") && checklist.includes("Production remains OFF for the first customer"), "the live checklist must distinguish the historical controlled test from current launch approval");
 for (const auditOnlyVariable of ["PAYMENTS_AUDIT_DB_URL", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID"]) {
   assert.ok(releaseManifest.includes(`- \`${auditOnlyVariable}\``), `the protected Preview exclusion list must include audit-only variable: ${auditOnlyVariable}`);
 }

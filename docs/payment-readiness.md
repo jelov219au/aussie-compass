@@ -1,6 +1,6 @@
 # Hoju Compass payment readiness
 
-Resume Pro is a one-time AUD 19.90 product provided by Hoju Compass's Australian sole-trader operator through Stripe Managed Payments. Hoju Compass's product-provider identity and the transaction seller (Merchant of Record) shown by Managed Payments are separate roles. Production payments were opened after the controlled live purchase, access-delivery and full-refund test passed on 20 August 2026. The remaining owner and bookkeeping checks below still need ongoing review.
+Resume Pro is a one-time AUD 19.90 product provided by Hoju Compass's Australian sole-trader operator through Stripe Managed Payments. Hoju Compass's product-provider identity and the transaction seller (Merchant of Record) shown by Managed Payments are separate roles. A controlled live purchase, access-delivery check and full refund passed on 20 August 2026, but that historical test does not prove current launch readiness. The authoritative 24 August Production audit is `NO-GO`; `PAYMENTS_ENABLED=false` and `STRIPE_MANAGED_PAYMENTS_ENABLED=false` remain the safe defaults until every current preflight blocker passes and the owner separately approves one first-customer sale.
 
 ## Owner-only setup
 

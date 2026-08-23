@@ -25,7 +25,7 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 - [x] Connect the existing Neon entitlement database to Production with sensitive `ENTITLEMENT_DB_*` variables.
 - [x] Store a separate Production `ENTITLEMENT_SESSION_SECRET` and set `PAYMENTS_ENTITLEMENT_STORE=neon`.
 - [x] Create `hoju_payment_auditor` through SQL, apply `docs/payment-audit-role-grants.sql`, and prove every audit-role identity/attribute/membership/schema/table/function check passes. The actual separate login returned true for the exact user/database, safe attributes, no elevated membership, no protected-table mutation and no payment-function execution on 24 August 2026. Its password was generated only for the audit and was not retained in source, chat or the application environment.
-- [x] Keep the Production launch switch explicitly locked with `PAYMENTS_ENABLED=false` during setup. It was enabled only after the controlled live purchase and refund passed on 20 August 2026.
+- [x] Keep the Production launch switch explicitly locked with `PAYMENTS_ENABLED=false` during setup. It was temporarily enabled only for the controlled purchase/refund on 20 August 2026 and then disabled again; that historical test is not current first-customer launch approval.
 
 ## 3. Stripe live settings
 
@@ -47,7 +47,7 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 - [ ] Confirm the controlled live Checkout and issued receipt/invoice separately identify the customer-visible transaction seller, document issuer and transaction-support route; do not infer these from `BUSINESS_*`. The 20 August retrospective evidence leaves these fields unconfirmed.
 - [x] Confirm Checkout links the versioned service terms, purchase information and privacy notice before payment.
 - [x] Confirm Production still fails closed before the deliberate launch switch is enabled.
-- [x] Enable Production payments for the controlled test.
+- [x] Temporarily enable Production payments only for the completed 20 August controlled test, then restore `PAYMENTS_ENABLED=false`. Production remains OFF for the first customer until every unchecked pre-payment item passes and the owner records a new single-sale approval.
 - [x] Make one real purchase through the public customer path.
 - [x] Confirm the signed live webhook persists the entitlement and the Resume Pro workspace opens only after that entitlement exists.
 - [x] With payments off, confirm the exact migration order and versions: charge-link v2 → `20260823_payment_operator_alert_outbox_v1` → `20260823_checkout_activation_nonce_v1` → `20260823_purchase_access_sessions_v1` → `20260823_restore_activation_nonce_v1`. The complete named version/signature result is recorded in `docs/production-first-sale-readiness-audit-2026-08-24.md`; functional response-loss, release and restore proof remains separately required below.
