@@ -13,7 +13,7 @@ and pay out, and live Resume Pro has no existing open Checkout Session. The
 strict audit still reports `required_migrations_present=false` because
 `20260824_entitlement_link_conflict_v1` has not been applied. Launch also
 requires Stripe's missing public support email, a proven live restricted
-runtime key, the missing strict-audit Neon endpoint pin, and a controlled
+runtime key, a separate Account-Read-only operator audit key, the missing strict-audit Neon endpoint pin, and a controlled
 Production post-migration alert/access rehearsal.
 
 ## Read-only evidence
@@ -139,8 +139,10 @@ Production post-migration alert/access rehearsal.
    and confirm it is present. Do not add a different address by assumption.
 3. Prove the Production runtime uses an `rk_live_` key with only Prices Read,
    Products Read, Checkout Sessions create/retrieve and PaymentIntents Read.
-   Run the target-environment strict remote product audit without printing the
-   key, IDs or product values.
+   Create a different one-off `rk_live_` operator-audit key with Account Read
+   only for Account/support-profile evidence; never grant Account Read to the
+   runtime key or deploy the audit key. Run the target-environment strict remote
+   audit without printing either key, IDs or product values.
 4. Inject the approved non-secret endpoint ID as
    `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` only for the strict operator audit and
    prove both the runtime and `hoju_payment_auditor` connections resolve to it.

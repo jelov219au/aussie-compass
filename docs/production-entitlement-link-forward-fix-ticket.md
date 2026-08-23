@@ -101,6 +101,6 @@ contention times out and leaves the transaction unapplied.
 
 Successful postflight does not open sales. Keep `PAYMENTS_ENABLED=false` and
 the first customer payment **NO-GO** until the live restricted-key, Stripe
-support email, real SMTP delivery, Managed Payments document wording,
+support email, separate Account-Read operator audit key, real SMTP delivery, Managed Payments document wording,
 registered tax-agent review and approved Production functional rehearsal gates
 also pass.

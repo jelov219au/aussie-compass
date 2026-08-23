@@ -41,7 +41,13 @@ function neonEndpointId(value) {
 
 const abnDigits = process.env.BUSINESS_ABN?.replace(/\D/g, "") ?? "";
 const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() ?? "";
-const stripeMode = secretMode(process.env.STRIPE_SECRET_KEY);
+const runtimeStripeKey = process.env.STRIPE_SECRET_KEY?.trim() ?? "";
+const stripeAuditKey = process.env.PAYMENTS_STRIPE_AUDIT_KEY?.trim() ?? "";
+const stripeMode = secretMode(runtimeStripeKey);
+const stripeAuditMode = secretMode(stripeAuditKey);
+const stripeAuditKeySeparated = stripeAuditKey.startsWith("rk_")
+  && stripeAuditMode === expectedStripeMode
+  && stripeAuditKey !== runtimeStripeKey;
 const tradingName = process.env.BUSINESS_TRADING_NAME?.trim() || "Hoju Compass";
 const entitlementDatabaseUrl = process.env.ENTITLEMENT_DB_URL?.trim()
   || process.env.ENTITLEMENT_DB_DATABASE_URL?.trim()
@@ -55,6 +61,7 @@ const checks = [
   ["결제 스위치", preflight ? process.env.PAYMENTS_ENABLED !== "true" : process.env.PAYMENTS_ENABLED === "true", preflight ? "PAYMENTS_ENABLED=false" : "PAYMENTS_ENABLED=true"],
   ["Stripe 키 환경", stripeMode === expectedStripeMode, `${expectedStripeMode} 모드 키`],
   ["최소 권한 Stripe 키", process.env.STRIPE_SECRET_KEY?.trim().startsWith("rk_") ?? false, "rk_ 제한 키"],
+  ["Stripe 감사 키 분리", stripeAuditKeySeparated, "같은 모드의 별도 Account Read 제한 키"],
   ["Resume Pro 가격", process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_") ?? false, "price_ ID"],
   ["Resume Pro 상품", process.env.STRIPE_RESUME_PRO_PRODUCT_ID?.trim().startsWith("prod_") ?? false, "별도 prod_ ID"],
   ["Managed Payments 세금 분류", process.env.STRIPE_RESUME_PRO_TAX_CODE?.trim().startsWith("txcd_") ?? false, "승인된 txcd_ ID"],
@@ -91,7 +98,7 @@ let stripeSupportProfileVerified = false;
 if (verifyStripe) {
   try {
     const config = getResumeProStripeProductConfig();
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY?.trim() ?? "", {
+    const stripe = new Stripe(runtimeStripeKey, {
       maxNetworkRetries: 2,
       timeout: 10_000,
       telemetry: false,
@@ -101,28 +108,6 @@ if (verifyStripe) {
     stripeProductVerified = true;
     console.log("PASS  Stripe 원격 상품·세금 계약 — Product ID, tax code, 포함세 가격 일치");
 
-    const account = await stripe.accounts.retrieveCurrent();
-    const requirements = account.requirements;
-    stripeAccountVerified = account.charges_enabled === true
-      && account.payouts_enabled === true
-      && account.details_submitted === true
-      && requirements?.disabled_reason == null
-      && (requirements?.currently_due?.length ?? 0) === 0
-      && (requirements?.past_due?.length ?? 0) === 0;
-    console.log(`${stripeAccountVerified ? "PASS" : "WAIT"}  Stripe 계정 운영 상태 — 결제·지급 활성, 제출 완료, 현재·연체 요구사항 없음`);
-
-    const profile = account.business_profile;
-    const accountSupportEmail = profile?.support_email?.trim().toLowerCase() ?? "";
-    stripeSupportProfileVerified = Boolean(
-      profile?.name?.trim()
-      && profile.url?.trim()
-      && profile.support_phone?.trim()
-      && accountSupportEmail
-      && accountSupportEmail === supportEmail.toLowerCase()
-      && account.settings?.payments?.statement_descriptor?.trim()
-    );
-    console.log(`${stripeSupportProfileVerified ? "PASS" : "WAIT"}  Stripe 구매자 지원 프로필 — 사업명, 웹사이트, 전화, 지원 이메일 일치, 명세서 문구`);
-
     if (preflight) {
       const sessions = await stripe.checkout.sessions.list({ status: "open", limit: 100 });
       zeroOpenCheckoutVerified = sessions.data.length === 0 && sessions.has_more === false;
@@ -130,10 +115,47 @@ if (verifyStripe) {
     }
   } catch {
     stripeProductVerified = false;
+    zeroOpenCheckoutVerified = false;
+    console.log("WAIT  Stripe 런타임 원격 사전감사 — 상품·open Session 읽기 권한 확인 필요");
+  }
+
+  if (stripeAuditKeySeparated) {
+    try {
+      const auditStripe = new Stripe(stripeAuditKey, {
+        maxNetworkRetries: 2,
+        timeout: 10_000,
+        telemetry: false,
+      });
+      const account = await auditStripe.accounts.retrieveCurrent();
+      const requirements = account.requirements;
+      stripeAccountVerified = account.charges_enabled === true
+        && account.payouts_enabled === true
+        && account.details_submitted === true
+        && requirements?.disabled_reason == null
+        && (requirements?.currently_due?.length ?? 0) === 0
+        && (requirements?.past_due?.length ?? 0) === 0;
+      console.log(`${stripeAccountVerified ? "PASS" : "WAIT"}  Stripe 계정 운영 상태 — 결제·지급 활성, 제출 완료, 현재·연체 요구사항 없음`);
+
+      const profile = account.business_profile;
+      const accountSupportEmail = profile?.support_email?.trim().toLowerCase() ?? "";
+      stripeSupportProfileVerified = Boolean(
+        profile?.name?.trim()
+        && profile.url?.trim()
+        && profile.support_phone?.trim()
+        && accountSupportEmail
+        && accountSupportEmail === supportEmail.toLowerCase()
+        && account.settings?.payments?.statement_descriptor?.trim()
+      );
+      console.log(`${stripeSupportProfileVerified ? "PASS" : "WAIT"}  Stripe 구매자 지원 프로필 — 사업명, 웹사이트, 전화, 지원 이메일 일치, 명세서 문구`);
+    } catch {
+      stripeAccountVerified = false;
+      stripeSupportProfileVerified = false;
+      console.log("WAIT  Stripe 계정 프로필 사전감사 — 전용 Account Read 제한 키 확인 필요");
+    }
+  } else {
     stripeAccountVerified = false;
     stripeSupportProfileVerified = false;
-    zeroOpenCheckoutVerified = false;
-    console.log("WAIT  Stripe 원격 사전감사 — Dashboard 값 또는 제한 키 읽기 권한 확인 필요");
+    console.log("WAIT  Stripe 계정 프로필 사전감사 — 런타임과 분리된 같은 모드의 rk_ 감사 키 필요");
   }
 } else {
   console.log(`${preflight || strict ? "WAIT" : "INFO"}  Stripe 원격 사전감사 — --verify-stripe 필요`);

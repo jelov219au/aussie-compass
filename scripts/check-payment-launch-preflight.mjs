@@ -24,6 +24,7 @@ for (const boundary of [
   "current_user = 'hoju_app_runtime'",
   "current_user = 'hoju_payment_auditor'",
   "PAYMENTS_AUDIT_DB_URL",
+  "PAYMENTS_STRIPE_AUDIT_KEY",
   "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID",
   "hostname.endsWith(\".neon.tech\")",
   'endpointLabel.endsWith("-pooler")',
@@ -48,7 +49,8 @@ for (const boundary of [
   "audit_cannot_execute_payment_functions",
   "not pg_has_role(current_user, 'neon_superuser', 'MEMBER')",
   "sessions.data.length === 0 && sessions.has_more === false",
-  "stripe.accounts.retrieveCurrent()",
+  "stripeAuditKey !== runtimeStripeKey",
+  "auditStripe.accounts.retrieveCurrent()",
   "account.charges_enabled === true",
   "account.payouts_enabled === true",
   "account.details_submitted === true",
@@ -66,6 +68,8 @@ for (const boundary of [
 }
 
 assert.doesNotMatch(source, /console\.(?:log|warn|error)\([^\n]*(?:entitlementDatabaseUrl|STRIPE_SECRET_KEY|price\.id|product\.id|session\.id)/, "the launch audit must never print secrets, connection strings or Stripe IDs");
+assert.equal((source.match(/accounts\.retrieveCurrent\(\)/g) ?? []).length, 1, "only the dedicated operator audit client may read the Stripe Account");
+assert.match(source, /const auditStripe = new Stripe\(stripeAuditKey,[\s\S]*auditStripe\.accounts\.retrieveCurrent\(\)/, "Stripe Account evidence must use only the separated audit key");
 assert.ok(packageJson.includes('"test:payment-launch-preflight"'), "the preflight contract test must be exposed through package scripts");
 assert.ok(packageJson.includes("npm run test:payment-launch-preflight"), "the full quality gate must include the preflight contract");
 
@@ -99,11 +103,12 @@ assert.ok(
 assert.ok(productionAudit.includes("`required_migrations_present=false`"), "the Production audit must preserve the fail-closed migration result");
 assert.ok(compactProductionAudit.includes("found no `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` result"), "the Production audit must preserve the observed missing endpoint-pin state");
 assert.ok(envExample.includes("PAYMENTS_EXPECTED_NEON_ENDPOINT_ID="), "the environment example must expose the required non-secret endpoint pin by name");
+assert.ok(envExample.includes("PAYMENTS_STRIPE_AUDIT_KEY="), "the environment example must expose the one-off Stripe Account audit key by name");
 assert.ok(envExample.includes("STRIPE_MANAGED_PAYMENTS_ENABLED=false") && !envExample.includes("STRIPE_MANAGED_PAYMENTS_ENABLED=true"), "the environment example must keep Managed Payments fail-closed by default");
 assert.ok(!readiness.includes("Production payments were opened after"), "payment readiness must not present the historical controlled test as current availability");
 assert.ok(readiness.includes("historical test does not prove current launch readiness") && readiness.includes("authoritative 24 August Production audit is `NO-GO`"), "payment readiness must identify the current source of truth and safe defaults");
 assert.ok(checklist.includes("then disabled again") && checklist.includes("Production remains OFF for the first customer"), "the live checklist must distinguish the historical controlled test from current launch approval");
-for (const auditOnlyVariable of ["PAYMENTS_AUDIT_DB_URL", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID"]) {
+for (const auditOnlyVariable of ["PAYMENTS_AUDIT_DB_URL", "PAYMENTS_STRIPE_AUDIT_KEY", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID"]) {
   assert.ok(releaseManifest.includes(`- \`${auditOnlyVariable}\``), `the protected Preview exclusion list must include audit-only variable: ${auditOnlyVariable}`);
 }
 
@@ -111,6 +116,7 @@ const sanitizedEnv = {
   ...process.env,
   PAYMENTS_ENABLED: "false",
   STRIPE_SECRET_KEY: "",
+  PAYMENTS_STRIPE_AUDIT_KEY: "",
   STRIPE_WEBHOOK_SECRET: "",
   STRIPE_RESUME_PRO_PRICE_ID: "",
   STRIPE_RESUME_PRO_PRODUCT_ID: "",
@@ -142,6 +148,7 @@ const apparentlyReadyEnv = {
   VERCEL_ENV: "production",
   PAYMENTS_ENABLED: "true",
   STRIPE_SECRET_KEY: "rk_live_placeholder_for_contract_test_only",
+  PAYMENTS_STRIPE_AUDIT_KEY: "rk_live_audit_placeholder_for_contract_test_only",
   STRIPE_WEBHOOK_SECRET: "whsec_placeholder_for_contract_test_only",
   STRIPE_RESUME_PRO_PRICE_ID: "price_placeholder",
   STRIPE_RESUME_PRO_PRODUCT_ID: "prod_placeholder",
@@ -169,7 +176,7 @@ const strictWithoutEvidence = spawnSync(process.execPath, [fileURLToPath(new URL
   env: apparentlyReadyEnv,
 });
 assert.equal(strictWithoutEvidence.status, 1, "strict launch audit must fail when remote verification flags are omitted even if every local setting appears ready");
-assert.match(strictWithoutEvidence.stdout, /결과: 19\/19 통과, 0개 대기/, "the missing-evidence test must prove local settings alone are insufficient");
+assert.match(strictWithoutEvidence.stdout, /결과: 20\/20 통과, 0개 대기/, "the missing-evidence test must prove local settings alone are insufficient");
 assert.match(strictWithoutEvidence.stdout, /WAIT  Stripe 원격 사전감사 — --verify-stripe 필요/, "strict launch audit must require remote Stripe evidence outside preflight mode too");
 assert.match(strictWithoutEvidence.stdout, /WAIT  Production DB 사전감사 — --verify-database 필요/, "strict launch audit must require remote database evidence outside preflight mode too");
 
@@ -196,5 +203,21 @@ const spoofedNeonHost = runEndpointBoundary({
   PAYMENTS_AUDIT_DB_URL: "postgresql://audit:placeholder@ep-contract-primary-a1b2c3.neon.tech.example.invalid/neondb",
 });
 assert.match(spoofedNeonHost.stdout, /WAIT  감사 DB endpoint 일치/, "a hostname outside neon.tech must not satisfy the endpoint pin");
+
+const reusedRuntimeStripeKey = runEndpointBoundary({
+  PAYMENTS_STRIPE_AUDIT_KEY: apparentlyReadyEnv.STRIPE_SECRET_KEY,
+});
+assert.match(reusedRuntimeStripeKey.stdout, /WAIT  Stripe 감사 키 분리/, "the Account audit must reject reuse of the Checkout runtime key");
+assert.match(reusedRuntimeStripeKey.stdout, /결과: 19\/20 통과, 1개 대기/, "runtime-key reuse must remain a launch blocker even when other local settings pass");
+
+const fullAccessStripeAuditKey = runEndpointBoundary({
+  PAYMENTS_STRIPE_AUDIT_KEY: "sk" + "_live_audit_placeholder_for_contract_test_only",
+});
+assert.match(fullAccessStripeAuditKey.stdout, /WAIT  Stripe 감사 키 분리/, "the operator audit must reject a full-access secret key");
+
+const wrongModeStripeAuditKey = runEndpointBoundary({
+  PAYMENTS_STRIPE_AUDIT_KEY: "rk_test_audit_placeholder_for_contract_test_only",
+});
+assert.match(wrongModeStripeAuditKey.stdout, /WAIT  Stripe 감사 키 분리/, "the operator audit must reject a key from the wrong Stripe mode");
 
 console.log("Fail-closed payment launch preflight contract passed.");
