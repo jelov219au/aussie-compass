@@ -104,6 +104,46 @@ try {
     });
   }
 
+  activeStep = "paid-event smoke test";
+  await client.query("begin");
+  const claimResult = await client.query(`
+    select * from public.claim_first_sale_reservation(
+      'resume_pro', repeat('a', 64), now() + interval '32 minutes',
+      'test', 'aud', 1990
+    )
+  `);
+  const generation = claimResult.rows[0]?.generation;
+  if (claimResult.rows[0]?.outcome !== "claimed" || generation == null) {
+    throw Object.assign(new Error("Stage 2 paid-event smoke claim failed."), {
+      code: "SMOKE_CLAIM",
+    });
+  }
+  const attachResult = await client.query(`
+    select public.attach_first_sale_checkout(
+      'resume_pro', $1, repeat('a', 64),
+      'cs_test_stage2migrationprobe', now() + interval '32 minutes'
+    ) as attached
+  `, [generation]);
+  if (attachResult.rows[0]?.attached !== true) {
+    throw Object.assign(new Error("Stage 2 paid-event smoke attach failed."), {
+      code: "SMOKE_ATTACH",
+    });
+  }
+  const paidResult = await client.query(`
+    select public.apply_first_sale_paid_event(
+      'evt_stage2migrationprobe', 'checkout.session.completed', false, now(),
+      'resume_pro', 'aud', 1990, 'cs_test_stage2migrationprobe',
+      'pi_stage2migrationprobe', 'ch_stage2migrationprobe',
+      'cus_stage2migrationprobe', 'checkout_paid'
+    ) as outcome
+  `);
+  if (paidResult.rows[0]?.outcome !== "processed") {
+    throw Object.assign(new Error("Stage 2 paid-event smoke transaction failed."), {
+      code: "SMOKE_PAID_EVENT",
+    });
+  }
+  await client.query("rollback");
+
   console.log(`Stage 2 sandbox migrations verified (${applied}/${expectedVersions.length}).`);
 } catch (error) {
   const code = typeof error === "object" && error !== null && "code" in error
