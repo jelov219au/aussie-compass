@@ -1,0 +1,84 @@
+# Production entitlement-link forward-fix change ticket
+
+This is a prepared HOLD ticket. It does not authorize a backup, database
+mutation, Stripe request, Checkout, environment change or sale-gate reopen.
+
+## Scope
+
+Apply only `docs/migrations/20260824_entitlement_link_conflict_v1.sql` to the
+Neon **Primary** branch database `neondb`. The migration replaces the ambiguous
+PaymentIntent/Charge `ON CONFLICT` column list inside the existing entitlement
+function with the named primary-key constraint. It does not delete or rewrite
+payment, entitlement, gate, access-session or alert evidence.
+
+## Owner window record
+
+Do not begin until all fields are recorded outside this repository:
+
+- owner approval reference and approved start/end time;
+- current encrypted backup or Neon point-in-time recovery/branch reference;
+- operator identity and a second-person branch/database selection check;
+- `PAYMENTS_ENABLED=false` Production evidence and public Checkout HTTP 503;
+- incident channel and rollback decision owner.
+
+Never paste a database URL, password, API key, customer field or full Stripe
+identifier into this ticket or the SQL editor history.
+
+## Preflight — read only
+
+1. In Neon, select the Primary branch and `neondb`; do not infer the branch from
+   the database name because Preview branches can also contain a `neondb`.
+2. Run `scripts/first-sale-production-forward-fix-audit.sql`.
+3. Continue only when `preflight_can_apply_once=true`,
+   `postflight_pass=false`, `no_reservation_in_flight=true`, the console role is
+   `neondb_owner`, and the recorded counts match the release ticket baseline.
+4. Stop on a missing row, timeout, unexpected role/database, `RESERVED` gate,
+   already-recorded migration, already-qualified function, unknown function
+   shape or any count drift. Do not edit rows to make the audit pass.
+
+### Read-only baseline recorded — 24 August 2026
+
+Neon Primary / `neondb` returned one row at
+`2026-08-23 15:47:36.249941+00`:
+
+- expected database, console owner and least-privilege prerequisite: `true`;
+- forward-fix version recorded: `false`;
+- named constraint active: `false`; ambiguous column list active: `true`;
+- no reservation in flight: `true`;
+- `preflight_can_apply_once=true`; `postflight_pass=false`;
+- counts: gate 0, gate events 0, webhook receipts 23, entitlements 7,
+  alerts 0, access sessions 0, restore activations 0.
+
+These counts are the immutable comparison baseline for this change window. This
+read-only result does not supply the required owner window or backup reference.
+
+## Apply once
+
+1. Reconfirm the backup reference and that public Checkout still returns 503.
+2. Run only `docs/migrations/20260824_entitlement_link_conflict_v1.sql`.
+3. Require the seven successful statements ending in `COMMIT`. On an error or
+   failed transaction, use `ROLLBACK`, keep payments off and preserve the exact
+   SQLSTATE without retrying an ad hoc edit.
+
+The migration itself verifies the least-privilege prerequisite, switches to
+`hoju_migration_owner`, refuses an unexpected function definition, performs one
+exact replacement and records its version in the same transaction.
+
+## Postflight — read only
+
+1. Run `scripts/first-sale-production-forward-fix-audit.sql` again.
+2. Require `postflight_pass=true`, `preflight_can_apply_once=false`,
+   `forward_fix_recorded=true`, `named_constraint_active=true`,
+   `ambiguous_column_list_active=false`, `no_reservation_in_flight=true`, and
+   unchanged evidence counts.
+3. Run the complete named effective-privilege matrix in
+   `docs/first-sale-gate-runbook.md`; every boolean must be true.
+4. Record booleans, counts, timestamps, commit and backup references only.
+
+## Stop boundary
+
+Successful postflight does not open sales. Keep `PAYMENTS_ENABLED=false` and
+the first customer payment **NO-GO** until the live restricted-key, Stripe
+support email, real SMTP delivery, Managed Payments document wording,
+registered tax-agent review and approved Production functional rehearsal gates
+also pass.

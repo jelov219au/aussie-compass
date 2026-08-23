@@ -39,6 +39,12 @@ Production post-migration alert/access rehearsal.
   webhook receipts, one entitlement, three access sessions, two restore
   activations and two sent alert intents. This did not touch Production, Stripe
   or SMTP.
+- The new Production read-only forward-fix audit ran on Neon Primary / `neondb`
+  at `2026-08-23 15:47:36.249941+00`. It confirmed the expected owner and
+  least-privilege prerequisite, no `RESERVED` gate, the old ambiguous clause,
+  no forward-fix version and `preflight_can_apply_once=true`. Baseline counts
+  were gate 0, gate events 0, webhook receipts 23, entitlements 7, alerts 0,
+  access sessions 0 and restore activations 0. No mutation was executed.
 
 ## Complete Neon named-result matrix
 
@@ -104,7 +110,9 @@ Production post-migration alert/access rehearsal.
 1. Apply `20260824_entitlement_link_conflict_v1` in an owner-approved Production
    backup window and repeat the paid-event rehearsal. The isolated fresh-schema
    rehearsal exposed SQLSTATE `42702` before the forward fix and passed all 34
-   checks after the fix; Production has not received it.
+   checks after the fix; Production has not received it. Use the read-only
+   before/after audit and HOLD procedure in
+   `docs/production-entitlement-link-forward-fix-ticket.md`.
 2. Add `support@hojucompass.com` as the Stripe live business-profile support
    email through an authenticated Dashboard session, then re-read the account
    and confirm it is present. Do not add a different address by assumption.
