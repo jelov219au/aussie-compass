@@ -18,7 +18,7 @@ Add these only through encrypted environment settings:
 - [x] `BUSINESS_ABN` — 11 digits; spacing is optional.
 - [x] `NEXT_PUBLIC_SUPPORT_EMAIL` — published support contact.
 
-Run `npm run payments:check -- --strict` in the target environment. The command shows only pass/wait results and does not print the stored values.
+With `PAYMENTS_ENABLED=false`, inject a separately approved read-only `PAYMENTS_AUDIT_DB_URL` for the one operator command and run `npm run payments:check -- --preflight --strict --verify-stripe --verify-database` in the target environment. Never use the audit credential in the application runtime. The command shows only pass/wait results and does not print stored values, IDs or connection strings. It must verify the remote Product contract, zero open Checkout Sessions, the actual `hoju_app_runtime` database connection, required migrations, the named entitlement-link constraint and no reservation in flight before any separate owner decision to turn payments on.
 
 The app's `sellerDetailsConfigured` check confirms that the public product-provider name and ABN are present. It is not a Merchant of Record check. Verify the transaction seller, document issuer and transaction-support route separately on the real Managed Payments Checkout and receipt/invoice, preserving the exact displayed wording.
 
@@ -90,7 +90,7 @@ Before enabling the gate, verify in the matching Stripe mode that Resume Pro has
 
 ## 6. Live-key gate versus runtime compatibility
 
-- `rk_live_` is the least-privilege launch requirement. For the first customer sale, a failing `npm run payments:check -- --strict` result is a deployment blocker; the earlier owner-controlled transaction does not waive this gate.
+- `rk_live_` is the least-privilege launch requirement. For the first customer sale, a failing `npm run payments:check -- --preflight --strict --verify-stripe --verify-database` result is a deployment blocker; the earlier owner-controlled transaction does not waive this gate.
 - Runtime acceptance of `sk_live_` prevents an environment-mode mismatch and preserves an incident-recovery path. It is compatibility behaviour, not launch approval and not a reason to mark the restricted-key item complete.
 - Rotating keys, adding key IP restrictions and periodically reviewing Workbench request logs are ongoing security improvements after the least-privilege launch gate passes. They do not replace the pre-sale `rk_live_` requirement.
 - The 15-minute / 24-hour / first-payout evidence sequence is not a blocker before the first customer payment because its evidence does not yet exist. It is an operational blocker for the second sale if the sequence is incomplete.

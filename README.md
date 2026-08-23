@@ -86,7 +86,7 @@ For production SEO URLs, set `NEXT_PUBLIC_SITE_URL` to the deployed site origin.
 - `npm run build` — create a production build
 - `npm run start` — serve the production build
 - `npm run lint` — run ESLint
-- `npm run payments:check` — report payment launch gates without printing secrets or private seller values; add `-- --strict` to fail when anything is missing
+- `npm run payments:check` — report payment launch gates without printing secrets or private seller values; before opening sales, run `npm run payments:check -- --preflight --strict --verify-stripe --verify-database` with Checkout still off
 - `npm run test:stripe-contract` — keep Checkout consent, price validation, dynamic payment methods and signed webhook protections in place
 - `npm run test:entitlement-commands` — verify Stripe payment, refund and dispute events map to safe access states
 - `npm run test:resume-pro-tokens` — verify signed access-session tamper, expiry and restore-code contracts
