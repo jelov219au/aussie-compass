@@ -20,6 +20,7 @@ const topics = [
   { id: "payslip", title: "첫 Payslip에서 확인할 5가지", path: "/payslip-guide" },
   { id: "public-holiday-pay", title: "공휴일 근무수당 확인 순서", path: "/resources/australia-public-holiday-work-pay-guide" },
   { id: "resume", title: "호주식 영문 이력서 시작하기", path: "/resume-builder" },
+  { id: "cover-letter", title: "호주 커버레터 제출 전 점검", path: "/resources/australia-cover-letter-job-ad-checklist", campaign: "cover-letter-job-ad-checklist" },
   { id: "rent", title: "쉐어하우스 방문 체크리스트", path: "/property-inspection-checklist" },
   { id: "transport", title: "차 없이 통학·출근 생활권 고르기", path: "/public-transport-guide" },
   { id: "salary", title: "시급·세후 급여·Super 함께 보기", path: "/salary-calculator" },

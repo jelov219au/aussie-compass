@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getSiteSearchIntent, rankSiteSearchItems, type SearchItem } from "@/lib/siteSearch";
 import { SEARCH_TRANSFER_STORAGE_KEY, sanitizeTransferredSearch } from "@/lib/searchTransfer";
 
-const suggestions = ["TFN", "Bond", "전기 요금", "세후 급여", "영문 이력서", "택스 리턴", "Super 환급", "중고거래", "통역", "교통"];
+const suggestions = ["TFN", "Bond", "전기 요금", "세후 급여", "영문 이력서", "커버레터", "택스 리턴", "Super 환급", "중고거래", "통역", "교통"];
 
 function ResultList({ items }: { items: SearchItem[] }) {
   return (

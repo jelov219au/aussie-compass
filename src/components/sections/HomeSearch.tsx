@@ -11,6 +11,7 @@ const popularSearches = [
   { label: "세후 급여", topic: "pay" },
   { label: "집 구하기", topic: "housing" },
   { label: "영문 이력서", topic: "jobs" },
+  { label: "커버레터", topic: "jobs" },
   { label: "택스 리턴", topic: "tax" },
   { label: "Super 환급", topic: "super" },
 ];
@@ -20,7 +21,7 @@ const searchTopics = [
   { topic: "pay", terms: ["급여", "월급", "시급", "연봉", "임금", "salary", "wage", "payslip", "최저임금"] },
   { topic: "super", terms: ["super", "연금", "dasp"] },
   { topic: "housing", terms: ["집", "주거", "렌트", "쉐어", "보증금", "rent", "bond", "inspection"] },
-  { topic: "jobs", terms: ["취업", "구직", "이력서", "면접", "일자리", "resume", "job", "career", "award"] },
+  { topic: "jobs", terms: ["취업", "구직", "이력서", "커버레터", "면접", "일자리", "resume", "cover letter", "selection criteria", "job", "career", "award"] },
   { topic: "arrival", terms: ["도착", "정착", "은행", "유심", "교통", "운전", "bank", "sim", "licence"] },
   { topic: "visa", terms: ["비자", "워홀", "학생", "visa", "working holiday"] },
   { topic: "safety", terms: ["사기", "안전", "응급", "도움", "체불", "scam", "emergency", "underpayment"] },
