@@ -58,6 +58,14 @@ non-secret endpoint ID is `ep-curly-wave-a78bktnq`. Supply that exact value as
 `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` only for the strict audit; this record does
 not prove that either injected database URL currently resolves to it.
 
+The same read-only audit was rerun on `main` / `neondb` at
+`2026-08-23 19:52:57.002425+00`. It returned the same booleans and counts,
+including `preflight_can_apply_once=true`, `postflight_pass=false` and no
+reservation in flight. Neon also showed a six-hour history window and one
+non-expiring manual snapshot named `main at 2026-08-23 11:41:40 UTC (manual)`.
+No restore, preview, snapshot or branch action was taken. This observation does
+not replace the owner's explicit change-window and recovery-reference record.
+
 These counts are the immutable comparison baseline for this change window. This
 read-only result does not supply the required owner window or backup reference.
 
