@@ -182,7 +182,53 @@ if (verifyDatabase) {
         ), false) as runtime_cannot_mutate_alert_table
     `;
     const auditRows = await auditSql`
-      with target_function as (
+      with
+      protected_tables(qualified_name) as (
+        values
+          ('public.payment_webhook_events'),
+          ('public.purchase_entitlements'),
+          ('public.purchase_restore_tokens'),
+          ('public.purchase_checkout_activations'),
+          ('public.purchase_access_sessions'),
+          ('public.purchase_restore_activations'),
+          ('public.entitlement_event_tombstones'),
+          ('public.stripe_payment_object_links'),
+          ('public.payment_operator_alert_outbox'),
+          ('public.first_sale_gates'),
+          ('public.first_sale_gate_events')
+      ),
+      mutation_privileges(privilege_name) as (
+        values ('INSERT'), ('UPDATE'), ('DELETE'), ('TRUNCATE'), ('REFERENCES'), ('TRIGGER')
+      ),
+      blocked_functions(signature) as (
+        values
+          ('public.apply_entitlement_event(text,text,boolean,timestamptz,text,text,text,text,text,text,text)'),
+          ('public.claim_first_sale_reservation(text,text,timestamptz,text,text,integer)'),
+          ('public.attach_first_sale_checkout(text,bigint,text,text,timestamptz)'),
+          ('public.release_failed_first_sale_reservation(text,bigint,text,text)'),
+          ('public.release_verified_abandoned_first_sale(text,bigint,text)'),
+          ('public.lock_first_sale_from_paid_event(text,text,text,boolean,timestamptz)'),
+          ('public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)'),
+          ('public.apply_guarded_entitlement_event(text,text,boolean,timestamptz,text,text,text,text,text,text,text)'),
+          ('public.consume_entitlement_restore_token(text,text,text,text,text,timestamptz)'),
+          ('public.create_entitlement_restore_token(bigint,text,text,timestamptz)'),
+          ('public.enqueue_payment_operator_alert_failure(text,text,boolean,text,text,text)'),
+          ('public.claim_payment_operator_alert_intent(text,text,text)'),
+          ('public.mark_payment_operator_alert_sent(text,text,text)'),
+          ('public.release_payment_operator_alert_claim(text,text,text)'),
+          ('public.consume_checkout_activation(text,text,text,text,text,text,timestamptz)'),
+          ('public.release_purchase_access_session(bigint,text,text)'),
+          ('public.find_active_purchase_entitlement_by_access_session(bigint,text,text)'),
+          ('public.find_active_purchase_entitlement_by_checkout(text,text)'),
+          ('public.find_active_purchase_entitlement_by_id(bigint,text)'),
+          ('public.approve_next_first_sale(text,text,text,integer,text)'),
+          ('public.prevent_first_sale_gate_event_mutation()'),
+          ('public.prevent_entitlement_tombstone_mutation()'),
+          ('public.record_payment_operator_alert_intent(text,text,boolean,text)'),
+          ('public.payment_operator_alert_from_receipt()'),
+          ('public.release_checkout_activation(bigint,text)')
+      ),
+      target_function as (
         select pg_get_functiondef(
           to_regprocedure(
             'public.apply_entitlement_event(text,text,boolean,timestamptz,text,text,text,text,text,text,text)'
@@ -191,6 +237,60 @@ if (verifyDatabase) {
       )
       select
         current_database() = 'neondb' as expected_database,
+        current_user = 'hoju_payment_auditor' as least_privilege_audit_role,
+        coalesce((
+          select not rolsuper
+            and not rolcreatedb
+            and not rolcreaterole
+            and not rolreplication
+            and not rolbypassrls
+            and not rolinherit
+          from pg_roles
+          where rolname = current_user
+        ), false) as audit_role_has_safe_attributes,
+        not pg_has_role(current_user, 'neon_superuser', 'MEMBER')
+          and not pg_has_role(current_user, 'hoju_migration_owner', 'MEMBER')
+          and not pg_has_role(current_user, 'hoju_app_runtime', 'MEMBER')
+          and not pg_has_role(current_user, 'hoju_owner_operator', 'MEMBER')
+          as audit_does_not_inherit_elevated_roles,
+        coalesce(has_table_privilege(
+          current_user,
+          'public.schema_migrations',
+          'SELECT'
+        ), false) as audit_can_read_migration_ledger,
+        coalesce(has_table_privilege(
+          current_user,
+          'public.first_sale_gates',
+          'SELECT'
+        ), false) as audit_can_read_first_sale_gate,
+        not coalesce(has_schema_privilege(
+          current_user,
+          'public',
+          'CREATE'
+        ), false) as audit_cannot_create_in_public_schema,
+        (
+          select bool_and(
+            to_regclass(table_name.qualified_name) is not null
+            and not coalesce(has_table_privilege(
+              current_user,
+              to_regclass(table_name.qualified_name),
+              privilege.privilege_name
+            ), false)
+          )
+          from protected_tables table_name
+          cross join mutation_privileges privilege
+        ) as audit_has_no_protected_table_mutation,
+        (
+          select bool_and(
+            to_regprocedure(blocked.signature) is not null
+            and not coalesce(has_function_privilege(
+              current_user,
+              to_regprocedure(blocked.signature),
+              'EXECUTE'
+            ), false)
+          )
+          from blocked_functions blocked
+        ) as audit_cannot_execute_payment_functions,
         (
           select count(distinct version) = 7
           from public.schema_migrations
@@ -216,7 +316,7 @@ if (verifyDatabase) {
     const results = [runtimeRows[0], auditRows[0]];
     databaseVerified = results.every((result) => Boolean(result)
       && Object.values(result).every((value) => value === true));
-    console.log(`${databaseVerified ? "PASS" : "WAIT"}  Production DB 사전감사 — 필수 migration, runtime 최소권한, 예약 없음`);
+    console.log(`${databaseVerified ? "PASS" : "WAIT"}  Production DB 사전감사 — 필수 migration, runtime·audit 최소권한, 예약 없음`);
   } catch {
     databaseVerified = false;
     console.log("WAIT  Production DB 사전감사 — 연결, migration 또는 runtime 권한 확인 필요");

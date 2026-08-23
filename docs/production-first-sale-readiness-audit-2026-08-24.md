@@ -7,12 +7,13 @@ credential, full Stripe identifier or database connection string is recorded.
 
 ## Decision
 
-**NO-GO for the first customer payment.** The database catalog and effective
-privileges are ready, the live Stripe account can charge and pay out, and live
-Resume Pro has no existing open Checkout Session. Launch still requires the
-remaining owner-controlled items below, especially Stripe's missing public
-support email, a proven live restricted runtime key, and a controlled
-Production post-migration alert/access rehearsal.
+**NO-GO for the first customer payment.** The application runtime and separate
+audit-login privilege matrices are ready, the live Stripe account can charge
+and pay out, and live Resume Pro has no existing open Checkout Session. The
+strict audit still reports `required_migrations_present=false` because
+`20260824_entitlement_link_conflict_v1` has not been applied. Launch also
+requires Stripe's missing public support email, a proven live restricted
+runtime key, and a controlled Production post-migration alert/access rehearsal.
 
 ## Read-only evidence
 
@@ -22,6 +23,20 @@ Production post-migration alert/access rehearsal.
 - Neon Primary / `neondb` ran the exact catalog and effective-privilege query
   from `docs/first-sale-gate-runbook.md`. It returned one row and every named
   boolean below was `true`, including `all_privilege_checks_pass`.
+- The initial Neon Primary role inventory contained only
+  `hoju_migration_owner`, `hoju_owner_operator`, `hoju_app_runtime` and
+  `neondb_owner`. After explicit owner approval, the `hoju_payment_auditor`
+  login was created through SQL rather than Console/CLI/API and received the
+  grants in `docs/payment-audit-role-grants.sql`. No payment row, sale-gate
+  state or application environment was changed.
+- A real connection as `hoju_payment_auditor` returned true for `neondb`, the
+  exact current user, safe role attributes, no `neon_superuser` or payment-role
+  membership, migration-ledger/gate read access, no public-schema CREATE, no
+  mutation privilege across all 11 protected tables, no EXECUTE across all 25
+  payment functions and no reservation in flight. It returned
+  `required_migrations_present=false`, preserving the forward-fix launch HOLD.
+  The one-time password was not printed, committed or persisted in an app
+  environment.
 - `first_sale_gates`, `first_sale_gate_events`,
   `payment_operator_alert_outbox`, `purchase_access_sessions` and
   `purchase_restore_activations` each contained zero rows. This is a clean

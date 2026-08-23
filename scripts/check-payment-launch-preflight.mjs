@@ -3,11 +3,13 @@ import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const [source, packageJson, readiness, checklist] = await Promise.all([
+const [source, packageJson, readiness, checklist, auditRoleGrants, productionAudit] = await Promise.all([
   readFile(new URL("./check-payment-launch.mjs", import.meta.url), "utf8"),
   readFile(new URL("../package.json", import.meta.url), "utf8"),
   readFile(new URL("../docs/payment-readiness.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/live-payment-launch-checklist.md", import.meta.url), "utf8"),
+  readFile(new URL("../docs/payment-audit-role-grants.sql", import.meta.url), "utf8"),
+  readFile(new URL("../docs/production-first-sale-readiness-audit-2026-08-24.md", import.meta.url), "utf8"),
 ]);
 
 for (const flag of ["--preflight", "--verify-stripe", "--verify-database"]) {
@@ -17,6 +19,7 @@ for (const flag of ["--preflight", "--verify-stripe", "--verify-database"]) {
 for (const boundary of [
   "PAYMENTS_ENABLED !== \"true\"",
   "current_user = 'hoju_app_runtime'",
+  "current_user = 'hoju_payment_auditor'",
   "PAYMENTS_AUDIT_DB_URL",
   "readOnly: true",
   "AbortSignal.timeout(10_000)",
@@ -27,6 +30,15 @@ for (const boundary of [
   "runtime_cannot_mutate_gate_table",
   "runtime_cannot_mutate_entitlement_table",
   "runtime_cannot_mutate_alert_table",
+  "least_privilege_audit_role",
+  "audit_role_has_safe_attributes",
+  "audit_does_not_inherit_elevated_roles",
+  "audit_can_read_migration_ledger",
+  "audit_can_read_first_sale_gate",
+  "audit_cannot_create_in_public_schema",
+  "audit_has_no_protected_table_mutation",
+  "audit_cannot_execute_payment_functions",
+  "not pg_has_role(current_user, 'neon_superuser', 'MEMBER')",
   "sessions.data.length === 0 && sessions.has_more === false",
   "stripe.accounts.retrieveCurrent()",
   "account.charges_enabled === true",
@@ -52,6 +64,31 @@ assert.ok(packageJson.includes("npm run test:payment-launch-preflight"), "the fu
 const command = "npm run payments:check -- --preflight --strict --verify-stripe --verify-database";
 assert.ok(readiness.includes(command), "payment readiness must document the fail-closed preflight command");
 assert.ok(checklist.includes(command), "the live launch checklist must document the fail-closed preflight command");
+
+for (const contract of [
+  "current_database() <> 'neondb'",
+  "current_user <> 'neondb_owner'",
+  "hoju_payment_auditor",
+  "audit_role.rolcanlogin",
+  "audit_role.rolinherit",
+  "pg_has_role('hoju_payment_auditor', 'neon_superuser', 'MEMBER')",
+  "revoke create on schema public from hoju_payment_auditor",
+  "grant select on table",
+  "public.schema_migrations",
+  "public.first_sale_gates",
+  "revoke execute on function public.approve_next_first_sale",
+]) {
+  assert.ok(auditRoleGrants.includes(contract), `payment audit role grants are missing: ${contract}`);
+}
+assert.doesNotMatch(auditRoleGrants, /\bpassword\s+'[^<]/i, "the tracked audit-role grant file must not contain a password");
+assert.ok(readiness.includes("docs/payment-audit-role-grants.sql"), "payment readiness must link the audit-role grant template");
+assert.ok(readiness.includes("SQL, not the Neon Console, CLI or API"), "payment readiness must prevent a neon_superuser audit login");
+assert.ok(checklist.includes("hoju_payment_auditor"), "the launch checklist must require the named audit role");
+assert.ok(
+  productionAudit.includes("`hoju_payment_auditor`") && productionAudit.includes("login was created through SQL"),
+  "the Production audit must record the dedicated audit login evidence",
+);
+assert.ok(productionAudit.includes("`required_migrations_present=false`"), "the Production audit must preserve the fail-closed migration result");
 
 const sanitizedEnv = {
   ...process.env,
