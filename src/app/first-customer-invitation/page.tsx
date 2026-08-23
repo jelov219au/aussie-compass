@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { FirstCustomerInvitationDesk } from "@/components/tools/FirstCustomerInvitationDesk";
 import { Container } from "@/components/ui/Container";
+import { firstCustomerLaunchDecision } from "@/lib/firstCustomerLaunchDecision";
 import { requireLocalOperatorAccess } from "@/lib/operatorOnly";
 import { createPageMetadata } from "@/lib/site";
 
@@ -37,7 +38,7 @@ export default function FirstCustomerInvitationPage() {
               메일 발송, 고객 등록과 Checkout 생성은 하지 않습니다. 모든 조건을 확인한 뒤 고정 안내문만 클립보드에 복사합니다.
             </aside>
           </header>
-          <FirstCustomerInvitationDesk />
+          <FirstCustomerInvitationDesk decision={firstCustomerLaunchDecision} />
         </Container>
       </main>
       <Footer />

@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 
+import type { FirstCustomerLaunchDecision } from "@/lib/firstCustomerLaunchDecision";
+
 const OFFICIAL_RESUME_PRO_URL = "https://hojucompass.com/resume-pro";
 const INVITATION_SUBJECT = "[Hoju Compass] Resume Pro 판매 시작 1회 안내";
 const INVITATION_BODY = `Resume Pro 판매가 시작되어 요청하신 1회 안내를 드립니다.
@@ -34,10 +36,12 @@ const checks = [
   },
 ] as const;
 
-export function FirstCustomerInvitationDesk() {
+export function FirstCustomerInvitationDesk({ decision }: { decision: FirstCustomerLaunchDecision }) {
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState("");
   const allConfirmed = useMemo(() => checks.every((check) => confirmed[check.id]), [confirmed]);
+  const releaseGateOpen = decision.status === "go";
+  const copyAllowed = releaseGateOpen && allConfirmed;
   const invitation = `제목: ${INVITATION_SUBJECT}\n\n${INVITATION_BODY}`;
 
   const toggle = (id: string, value: boolean) => {
@@ -46,7 +50,11 @@ export function FirstCustomerInvitationDesk() {
   };
 
   const copyInvitation = async () => {
-    if (!allConfirmed) {
+    if (!releaseGateOpen) {
+      setMessage("현재 Production 판정은 NO-GO입니다. blocker를 모두 해소하고 새 감사를 기록하기 전에는 안내할 수 없습니다.");
+      return;
+    }
+    if (!copyAllowed) {
       setMessage("모든 승인 조건을 먼저 확인하세요.");
       return;
     }
@@ -65,7 +73,19 @@ export function FirstCustomerInvitationDesk() {
   };
 
   return (
-    <div className="grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_minmax(25rem,0.92fr)]">
+    <div>
+      <section className={`border-l-4 p-5 sm:p-6 ${releaseGateOpen ? "border-emerald-600 bg-emerald-50" : "border-red-600 bg-red-50"}`} aria-labelledby="current-launch-decision-heading">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Audited {decision.auditedAt}</p>
+        <h2 id="current-launch-decision-heading" className="mt-2 text-2xl font-semibold text-navy">현재 첫 고객 판정 · {releaseGateOpen ? "GO" : "NO-GO"}</h2>
+        <p className="mt-2 text-sm leading-6 text-muted">{releaseGateOpen ? "새 감사에서 모든 사전 결제 gate가 PASS로 확인됐습니다. 아래 네 조건도 지금 다시 확인하세요." : "알려진 blocker가 남아 있어 확인란과 안내문 복사를 잠갔습니다. 체크 표시만으로 이 판정을 덮어쓸 수 없습니다."}</p>
+        {!releaseGateOpen && (
+          <ul className="mt-4 grid gap-2 text-sm leading-6 text-red-950 sm:grid-cols-2">
+            {decision.blockers.map((blocker) => <li key={blocker} className="border-l-2 border-red-300 pl-3">{blocker}</li>)}
+          </ul>
+        )}
+      </section>
+
+      <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.08fr)_minmax(25rem,0.92fr)]">
       <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="invitation-gate-heading">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Four required confirmations</p>
         <h2 id="invitation-gate-heading" className="mt-2 text-2xl font-semibold text-navy">복사 버튼을 열기 전 확인</h2>
@@ -77,9 +97,10 @@ export function FirstCustomerInvitationDesk() {
             <label key={check.id} className="flex cursor-pointer gap-4 border border-border p-4 transition-colors has-checked:border-emerald-600 has-checked:bg-emerald-50">
               <input
                 type="checkbox"
+                disabled={!releaseGateOpen}
                 checked={Boolean(confirmed[check.id])}
                 onChange={(event) => toggle(check.id, event.target.checked)}
-                className="mt-1 size-5 shrink-0 accent-navy"
+                className="mt-1 size-5 shrink-0 accent-navy disabled:cursor-not-allowed disabled:opacity-45"
               />
               <span>
                 <strong className="block text-sm leading-6 text-navy">{index + 1}. {check.title}</strong>
@@ -90,8 +111,8 @@ export function FirstCustomerInvitationDesk() {
         </fieldset>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" onClick={copyInvitation} disabled={!allConfirmed} className="min-h-11 bg-navy px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-navy/30">승인된 1회 안내문 복사</button>
-          <button type="button" onClick={reset} className="min-h-11 border border-navy/25 px-4 text-sm font-semibold text-navy">확인 상태 초기화</button>
+          <button type="button" onClick={copyInvitation} disabled={!copyAllowed} className="min-h-11 bg-navy px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-navy/30">승인된 1회 안내문 복사</button>
+          <button type="button" onClick={reset} disabled={!releaseGateOpen} className="min-h-11 border border-navy/25 px-4 text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-45">확인 상태 초기화</button>
         </div>
         <p className="mt-4 min-h-5 text-sm leading-5 text-muted" aria-live="polite">{message}</p>
       </section>
@@ -103,7 +124,7 @@ export function FirstCustomerInvitationDesk() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Fixed safe reply</p>
               <h2 id="invitation-preview-heading" className="mt-2 text-xl font-semibold">복사될 안내문</h2>
             </div>
-            <span className={`border px-3 py-1 text-xs font-semibold ${allConfirmed ? "border-emerald-300 text-emerald-200" : "border-white/20 text-white/55"}`}>{allConfirmed ? "복사 가능" : "승인 대기"}</span>
+            <span className={`border px-3 py-1 text-xs font-semibold ${copyAllowed ? "border-emerald-300 text-emerald-200" : "border-white/20 text-white/55"}`}>{copyAllowed ? "복사 가능" : releaseGateOpen ? "승인 대기" : "NO-GO 잠금"}</span>
           </div>
           <dl className="mt-5 space-y-4 text-sm leading-6">
             <div><dt className="font-semibold text-gold">제목</dt><dd className="mt-1 text-white/80">{INVITATION_SUBJECT}</dd></div>
@@ -119,6 +140,7 @@ export function FirstCustomerInvitationDesk() {
             <li>• 이메일 시각이 아니라 데이터베이스 gate를 동시성 판단 기준으로 사용합니다.</li>
           </ul>
         </section>
+      </div>
       </div>
     </div>
   );
