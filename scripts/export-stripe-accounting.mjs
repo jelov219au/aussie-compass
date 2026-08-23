@@ -31,9 +31,8 @@ function objectId(value) {
 }
 
 function safeStripeExportError(error) {
-  const statusCode = typeof error === "object" && error !== null ? error.statusCode : undefined;
   const code = typeof error === "object" && error !== null ? error.code : undefined;
-  if (statusCode === 403 || code === "more_permissions_required") {
+  if (code === "more_permissions_required") {
     return new Error("Stripe accounting export needs Balance Transactions Read permission on the dedicated restricted key. No private file was written.");
   }
   return new Error("Stripe accounting export failed before a private file was written. Review the restricted key and Stripe availability without copying the raw SDK error.");
