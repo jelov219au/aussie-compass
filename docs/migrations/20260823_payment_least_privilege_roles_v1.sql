@@ -89,6 +89,8 @@ revoke all privileges on sequence
   public.first_sale_gate_events_id_seq
 from public, hoju_app_runtime, hoju_owner_operator;
 
+set role hoju_migration_owner;
+
 revoke execute on function public.apply_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) from public, hoju_app_runtime, hoju_owner_operator;
 revoke execute on function public.claim_first_sale_reservation(text, text, timestamptz, text, text, integer) from public, hoju_app_runtime, hoju_owner_operator;
 revoke execute on function public.attach_first_sale_checkout(text, bigint, text, text, timestamptz) from public, hoju_app_runtime, hoju_owner_operator;
@@ -135,11 +137,13 @@ grant execute on function public.find_active_purchase_entitlement_by_id(bigint, 
 
 grant execute on function public.approve_next_first_sale(text, text, text, integer, text) to hoju_owner_operator;
 
+alter default privileges in schema public
+  revoke execute on functions from public;
+
+reset role;
+
 revoke hoju_migration_owner, hoju_owner_operator from hoju_app_runtime;
 revoke hoju_app_runtime from hoju_owner_operator;
-
-alter default privileges for role hoju_migration_owner in schema public
-  revoke execute on functions from public;
 
 insert into public.schema_migrations (version)
 values ('20260823_payment_least_privilege_roles_v1')

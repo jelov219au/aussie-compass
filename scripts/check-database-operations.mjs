@@ -295,6 +295,8 @@ for (const contract of [
   "hoju_app_runtime",
   "hoju_owner_operator",
   "owner to hoju_migration_owner",
+  "set role hoju_migration_owner",
+  "reset role",
   "revoke create on schema public from public, hoju_app_runtime, hoju_owner_operator",
   "grant execute on function public.approve_next_first_sale(text, text, text, integer, text) to hoju_owner_operator",
   "20260823_payment_least_privilege_roles_v1",
