@@ -43,7 +43,13 @@ const expectedVersions = [
   "20260823_restore_activation_nonce_v1",
 ];
 
-const sandboxDatabase = "hoju_stage2_sandbox";
+const commitSha = process.env.VERCEL_GIT_COMMIT_SHA?.trim();
+if (!commitSha || !/^[a-f0-9]{40}$/i.test(commitSha)) {
+  console.error("Stage 2 sandbox commit identity is unavailable.");
+  process.exit(1);
+}
+
+const sandboxDatabase = `hoju_stage2_${commitSha.slice(0, 12).toLowerCase()}`;
 const sandboxUrl = new URL(connectionString);
 sandboxUrl.pathname = `/${sandboxDatabase}`;
 let client;
@@ -58,7 +64,7 @@ try {
       [sandboxDatabase],
     );
     if (databaseResult.rows[0]?.exists !== true) {
-      await controlClient.query("create database hoju_stage2_sandbox");
+      await controlClient.query(`create database ${sandboxDatabase}`);
     }
   } finally {
     await controlClient.end();

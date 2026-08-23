@@ -18,11 +18,14 @@ export function getEntitlementDatabaseUrl() {
     return connectionString;
   }
 
+  const commitSha = process.env.VERCEL_GIT_COMMIT_SHA?.trim();
+  if (!commitSha || !/^[a-f0-9]{40}$/i.test(commitSha)) return undefined;
+
   try {
     const sandboxUrl = new URL(connectionString);
-    sandboxUrl.pathname = "/hoju_stage2_sandbox";
+    sandboxUrl.pathname = `/hoju_stage2_${commitSha.slice(0, 12).toLowerCase()}`;
     return sandboxUrl.toString();
   } catch {
-    return connectionString;
+    return undefined;
   }
 }
