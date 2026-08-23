@@ -8,6 +8,7 @@ const [
   activationMigration,
   accessSessionMigration,
   restoreActivationMigration,
+  leastPrivilegeMigration,
   recovery,
   runbook,
   launchPacket,
@@ -24,6 +25,7 @@ const [
   readFile(new URL("../docs/migrations/20260823_checkout_activation_nonce_v1.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/migrations/20260823_purchase_access_sessions_v1.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/migrations/20260823_restore_activation_nonce_v1.sql", import.meta.url), "utf8"),
+  readFile(new URL("../docs/migrations/20260823_payment_least_privilege_roles_v1.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/database-recovery.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/first-sale-gate-runbook.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/first-payment-24-hour-operations-packet.md", import.meta.url), "utf8"),
@@ -284,6 +286,30 @@ for (const [name, migration, prerequisite, version] of [
       assert.match(normalized, /\bpublic\./, `${name} migration has an unqualified object reference: ${normalized}`);
     }
   }
+}
+
+for (const contract of [
+  "begin;",
+  "20260823_restore_activation_nonce_v1",
+  "hoju_migration_owner",
+  "hoju_app_runtime",
+  "hoju_owner_operator",
+  "owner to hoju_migration_owner",
+  "revoke create on schema public from public, hoju_app_runtime, hoju_owner_operator",
+  "grant execute on function public.approve_next_first_sale(text, text, text, integer, text) to hoju_owner_operator",
+  "20260823_payment_least_privilege_roles_v1",
+  "commit;",
+]) assert.ok(leastPrivilegeMigration.includes(contract), `least-privilege migration is missing: ${contract}`);
+assert.doesNotMatch(
+  leastPrivilegeMigration,
+  /revoke execute on all functions in schema public/i,
+  "payment hardening must not change unrelated public-schema function ACLs",
+);
+for (const signature of runtimeWrapperSignatures.values()) {
+  assert.ok(
+    leastPrivilegeMigration.includes(`grant execute on function ${signature.replaceAll(",", ", ")} to hoju_app_runtime`),
+    `least-privilege migration does not grant the audited runtime wrapper: ${signature}`,
+  );
 }
 
 for (const contract of [
