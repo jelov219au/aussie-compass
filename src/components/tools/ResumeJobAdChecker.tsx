@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { track } from "@vercel/analytics";
-import { ResumeProCtaLink, trackResumeJobAdChecked } from "@/components/analytics/ResumeFunnelAnalytics";
+import { ResumeProCtaLink, trackResumeJobAdChecked, trackResumeJobAdSampleViewed } from "@/components/analytics/ResumeFunnelAnalytics";
 import { resumeFunnelContexts, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
 import { analyseResumeJobAd, type ResumeJobAdTerm } from "@/lib/resumeJobAdMatch";
 
@@ -43,12 +43,24 @@ export function ResumeJobAdChecker() {
   const [result, setResult] = useState<ReturnType<typeof analyseResumeJobAd> | null>(null);
   const [message, setMessage] = useState("");
   const [resultActionMessage, setResultActionMessage] = useState("");
+  const revealResultRef = useRef(false);
   const priorityTerms = result
     ? (result.missingCount > 0
       ? result.terms.filter((item) => !item.matched)
       : result.terms.filter((item) => item.matched)
     ).slice(0, 3)
     : [];
+
+  useEffect(() => {
+    if (!result || !revealResultRef.current) return;
+    revealResultRef.current = false;
+    const heading = document.getElementById("job-ad-result-heading");
+    heading?.focus({ preventScroll: true });
+    heading?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      block: "start",
+    });
+  }, [result]);
 
   function compare() {
     if (resumeText.trim().length < 80 || jobAdText.trim().length < 80) {
@@ -62,6 +74,7 @@ export function ResumeJobAdChecker() {
       setMessage("비교할 영문 표현을 충분히 찾지 못했어요. Job Ad의 업무와 요구사항 부분을 조금 더 포함해 주세요.");
       return;
     }
+    revealResultRef.current = true;
     setResult(next);
     setMessage("비교가 끝났어요. 일치 여부는 문구 확인일 뿐, 경력의 사실 여부나 채용 가능성을 판정하지 않습니다.");
     setResultActionMessage("");
@@ -69,17 +82,21 @@ export function ResumeJobAdChecker() {
   }
 
   function loadSample() {
+    const next = analyseResumeJobAd(sampleResume, sampleJobAd);
     setResumeText(sampleResume);
     setJobAdText(sampleJobAd);
-    setResult(null);
-    setMessage("가상 예시를 불러왔어요. 비교하기를 눌러 결과 구조를 확인해 보세요.");
+    revealResultRef.current = true;
+    setResult(next);
+    setMessage("가상 예시 결과를 열었어요. 일치 문구와 실제 경험을 확인할 질문이 어떻게 나뉘는지 먼저 살펴보세요.");
     setResultActionMessage("");
+    trackResumeJobAdSampleViewed();
   }
 
   function clear() {
     setResumeText("");
     setJobAdText("");
     setResult(null);
+    revealResultRef.current = false;
     setMessage("입력 내용을 이 화면에서 지웠습니다.");
     setResultActionMessage("");
   }
@@ -147,7 +164,7 @@ export function ResumeJobAdChecker() {
       <section className="border border-navy/15 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="job-ad-input-heading">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Local comparison</p><h2 id="job-ad-input-heading" className="mt-2 text-2xl font-semibold text-navy">이력서와 Job Ad 붙여 넣기</h2></div>
-          <button type="button" onClick={loadSample} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">가상 예시로 먼저 보기</button>
+          <button type="button" onClick={loadSample} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">가상 예시 결과 바로 보기</button>
         </div>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">입력 내용은 서버로 보내거나 브라우저에 저장하지 않습니다. 이름, 전화번호, 이메일, 주소, 추천인 연락처, 회사 기밀은 지우고 붙여 넣어도 비교할 수 있어요.</p>
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
@@ -159,7 +176,7 @@ export function ResumeJobAdChecker() {
       </section>
 
       {result ? <section className="border-y border-navy/20 py-8" aria-labelledby="job-ad-result-heading">
-        <div className="grid gap-6 lg:grid-cols-[1fr_18rem] lg:items-end"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Evidence check</p><h2 id="job-ad-result-heading" className="mt-2 text-2xl font-semibold text-navy">공고 표현 후보와 현재 이력서</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-muted">공고에서 반복되거나 구직과 관련 있는 표현 후보만 비교했습니다. ‘찾음’은 같은 문구가 있다는 뜻이지, 실제 경험이 충분하다는 뜻은 아닙니다.</p></div><dl className="grid grid-cols-2 gap-px bg-border text-center"><div className="bg-white p-4"><dt className="text-xs text-muted">문구 확인</dt><dd className="mt-1 text-3xl font-semibold text-emerald-700">{result.matchedCount}</dd></div><div className="bg-white p-4"><dt className="text-xs text-muted">근거 확인</dt><dd className="mt-1 text-3xl font-semibold text-gold-ink">{result.missingCount}</dd></div></dl></div>
+        <div className="grid gap-6 lg:grid-cols-[1fr_18rem] lg:items-end"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Evidence check</p><h2 id="job-ad-result-heading" tabIndex={-1} className="mt-2 scroll-mt-24 text-2xl font-semibold text-navy focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-4">공고 표현 후보와 현재 이력서</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-muted">공고에서 반복되거나 구직과 관련 있는 표현 후보만 비교했습니다. ‘찾음’은 같은 문구가 있다는 뜻이지, 실제 경험이 충분하다는 뜻은 아닙니다.</p></div><dl className="grid grid-cols-2 gap-px bg-border text-center"><div className="bg-white p-4"><dt className="text-xs text-muted">문구 확인</dt><dd className="mt-1 text-3xl font-semibold text-emerald-700">{result.matchedCount}</dd></div><div className="bg-white p-4"><dt className="text-xs text-muted">근거 확인</dt><dd className="mt-1 text-3xl font-semibold text-gold-ink">{result.missingCount}</dd></div></dl></div>
         <ul className="mt-6 border-t border-border">{result.terms.map((item) => <TermRow key={item.term} item={item} />)}</ul>
         <div className="mt-7 border-l-2 border-gold bg-surface p-5"><h3 className="font-semibold text-navy">빠진 표현을 그대로 추가하지 마세요</h3><p className="mt-2 text-sm leading-6 text-muted">먼저 “내가 실제로 언제, 어떤 행동을 했고 어떤 결과가 있었는가?”를 답할 수 있는지 확인하세요. 근거가 있을 때만 내 말로 작성하고, 없으면 공고 문구를 복사하거나 AI로 경험을 만들지 않습니다.</p></div>
         <section className="mt-7 border border-navy/15 bg-white p-5 sm:p-6" aria-labelledby="evidence-priority-heading">

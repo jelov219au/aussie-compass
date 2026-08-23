@@ -23,9 +23,15 @@ const [contract, client, builder, checker, articleStep, homeSection, finder, pro
   readFile(new URL("../src/app/resume-pro/restore/page.tsx", import.meta.url), "utf8"),
 ]);
 
-for (const eventName of ["Resume Builder Started", "Resume Job Ad Checked", "Resume Pro CTA Clicked"]) {
+for (const eventName of ["Resume Builder Started", "Resume Job Ad Sample Viewed", "Resume Job Ad Checked", "Resume Pro CTA Clicked"]) {
   assert.ok(contract.includes(eventName), `missing fixed funnel event: ${eventName}`);
-  const reportEvent = eventName === "Resume Builder Started" ? "resumeFunnelEvents.builderStarted" : eventName === "Resume Job Ad Checked" ? "resumeFunnelEvents.jobAdChecked" : "resumeFunnelEvents.proCtaClicked";
+  const reportEvent = eventName === "Resume Builder Started"
+    ? "resumeFunnelEvents.builderStarted"
+    : eventName === "Resume Job Ad Sample Viewed"
+      ? "resumeFunnelEvents.jobAdSampleViewed"
+      : eventName === "Resume Job Ad Checked"
+        ? "resumeFunnelEvents.jobAdChecked"
+        : "resumeFunnelEvents.proCtaClicked";
   assert.ok(report.includes(reportEvent), `report does not aggregate ${eventName}`);
   assert.ok(privacyDoc.includes(eventName), `privacy documentation is missing ${eventName}`);
 }
@@ -83,7 +89,7 @@ assert.ok(proHub.includes('freeHref: "/resume-job-ad-checker"'), "the Resume Pro
 assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("report.jobAdChecks") && reportPage.includes("report.proCtaClicks"), "operator report must show all anonymous pre-offer aggregate steps");
 assert.ok(privacyDoc.includes("Names, STAR text, company names, search terms, full URLs and URL queries are never read or sent."), "privacy boundary must name prohibited resume and URL values");
 
-assert.equal((contract.match(/^\s+\w+:\s+"Resume /gm) ?? []).length, 3, "the fixed resume funnel contract must keep exactly three shared event names");
+assert.equal((contract.match(/^\s+\w+:\s+"Resume /gm) ?? []).length, 4, "the fixed resume funnel contract must keep exactly four shared event names");
 for (const [source, eventNames] of [
   [builder, ["Resume Builder Completed", "Resume Export Started"]],
   [visitTracker, ["Resume Pro Viewed"]],

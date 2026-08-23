@@ -7,7 +7,8 @@ admin authentication exists.
 ## Data sources
 
 - Vercel Web Analytics supplies aggregate `Resume Builder Started`,
-  `Resume Pro CTA Clicked`, `Resume Pro Viewed`, `Resume Pro Free Proof Opened`,
+  `Resume Job Ad Sample Viewed`, `Resume Job Ad Checked`, `Resume Pro CTA Clicked`,
+  `Resume Pro Viewed`, `Resume Pro Free Proof Opened`,
   `Resume Pro Launch Interest` and `Checkout Started` counts.
   Builder and CTA events contain only fixed `surface` and anonymous page
   `context` values; visits and checkout starts use the allowlisted `entry`.
@@ -56,6 +57,9 @@ day windows.
 - `Builder 시작` and `Pro CTA 클릭` show the earlier aggregate steps. Do not
   treat them as person-level paths or join them to resume input, search text or
   URL queries.
+- `공고 예시 확인` is the fixed fictional one-click preview. `공고 맞춤 점검`
+  remains reserved for a comparison the visitor starts with their own local
+  inputs, so sample use does not inflate completed checks.
 - `결제 시작 → 결제 완료` shows whether checkout confidence, price or terms
   may need attention.
 - Do not change copy from a handful of visits. The report deliberately marks

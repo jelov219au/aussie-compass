@@ -24,6 +24,7 @@ Hoju Compass uses Vercel Web Analytics for aggregate product decisions without a
 | `Page Saved` | `content`, `action` | Whether readers use the local return-visit workflow |
 | `App Install` | `entry`, `outcome` | Whether the install page leads to a prompt or manual instructions |
 | `Resume Builder Started` | `surface`, `context` | Whether a visitor begins interacting with the free resume builder |
+| `Resume Job Ad Sample Viewed` | `surface`, `context` | Whether a visitor opens the fixed fictional example result before using their own text |
 | `Resume Job Ad Checked` | `surface`, `context` | Whether a visitor completes the local-only resume and Job Ad comparison |
 | `Resume Pro CTA Clicked` | `surface`, `context` | Which fixed, anonymous page surface sends interest to Resume Pro |
 | `Resume Pro Viewed` | `entry`, `checkout` | Which fixed entry reaches the offer and whether checkout was available |

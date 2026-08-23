@@ -1,5 +1,6 @@
 export const resumeFunnelEvents = {
   builderStarted: "Resume Builder Started",
+  jobAdSampleViewed: "Resume Job Ad Sample Viewed",
   jobAdChecked: "Resume Job Ad Checked",
   proCtaClicked: "Resume Pro CTA Clicked",
 } as const;

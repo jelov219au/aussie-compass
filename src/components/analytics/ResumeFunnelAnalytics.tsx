@@ -44,6 +44,14 @@ export function trackResumeJobAdChecked() {
   );
 }
 
+export function trackResumeJobAdSampleViewed() {
+  emitOnce(
+    resumeFunnelEvents.jobAdSampleViewed,
+    resumeFunnelSurfaces.jobAdCheckerForm,
+    resumeFunnelContexts.jobAdChecker,
+  );
+}
+
 export function ResumeProCtaLink({
   href,
   surface,

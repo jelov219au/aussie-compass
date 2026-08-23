@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   ...createPageMetadata({
     title: "Resume Pro 성과 확인 | Hoju Compass",
-    description: "Builder 시작, 공고 맞춤 점검, Resume Pro CTA 클릭, 방문, 무료 확인, 판매 시작 안내 요청, 결제 시작과 구매 전환을 익명 합계로 비교하는 운영자용 화면입니다.",
+    description: "Builder 시작, 공고 예시 확인, 공고 맞춤 점검, Resume Pro CTA 클릭, 방문, 무료 확인, 판매 시작 안내 요청, 결제 시작과 구매 전환을 익명 합계로 비교하는 운영자용 화면입니다.",
     path: "/resume-pro-performance",
   }),
   robots: { index: false, follow: false },
@@ -64,7 +64,7 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
             <div className="max-w-4xl">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro funnel</p>
               <h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">어느 글이 방문을 넘어<br /><span className="font-normal text-navy-light">실제 구매로 이어지는지 봅니다.</span></h1>
-              <p className="mt-5 max-w-3xl leading-7 text-muted">Builder 시작, 공고 맞춤 점검, Pro CTA 클릭, 방문, 무료 확인, 판매 시작 안내 요청, 결제 시작과 결제 완료를 같은 기간의 익명 합계로 비교합니다. 이메일 주소, 이름, 이력서·공고 내용, 회사명, 검색어나 URL 쿼리는 가져오지 않아요.</p>
+              <p className="mt-5 max-w-3xl leading-7 text-muted">Builder 시작, 공고 예시 확인, 실제 공고 맞춤 점검, Pro CTA 클릭, 방문, 무료 확인, 판매 시작 안내 요청, 결제 시작과 결제 완료를 같은 기간의 익명 합계로 비교합니다. 이메일 주소, 이름, 이력서·공고 내용, 회사명, 검색어나 URL 쿼리는 가져오지 않아요.</p>
             </div>
             <form method="get" className="border-l-2 border-gold pl-5">
               <label className="text-sm font-semibold text-navy">확인 기간
@@ -118,8 +118,9 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
               <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">{report.since} – {report.until}</p><h2 id="funnel-summary-heading" className="mt-2 text-2xl font-semibold text-navy">전체 흐름</h2></div>
               <p className="text-xs leading-5 text-muted">수치는 선택한 기간 안에 발생한 합계입니다.</p>
             </div>
-            <dl className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-3">
+            <dl className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-5">
               <div className="bg-white p-5"><dt className="text-xs text-muted">Builder 시작</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.builderStarts.toLocaleString() : "—"}</dd></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">공고 예시 확인</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.jobAdSampleViews.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">공고 맞춤 점검</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.jobAdChecks.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">Pro CTA 클릭</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.proCtaClicks.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">Resume Pro 방문</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? totals.visits.toLocaleString() : "—"}</dd></div>

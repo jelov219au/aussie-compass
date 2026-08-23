@@ -48,6 +48,12 @@ for (const text of ["서버로 보내거나 브라우저에 저장하지 않습�
 assert.doesNotMatch(component, /localStorage|sessionStorage|sendBeacon|XMLHttpRequest|\bfetch\(/, "resume and Job Ad text must stay in component memory");
 assert.match(component, /MAX_LENGTH = 12_000/, "both local inputs need a hard size limit");
 assert.match(component, /trackResumeJobAdChecked\(\)/, "a completed comparison needs a fixed aggregate event");
+assert.match(component, /const next = analyseResumeJobAd\(sampleResume, sampleJobAd\)/, "the fictional sample must open a result in one action");
+assert.match(component, /trackResumeJobAdSampleViewed\(\)/, "the fictional sample needs a separate fixed aggregate event");
+assert.match(component, /가상 예시 결과 바로 보기/, "the sample action must promise the immediate result it provides");
+assert.doesNotMatch(component.slice(component.indexOf("function loadSample"), component.indexOf("function clear")), /trackResumeJobAdChecked\(\)/, "fictional sample use must not inflate real local comparison completions");
+assert.match(component, /job-ad-result-heading" tabIndex=\{-1\}/, "the revealed result heading must accept programmatic focus");
+assert.match(component, /prefers-reduced-motion: reduce/, "result reveal must respect reduced-motion preferences");
 assert.doesNotMatch(component, /track\([^)]*(resumeText|jobAdText)|properties=.*(resumeText|jobAdText)/s, "analytics must never include pasted text");
 assert.match(component, /navigator\.clipboard\.writeText\(memo\)/, "the result needs an explicit local evidence-memo copy action");
 assert.match(component, /공고 원문이나 이력서 원문 없이/, "the copy result must explain that raw input was excluded");
@@ -66,13 +72,13 @@ assert.match(component, /function trackCheckerShare[\s\S]*try[\s\S]*track\("Page
 const shareFunction = component.slice(component.indexOf("async function shareChecker"), component.indexOf("return (", component.indexOf("async function shareChecker")));
 assert.doesNotMatch(shareFunction, /resumeText|jobAdText/, "sharing must never include pasted resume or Job Ad text");
 
-for (const value of ["Resume Job Ad Checked", "resume_job_ad_checker_form", "resume_job_ad_checker_result", "resume_job_ad_checker", "/resume-pro?from=job-ad-checker"]) {
+for (const value of ["Resume Job Ad Sample Viewed", "Resume Job Ad Checked", "resume_job_ad_checker_form", "resume_job_ad_checker_result", "resume_job_ad_checker", "/resume-pro?from=job-ad-checker"]) {
   assert.ok(contract.includes(value), `the fixed funnel contract is missing ${value}`);
 }
-assert.ok(analytics.includes("resumeFunnelEvents.jobAdChecked") && analytics.includes("resumeFunnelSurfaces.jobAdCheckerForm"), "the helper must emit only fixed checker values");
+assert.ok(analytics.includes("resumeFunnelEvents.jobAdSampleViewed") && analytics.includes("resumeFunnelEvents.jobAdChecked") && analytics.includes("resumeFunnelSurfaces.jobAdCheckerForm"), "the helpers must emit only fixed checker values");
 assert.ok(attribution.includes('"job-ad-checker"'), "checkout attribution must allow the checker entry");
-assert.ok(report.includes('eventName: resumeFunnelEvents.jobAdChecked') && report.includes('"job-ad-checker"'), "the local operator report must aggregate checker use and attribution");
-assert.ok(privacyDoc.includes("Resume Job Ad Checked"), "privacy documentation must disclose the aggregate event");
+assert.ok(report.includes('eventName: resumeFunnelEvents.jobAdSampleViewed') && report.includes('eventName: resumeFunnelEvents.jobAdChecked') && report.includes('"job-ad-checker"'), "the local operator report must aggregate sample use, checker use and attribution");
+assert.ok(privacyDoc.includes("Resume Job Ad Sample Viewed") && privacyDoc.includes("Resume Job Ad Checked"), "privacy documentation must disclose both aggregate events");
 assert.ok(privacyDoc.includes("resume_job_ad_checker") && privacyDoc.includes("never include pasted text"), "privacy documentation must describe the fixed checker share boundary");
 
 for (const source of [planner, performance, campaignBuilder]) {
