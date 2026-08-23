@@ -53,9 +53,18 @@ const routes = [
   "/leave-guide",
 ];
 
+// Keep these dates manual and evidence-based. Google only uses lastmod when it
+// reflects a significant page update, so do not replace them with new Date().
+const acquisitionRouteUpdates: Record<string, string> = {
+  "/resume-builder": "2026-08-24",
+  "/resume-job-ad-checker": "2026-08-24",
+  "/resume-pro": "2026-08-24",
+};
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries: MetadataRoute.Sitemap = routes.map((route) => ({
     url: `${siteUrl}${route}`,
+    lastModified: acquisitionRouteUpdates[route],
     changeFrequency: route === "" ? "weekly" : "monthly",
     priority: route === "" ? 1 : route === "/salary-calculator" ? 0.9 : 0.7,
   }));

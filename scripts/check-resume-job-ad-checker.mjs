@@ -41,6 +41,10 @@ const [component, page, contract, analytics, attribution, report, toolsPage, sea
 for (const source of [page, toolsPage, searchPage, sitemap, journey, builder, homeTools]) {
   assert.ok(source.includes("/resume-job-ad-checker"), "a public discovery surface is missing the checker");
 }
+for (const route of ["/resume-builder", "/resume-job-ad-checker", "/resume-pro"]) {
+  assert.ok(sitemap.includes(`\"${route}\": \"2026-08-24\"`), `${route} must publish its verified significant-update date`);
+}
+assert.ok(sitemap.includes("lastModified: acquisitionRouteUpdates[route]"), "the verified acquisition dates must be emitted as sitemap lastmod values");
 assert.ok(homeTools.includes('section: "resume_job_ad_evidence"') && homeTools.includes('destination: "resume-job-ad-checker"'), "the home entry needs fixed privacy-safe navigation attribution");
 for (const value of ["지원할 Job Ad가 있다면", "입력 원문 서버 전송 없음", "실제 경험 근거부터 확인", "최대 3개", "무료 공고 맞춤 점검"]) {
   assert.ok(homeTools.includes(value), `the high-intent home entry is missing: ${value}`);
