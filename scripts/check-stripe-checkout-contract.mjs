@@ -61,6 +61,16 @@ assert.ok(launchCheck.includes('process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim()'),
 assert.ok(launchCheck.includes('[\"지원 이메일\", /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(supportEmail)'), "launch audit must block an absent or invalid support email");
 
 assert.ok(contactPage.includes("영수증·결제 참조의 마지막 8자"), "contact guidance must request only the final eight reference characters");
+for (const paymentPrompt of [
+  "구매한 제품:",
+  "문제 유형(결제 확인 / 이용권 / 복구 / 환불):",
+  "결제일:",
+  "구매에 사용한 이메일:",
+  "Stripe 영수증 또는 결제 참조(마지막 8자만):",
+  "화면에 표시된 오류(민감정보 제거):",
+]) assert.ok(contactPage.includes(paymentPrompt), `the contact mail draft is missing its payment-resolution prompt: ${paymentPrompt}`);
+assert.ok(contactPage.includes("emailHref(seller.email, item)"), "each contact action must build its mail draft from the selected contact type");
+assert.ok(contactPage.includes("...contactType.prompts.flatMap"), "the contact mail draft must render only the selected type's fixed prompts");
 assert.ok(paymentSupport.includes("[있다면 마지막 8자만 입력]"), "support template must limit the payment reference to eight characters");
 for (const prohibitedDetail of ["카드번호 전체·일부", "CVC", "영수증 전체", "이력서 원문"]) {
   assert.ok(

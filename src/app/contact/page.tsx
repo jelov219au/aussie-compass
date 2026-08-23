@@ -21,20 +21,23 @@ const contactTypes = [
     title: "달라진 정보나 잘못된 내용을 발견했어요",
     description: "페이지 주소와 확인한 문장을 알려주세요. 가능하다면 최신 공식 출처도 함께 보내주시면 더 빠르게 확인할 수 있어요.",
     subject: "콘텐츠 정정 요청",
+    prompts: ["문의한 페이지 주소:", "확인이 필요한 문장이나 내용:", "확인한 공식 출처(있다면):"],
   },
   {
     eyebrow: "도구 이용",
     title: "계산이나 저장 기능이 제대로 작동하지 않아요",
     description: "사용한 도구 이름, 기기와 브라우저, 문제가 생기기 직전에 한 행동을 적어주세요. 민감한 입력값은 보내지 않아도 됩니다.",
     subject: "도구 이용 문의",
+    prompts: ["사용한 도구:", "기기와 브라우저:", "문제가 생기기 직전 한 행동:", "화면에 표시된 오류(민감정보 제거):"],
   },
   {
     eyebrow: "결제·이용권",
     title: "결제 확인이나 Pro 접근에 도움이 필요해요",
     description: "결제일, 구매 이메일, 영수증·결제 참조의 마지막 8자와 화면 오류만 알려주세요. 카드번호·CVC·영수증 전체나 이력서 원문은 보내지 마세요.",
     subject: "결제 및 이용권 문의",
+    prompts: ["구매한 제품:", "문제 유형(결제 확인 / 이용권 / 복구 / 환불):", "결제일:", "구매에 사용한 이메일:", "Stripe 영수증 또는 결제 참조(마지막 8자만):", "화면에 표시된 오류(민감정보 제거):"],
   },
-];
+] as const;
 
 const sensitiveItems = [
   "카드번호 전체, CVC, 계좌 비밀번호와 인증번호",
@@ -43,18 +46,13 @@ const sensitiveItems = [
   "이력서 원문, 급여명세서 전체와 건강정보",
 ];
 
-function emailHref(email: string, subject: string) {
+function emailHref(email: string, contactType: typeof contactTypes[number]) {
   const body = [
-    "문의한 페이지 또는 도구:",
-    "",
-    "확인이 필요한 내용:",
-    "",
-    "사용한 기기와 브라우저(도구 오류인 경우):",
-    "",
+    ...contactType.prompts.flatMap((prompt) => [prompt, ""]),
     "민감정보는 지우고 보내주세요.",
   ].join("\n");
 
-  return `mailto:${email}?subject=${encodeURIComponent(`[Hoju Compass] ${subject}`)}&body=${encodeURIComponent(body)}`;
+  return `mailto:${email}?subject=${encodeURIComponent(`[Hoju Compass] ${contactType.subject}`)}&body=${encodeURIComponent(body)}`;
 }
 
 export default function ContactPage() {
@@ -91,7 +89,7 @@ export default function ContactPage() {
                   <span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")} · {item.eyebrow}</span>
                   <h3 className="mt-3 text-xl font-semibold leading-7 text-navy">{item.title}</h3>
                   <p className="mt-3 flex-1 text-sm leading-7 text-muted">{item.description}</p>
-                  {seller.email ? <a href={emailHref(seller.email, item.subject)} className="mt-6 inline-flex min-h-11 items-center border-b-2 border-gold text-sm font-semibold text-navy">이 내용으로 이메일 쓰기 →</a> : <span className="mt-6 text-sm font-medium text-muted">공식 이메일 준비 중</span>}
+                  {seller.email ? <a href={emailHref(seller.email, item)} className="mt-6 inline-flex min-h-11 items-center border-b-2 border-gold text-sm font-semibold text-navy">이 내용으로 이메일 쓰기 →</a> : <span className="mt-6 text-sm font-medium text-muted">공식 이메일 준비 중</span>}
                 </li>
               ))}
             </ul>
