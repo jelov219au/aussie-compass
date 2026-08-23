@@ -21,6 +21,50 @@ function getConnectionString() {
   return value;
 }
 
+function stageTwoFailureCategory(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+
+  if (message.includes("Invalid first-sale entitlement contract")) return "paid_contract";
+  if (message.includes("Invalid first-sale paid event contract")) return "gate_contract";
+  if (message.includes("First-sale paid event environment mismatch")) return "gate_environment";
+  if (message.includes("First-sale gate is locked by another paid event")) return "gate_locked";
+  if (message.includes("Paid event does not match the active first-sale reservation")) return "gate_reservation";
+  if (message.includes("Invalid entitlement event contract")) return "entitlement_contract";
+  if (message.includes("Invalid first-sale paid transaction result")) return "transaction_result";
+  if (message.includes("permission denied")) return "access_denied";
+  if (message.includes("duplicate key")) return "unique_conflict";
+  if (message.includes("check constraint")) return "check_violation";
+  if (message.includes("function") || message.includes("procedure")) return "database_routine";
+  return "unknown";
+}
+
+function logStageTwoDatabaseFailure(error: unknown, operation: string) {
+  if (
+    process.env.VERCEL_ENV !== "preview"
+    || process.env.VERCEL_GIT_COMMIT_REF !== "codex/stage2-resume-payment-sandbox"
+    || process.env.STAGE2_DB_MIGRATIONS_ENABLED !== "true"
+  ) {
+    return;
+  }
+
+  const record = typeof error === "object" && error !== null
+    ? error as Record<string, unknown>
+    : {};
+  const code = typeof record.code === "string"
+    ? record.code.replace(/[^A-Z0-9_]/gi, "").slice(0, 24)
+    : "UNKNOWN";
+  const constraint = typeof record.constraint === "string"
+    ? record.constraint.replace(/[^A-Z0-9_]/gi, "").slice(0, 80)
+    : "";
+
+  console.error("Stage 2 database operation failed", {
+    operation,
+    category: stageTwoFailureCategory(error),
+    code: code || "UNKNOWN",
+    ...(constraint ? { constraint } : {}),
+  });
+}
+
 async function claimReservation(
   input: Parameters<FirstSaleGateStore["claimReservation"]>[0],
 ): Promise<FirstSaleClaimResult> {
@@ -114,22 +158,29 @@ async function applyPaidEventAndEntitlement(
 ) {
   const sql = neon(getConnectionString());
   const { receipt, command } = input;
-  const rows = await sql`
-    select apply_first_sale_paid_event(
-      ${receipt.eventId},
-      ${receipt.eventType},
-      ${receipt.livemode},
-      ${receipt.createdAt.toISOString()},
-      ${command.productCode},
-      ${command.currency},
-      ${command.amountTotal},
-      ${command.checkoutSessionId},
-      ${command.paymentIntentId},
-      ${command.chargeId},
-      ${command.customerId},
-      ${command.reason}
-    ) as outcome
-  ` as { outcome: "processed" | "duplicate" | "ignored_stale" }[];
+  let rows: { outcome: "processed" | "duplicate" | "ignored_stale" }[];
+
+  try {
+    rows = await sql`
+      select apply_first_sale_paid_event(
+        ${receipt.eventId},
+        ${receipt.eventType},
+        ${receipt.livemode},
+        ${receipt.createdAt.toISOString()},
+        ${command.productCode},
+        ${command.currency},
+        ${command.amountTotal},
+        ${command.checkoutSessionId},
+        ${command.paymentIntentId},
+        ${command.chargeId},
+        ${command.customerId},
+        ${command.reason}
+      ) as outcome
+    ` as { outcome: "processed" | "duplicate" | "ignored_stale" }[];
+  } catch (error) {
+    logStageTwoDatabaseFailure(error, "apply_paid_event");
+    throw error;
+  }
   const outcome = rows[0]?.outcome;
 
   if (outcome !== "processed" && outcome !== "duplicate" && outcome !== "ignored_stale") {
