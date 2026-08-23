@@ -31,5 +31,13 @@ export function ToolsSection() {
     </TrackedLink>
 
     <ol className="mt-8 grid gap-4 sm:grid-cols-2">{essentials.map((tool)=><li key={tool.href}><TrackedLink href={tool.href} eventName="Home Navigation" properties={{ section: "essential_tools", destination: tool.href.slice(1) }} className="group grid h-full min-h-52 grid-rows-[auto_1fr_auto] rounded-2xl border border-border bg-white p-6 transition hover:-translate-y-0.5 hover:border-navy/25 hover:shadow-[0_12px_30px_rgba(26,39,68,0.06)] sm:p-7"><div className="flex items-center justify-between"><span className="text-xs text-muted">{tool.number}</span><span className="text-xs font-semibold text-gold-ink">{tool.eyebrow}</span></div><div className="self-center py-7"><h3 className="text-2xl font-semibold tracking-tight text-navy">{tool.title}</h3><p className="mt-3 max-w-md text-sm leading-6 text-muted">{tool.description}</p></div><span className="flex items-center justify-between text-sm font-semibold text-navy"><span>바로 써보기</span><span className="text-xl transition group-hover:translate-x-1" aria-hidden="true">→</span></span></TrackedLink></li>)}</ol>
+
+    <TrackedLink href="/resume-job-ad-checker" eventName="Home Navigation" properties={{ section: "resume_job_ad_evidence", destination: "resume-job-ad-checker" }} className="group mt-4 block border border-navy/20 bg-surface transition hover:border-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
+      <span className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[11rem_1fr_auto] lg:items-center">
+        <span><span className="block text-xs font-semibold uppercase tracking-[0.16em] text-gold-ink">지원할 Job Ad가 있다면</span><span className="mt-2 block text-xs leading-5 text-muted">입력 원문 서버 전송 없음</span></span>
+        <span><strong className="block text-lg text-navy sm:text-xl">키워드를 넣기 전에 실제 경험 근거부터 확인하세요</strong><span className="mt-2 block text-sm leading-6 text-muted">현재 이력서와 공고 문구를 로컬에서 비교하고, 다음에 답할 근거 질문을 최대 3개로 좁혀 드립니다.</span></span>
+        <span className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white transition group-hover:bg-gold group-hover:text-navy">무료 공고 맞춤 점검 <span className="ml-2 transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
+      </span>
+    </TrackedLink>
   </Container></section>;
 }

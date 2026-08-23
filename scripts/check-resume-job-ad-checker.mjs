@@ -16,7 +16,7 @@ for (const term of ["communication skills", "inventory management", "attention t
 assert.equal(result.matchedCount + result.missingCount, result.terms.length);
 assert.ok(result.terms.length <= 12, "the result must stay scannable");
 
-const [component, page, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder] = await Promise.all([
+const [component, page, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder, homeTools] = await Promise.all([
   readFile(new URL("../src/components/tools/ResumeJobAdChecker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
@@ -32,10 +32,15 @@ const [component, page, contract, analytics, attribution, report, toolsPage, sea
   readFile(new URL("../src/components/tools/ContentPublishingPlanner.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ContentPerformanceTracker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/CampaignLinkBuilder.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/sections/ToolsSection.tsx", import.meta.url), "utf8"),
 ]);
 
-for (const source of [page, toolsPage, searchPage, sitemap, journey, builder]) {
+for (const source of [page, toolsPage, searchPage, sitemap, journey, builder, homeTools]) {
   assert.ok(source.includes("/resume-job-ad-checker"), "a public discovery surface is missing the checker");
+}
+assert.ok(homeTools.includes('section: "resume_job_ad_evidence"') && homeTools.includes('destination: "resume-job-ad-checker"'), "the home entry needs fixed privacy-safe navigation attribution");
+for (const value of ["지원할 Job Ad가 있다면", "입력 원문 서버 전송 없음", "실제 경험 근거부터 확인", "최대 3개", "무료 공고 맞춤 점검"]) {
+  assert.ok(homeTools.includes(value), `the high-intent home entry is missing: ${value}`);
 }
 for (const text of ["서버로 보내거나 브라우저에 저장하지 않습니다", "채용 가능성이나 ‘ATS 점수’를 만들어내지 않습니다", "빠진 표현을 그대로 추가하지 마세요"]) {
   assert.ok(`${page}\n${component}`.includes(text), `the checker is missing its safety boundary: ${text}`);
