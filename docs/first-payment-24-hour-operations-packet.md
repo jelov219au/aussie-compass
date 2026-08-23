@@ -300,7 +300,7 @@ SMTP 재시도나 동일 Message-ID의 중복 이메일은 회계 사건이 아�
 - `environment=live` 필터를 고정한 뒤 첫 결제의 gross, 표시 GST 검토 상태, fee, refund `nil/발생`, payout `nil/pending/paid`, Stripe ending balance를 회계 워크북에 분리한다. `test` 행이나 환경이 비어 있는 행은 첫 고객 증거로 사용하지 않고, payout 대기 잔액은 다음 대사로 이월한다.
 - 미결 항목 하나라도 owner·기한 없이 남거나 NO-GO 조건이 해소되지 않으면 다음 판매를 열지 않는다.
 
-관련 기준: `docs/first-payment-go-no-go-decision-memo.md`, `docs/first-live-customer-payment-runbook.md`, `docs/first-payment-tabletop-validation.md`, `docs/payment-alerts.md`, 공개 `/purchase-information`, `/payment-help`, `/privacy` 안내.
+관련 기준: 현재 Production 판정은 `docs/production-first-sale-readiness-audit-2026-08-24.md`, 출시 순서는 `docs/live-payment-launch-checklist.md`, 합성 기능 증거는 `docs/first-sale-isolated-rehearsal.md`, 알림 운영은 `docs/payment-alerts.md`, 회계 분류는 `docs/accounting-reconciliation.md`를 따른다. 공개 고객 안내는 `/purchase-information`, `/payment-help`, `/privacy`에서 확인한다.
 
 공식 역할·권리 기준:
 

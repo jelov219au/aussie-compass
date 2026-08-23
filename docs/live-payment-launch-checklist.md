@@ -76,9 +76,9 @@ Do not start the controlled live purchase while the Stripe account status page s
 The operational evidence pack is controlled outside this release branch. Do not copy customer documents, Stripe exports, bank evidence or the private workbook into this repository, a deployment artifact, a ticket or chat. Use the immutable accounting reference below to retrieve only the runbook/template version; store completed evidence in the approved private accounting location.
 
 - Fixed reference: commit `162c96e1a82ec1f6f61295982dbd4529c8a879f4`
-- 15-minute / 24-hour / first-payout runbook: `docs/first-live-customer-payment-runbook.md`
-- Field and formula rules: `docs/managed-payments-first-live-evidence-form.md`
-- Private workbook template: `outputs/01a01c79-be17-7031-9d5b-b5e0dd9ac50f/managed-payments-first-live-evidence.xlsx`
+- 15-minute / 24-hour / first-payout runbook: `docs/first-payment-24-hour-operations-packet.md`
+- Field and formula rules: `docs/accounting-reconciliation.md`
+- Private workbook template: use the approved private accounting location outside this repository. A repository-relative workbook path is not valid evidence.
 - Evidence owner: accounting operations records source evidence and reconciliation without customer details.
 - Technical owner: the development team resolves webhook, entitlement, access or alert failures.
 - Approval owner: the business owner alone records the second-sale decision; this reference does not authorise a payment, refund, customer contact or BAS lodgment.
