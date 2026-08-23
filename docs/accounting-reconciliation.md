@@ -59,6 +59,10 @@ Remove-Item Env:STRIPE_ACCOUNTING_KEY
 ```
 
 The exporter writes a new CSV under `private/accounting/` and refuses to overwrite an existing file. That directory is excluded from Git.
+If the restricted key lacks Balance Transactions Read permission, the exporter
+fails before writing a file and prints only the required permission. Do not copy
+the raw Stripe SDK error into chat or an operations record because it can contain
+account, restricted-key and request-log identifiers.
 
 ## Private automatic ledger
 

@@ -30,6 +30,15 @@ function objectId(value) {
   return typeof value === "string" ? value : value.id;
 }
 
+function safeStripeExportError(error) {
+  const statusCode = typeof error === "object" && error !== null ? error.statusCode : undefined;
+  const code = typeof error === "object" && error !== null ? error.code : undefined;
+  if (statusCode === 403 || code === "more_permissions_required") {
+    return new Error("Stripe accounting export needs Balance Transactions Read permission on the dedicated restricted key. No private file was written.");
+  }
+  return new Error("Stripe accounting export failed before a private file was written. Review the restricted key and Stripe availability without copying the raw SDK error.");
+}
+
 const fromText = argumentValue("--from");
 const toText = argumentValue("--to");
 const from = parseDate(fromText, "--from");
@@ -67,25 +76,29 @@ const header = [
 ];
 const rows = [header];
 
-for await (const transaction of stripe.balanceTransactions.list({
-  created: {
-    gte: Math.floor(from.getTime() / 1000),
-    lt: Math.floor(to.getTime() / 1000),
-  },
-  limit: 100,
-})) {
-  rows.push([
-    new Date(transaction.created * 1000).toISOString(),
-    new Date(transaction.available_on * 1000).toISOString(),
-    transaction.currency.toUpperCase(),
-    transaction.reporting_category,
-    (transaction.amount / 100).toFixed(2),
-    (transaction.fee / 100).toFixed(2),
-    (transaction.net / 100).toFixed(2),
-    transaction.status,
-    objectId(transaction.source),
-    transaction.id,
-  ]);
+try {
+  for await (const transaction of stripe.balanceTransactions.list({
+    created: {
+      gte: Math.floor(from.getTime() / 1000),
+      lt: Math.floor(to.getTime() / 1000),
+    },
+    limit: 100,
+  })) {
+    rows.push([
+      new Date(transaction.created * 1000).toISOString(),
+      new Date(transaction.available_on * 1000).toISOString(),
+      transaction.currency.toUpperCase(),
+      transaction.reporting_category,
+      (transaction.amount / 100).toFixed(2),
+      (transaction.fee / 100).toFixed(2),
+      (transaction.net / 100).toFixed(2),
+      transaction.status,
+      objectId(transaction.source),
+      transaction.id,
+    ]);
+  }
+} catch (error) {
+  throw safeStripeExportError(error);
 }
 
 await mkdir(outputRoot, { recursive: true });
