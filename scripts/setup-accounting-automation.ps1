@@ -17,8 +17,15 @@ try {
     throw "Use a dedicated restricted Stripe key beginning with rk_live_ or rk_test_."
   }
 
+  $env:STRIPE_ACCOUNTING_KEY = $plainKey
+  & npm.cmd run accounting:preflight
+  if ($LASTEXITCODE -ne 0) {
+    throw "Accounting permission preflight failed. The restricted key was not saved."
+  }
+
   $credential | Export-Clixml -LiteralPath $credentialPath
 } finally {
+  Remove-Item Env:STRIPE_ACCOUNTING_KEY -ErrorAction SilentlyContinue
   $plainKey = $null
 }
 
@@ -30,4 +37,4 @@ $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit
 
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Description "Refreshes the previous completed month of Hoju Compass Stripe balance records. Re-runs are idempotent." -Force | Out-Null
 
-Write-Host "Accounting automation is ready. The previous completed month will be checked daily at 7:15am and exported only once."
+Write-Host "Accounting automation is ready. Balance Transactions Read was verified without writing a private export. The previous completed month will be checked daily at 7:15am and exported only once."

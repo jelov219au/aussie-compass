@@ -1,9 +1,12 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import Stripe from "stripe";
-
 import { accountingLedgerHeader } from "./accounting-ledger-schema.mjs";
+import {
+  createStripeAccountingClient,
+  getStripeAccountingConfig,
+  safeStripeAccountingError,
+} from "./stripe-accounting-access.mjs";
 
 function argumentValue(name) {
   const index = process.argv.indexOf(name);
@@ -32,14 +35,6 @@ function objectId(value) {
   return typeof value === "string" ? value : value.id;
 }
 
-function safeStripeExportError(error) {
-  const code = typeof error === "object" && error !== null ? error.code : undefined;
-  if (code === "more_permissions_required") {
-    return new Error("Stripe accounting export needs Balance Transactions Read permission on the dedicated restricted key. No private file was written.");
-  }
-  return new Error("Stripe accounting export failed before a private file was written. Review the restricted key and Stripe availability without copying the raw SDK error.");
-}
-
 const fromText = argumentValue("--from");
 const toText = argumentValue("--to");
 const from = parseDate(fromText, "--from");
@@ -47,21 +42,11 @@ const to = parseDate(toText, "--to");
 
 if (to <= from) throw new Error("--to must be later than --from. The end date is exclusive.");
 
-const accountingKey = process.env.STRIPE_ACCOUNTING_KEY?.trim();
-if (!accountingKey?.startsWith("rk_test_") && !accountingKey?.startsWith("rk_live_")) {
-  throw new Error("STRIPE_ACCOUNTING_KEY must be a dedicated restricted Stripe key (rk_). Do not use the checkout key.");
-}
-
-const mode = accountingKey.startsWith("rk_live_") ? "live" : "test";
+const { key, mode } = getStripeAccountingConfig();
 const outputRoot = path.resolve("private", "accounting");
 const outputPath = path.join(outputRoot, `stripe-balance-${mode}-${fromText}-to-${toText}-exclusive.csv`);
 
-const stripe = new Stripe(accountingKey, {
-  appInfo: { name: "Hoju Compass accounting export", version: "0.1.0" },
-  maxNetworkRetries: 2,
-  timeout: 20_000,
-  telemetry: false,
-});
+const stripe = createStripeAccountingClient(key, "Hoju Compass accounting export");
 
 const rows = [accountingLedgerHeader];
 
@@ -88,7 +73,7 @@ try {
     ]);
   }
 } catch (error) {
-  throw safeStripeExportError(error);
+  throw safeStripeAccountingError(error, "export");
 }
 
 await mkdir(outputRoot, { recursive: true });

@@ -38,6 +38,7 @@
     "test:accounting-contract": "node scripts/check-accounting-export-contract.mjs",
     "test:push-exclusion": "node scripts/check-push-exclusion.mjs",
     "accounting:export": "node scripts/export-stripe-accounting.mjs",
+    "accounting:preflight": "node scripts/preflight-stripe-accounting.mjs",
     "accounting:merge": "node scripts/merge-stripe-accounting.mjs",
     "security:secrets": "node scripts/check-secrets.mjs",
     "test:security-contract": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-security-contract.mjs",

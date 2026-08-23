@@ -58,6 +58,21 @@ npm run accounting:export -- --from 2026-07-01 --to 2026-08-01
 Remove-Item Env:STRIPE_ACCOUNTING_KEY
 ```
 
+Before the first export or after any restricted-key permission change, run the
+no-write permission check while payments remain off:
+
+```powershell
+$env:STRIPE_ACCOUNTING_KEY = "rk_live_..."
+npm run accounting:preflight
+Remove-Item Env:STRIPE_ACCOUNTING_KEY
+```
+
+The preflight requests at most one Balance Transaction only to prove the
+dedicated key can read that resource. It prints the live/test mode and PASS or a
+redacted actionable failure; it prints no transaction, account, request-log or
+key identifier and imports no file-writing API. A PASS does not export or alter
+any accounting record.
+
 The exporter writes a new CSV under `private/accounting/` and refuses to overwrite an existing file. That directory is excluded from Git.
 If the restricted key lacks Balance Transactions Read permission, the exporter
 fails before writing a file and prints only the required permission. Do not copy
@@ -68,7 +83,7 @@ account, restricted-key and request-log identifiers.
 
 The monthly automation keeps a derived spreadsheet-readable file at `private/accounting/hoju-compass-stripe-ledger.csv`. Every row records `environment=live/test`, and the ledger merges Balance Transactions by environment plus their unique Stripe transaction ID. A missed or repeated scheduled run cannot duplicate a transaction, while a test transaction can never replace or be mistaken for a live transaction. Existing source exports without an environment column remain readable because their immutable filename supplies the mode; a new export records the mode in both its filename and rows and fails closed if they disagree. The source exports remain unchanged beside it.
 
-The setup script accepts only a dedicated Stripe restricted key (`rk_live_` or `rk_test_`). Windows encrypts the saved credential for the current Windows user and computer. The task checks the previous completed month each morning at 7:15 and calls Stripe only when that month's immutable source export does not already exist. This daily check allows a missed run to continue after the laptop is next switched on.
+The setup script accepts only a dedicated Stripe restricted key (`rk_live_` or `rk_test_`) and runs the same no-write permission preflight before saving it. A failed or unavailable check does not save or replace the submitted credential and creates no scheduled task. After PASS, Windows encrypts the saved credential for the current Windows user and computer. The task checks the previous completed month each morning at 7:15 and calls Stripe only when that month's immutable source export does not already exist. This daily check allows a missed run to continue after the laptop is next switched on.
 
 Run the one-time setup locally and paste the key only into the protected PowerShell prompt:
 
