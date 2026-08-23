@@ -294,6 +294,7 @@ for (const contract of [
   "hoju_migration_owner",
   "hoju_app_runtime",
   "hoju_owner_operator",
+  "runtime role must not inherit neon_superuser",
   "owner to hoju_migration_owner",
   "set role hoju_migration_owner",
   "reset role",

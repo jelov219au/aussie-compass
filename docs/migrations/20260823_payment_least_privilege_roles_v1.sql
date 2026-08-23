@@ -16,6 +16,9 @@ begin
   then
     raise exception 'required payment roles are missing';
   end if;
+  if pg_has_role('hoju_app_runtime', 'neon_superuser', 'member') then
+    raise exception 'runtime role must not inherit neon_superuser';
+  end if;
 end;
 $$;
 
