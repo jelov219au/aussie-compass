@@ -41,6 +41,7 @@ assert.ok(page.includes("!existingBuyerIssue && !canOfferCheckout && seller.emai
 assert.ok(page.includes("판매 시작 시 한 번만 답하며 자동 마케팅 구독 명단에 추가하지 않습니다"), "the product page must explain the one-time reply boundary");
 assert.ok(page.includes("지원 직무, 마감일, 공개 채용 공고 링크와 무료 경력 초안 여부만 적고"), "the product page must explain the fixed first-customer fit fields");
 assert.ok(page.includes("이력서 원문이나 민감정보는 보내지 마세요"), "the product page must prevent unnecessary resume or sensitive-data sharing");
+assert.ok(page.includes("분석 이벤트·안내 요청문으로 넘어오지 않습니다") && page.includes("분석 이벤트·안내 요청문에 포함되지 않습니다"), "high-intent continuity must state that local resume and Job Ad text is excluded from analytics and launch email drafts");
 assert.equal((page.match(/<ResumeProLaunchInterestCopyButton/g) ?? []).length, 2, "both closed-checkout notice surfaces must offer a webmail copy fallback");
 assert.equal(
   (page.match(/<ResumeProLaunchInterestCopyButton[^>]+border border-navy\/30 bg-white[^>]+text-navy/g) ?? []).length,

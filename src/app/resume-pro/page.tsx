@@ -11,11 +11,31 @@ import { ResumeProLaunchInterestCopyButton, ResumeProLaunchInterestLink } from "
 import { Container } from "@/components/ui/Container";
 import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
 import { getPublicSellerDetails } from "@/lib/publicSeller";
-import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
+import { normalizeResumeProEntry, type ResumeProEntry } from "@/lib/resumeProAttribution";
 import { getResumeProCheckoutFailure } from "@/lib/resumeProCheckoutFailure";
 import { createPageMetadata } from "@/lib/site";
 
 const resumeProDescription = "실제 경력과 호주 채용 공고를 맞춰 회사별 이력서·커버레터를 만들고, STAR 면접 메모로 다시 쓰거나 지원서 묶음으로 내보내세요.";
+
+const entryContinuations: Partial<Record<ResumeProEntry, {
+  eyebrow: string;
+  title: string;
+  description: string;
+  privacy: string;
+}>> = {
+  "job-ad-checker": {
+    eyebrow: "무료 공고 맞춤 점검 다음 단계",
+    title: "표현 후보를 찾았다면, 실제 근거를 지원서 전체에 한 번만 연결하세요.",
+    description: "Resume Pro는 확인한 경험을 회사별 이력서·커버레터·STAR 면접 메모와 지원서 묶음에 이어 쓰는 단계입니다.",
+    privacy: "점검기에 붙여 넣은 이력서와 공고 원문은 이 페이지·URL·분석 이벤트·안내 요청문으로 넘어오지 않습니다.",
+  },
+  "resume-builder-complete": {
+    eyebrow: "무료 이력서 초안 다음 단계",
+    title: "경력 초안이 있다면, 지원할 공고 하나에 맞춰 제출 묶음을 완성하세요.",
+    description: "Resume Pro는 브라우저에 저장한 실제 경력을 공고별 이력서·커버레터·면접 메모로 정리하고 한 묶음으로 내보내는 단계입니다.",
+    privacy: "저장한 경력 원문은 현재 브라우저에 남고 URL·분석 이벤트·안내 요청문에 포함되지 않습니다.",
+  },
+};
 
 export const metadata = createPageMetadata({
   title: "호주 취업 공고별 이력서·커버레터 준비 | Resume Pro",
@@ -98,6 +118,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
   const existingBuyerIssue = access === "required" || access === "released" || checkout === "checkout_support_required";
   const canOfferCheckout = checkoutAvailable && !existingBuyerIssue;
   const entry = normalizeResumeProEntry(from);
+  const entryContinuation = entryContinuations[entry];
   const checkoutFailure = getResumeProCheckoutFailure(checkout);
   const seller = getPublicSellerDetails();
 
@@ -141,6 +162,14 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 id="resume-pro-checkout-page-failure"
                 className="mt-5"
               />
+            )}
+            {!existingBuyerIssue && entryContinuation && (
+              <section className="mt-5 border-l-2 border-gold bg-gold/8 px-5 py-4 sm:px-6" aria-labelledby="entry-continuation-heading">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#806515]">{entryContinuation.eyebrow}</p>
+                <h2 id="entry-continuation-heading" className="mt-2 max-w-3xl text-xl font-semibold text-navy">{entryContinuation.title}</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{entryContinuation.description}</p>
+                <p className="mt-3 max-w-3xl text-xs leading-5 text-muted">{entryContinuation.privacy}</p>
+              </section>
             )}
             <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
               <div className="max-w-3xl">
