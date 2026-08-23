@@ -8,6 +8,7 @@ const fixtures = [
   { href: "/resume-pro", type: "도구", title: "Resume Pro — 공고별 이력서·커버레터", description: "회사별 지원 자료", keywords: ["resume", "STAR", "STAR examples", "selection criteria", "cover letter"] },
   { href: "/salary-calculator", type: "도구", title: "급여 계산기", description: "급여 계산", keywords: ["급여"] },
   { href: "/resources/english-resume-achievement-examples", type: "자료", title: "호주 이력서 성과 문장", description: "근거를 확인하는 STAR 글", keywords: ["이력서", "resume", "CV", "STAR 예시", "STAR examples", "selection criteria", "cover letter", "호주 취업 이력서"] },
+  { href: "/resources/australia-cover-letter-job-ad-checklist", type: "자료", title: "호주 커버레터 작성법", description: "공고별 제출 전 점검", keywords: ["커버레터", "cover letter", "호주 커버레터"] },
   { href: "/resume-builder", type: "도구", title: "무료 영문 이력서 빌더", description: "브라우저 저장과 PDF", keywords: ["이력서", "resume", "CV", "STAR 예시", "STAR examples", "selection criteria", "cover letter", "호주 취업 이력서"] },
 ];
 
@@ -17,10 +18,17 @@ const discoveryOrder = [
   "/resume-pro",
 ];
 
-for (const query of ["이력서", "resume", "CV", "STAR 예시", "STAR examples", "selection criteria", "cover letter", "호주 취업 이력서"]) {
+for (const query of ["이력서", "resume", "CV", "STAR 예시", "STAR examples", "selection criteria", "호주 취업 이력서"]) {
   assert.equal(getSiteSearchIntent(query), "resume", `${query} must use the allowlisted resume intent`);
   assert.deepEqual(rankSiteSearchItems(fixtures, query).slice(0, 3).map((item) => item.href), discoveryOrder, `${query} must lead with free Builder, evidence article, then Pro`);
 }
+
+assert.equal(getSiteSearchIntent("cover letter"), "resume", "cover letter must use the allowlisted resume intent");
+assert.deepEqual(
+  rankSiteSearchItems(fixtures, "cover letter").slice(0, 4).map((item) => item.href),
+  ["/resume-builder", "/resources/australia-cover-letter-job-ad-checklist", "/resume-pro", "/resources/english-resume-achievement-examples"],
+  "cover letter must lead from the free Builder to the official checklist before the paid product",
+);
 
 assert.equal(getSiteSearchIntent("Resume Pro"), "resume-pro-direct");
 assert.equal(rankSiteSearchItems(fixtures, "Resume Pro")[0]?.href, "/resume-pro", "an explicit product-name search must lead with Resume Pro");
@@ -37,6 +45,7 @@ for (const query of ["STAR 예시", "STAR examples", "selection criteria", "cove
 }
 assert.match(searchComponent, /rankSiteSearchItems\(items, query\)/);
 assert.match(searchComponent, /이력서 준비 추천 순서/);
+assert.ok(searchPage.includes('article.slug === "australia-cover-letter-job-ad-checklist"'), "the live search index must add dedicated cover-letter terms");
 assert.doesNotMatch(searchComponent, /\btrack\(|analytics|sendBeacon|fetch\(|XMLHttpRequest|window\.location/, "search terms must stay inside the page and must not be sent to analytics, URLs or external requests");
 
 assert.match(searchTransfer, /SEARCH_TRANSFER_STORAGE_KEY\s*=\s*"hojucompass:search-transfer:v1"/);

@@ -60,11 +60,17 @@ const articleItems: SearchItem[] = articles.map((article) => ({
   type: "자료",
   title: article.title,
   description: article.description,
-  keywords: [article.category, article.toolLabel, ...article.sections.map((section) => section.heading), ...(article.slug === "english-resume-achievement-examples" ? ["이력서", "resume", "CV", "커버레터", "cover letter", "STAR", "STAR 예시", "STAR examples", "면접", "selection criteria", "호주 취업 이력서"] : [])],
+  keywords: [
+    article.category,
+    article.toolLabel,
+    ...article.sections.map((section) => section.heading),
+    ...(article.slug === "english-resume-achievement-examples" ? ["이력서", "resume", "CV", "커버레터", "cover letter", "STAR", "STAR 예시", "STAR examples", "면접", "selection criteria", "호주 취업 이력서"] : []),
+    ...(article.slug === "australia-cover-letter-job-ad-checklist" ? ["커버레터", "cover letter", "cover letter examples", "job application", "호주 커버레터", "호주 취업 이력서"] : []),
+  ],
 }));
 
 const items = [...coreItems, ...articleItems];
 
 export default function SearchPage() {
-  return <><BreadcrumbJsonLd items={[{name:"홈",path:"/"},{name:"통합 검색",path:"/search"}]}/><Header/><main className="py-12 sm:py-16"><Container><Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 홈으로 돌아가기</Link><div className="mt-8 max-w-4xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">막막한 순간에 찾아보세요</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">어떤 정보가 필요한가요?</h1><p className="mt-5 max-w-3xl leading-7 text-muted">도구 이름을 몰라도 괜찮아요. 궁금한 단어나 지금 겪고 있는 상황을 입력하면 관련 도구와 글을 함께 찾아드려요.</p></div><SiteSearch items={items}/><p className="mt-4 border-l-2 border-gold pl-4 text-xs leading-5 text-muted">검색어는 같은 탭에서 검색 결과를 여는 데만 잠시 사용하고 바로 지워요. 계정 정보와 연결해 저장하지 않으며 결과 필터링은 지금 보고 있는 페이지 안에서 처리합니다.</p></Container></main><Footer/></>;
+  return <><BreadcrumbJsonLd items={[{name:"홈",path:"/"},{name:"통합 검색",path:"/search"}]}/><Header/><main className="py-12 sm:py-16"><Container><Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 홈으로 돌아가기</Link><div className="mt-8 max-w-4xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-ink">막막한 순간에 찾아보세요</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">어떤 정보가 필요한가요?</h1><p className="mt-5 max-w-3xl leading-7 text-muted">도구 이름을 몰라도 괜찮아요. 궁금한 단어나 지금 겪고 있는 상황을 입력하면 관련 도구와 글을 함께 찾아드려요.</p></div><SiteSearch items={items}/><p className="mt-4 border-l-2 border-gold pl-4 text-xs leading-5 text-muted">검색어는 같은 탭에서 검색 결과를 여는 데만 잠시 사용하고 바로 지워요. 계정 정보와 연결해 저장하지 않으며 결과 필터링은 지금 보고 있는 페이지 안에서 처리합니다.</p></Container></main><Footer/></>;
 }

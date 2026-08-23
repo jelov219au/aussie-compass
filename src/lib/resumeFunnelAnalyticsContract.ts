@@ -15,6 +15,7 @@ export const resumeFunnelContexts = {
   resumeBuilder: "resume_builder",
   achievementGuide: "resume_achievement_guide",
   jobSearchGuide: "job_search_guide",
+  coverLetterGuide: "cover_letter_guide",
   home: "home",
   proCatalog: "pro_catalog",
 } as const;
@@ -27,6 +28,7 @@ export type ResumeProCtaHref =
   | "/resume-pro"
   | "/resume-pro?from=article-job-search-plan"
   | "/resume-pro?from=article-achievement-examples"
+  | "/resume-pro?from=article-cover-letter-checklist"
   | "/resume-pro?from=resume-builder-complete"
   | "/resume-pro?from=home-premium"
   | "/resume-pro?from=pro-finder";

@@ -25,6 +25,13 @@ const resumeDiscoveryPriority = new Map([
   ["/resume-pro", 1],
 ]);
 
+const coverLetterDiscoveryPriority = new Map([
+  ["/resume-builder", 4],
+  ["/resources/australia-cover-letter-job-ad-checklist", 3],
+  ["/resume-pro", 2],
+  ["/resources/english-resume-achievement-examples", 1],
+]);
+
 export const normalizeSiteSearchText = (value: string) => value
   .toLocaleLowerCase("ko-KR")
   .replace(/\s+/g, "")
@@ -47,18 +54,21 @@ export function rankSiteSearchItems(items: SearchItem[], query: string) {
   if (!normalizedQuery) return items;
 
   const intent = getSiteSearchIntent(query);
+  const discoveryPriority = normalizedQuery === "coverletter"
+    ? coverLetterDiscoveryPriority
+    : resumeDiscoveryPriority;
   const indexed = items.map((item, index) => ({ item, index }));
   const paid = (item: SearchItem) => item.href === "/pro" || item.href.includes("-pro");
   const searchable = (item: SearchItem) => normalizeSiteSearchText([item.title, item.description, ...item.keywords].join(" "));
 
   return indexed
-    .filter(({ item }) => searchable(item).includes(normalizedQuery) || (intent === "resume" && resumeDiscoveryPriority.has(item.href)))
+    .filter(({ item }) => searchable(item).includes(normalizedQuery) || (intent === "resume" && discoveryPriority.has(item.href)))
     .sort((left, right) => {
       const priority = (entry: typeof left) => {
         if (intent === "resume-pro-direct" && entry.item.href === "/resume-pro") return 10_000;
         if (intent === "resume") {
-          const discoveryPriority = resumeDiscoveryPriority.get(entry.item.href);
-          if (discoveryPriority) return 5_000 + discoveryPriority;
+          const itemPriority = discoveryPriority.get(entry.item.href);
+          if (itemPriority) return 5_000 + itemPriority;
         }
         return textRelevance(entry.item, normalizedQuery) * 10 - Number(paid(entry.item)) * 2;
       };

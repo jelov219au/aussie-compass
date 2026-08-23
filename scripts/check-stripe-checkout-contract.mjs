@@ -76,7 +76,7 @@ assert.ok(jsonLd.includes("serializeJsonLd(data)"), "Organization JSON-LD must u
 assert.ok(jsonLdSerializer.includes('JSON.stringify(data).replace(/</g, "\\\\u003c")'), "JSON-LD must preserve injection-safe serialization");
 
 assert.ok(checkoutForm.includes('name="source"'), "Resume Pro Checkout must submit its allowlisted acquisition source");
-for (const entry of ["article-job-search-plan", "article-achievement-examples", "resume-builder-complete", "home-premium", "pro-finder"]) {
+for (const entry of ["article-job-search-plan", "article-achievement-examples", "article-cover-letter-checklist", "resume-builder-complete", "home-premium", "pro-finder"]) {
   assert.ok(attribution.includes(entry), `Resume Pro acquisition allowlist is missing: ${entry}`);
 }
 

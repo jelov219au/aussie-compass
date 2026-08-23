@@ -16,6 +16,7 @@ const nextSteps: Record<
     freeLabel: string;
     proLabel: string;
     proHref: ResumeProCtaHref;
+    context: (typeof resumeFunnelContexts)[keyof typeof resumeFunnelContexts];
     note: string;
   }
 > = {
@@ -26,7 +27,18 @@ const nextSteps: Record<
     freeLabel: "지원 현황 무료로 정리하기",
     proLabel: "이 공고에 맞춰 지원 준비하기",
     proHref: "/resume-pro?from=article-job-search-plan",
+    context: resumeFunnelContexts.jobSearchGuide,
     note: "공고를 모으고 지원을 기록하는 기능은 무료예요. Resume Pro는 실제로 지원할 공고를 골랐을 때 선택하면 돼요.",
+  },
+  "australia-cover-letter-job-ad-checklist": {
+    heading: "공고 지시를 확인하고, 내 실제 경험만 연결하세요",
+    description:
+      "아직 공고가 없다면 무료 Builder에서 실제 경력부터 정리하세요. 지원할 공고를 골랐다면 Resume Pro에서 같은 사실을 그 공고의 이력서와 커버레터에 일관되게 연결할 수 있어요.",
+    freeLabel: "내 실제 경력 무료로 정리하기",
+    proLabel: "이 공고용 이력서·커버레터 준비하기",
+    proHref: "/resume-pro?from=article-cover-letter-checklist",
+    context: resumeFunnelContexts.coverLetterGuide,
+    note: "Resume Pro도 입력하지 않은 경력·자격·수치를 만들지 않으며, 면접이나 취업 결과를 보장하지 않아요. 실제로 지원할 공고가 있을 때만 선택하세요.",
   },
   "english-resume-achievement-examples": {
     heading: "내 실제 사례를 저장하고, 다음 면접에도 다시 쓰세요",
@@ -35,6 +47,7 @@ const nextSteps: Record<
     freeLabel: "내 사례를 무료로 저장하기",
     proLabel: "공고별 이력서·면접 준비로 이어가기",
     proHref: "/resume-pro?from=article-achievement-examples",
+    context: resumeFunnelContexts.achievementGuide,
     note: "무료 Builder 내용은 현재 브라우저에 저장돼요. Resume Pro도 입력하지 않은 숫자, 경력이나 자격을 만들지 않아요.",
   },
 };
@@ -78,7 +91,7 @@ export function ArticleNextStep({ slug, toolHref, toolLabel }: ArticleNextStepPr
         <ResumeProCtaLink
           href={nextStep.proHref}
           surface={resumeFunnelSurfaces.articleNextStep}
-          context={slug === "australia-job-search-plan" ? resumeFunnelContexts.jobSearchGuide : resumeFunnelContexts.achievementGuide}
+          context={nextStep.context}
           className="inline-flex min-h-12 items-center justify-center border border-navy/30 px-5 py-3 text-center font-semibold text-navy transition hover:border-gold hover:bg-surface"
         >
           {nextStep.proLabel}

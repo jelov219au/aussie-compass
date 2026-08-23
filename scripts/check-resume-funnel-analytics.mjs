@@ -33,7 +33,11 @@ for (const value of [
   "resume_builder",
   "resume_achievement_guide",
   "job_search_guide",
+  "cover_letter_guide",
 ]) assert.ok(contract.includes(value), `missing fixed analytics value: ${value}`);
+
+assert.ok(articleStep.includes('/resume-pro?from=article-cover-letter-checklist'), "cover-letter guidance is missing its fixed acquisition entry");
+assert.ok(contract.includes('/resume-pro?from=article-cover-letter-checklist'), "CTA href contract is missing the cover-letter acquisition entry");
 
 for (const [source, href] of [
   [homeSection, '/resume-pro?from=home-premium'],

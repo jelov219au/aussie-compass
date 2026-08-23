@@ -13,7 +13,7 @@ function ResultList({ items }: { items: SearchItem[] }) {
       {items.map((item, index) => (
         <li key={item.href} className="border-b border-border">
           <Link href={item.href} className="group grid gap-4 py-6 transition hover:bg-white/70 sm:grid-cols-[3rem_0.8fr_1.2fr_auto] sm:items-center sm:px-3">
-            <span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span>
+            <span className="font-mono text-xs text-gold-ink">{String(index + 1).padStart(2, "0")}</span>
             <strong className="text-lg text-navy">{item.title}</strong>
             <span className="text-sm leading-6 text-muted">{item.description}</span>
             <span className="text-xl text-navy transition group-hover:translate-x-1" aria-hidden="true">→</span>
@@ -43,9 +43,9 @@ export function SiteSearch({ items }: { items: SearchItem[] }) {
 
   return <>
     <section className="mt-10 border-y border-navy/20 py-6" aria-labelledby="site-search-label">
-      <label id="site-search-label" htmlFor="site-search" className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">어떤 도움이 필요하세요?</label>
+      <label id="site-search-label" htmlFor="site-search" className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">어떤 도움이 필요하세요?</label>
       <div className="mt-3 flex items-center border-b-2 border-navy pb-3">
-        <span className="mr-3 font-mono text-2xl text-gold" aria-hidden="true">⌕</span>
+        <span className="mr-3 font-mono text-2xl text-gold-ink" aria-hidden="true">⌕</span>
         <input id="site-search" type="search" autoComplete="off" autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="예: TFN, 집 구하기, Super 환급" className="min-h-12 w-full bg-transparent text-xl text-navy outline-none placeholder:text-muted/55 sm:text-2xl" />
         <span className="ml-3 shrink-0 font-mono text-xs text-muted" aria-live="polite">{results.length}개</span>
       </div>

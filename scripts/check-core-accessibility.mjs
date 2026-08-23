@@ -17,6 +17,8 @@ const [
   proFinder,
   resumeBuilder,
   resumeProWorkspace,
+  searchPage,
+  siteSearch,
 ] = await Promise.all([
   readFile(new URL("../src/app/globals.css", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/Hero.tsx", import.meta.url), "utf8"),
@@ -33,6 +35,8 @@ const [
   readFile(new URL("../src/components/tools/ProProductFinder.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeBuilder.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeProWorkspace.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/search/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/search/SiteSearch.tsx", import.meta.url), "utf8"),
 ]);
 
 function rgb(hex) {
@@ -80,6 +84,10 @@ for (const [source, marker] of [
   [premiumTools, 'text-gold-ink">정보를 찾은 다음'],
   [proPage, 'text-gold-ink">Hoju Compass Pro'],
   [proFinder, 'text-gold-ink">내 상황에 맞는 Pro 찾기'],
+  [searchPage, 'text-gold-ink">막막한 순간에 찾아보세요'],
+  [siteSearch, 'text-gold-ink">어떤 도움이 필요하세요?'],
+  [siteSearch, 'text-2xl text-gold-ink'],
+  [siteSearch, 'text-xs text-gold-ink">{String(index + 1)'],
 ]) {
   assert.ok(source.includes(marker), `audited light-surface contrast marker is missing: ${marker}`);
 }
