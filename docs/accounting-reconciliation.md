@@ -24,6 +24,14 @@ The generated workbook starts with the controlled live A$19.90 Resume Pro purcha
 
 Stripe recommends Balance Transactions as the basis of balance reporting. For automatic payouts, use the itemised payout reconciliation report to match transactions and fees to the bank deposit.
 
+The Balance Transaction API proves `amount`, total `fee`, `net` and a fee
+breakdown whose `fee_details.type=tax` means tax on a Stripe fee. It does **not**
+by itself prove the customer-facing tax that Managed Payments calculated and
+withheld. Never relabel fee tax as `withheld_tax`, and never derive
+`fee_net_of_withheld_tax` from `fee_details`. Keep those Managed Payments fields
+in review until the actual payment detail, receipt/invoice or applicable tax
+report supports them.
+
 1. In Stripe, download the Balance or itemised Payout reconciliation CSV for the period.
 2. Save the original export in a private accounting folder without editing it.
 3. Copy only the required amounts and non-customer transaction references into the workbook.
@@ -35,6 +43,8 @@ Official Stripe references:
 - https://docs.stripe.com/plan-integration/get-started/reporting-reconciliation
 - https://docs.stripe.com/reports/payout-reconciliation
 - https://docs.stripe.com/reports/balance-transaction-types
+- https://docs.stripe.com/api/balance_transactions/object
+- https://docs.stripe.com/payments/managed-payments/how-it-works
 
 ## Read-only export automation
 
