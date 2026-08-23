@@ -54,7 +54,7 @@ export function ExperienceStoriesSection() {
                   <ul className="mt-5 grid gap-2 text-sm leading-6 text-navy/85 sm:grid-cols-3">
                     {story.points.map((point, index) => (
                       <li key={point} className="border-t border-border pt-3">
-                        <span className="mr-2 font-mono text-[0.65rem] text-gold">0{index + 1}</span>
+                        <span className="mr-2 font-mono text-[0.65rem] text-gold-ink">0{index + 1}</span>
                         {point}
                       </li>
                     ))}

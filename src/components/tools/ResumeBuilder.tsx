@@ -426,7 +426,7 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
         <div className="mb-3 flex items-center justify-between gap-3"><h2 className="text-lg font-semibold text-navy">미리보기</h2><p className="text-xs text-muted">A4 형식</p></div>
         <article id="resume-preview" className={`min-h-[877px] bg-white text-[#202636] shadow-lg ring-1 ring-black/5 ${resume.layoutStyle === "compact" ? "px-7 py-8 sm:px-10 sm:py-9" : "px-8 py-10 sm:px-12 sm:py-12"}`} aria-label="이력서 미리보기">
           <header className={`${resume.layoutStyle === "compact" ? "border-b pb-3" : "border-b-2 pb-5"}`} style={{ borderColor: activeAccent.colour }}>
-            <h1 className={`${resume.layoutStyle === "compact" ? "text-2xl" : "text-3xl"} font-bold tracking-tight`} style={{ color: activeAccent.colour }}>{resume.name || "Your Name"}</h1>
+            <p className={`${resume.layoutStyle === "compact" ? "text-2xl" : "text-3xl"} font-bold tracking-tight`} style={{ color: activeAccent.colour }}>{resume.name || "Your Name"}</p>
             <p className="mt-1 text-base font-semibold" style={{ color: activeAccent.secondary }}>{resume.title || "Target Role"}</p>
             <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#50586b]">{[resume.phone || "Phone", resume.email || "Email", resume.location || "City, State", resume.link].filter(Boolean).map((value, index) => <span key={index}>{value}</span>)}</p>
           </header>

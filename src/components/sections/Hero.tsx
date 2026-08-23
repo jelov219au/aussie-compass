@@ -16,7 +16,7 @@ export function Hero() {
           <div className="max-w-4xl">
             <div className="mb-6 flex items-center gap-3">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-navy text-gold" aria-hidden="true">✦</span>
-              <p className="text-xs font-semibold tracking-[0.14em] text-[#9e593b]">
+              <p className="text-xs font-semibold tracking-[0.14em] text-[#874b32]">
                 {content.hero.label}
               </p>
             </div>
@@ -30,7 +30,7 @@ export function Hero() {
             </p>
 
             <div className="mt-6 max-w-2xl border-l-2 border-gold/70 pl-5 sm:pl-6">
-              <p className="text-xs font-semibold tracking-[0.14em] text-[#9e593b]">Hoju Compass를 만든 이유</p>
+              <p className="text-xs font-semibold tracking-[0.14em] text-[#874b32]">Hoju Compass를 만든 이유</p>
               <p className="mt-3 text-sm leading-7 text-navy-light sm:text-[0.98rem] sm:leading-7">
                 호주 생활 정보를 찾다 보면 정부 사이트와 여러 안내 글을 계속 오가게 돼요. 검색 결과는 많아도 내 상황에서 무엇부터 해야 하는지 바로 알기 어려울 때가 있고요.
               </p>

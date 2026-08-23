@@ -65,7 +65,7 @@ export function HomeSearch() {
           openSearch(query, classifySearch(query), "free_text");
         }} className="grid gap-4 lg:grid-cols-[minmax(14rem,0.55fr)_minmax(0,1.45fr)] lg:items-end lg:gap-8">
           <div>
-            <p className="text-xs font-semibold tracking-[0.14em] text-gold">바로 찾아보기</p>
+            <p className="text-xs font-semibold tracking-[0.14em] text-gold-ink">바로 찾아보기</p>
             <h2 id="home-search-heading" className="mt-2 text-xl font-semibold tracking-tight text-navy sm:text-2xl">
               지금 궁금한 말을 그대로 입력하세요.
             </h2>
@@ -73,7 +73,7 @@ export function HomeSearch() {
           <div>
             <label htmlFor="home-search" className="sr-only">호주 생활 정보 검색</label>
             <div className="flex min-h-14 items-center rounded-2xl border border-navy/20 bg-background px-4 transition focus-within:border-navy focus-within:ring-2 focus-within:ring-navy/10 sm:px-5">
-              <span className="mr-3 text-xl text-gold" aria-hidden="true">⌕</span>
+              <span className="mr-3 text-xl text-gold-ink" aria-hidden="true">⌕</span>
               <input
                 id="home-search"
                 type="search"

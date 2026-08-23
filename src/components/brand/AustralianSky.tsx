@@ -34,7 +34,7 @@ export function AustralianSky() {
           <path d="M0 68C70 42 112 75 180 48c76-30 120-5 240-48v100H0V68Z" />
         </svg>
         <div className="absolute inset-x-0 bottom-0 h-[88%] bg-[#f4ead8] px-6 pb-7 pt-5 text-navy sm:h-[87%] sm:px-8 sm:pb-8 sm:pt-6">
-          <p className="text-[0.65rem] font-semibold tracking-[0.16em] text-[#9e593b]">START HERE, STAY READY</p>
+          <p className="text-[0.65rem] font-semibold tracking-[0.16em] text-[#874b32]">START HERE, STAY READY</p>
           <p className="mt-2 max-w-[15rem] text-xl font-semibold leading-snug tracking-[-0.02em] sm:text-2xl">처음 도착하는 날부터<br />돌아가는 날까지</p>
           <p className="mt-2 text-[0.66rem] font-medium leading-5 tracking-[0.08em] text-navy/55">
             NSW · VIC · QLD · WA<br />SA · TAS · ACT · NT
