@@ -6,7 +6,7 @@
 
 | 시점 | 내부 확인 | 완료 기준 |
 | --- | --- | --- |
-| 0~5분 | live Checkout/PaymentIntent의 `paid`, AUD, Resume Pro Price와 서명 웹훅 2xx 확인 | 테스트 거래와 분리된 live 주문 1건이 식별됨 |
+| 0~5분 | live Checkout/PaymentIntent의 `paid`, AUD, Resume Pro Price와 서명 웹훅 2xx 확인 | 회계 원본과 파생 장부의 `environment=live`가 일치하고 테스트 거래와 분리된 live 주문 1건이 식별됨 |
 | 5~15분 | 서버 이용권, gate, outbox, 실제 메일 수신, 활성화 결과 확인 | 아래 15분 필수 증거가 모두 PASS |
 | 15~30분 | 영수증·invoice/tax 문서, Balance Transaction 확인 | 지원·증빙·수수료의 원본 위치가 확인됨 |
 | 30분~4영업시간 | 결제했으나 접근이 없는 건을 최우선 확인 | 재결제 요청 없이 정상 접근 또는 owner 에스컬레이션 |
@@ -297,7 +297,7 @@ SMTP 재시도나 동일 Message-ID의 중복 이메일은 회계 사건이 아�
 - 사건별 상태를 `확인 중 / owner 승인 대기 / 조치 승인 / 완료 / 판매 중단 후보` 중 하나로 남긴다.
 - 고객별 메모 대신 사건번호, 원본 시스템 reference, 다음 조치와 기한만 인계한다.
 - first-sale gate의 현재 `OPEN/RESERVED/SOLD/LOCKED`, 마지막 gate event ID, 예약 만료 시각, 증거 gate 결과와 owner 승인 상태를 함께 인계한다. 고객 식별정보나 전체 Stripe ID는 복사하지 않는다.
-- 첫 결제의 gross, 표시 GST 검토 상태, fee, refund `nil/발생`, payout `nil/pending/paid`, Stripe ending balance를 회계 워크북에 분리한다. payout 대기 잔액은 다음 대사로 이월한다.
+- `environment=live` 필터를 고정한 뒤 첫 결제의 gross, 표시 GST 검토 상태, fee, refund `nil/발생`, payout `nil/pending/paid`, Stripe ending balance를 회계 워크북에 분리한다. `test` 행이나 환경이 비어 있는 행은 첫 고객 증거로 사용하지 않고, payout 대기 잔액은 다음 대사로 이월한다.
 - 미결 항목 하나라도 owner·기한 없이 남거나 NO-GO 조건이 해소되지 않으면 다음 판매를 열지 않는다.
 
 관련 기준: `docs/first-payment-go-no-go-decision-memo.md`, `docs/first-live-customer-payment-runbook.md`, `docs/first-payment-tabletop-validation.md`, `docs/payment-alerts.md`, 공개 `/purchase-information`, `/payment-help`, `/privacy` 안내.

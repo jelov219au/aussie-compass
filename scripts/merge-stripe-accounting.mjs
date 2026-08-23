@@ -1,9 +1,15 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+import {
+  accountingLedgerHeader,
+  accountingRecordKey,
+  accountingSourcePattern,
+  normaliseAccountingRows,
+} from "./accounting-ledger-schema.mjs";
+
 const accountingRoot = path.resolve("private", "accounting");
 const masterPath = path.join(accountingRoot, "hoju-compass-stripe-ledger.csv");
-const sourcePattern = /^stripe-balance-(?:live|test)-\d{4}-\d{2}-\d{2}-to-\d{4}-\d{2}-\d{2}-exclusive\.csv$/;
 
 function parseCsv(text) {
   const rows = [];
@@ -51,41 +57,23 @@ function csvCell(value) {
   return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
-const files = (await readdir(accountingRoot)).filter((name) => sourcePattern.test(name)).sort();
-const expectedHeader = [
-  "created_utc",
-  "available_on_utc",
-  "currency",
-  "reporting_category",
-  "gross_amount",
-  "fee_amount",
-  "net_amount",
-  "status",
-  "source_id",
-  "balance_transaction_id",
-];
+const files = (await readdir(accountingRoot)).filter((name) => accountingSourcePattern.test(name)).sort();
 const records = new Map();
 
 for (const file of files) {
   const rows = parseCsv(await readFile(path.join(accountingRoot, file), "utf8"));
-  const [header, ...dataRows] = rows;
-
-  if (!header || header.join("|") !== expectedHeader.join("|")) {
-    throw new Error(`Unexpected Stripe accounting columns in ${file}.`);
-  }
-
-  for (const row of dataRows) {
-    const transactionId = row[9];
-    if (!transactionId) continue;
-    records.set(transactionId, row);
+  for (const row of normaliseAccountingRows(file, rows)) {
+    const recordKey = accountingRecordKey(row);
+    if (!recordKey) continue;
+    records.set(recordKey, row);
   }
 }
 
 const sortedRows = [...records.values()].sort((left, right) => {
-  const createdComparison = left[0].localeCompare(right[0]);
-  return createdComparison || left[9].localeCompare(right[9]);
+  const createdComparison = left[1].localeCompare(right[1]);
+  return createdComparison || accountingRecordKey(left).localeCompare(accountingRecordKey(right));
 });
-const outputRows = [expectedHeader, ...sortedRows];
+const outputRows = [accountingLedgerHeader, ...sortedRows];
 
 await writeFile(masterPath, `${outputRows.map((row) => row.map(csvCell).join(",")).join("\n")}\n`);
 

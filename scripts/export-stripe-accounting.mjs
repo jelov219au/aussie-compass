@@ -3,6 +3,8 @@ import path from "node:path";
 
 import Stripe from "stripe";
 
+import { accountingLedgerHeader } from "./accounting-ledger-schema.mjs";
+
 function argumentValue(name) {
   const index = process.argv.indexOf(name);
   return index >= 0 ? process.argv[index + 1] : undefined;
@@ -61,19 +63,7 @@ const stripe = new Stripe(accountingKey, {
   telemetry: false,
 });
 
-const header = [
-  "created_utc",
-  "available_on_utc",
-  "currency",
-  "reporting_category",
-  "gross_amount",
-  "fee_amount",
-  "net_amount",
-  "status",
-  "source_id",
-  "balance_transaction_id",
-];
-const rows = [header];
+const rows = [accountingLedgerHeader];
 
 try {
   for await (const transaction of stripe.balanceTransactions.list({
@@ -84,6 +74,7 @@ try {
     limit: 100,
   })) {
     rows.push([
+      mode,
       new Date(transaction.created * 1000).toISOString(),
       new Date(transaction.available_on * 1000).toISOString(),
       transaction.currency.toUpperCase(),

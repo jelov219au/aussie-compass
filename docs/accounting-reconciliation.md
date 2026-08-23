@@ -66,7 +66,7 @@ account, restricted-key and request-log identifiers.
 
 ## Private automatic ledger
 
-The monthly automation keeps a derived spreadsheet-readable file at `private/accounting/hoju-compass-stripe-ledger.csv`. It merges Balance Transactions by their unique Stripe transaction ID, so a missed or repeated scheduled run cannot duplicate a transaction. The source exports remain unchanged beside it.
+The monthly automation keeps a derived spreadsheet-readable file at `private/accounting/hoju-compass-stripe-ledger.csv`. Every row records `environment=live/test`, and the ledger merges Balance Transactions by environment plus their unique Stripe transaction ID. A missed or repeated scheduled run cannot duplicate a transaction, while a test transaction can never replace or be mistaken for a live transaction. Existing source exports without an environment column remain readable because their immutable filename supplies the mode; a new export records the mode in both its filename and rows and fails closed if they disagree. The source exports remain unchanged beside it.
 
 The setup script accepts only a dedicated Stripe restricted key (`rk_live_` or `rk_test_`). Windows encrypts the saved credential for the current Windows user and computer. The task checks the previous completed month each morning at 7:15 and calls Stripe only when that month's immutable source export does not already exist. This daily check allows a missed run to continue after the laptop is next switched on.
 
@@ -92,6 +92,7 @@ Official ATO references:
 ## Monthly close checklist
 
 - [ ] Export Stripe Balance and itemised payout reconciliation reports.
+- [ ] Filter the derived ledger to `environment=live` and keep all test-mode rows outside first-customer evidence.
 - [ ] Record gross sales, refunds, fees and net activity separately.
 - [ ] Match automatic payouts to bank deposits.
 - [ ] Confirm the Stripe ending balance agrees with the report.
