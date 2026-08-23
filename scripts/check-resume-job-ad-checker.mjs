@@ -16,9 +16,10 @@ for (const term of ["communication skills", "inventory management", "attention t
 assert.equal(result.matchedCount + result.missingCount, result.terms.length);
 assert.ok(result.terms.length <= 12, "the result must stay scannable");
 
-const [component, page, jsonLd, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder, homeTools, openGraphImage, twitterImage, socialImage] = await Promise.all([
+const [component, page, visitTracker, jsonLd, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder, homeTools, openGraphImage, twitterImage, socialImage] = await Promise.all([
   readFile(new URL("../src/components/tools/ResumeJobAdChecker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/analytics/ResumeJobAdVisitTracker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/seo/JsonLd.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeFunnelAnalytics.tsx", import.meta.url), "utf8"),
@@ -47,6 +48,7 @@ for (const route of ["/resume-builder", "/resume-job-ad-checker", "/resume-pro"]
 }
 assert.ok(sitemap.includes("lastModified: acquisitionRouteUpdates[route]"), "the verified acquisition dates must be emitted as sitemap lastmod values");
 assert.ok(homeTools.includes('section: "resume_job_ad_evidence"') && homeTools.includes('destination: "resume-job-ad-checker"'), "the home entry needs fixed privacy-safe navigation attribution");
+assert.ok(page.includes("ResumeJobAdVisitTracker") && visitTracker.includes("trackResumeJobAdViewed()"), "the checker needs an anonymous reach event before activation events");
 for (const value of ["지원할 Job Ad가 있다면", "입력 원문 서버 전송 없음", "실제 경험 근거부터 확인", "최대 3개", "무료 공고 맞춤 점검"]) {
   assert.ok(homeTools.includes(value), `the high-intent home entry is missing: ${value}`);
 }
@@ -91,7 +93,7 @@ assert.match(component, /function trackCheckerShare[\s\S]*try[\s\S]*track\("Page
 const shareFunction = component.slice(component.indexOf("async function shareChecker"), component.indexOf("return (", component.indexOf("async function shareChecker")));
 assert.doesNotMatch(shareFunction, /resumeText|jobAdText/, "sharing must never include pasted resume or Job Ad text");
 
-for (const value of ["Resume Job Ad Sample Viewed", "Resume Job Ad Checked", "resume_job_ad_checker_form", "resume_job_ad_checker_result", "resume_job_ad_checker", "/resume-pro?from=job-ad-checker"]) {
+for (const value of ["Resume Job Ad Viewed", "Resume Job Ad Sample Viewed", "Resume Job Ad Checked", "resume_job_ad_checker_form", "resume_job_ad_checker_result", "resume_job_ad_checker", "/resume-pro?from=job-ad-checker"]) {
   assert.ok(contract.includes(value), `the fixed funnel contract is missing ${value}`);
 }
 assert.ok(analytics.includes("resumeFunnelEvents.jobAdSampleViewed") && analytics.includes("resumeFunnelEvents.jobAdChecked") && analytics.includes("resumeFunnelSurfaces.jobAdCheckerForm"), "the helpers must emit only fixed checker values");

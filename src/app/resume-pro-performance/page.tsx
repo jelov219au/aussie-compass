@@ -69,7 +69,7 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
             <div className="max-w-4xl">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro funnel</p>
               <h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">어느 글이 방문을 넘어<br /><span className="font-normal text-navy-light">어떤 결제 상태로 이어지는지 봅니다.</span></h1>
-              <p className="mt-5 max-w-3xl leading-7 text-muted">Builder 시작, 공고 예시 확인, 실제 공고 맞춤 점검, Pro CTA 클릭, 방문, 무료 확인, 판매 시작 메일 준비 행동, 결제 시작과 live 결제·전액 환불을 같은 기간의 익명 합계로 비교합니다. 전액 환불된 통제 결제는 유지 결제에서 제외하지만, 남은 live 결제도 실제 신규 고객인지 자동 판정하지 않아요. 이메일 주소, 이름, 이력서·공고 내용, 회사명, 검색어나 URL 쿼리는 가져오지 않습니다.</p>
+              <p className="mt-5 max-w-3xl leading-7 text-muted">Builder 시작, 공고 점검기 진입, 공고 예시 확인, 실제 공고 맞춤 점검, Pro CTA 클릭, 방문, 무료 확인, 판매 시작 메일 준비 행동, 결제 시작과 live 결제·전액 환불을 같은 기간의 익명 합계로 비교합니다. 전액 환불된 통제 결제는 유지 결제에서 제외하지만, 남은 live 결제도 실제 신규 고객인지 자동 판정하지 않아요. 이메일 주소, 이름, 이력서·공고 내용, 회사명, 검색어나 URL 쿼리는 가져오지 않습니다.</p>
             </div>
             <form method="get" className="border-l-2 border-gold pl-5">
               <label className="text-sm font-semibold text-navy">확인 기간
@@ -125,8 +125,9 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
             </div>
             <dl className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-6">
               <div className="bg-white p-5"><dt className="text-xs text-muted">Builder 시작</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.builderStarts.toLocaleString() : "—"}</dd></div>
-              <div className="bg-white p-5"><dt className="text-xs text-muted">공고 예시 확인</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.jobAdSampleViews.toLocaleString() : "—"}</dd></div>
-              <div className="bg-white p-5"><dt className="text-xs text-muted">공고 맞춤 점검</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.jobAdChecks.toLocaleString() : "—"}</dd></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">공고 점검기 진입</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.jobAdViews.toLocaleString() : "—"}</dd></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">공고 예시 확인</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.jobAdSampleViews.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">진입 대비 {connected.vercel ? rate(report.jobAdSampleViews, report.jobAdViews) : "—"}</p></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">공고 맞춤 점검</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.jobAdChecks.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">진입 대비 {connected.vercel ? rate(report.jobAdChecks, report.jobAdViews) : "—"}</p></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">Pro CTA 클릭</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.proCtaClicks.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">Resume Pro 방문</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? totals.visits.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">무료 확인 시작</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? totals.proofStarts.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">방문 대비 {connected.vercel ? rate(totals.proofStarts, totals.visits) : "—"}</p></div>

@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [contract, client, builder, checker, articleStep, homeSection, finder, proHub, offerPage, proofLink, report, reportPage, privacyDoc, performanceDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage, localConnection, connectionRoute, envExample, accountingExporter, accountingAccess] = await Promise.all([
+const [contract, client, builder, checker, checkerPage, checkerVisitTracker, articleStep, homeSection, finder, proHub, offerPage, proofLink, report, reportPage, privacyDoc, performanceDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage, localConnection, connectionRoute, envExample, accountingExporter, accountingAccess] = await Promise.all([
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeFunnelAnalytics.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeBuilder.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeJobAdChecker.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/resume-job-ad-checker/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/analytics/ResumeJobAdVisitTracker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/resources/ArticleNextStep.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/PremiumToolsSection.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ProProductFinder.tsx", import.meta.url), "utf8"),
@@ -28,10 +30,12 @@ const [contract, client, builder, checker, articleStep, homeSection, finder, pro
   readFile(new URL("./stripe-accounting-access.mjs", import.meta.url), "utf8"),
 ]);
 
-for (const eventName of ["Resume Builder Started", "Resume Job Ad Sample Viewed", "Resume Job Ad Checked", "Resume Pro CTA Clicked"]) {
+for (const eventName of ["Resume Builder Started", "Resume Job Ad Viewed", "Resume Job Ad Sample Viewed", "Resume Job Ad Checked", "Resume Pro CTA Clicked"]) {
   assert.ok(contract.includes(eventName), `missing fixed funnel event: ${eventName}`);
   const reportEvent = eventName === "Resume Builder Started"
     ? "resumeFunnelEvents.builderStarted"
+    : eventName === "Resume Job Ad Viewed"
+      ? "resumeFunnelEvents.jobAdViewed"
     : eventName === "Resume Job Ad Sample Viewed"
       ? "resumeFunnelEvents.jobAdSampleViewed"
       : eventName === "Resume Job Ad Checked"
@@ -94,7 +98,10 @@ assert.ok(proHub.includes('freeHref: "/resume-job-ad-checker"'), "the Resume Pro
 assert.ok(proHub.includes('<ResumeProProofLink entry="pro-catalog-card"'), "the Resume Pro catalog free proof must retain its fixed acquisition entry");
 assert.ok(finder.includes("Resume Pro 가격은 A$19.90 1회 결제이며") && finder.includes("결제·이용 복구 안전 확인 중이라 판매하지 않아요"), "closed Resume Pro copy must distinguish its fixed price from its temporary sales hold");
 
-assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("report.jobAdChecks") && reportPage.includes("report.proCtaClicks"), "operator report must show all anonymous pre-offer aggregate steps");
+assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("report.jobAdViews") && reportPage.includes("report.jobAdChecks") && reportPage.includes("report.proCtaClicks"), "operator report must show all anonymous pre-offer aggregate steps");
+assert.ok(reportPage.includes("rate(report.jobAdSampleViews, report.jobAdViews)") && reportPage.includes("rate(report.jobAdChecks, report.jobAdViews)"), "the checker report must distinguish reach from sample and real-input activation");
+assert.ok(checkerPage.includes("ResumeJobAdVisitTracker"), "the Job Ad checker page must mount its anonymous visit tracker");
+assert.ok(checkerVisitTracker.includes("trackResumeJobAdViewed()") && checkerVisitTracker.includes("useEffect"), "the Job Ad checker visit must emit from a small client boundary");
 assert.ok(report.includes('expand: ["data.payment_intent.latest_charge"]'), "operator report must retrieve refund evidence for paid Checkouts");
 assert.ok(report.includes("classifyResumeProPerformancePayment") && reportPage.includes("totals.fullRefunds") && reportPage.includes("totals.retainedPayments") && reportPage.includes("totals.netRevenueCents"), "operator report must separate paid, fully refunded, retained-candidate and net values");
 assert.ok(reportPage.includes("실제 신규 고객인지 자동 판정하지 않아요") && performanceDoc.includes("genuine customer"), "operator guidance must not treat a retained live payment as a proven customer");
@@ -108,7 +115,7 @@ assert.ok(performanceDoc.includes("intentionally use different") && performanceD
 assert.ok(reportPage.indexOf("row.paidCheckouts > 0") < reportPage.indexOf("row.visits < 10"), "payment and refund evidence must outrank low-sample copy advice");
 assert.ok(privacyDoc.includes("Names, STAR text, company names, search terms, full URLs and URL queries are never read or sent."), "privacy boundary must name prohibited resume and URL values");
 
-assert.equal((contract.match(/^\s+\w+:\s+"Resume /gm) ?? []).length, 4, "the fixed resume funnel contract must keep exactly four shared event names");
+assert.equal((contract.match(/^\s+\w+:\s+"Resume /gm) ?? []).length, 5, "the fixed resume funnel contract must keep exactly five shared event names");
 for (const [source, eventNames] of [
   [builder, ["Resume Builder Completed", "Resume Export Started"]],
   [visitTracker, ["Resume Pro Viewed"]],

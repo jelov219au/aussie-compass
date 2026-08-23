@@ -36,6 +36,7 @@ type ConnectionState = {
 export type ResumeProPerformance = {
   rows: ResumeProPerformanceRow[];
   builderStarts: number;
+  jobAdViews: number;
   jobAdSampleViews: number;
   jobAdChecks: number;
   proCtaClicks: number;
@@ -126,6 +127,7 @@ async function loadVercelTotals(since: string, until: string) {
       launchInterests: new Map<ResumeProEntry, number>(),
       checkouts: new Map<ResumeProEntry, number>(),
       builderStarts: 0,
+      jobAdViews: 0,
       jobAdSampleViews: 0,
       jobAdChecks: 0,
       proCtaClicks: 0,
@@ -133,12 +135,13 @@ async function loadVercelTotals(since: string, until: string) {
   }
 
   try {
-    const [visits, proofStarts, launchInterests, checkouts, builderStarts, jobAdSampleViews, jobAdChecks, proCtaClicks] = await Promise.all([
+    const [visits, proofStarts, launchInterests, checkouts, builderStarts, jobAdViews, jobAdSampleViews, jobAdChecks, proCtaClicks] = await Promise.all([
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Resume Pro Viewed" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Resume Pro Free Proof Opened" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Resume Pro Launch Interest" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Checkout Started", extraFilter: "eventData/product eq 'resume_pro'" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.builderStarted, extraFilter: `eventData/surface eq '${resumeFunnelSurfaces.builderForm}'`, groupBy: "context" }),
+      fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.jobAdViewed, extraFilter: `eventData/surface eq '${resumeFunnelSurfaces.jobAdCheckerForm}'`, groupBy: "context" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.jobAdSampleViewed, extraFilter: `eventData/surface eq '${resumeFunnelSurfaces.jobAdCheckerForm}'`, groupBy: "context" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.jobAdChecked, extraFilter: `eventData/surface eq '${resumeFunnelSurfaces.jobAdCheckerForm}'`, groupBy: "context" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.proCtaClicked, groupBy: "context" }),
@@ -150,6 +153,7 @@ async function loadVercelTotals(since: string, until: string) {
       launchInterests: aggregateMap(launchInterests),
       checkouts: aggregateMap(checkouts),
       builderStarts: aggregateTotal(builderStarts),
+      jobAdViews: aggregateTotal(jobAdViews),
       jobAdSampleViews: aggregateTotal(jobAdSampleViews),
       jobAdChecks: aggregateTotal(jobAdChecks),
       proCtaClicks: aggregateTotal(proCtaClicks),
@@ -162,6 +166,7 @@ async function loadVercelTotals(since: string, until: string) {
       launchInterests: new Map<ResumeProEntry, number>(),
       checkouts: new Map<ResumeProEntry, number>(),
       builderStarts: 0,
+      jobAdViews: 0,
       jobAdSampleViews: 0,
       jobAdChecks: 0,
       proCtaClicks: 0,
@@ -249,6 +254,7 @@ export async function getResumeProPerformance(days: 7 | 30 | 90): Promise<Resume
     vercel: vercel.state,
     stripe: stripe.state,
     builderStarts: vercel.builderStarts,
+    jobAdViews: vercel.jobAdViews,
     jobAdSampleViews: vercel.jobAdSampleViews,
     jobAdChecks: vercel.jobAdChecks,
     proCtaClicks: vercel.proCtaClicks,

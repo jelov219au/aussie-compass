@@ -24,6 +24,7 @@ Hoju Compass uses Vercel Web Analytics for aggregate product decisions without a
 | `Page Saved` | `content`, `action` | Whether readers use the local return-visit workflow |
 | `App Install` | `entry`, `outcome` | Whether the install page leads to a prompt or manual instructions |
 | `Resume Builder Started` | `surface`, `context` | Whether a visitor begins interacting with the free resume builder |
+| `Resume Job Ad Viewed` | `surface`, `context` | Whether a visitor reaches the free local-only Job Ad checker |
 | `Resume Job Ad Sample Viewed` | `surface`, `context` | Whether a visitor opens the fixed fictional example result before using their own text |
 | `Resume Job Ad Checked` | `surface`, `context` | Whether a visitor completes the local-only resume and Job Ad comparison |
 | `Resume Pro CTA Clicked` | `surface`, `context` | Which fixed, anonymous page surface sends interest to Resume Pro |
@@ -33,7 +34,7 @@ Hoju Compass uses Vercel Web Analytics for aggregate product decisions without a
 | `Checkout Started` | `product`, `entry` | Whether product interest becomes a Stripe checkout attempt |
 
 The properties are deliberately limited to two per event so their meaning stays stable and compatible with the standard Vercel custom-event limits.
-The two resume funnel events also fire at most once per fixed event, surface and context during the current client session. Analytics failures are ignored so editing and navigation continue normally.
+The shared resume funnel events also fire at most once per fixed event, surface and context during the current client session. Analytics failures are ignored so editing and navigation continue normally.
 
 ## Activation and review
 
