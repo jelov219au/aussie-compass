@@ -1,6 +1,6 @@
 # Hoju Compass growth and revenue roadmap
 
-Updated: 20 August 2026
+Updated: 24 August 2026
 
 This is an internal operating plan. It does not authorise a new tracking service, mailing list, advertising account, affiliate agreement or paid provider ranking. Those changes require a privacy, disclosure and commercial review before launch.
 
@@ -57,6 +57,13 @@ Each cluster should link to an existing calculator or checklist and end with the
 ## Organic acquisition
 
 ### Search
+
+Current discovery gate — 24 August 2026:
+
+- Public searches for the exact brand, the domain plus Korean resume intent, and the `/resume-job-ad-checker` URL returned no Hoju Compass listing.
+- Production `/`, `/robots.txt`, `/sitemap.xml` and `/resume-job-ad-checker` returned HTTP 200. Robots allows all crawlers and names the canonical sitemap, so no public crawl block was found.
+- Name-only Vercel environment inspection found none of `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION` or `NAVER_SITE_VERIFICATION`. No value was opened and no search-console submission was made.
+- Keep copy and price fixed while this discovery prerequisite is unresolved. After an authenticated owner creates each webmaster property, add only the supplied public verification token to the matching Production variable, redeploy, confirm verification and submit `https://hojucompass.com/sitemap.xml` once. Search-console mutation remains an owner-approved external action.
 
 - Keep one page for one clear search intent. Avoid several pages competing for the same phrase.
 - Use natural Korean titles that include the Australian term people see on the form or bill.

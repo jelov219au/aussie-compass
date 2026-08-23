@@ -56,6 +56,7 @@ const routes = [
 // Keep these dates manual and evidence-based. Google only uses lastmod when it
 // reflects a significant page update, so do not replace them with new Date().
 const acquisitionRouteUpdates: Record<string, string> = {
+  "": "2026-08-24",
   "/resume-builder": "2026-08-24",
   "/resume-job-ad-checker": "2026-08-24",
   "/resume-pro": "2026-08-24",

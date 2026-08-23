@@ -55,6 +55,10 @@ const searchPage = readFileSync(resolve("src/app/search/page.tsx"), "utf8");
 const homeSearch = readFileSync(resolve("src/components/sections/HomeSearch.tsx"), "utf8");
 const searchTransfer = readFileSync(resolve("src/lib/searchTransfer.ts"), "utf8");
 const jsonLd = readFileSync(resolve("src/components/seo/JsonLd.tsx"), "utf8");
+const site = readFileSync(resolve("src/lib/site.ts"), "utf8");
+const layout = readFileSync(resolve("src/app/layout.tsx"), "utf8");
+const sitemap = readFileSync(resolve("src/app/sitemap.ts"), "utf8");
+const growthRoadmap = readFileSync(resolve("docs/growth-and-revenue-roadmap.md"), "utf8");
 for (const query of ["STAR 예시", "STAR examples", "selection criteria", "cover letter", "호주 취업 이력서"]) {
   assert.ok(searchPage.includes(`"${query}"`), `the live search index is missing ${query}`);
 }
@@ -81,5 +85,17 @@ assert.match(searchComponent, /sessionStorage\.removeItem\(SEARCH_TRANSFER_STORA
 assert.ok(searchComponent.indexOf("sessionStorage.removeItem(SEARCH_TRANSFER_STORAGE_KEY)") < searchComponent.indexOf("setQuery(sanitizeTransferredSearch(transferredQuery))"), "the transferred term must be removed before it is applied to search state");
 assert.doesNotMatch(searchPage, /searchParams|initialQuery/, "the search server component must not read or serialize raw query parameters");
 assert.doesNotMatch(jsonLd, /search\?q=|search_term_string|SearchAction/, "structured data must not advertise a raw-query URL that the private client boundary does not support");
+for (const discoverySignal of ["호주 영문 이력서·Job Ad 무료 점검", "급여·세금·Super 계산기", "한국어 정착 가이드"]) {
+  assert.ok(site.includes(discoverySignal), `the shared site description is missing the first-sale discovery signal: ${discoverySignal}`);
+}
+assert.ok(site.includes('["호주 컴퍼스", "호주컴퍼스"]'), "the brand needs fixed Korean alternate names for search and AI disambiguation");
+assert.ok(layout.includes("호주 취업·급여·정착 실용 도구 | Hoju Compass") && layout.includes("description = siteDescription"), "the homepage metadata must describe the high-intent utility and reuse the shared summary");
+assert.equal((jsonLd.match(/alternateName: siteAlternateNames/g) ?? []).length, 2, "the WebSite and Organization entities must share the same Korean brand aliases");
+assert.equal((jsonLd.match(/description: siteDescription/g) ?? []).length, 1, "the WebSite entity must reuse the customer-facing discovery summary");
+assert.ok(sitemap.includes('"": "2026-08-24"'), "the significantly updated homepage needs an evidence-based sitemap lastmod");
+for (const verificationName of ["GOOGLE_SITE_VERIFICATION", "BING_SITE_VERIFICATION", "NAVER_SITE_VERIFICATION"]) {
+  assert.ok(growthRoadmap.includes(verificationName), `the current search-discovery HOLD is missing: ${verificationName}`);
+}
+assert.ok(growthRoadmap.includes("no Hoju Compass listing") && growthRoadmap.includes("no search-console submission was made"), "the roadmap must preserve the observed unindexed and no-mutation boundary");
 
 console.log("High-intent resume search ranking contract passed.");

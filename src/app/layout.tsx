@@ -1,14 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { OrganizationJsonLd, SiteJsonLd } from "@/components/seo/JsonLd";
-import { siteName, siteUrl } from "@/lib/site";
+import { siteDescription, siteName, siteUrl } from "@/lib/site";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { DomainMigrationNotice } from "@/components/layout/DomainMigrationNotice";
 import { PrivacyFriendlyAnalytics } from "@/components/analytics/PrivacyFriendlyAnalytics";
 import "./globals.css";
 
-const title = "Hoju Compass | 호주 생활을 위한 실용 도구";
-const description =
-  "호주 급여, 세금, Super 계산기와 한국어 생활 가이드를 한곳에서 확인하세요.";
+const title = "호주 취업·급여·정착 실용 도구 | Hoju Compass";
+const description = siteDescription;
 
 const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
 const bingSiteVerification = process.env.BING_SITE_VERIFICATION?.trim();
