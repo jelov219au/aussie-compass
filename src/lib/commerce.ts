@@ -15,7 +15,16 @@ export const resumeProProduct = {
   billing: "one_time",
 } as const;
 
+export const rentalApplicationProProduct = {
+  id: "rental-application-pro",
+  name: "Rental Application Pack Pro",
+  currency: "aud",
+  priceCents: 1490,
+  billing: "one_time",
+} as const;
+
 export const resumeProPurchaseTermsVersion = "2026-08-19";
+export const rentalApplicationProPurchaseTermsVersion = "2026-08-22";
 
 export type PaymentReadiness = {
   enabled: boolean;
@@ -30,6 +39,11 @@ export type PaymentReadiness = {
   supportConfigured: boolean;
   operatorAlertsConfigured: boolean;
   ready: boolean;
+};
+
+export type ProductPaymentReadiness = PaymentReadiness & {
+  productEnabled: boolean;
+  productPriceConfigured: boolean;
 };
 
 let hasLoggedIncompleteProductionReadiness = false;
@@ -95,6 +109,36 @@ export function canCreateTestCheckout() {
     && readiness.stripeConfigured
     && readiness.managedPaymentsConfigured
     && readiness.firstSaleGateConfigured;
+}
+
+export function getRentalApplicationPaymentReadiness(): ProductPaymentReadiness {
+  const base = getPaymentReadiness();
+  const productEnabled = process.env.RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED === "true";
+  const productPriceConfigured = Boolean(process.env.STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID?.trim().startsWith("price_"));
+  const stripeConfigured = base.stripeConfigured && productPriceConfigured;
+  // Rental Pack remains a Preview-only validation surface until it has the
+  // same product identity, atomic sale and server-tracked access controls as Resume Pro.
+  const ready = process.env.VERCEL_ENV !== "production"
+    && base.ready
+    && productEnabled
+    && productPriceConfigured;
+
+  return {
+    ...base,
+    enabled: base.enabled && productEnabled,
+    stripeConfigured,
+    productEnabled,
+    productPriceConfigured,
+    ready,
+  };
+}
+
+export function canCreateRentalApplicationTestCheckout() {
+  const readiness = getRentalApplicationPaymentReadiness();
+  return process.env.VERCEL_ENV !== "production"
+    && readiness.enabled
+    && readiness.stripeConfigured
+    && readiness.managedPaymentsConfigured;
 }
 
 export function isResumeProLive() {

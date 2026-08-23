@@ -17,7 +17,7 @@ const options: { id: Situation; label: string; detail: string }[] = [
 
 const recommendations = {
   job: { href: "/resume-pro", name: "Resume Pro", price: "A$19.90", description: "지원하고 싶은 공고가 생겼을 때, 내 실제 경력을 회사별 이력서와 커버레터로 정리해요.", cta: "이 공고에 맞춰 지원 준비하기", freeHref: "/resume-builder", freeLabel: "이력서가 없다면 무료로 먼저 만들기" },
-  home: { href: "/rental-application-pro", name: "Rental Pack Pro", price: "A$14.90", description: "마음에 드는 집을 찾았을 때 서류와 연락이 늦어지지 않도록 집별 신청 준비를 관리해요.", cta: "렌트 신청 준비 방식 보기", freeHref: "/property-inspection-checklist", freeLabel: "집을 보기 전 무료로 점검하기" },
+  home: { href: "/rental-application-pro?from=pro-hub", name: "Rental Pack Pro", price: "A$14.90", description: "마음에 드는 집을 찾았을 때 서류와 연락이 늦어지지 않도록 집별 신청 준비를 관리해요.", cta: "렌트 신청 준비 방식 보기", freeHref: "/property-inspection-checklist", freeLabel: "집을 보기 전 무료로 점검하기" },
   pay: { href: "/pay-evidence-pro", name: "Pay Evidence Pro", price: "A$9.90", description: "급여가 이상하다는 느낌을 근무시간, Payslip, 입금액과 영문 문의문으로 정리해요.", cta: "급여 차이를 기록하는 방법 보기", freeHref: "/underpayment-guide", freeLabel: "무료 대응 순서부터 확인하기" },
   tax: { href: "/eofy-pro", name: "EOFY Pack Pro", price: "A$9.90", description: "흩어진 소득 자료와 공제 증빙, 세무사에게 물어볼 내용을 신고 전 요약으로 모아요.", cta: "택스 리턴 준비 방식 보기", freeHref: "/tax-return-guide", freeLabel: "무료 체크리스트부터 사용하기" },
   leave: { href: "/leaving-australia-pro", name: "Leaving Pack Pro", price: "A$12.90", description: "출국 뒤에도 남는 Bond, 마지막 급여, 세금과 DASP를 받을 때까지 놓치지 않게 기록해요.", cta: "귀국 정산 준비 방식 보기", freeHref: "/leaving-australia-guide", freeLabel: "무료 귀국 가이드부터 보기" },
