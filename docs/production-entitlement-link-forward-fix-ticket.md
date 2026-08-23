@@ -29,10 +29,14 @@ identifier into this ticket or the SQL editor history.
 1. In Neon, select the Primary branch and `neondb`; do not infer the branch from
    the database name because Preview branches can also contain a `neondb`.
 2. Run `scripts/first-sale-production-forward-fix-audit.sql`.
-3. Continue only when `preflight_can_apply_once=true`,
+3. Separately run the strict launch audit with the active Primary compute's
+   non-secret `ep-...` ID supplied as `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID`.
+   Require the runtime and dedicated audit-role connections to match that same
+   endpoint. A matching `neondb` name alone is not branch evidence.
+4. Continue only when `preflight_can_apply_once=true`,
    `postflight_pass=false`, `no_reservation_in_flight=true`, the console role is
    `neondb_owner`, and the recorded counts match the release ticket baseline.
-4. Stop on a missing row, timeout, unexpected role/database, `RESERVED` gate,
+5. Stop on a missing row, timeout, endpoint mismatch, unexpected role/database, `RESERVED` gate,
    already-recorded migration, already-qualified function, unknown function
    shape or any count drift. Do not edit rows to make the audit pass.
 

@@ -21,6 +21,11 @@ for (const boundary of [
   "current_user = 'hoju_app_runtime'",
   "current_user = 'hoju_payment_auditor'",
   "PAYMENTS_AUDIT_DB_URL",
+  "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID",
+  "hostname.endsWith(\".neon.tech\")",
+  'endpointLabel.endsWith("-pooler")',
+  "runtimeNeonEndpointId === expectedNeonEndpointId",
+  "auditNeonEndpointId === expectedNeonEndpointId",
   "readOnly: true",
   "AbortSignal.timeout(10_000)",
   "20260824_entitlement_link_conflict_v1",
@@ -101,6 +106,7 @@ const sanitizedEnv = {
   ENTITLEMENT_DB_URL: "",
   ENTITLEMENT_DB_DATABASE_URL: "",
   PAYMENTS_AUDIT_DB_URL: "",
+  PAYMENTS_EXPECTED_NEON_ENDPOINT_ID: "",
   PAYMENT_ALERTS_ENABLED: "false",
   PAYMENT_ALERT_TO_EMAIL: "",
   PAYMENT_ALERT_FROM_EMAIL: "",
@@ -130,7 +136,9 @@ const apparentlyReadyEnv = {
   STRIPE_RESUME_PRO_TAX_CODE: "txcd_placeholder",
   STRIPE_MANAGED_PAYMENTS_ENABLED: "true",
   PAYMENTS_ENTITLEMENT_STORE: "neon",
-  ENTITLEMENT_DB_URL: "postgresql://placeholder.invalid/neondb",
+  ENTITLEMENT_DB_URL: "postgresql://runtime:placeholder@ep-contract-primary-a1b2c3.ap-southeast-2.aws.neon.tech/neondb",
+  PAYMENTS_AUDIT_DB_URL: "postgresql://audit:placeholder@ep-contract-primary-a1b2c3-pooler.ap-southeast-2.aws.neon.tech/neondb",
+  PAYMENTS_EXPECTED_NEON_ENDPOINT_ID: "ep-contract-primary-a1b2c3",
   FIRST_SALE_GATE_ENABLED: "true",
   ENTITLEMENT_SESSION_SECRET: "contract-test-placeholder-32-chars-minimum",
   BUSINESS_LEGAL_NAME: "Contract Test Seller",
@@ -149,8 +157,32 @@ const strictWithoutEvidence = spawnSync(process.execPath, [fileURLToPath(new URL
   env: apparentlyReadyEnv,
 });
 assert.equal(strictWithoutEvidence.status, 1, "strict launch audit must fail when remote verification flags are omitted even if every local setting appears ready");
-assert.match(strictWithoutEvidence.stdout, /결과: 17\/17 통과, 0개 대기/, "the missing-evidence test must prove local settings alone are insufficient");
+assert.match(strictWithoutEvidence.stdout, /결과: 19\/19 통과, 0개 대기/, "the missing-evidence test must prove local settings alone are insufficient");
 assert.match(strictWithoutEvidence.stdout, /WAIT  Stripe 원격 사전감사 — --verify-stripe 필요/, "strict launch audit must require remote Stripe evidence outside preflight mode too");
 assert.match(strictWithoutEvidence.stdout, /WAIT  Production DB 사전감사 — --verify-database 필요/, "strict launch audit must require remote database evidence outside preflight mode too");
+
+function runEndpointBoundary(overrides) {
+  return spawnSync(process.execPath, [fileURLToPath(new URL("./check-payment-launch.mjs", import.meta.url)), "--strict"], {
+    encoding: "utf8",
+    env: { ...apparentlyReadyEnv, ...overrides },
+  });
+}
+
+const wrongRuntimeEndpoint = runEndpointBoundary({
+  ENTITLEMENT_DB_URL: "postgresql://runtime:placeholder@ep-preview-branch-d4e5f6.ap-southeast-2.aws.neon.tech/neondb",
+});
+assert.match(wrongRuntimeEndpoint.stdout, /WAIT  Neon endpoint 고정/, "a runtime connection to another Neon endpoint must fail the pinned endpoint check");
+assert.match(wrongRuntimeEndpoint.stdout, /PASS  감사 DB endpoint 일치/, "the runtime mismatch test must isolate the runtime boundary");
+
+const wrongAuditEndpoint = runEndpointBoundary({
+  PAYMENTS_AUDIT_DB_URL: "postgresql://audit:placeholder@ep-preview-branch-d4e5f6-pooler.ap-southeast-2.aws.neon.tech/neondb",
+});
+assert.match(wrongAuditEndpoint.stdout, /PASS  Neon endpoint 고정/, "the audit mismatch test must preserve the runtime endpoint pass");
+assert.match(wrongAuditEndpoint.stdout, /WAIT  감사 DB endpoint 일치/, "an audit connection to another Neon endpoint must fail closed");
+
+const spoofedNeonHost = runEndpointBoundary({
+  PAYMENTS_AUDIT_DB_URL: "postgresql://audit:placeholder@ep-contract-primary-a1b2c3.neon.tech.example.invalid/neondb",
+});
+assert.match(spoofedNeonHost.stdout, /WAIT  감사 DB endpoint 일치/, "a hostname outside neon.tech must not satisfy the endpoint pin");
 
 console.log("Fail-closed payment launch preflight contract passed.");

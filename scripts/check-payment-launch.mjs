@@ -24,6 +24,21 @@ function secretMode(value) {
   return candidate ? "invalid" : "missing";
 }
 
+function neonEndpointId(value) {
+  try {
+    const hostname = new URL(value?.trim() ?? "").hostname.toLowerCase();
+    if (!hostname.endsWith(".neon.tech")) return "";
+
+    const endpointLabel = hostname.split(".")[0];
+    const endpointId = endpointLabel.endsWith("-pooler")
+      ? endpointLabel.slice(0, -"-pooler".length)
+      : endpointLabel;
+    return /^ep-[a-z0-9-]+$/.test(endpointId) ? endpointId : "";
+  } catch {
+    return "";
+  }
+}
+
 const abnDigits = process.env.BUSINESS_ABN?.replace(/\D/g, "") ?? "";
 const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() ?? "";
 const stripeMode = secretMode(process.env.STRIPE_SECRET_KEY);
@@ -32,6 +47,9 @@ const entitlementDatabaseUrl = process.env.ENTITLEMENT_DB_URL?.trim()
   || process.env.ENTITLEMENT_DB_DATABASE_URL?.trim()
   || "";
 const auditDatabaseUrl = process.env.PAYMENTS_AUDIT_DB_URL?.trim() || "";
+const expectedNeonEndpointId = process.env.PAYMENTS_EXPECTED_NEON_ENDPOINT_ID?.trim().toLowerCase() || "";
+const runtimeNeonEndpointId = neonEndpointId(entitlementDatabaseUrl);
+const auditNeonEndpointId = neonEndpointId(auditDatabaseUrl);
 
 const checks = [
   ["결제 스위치", preflight ? process.env.PAYMENTS_ENABLED !== "true" : process.env.PAYMENTS_ENABLED === "true", preflight ? "PAYMENTS_ENABLED=false" : "PAYMENTS_ENABLED=true"],
@@ -44,6 +62,8 @@ const checks = [
   ["웹훅 서명", process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_") ?? false, "whsec_ 비밀"],
   ["이용권 저장소", process.env.PAYMENTS_ENTITLEMENT_STORE === "neon", "Neon"],
   ["이용권 DB", /^postgres(?:ql)?:\/\//.test(entitlementDatabaseUrl), "Postgres 연결"],
+  ["Neon endpoint 고정", /^ep-[a-z0-9-]+$/.test(expectedNeonEndpointId) && runtimeNeonEndpointId === expectedNeonEndpointId, "승인된 endpoint와 runtime 연결 일치"],
+  ["감사 DB endpoint 일치", Boolean(expectedNeonEndpointId) && auditNeonEndpointId === expectedNeonEndpointId, "감사 연결도 같은 endpoint"],
   ["첫 판매 원자 게이트", process.env.FIRST_SALE_GATE_ENABLED === "true", "DB gate 활성화"],
   ["접근 세션 서명", (process.env.ENTITLEMENT_SESSION_SECRET?.trim().length ?? 0) >= 32, "32자 이상"],
   ["등록 사업명", tradingName.length <= 120, "Hoju Compass"],
