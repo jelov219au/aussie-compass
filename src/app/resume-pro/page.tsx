@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ResumeProProofLink } from "@/components/analytics/ResumeProProofLink";
 import { ResumeProVisitTracker } from "@/components/analytics/ResumeProVisitTracker";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -295,6 +296,16 @@ export default async function ResumeProPage({ searchParams }: Props) {
             </div>
 
             <p className="mt-7 border-l-2 border-gold pl-4 text-sm leading-6 text-muted">이 예시는 기능을 설명하기 위한 샘플이에요. Resume Pro는 없는 경력이나 자격을 만들지 않으며, 공고에 나온 표현도 실제로 해본 일일 때만 추가해야 해요.</p>
+            <div className="mt-8 grid gap-5 border-y border-navy/20 bg-surface p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#806515]">결제 전에 직접 확인</p>
+                <h3 className="mt-2 text-xl font-semibold text-navy">내 이력서와 실제 공고로 빠진 근거를 무료로 찾아보세요.</h3>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">이력서와 공고 문구는 지금 사용하는 브라우저 안에서만 비교합니다. 로그인·결제 없이 일치한 표현, 확인할 근거와 다음 질문 최대 3개를 먼저 볼 수 있어요.</p>
+              </div>
+              <ResumeProProofLink entry={entry} className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">
+                내 공고로 무료 점검하기 →
+              </ResumeProProofLink>
+            </div>
           </Container>
         </section>
 

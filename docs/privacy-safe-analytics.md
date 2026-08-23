@@ -27,6 +27,7 @@ Hoju Compass uses Vercel Web Analytics for aggregate product decisions without a
 | `Resume Job Ad Checked` | `surface`, `context` | Whether a visitor completes the local-only resume and Job Ad comparison |
 | `Resume Pro CTA Clicked` | `surface`, `context` | Which fixed, anonymous page surface sends interest to Resume Pro |
 | `Resume Pro Viewed` | `entry`, `checkout` | Which fixed entry reaches the offer and whether checkout was available |
+| `Resume Pro Free Proof Opened` | `entry` | Whether a visitor starts the local-only Job Ad proof step from the offer; the fixed acquisition entry is used instead of resume or Job Ad text |
 | `Resume Pro Launch Interest` | `entry` | Which fixed entry produces a one-time launch-notice email intent while checkout is closed |
 | `Checkout Started` | `product`, `entry` | Whether product interest becomes a Stripe checkout attempt |
 

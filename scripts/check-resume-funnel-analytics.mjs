@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [contract, client, builder, checker, articleStep, homeSection, finder, report, reportPage, privacyDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage] = await Promise.all([
+const [contract, client, builder, checker, articleStep, homeSection, finder, offerPage, proofLink, report, reportPage, privacyDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage] = await Promise.all([
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeFunnelAnalytics.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeBuilder.tsx", import.meta.url), "utf8"),
@@ -9,6 +9,8 @@ const [contract, client, builder, checker, articleStep, homeSection, finder, rep
   readFile(new URL("../src/components/resources/ArticleNextStep.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/PremiumToolsSection.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ProProductFinder.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/analytics/ResumeProProofLink.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/resumeProPerformance.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-pro-performance/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../docs/privacy-safe-analytics.md", import.meta.url), "utf8"),
@@ -83,6 +85,15 @@ for (const [source, eventNames] of [
   const literalEvents = [...source.matchAll(/track\("([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(literalEvents, eventNames, "the existing six-event resume boundary changed unexpectedly");
 }
+
+assert.ok(offerPage.includes("ResumeProProofLink") && offerPage.includes("내 공고로 무료 점검하기"), "the offer sample must lead to the free proof step");
+assert.ok(proofLink.includes('href="/resume-job-ad-checker"'), "the free proof link must use the local-only Job Ad checker");
+assert.ok(proofLink.includes('track("Resume Pro Free Proof Opened", { entry })'), "the free proof step needs a fixed acquisition event");
+assert.ok(proofLink.includes("new Set<ResumeProEntry>()"), "the free proof event needs an in-session duplicate guard");
+assert.doesNotMatch(proofLink, /window\.location|URLSearchParams|searchParams|localStorage|sessionStorage/, "the free proof event must not read URLs, queries or local input stores");
+assert.ok(report.includes('eventName: "Resume Pro Free Proof Opened"') && report.includes("proofStarts: aggregateMap(proofStarts)"), "the operator report must aggregate free proof starts by fixed entry");
+assert.ok(reportPage.includes("totals.proofStarts") && reportPage.includes("row.proofStarts"), "the operator report must show free proof totals and source rows");
+assert.ok(privacyDoc.includes("Resume Pro Free Proof Opened"), "privacy documentation is missing the free proof event");
 for (const postPurchaseSource of [activationForm, successPage, restorePage]) {
   assert.doesNotMatch(postPurchaseSource, /\btrack\(|ResumeProVisitTracker/, "post-purchase issue pages must not emit a resume funnel event");
 }
