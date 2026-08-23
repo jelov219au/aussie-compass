@@ -797,7 +797,7 @@ begin
     ) values (
       p_payment_intent_id,
       p_charge_id
-    ) on conflict (stripe_payment_intent_id, stripe_charge_id) do nothing;
+    ) on conflict on constraint stripe_payment_object_links_pkey do nothing;
   end if;
 
   if v_inserted_event_id is not null and p_action in ('revoke', 'review') then

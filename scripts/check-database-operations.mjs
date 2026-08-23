@@ -9,6 +9,7 @@ const [
   accessSessionMigration,
   restoreActivationMigration,
   leastPrivilegeMigration,
+  entitlementLinkConflictMigration,
   recovery,
   runbook,
   launchPacket,
@@ -26,6 +27,7 @@ const [
   readFile(new URL("../docs/migrations/20260823_purchase_access_sessions_v1.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/migrations/20260823_restore_activation_nonce_v1.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/migrations/20260823_payment_least_privilege_roles_v1.sql", import.meta.url), "utf8"),
+  readFile(new URL("../docs/migrations/20260824_entitlement_link_conflict_v1.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/database-recovery.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/first-sale-gate-runbook.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/first-payment-24-hour-operations-packet.md", import.meta.url), "utf8"),
@@ -303,6 +305,23 @@ for (const contract of [
   "20260823_payment_least_privilege_roles_v1",
   "commit;",
 ]) assert.ok(leastPrivilegeMigration.includes(contract), `least-privilege migration is missing: ${contract}`);
+
+for (const contract of [
+  "begin;",
+  "20260823_payment_least_privilege_roles_v1",
+  "set role hoju_migration_owner",
+  "pg_get_functiondef",
+  "on conflict (stripe_payment_intent_id, stripe_charge_id) do nothing",
+  "on conflict on constraint stripe_payment_object_links_pkey do nothing",
+  "unexpected apply_entitlement_event definition; forward fix not applied",
+  "20260824_entitlement_link_conflict_v1",
+  "commit;",
+]) assert.ok(entitlementLinkConflictMigration.includes(contract), `entitlement-link forward fix is missing: ${contract}`);
+assert.ok(
+  schema.includes("on conflict on constraint stripe_payment_object_links_pkey do nothing")
+    && !schema.includes("on conflict (stripe_payment_intent_id, stripe_charge_id) do nothing"),
+  "fresh entitlement schema must use the unambiguous PaymentIntent/Charge constraint",
+);
 assert.doesNotMatch(
   leastPrivilegeMigration,
   /revoke execute on all functions in schema public/i,
@@ -371,6 +390,11 @@ assert.ok(
   runbook.indexOf("docs/migrations/20260823_purchase_access_sessions_v1.sql")
     < runbook.indexOf("docs/migrations/20260823_restore_activation_nonce_v1.sql"),
   "the runbook must apply restore activation after access sessions v1",
+);
+assert.ok(
+  runbook.indexOf("docs/migrations/20260823_restore_activation_nonce_v1.sql")
+    < runbook.indexOf("docs/migrations/20260824_entitlement_link_conflict_v1.sql"),
+  "the runbook must apply the entitlement-link forward fix after the access/role migrations",
 );
 
 const expectedRestoreEvidence = new Map([

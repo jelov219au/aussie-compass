@@ -12,7 +12,7 @@ privileges are ready, the live Stripe account can charge and pay out, and live
 Resume Pro has no existing open Checkout Session. Launch still requires the
 remaining owner-controlled items below, especially Stripe's missing public
 support email, a proven live restricted runtime key, and a controlled
-post-migration alert/access rehearsal.
+Production post-migration alert/access rehearsal.
 
 ## Read-only evidence
 
@@ -33,6 +33,12 @@ post-migration alert/access rehearsal.
   descriptor are present. The business-profile support email is absent.
 - Stripe live Checkout Sessions read with `status=open`, `limit=100`: zero
   total, zero Resume Pro and `has_more=false`.
+- Neon Vercel Preview database `first_sale_rehearsal_20260824_v2` passed the
+  complete catalog/effective-privilege matrix and the isolated first-sale
+  rehearsal: 34 passing checks, zero failures, final gate state `LOCKED`, two
+  webhook receipts, one entitlement, three access sessions, two restore
+  activations and two sent alert intents. This did not touch Production, Stripe
+  or SMTP.
 
 ## Complete Neon named-result matrix
 
@@ -95,23 +101,28 @@ post-migration alert/access rehearsal.
 
 ## Remaining pre-customer blockers
 
-1. Add `support@hojucompass.com` as the Stripe live business-profile support
+1. Apply `20260824_entitlement_link_conflict_v1` in an owner-approved Production
+   backup window and repeat the paid-event rehearsal. The isolated fresh-schema
+   rehearsal exposed SQLSTATE `42702` before the forward fix and passed all 34
+   checks after the fix; Production has not received it.
+2. Add `support@hojucompass.com` as the Stripe live business-profile support
    email through an authenticated Dashboard session, then re-read the account
    and confirm it is present. Do not add a different address by assumption.
-2. Prove the Production runtime uses an `rk_live_` key with only Prices Read,
+3. Prove the Production runtime uses an `rk_live_` key with only Prices Read,
    Products Read, Checkout Sessions create/retrieve and PaymentIntents Read.
    Run the target-environment strict remote product audit without printing the
    key, IDs or product values.
-3. With payments still off, run one approved controlled post-migration
-   rehearsal that proves reservation, attached Checkout expiry handling,
-   payment/refund alert outbox delivery, activation same-nonce response-loss,
-   different-nonce denial, permanent device release and one-time restore.
-4. Record suffix-only and count-only evidence for the resulting gate, outbox,
-   entitlement and access-session rows. Zero current rows cannot prove these
-   paths.
-5. Confirm the actual Managed Payments Checkout and issued receipt/invoice
+4. With payments still off, run one approved controlled Production
+   post-migration rehearsal that proves reservation, attached Checkout expiry
+   handling, payment/refund alert outbox delivery, activation same-nonce
+   response-loss, different-nonce denial, permanent device release and one-time
+   restore. The Preview rehearsal is supporting evidence, not a substitute.
+5. Record suffix-only and count-only Production evidence for the resulting
+   gate, outbox, entitlement and access-session rows. Zero current Production
+   rows cannot prove these paths.
+6. Confirm the actual Managed Payments Checkout and issued receipt/invoice
    wording for transaction seller, document issuer and transaction support.
-6. Complete ABN/GST and bookkeeping treatment review with the registered tax
+7. Complete ABN/GST and bookkeeping treatment review with the registered tax
    agent and preserve it outside the repository.
 
 After these pass, the owner may approve a single opt-in first-customer notice
