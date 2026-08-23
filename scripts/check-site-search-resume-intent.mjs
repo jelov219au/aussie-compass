@@ -23,12 +23,14 @@ for (const query of ["이력서", "resume", "CV", "STAR 예시", "STAR examples"
   assert.deepEqual(rankSiteSearchItems(fixtures, query).slice(0, 3).map((item) => item.href), discoveryOrder, `${query} must lead with free Builder, evidence article, then Pro`);
 }
 
-assert.equal(getSiteSearchIntent("cover letter"), "resume", "cover letter must use the allowlisted resume intent");
-assert.deepEqual(
-  rankSiteSearchItems(fixtures, "cover letter").slice(0, 4).map((item) => item.href),
-  ["/resume-builder", "/resources/australia-cover-letter-job-ad-checklist", "/resume-pro", "/resources/english-resume-achievement-examples"],
-  "cover letter must lead from the free Builder to the official checklist before the paid product",
-);
+for (const query of ["cover letter", "커버레터"]) {
+  assert.equal(getSiteSearchIntent(query), "resume", `${query} must use the allowlisted resume intent`);
+  assert.deepEqual(
+    rankSiteSearchItems(fixtures, query).slice(0, 4).map((item) => item.href),
+    ["/resume-builder", "/resources/australia-cover-letter-job-ad-checklist", "/resume-pro", "/resources/english-resume-achievement-examples"],
+    `${query} must lead from the free Builder to the official checklist before the paid product`,
+  );
+}
 
 assert.equal(getSiteSearchIntent("Resume Pro"), "resume-pro-direct");
 assert.equal(rankSiteSearchItems(fixtures, "Resume Pro")[0]?.href, "/resume-pro", "an explicit product-name search must lead with Resume Pro");

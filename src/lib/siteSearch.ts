@@ -16,6 +16,7 @@ const resumeIntentAliases = new Set([
   "starexamples",
   "selectioncriteria",
   "coverletter",
+  "커버레터",
   "호주취업이력서",
 ]);
 
@@ -54,7 +55,7 @@ export function rankSiteSearchItems(items: SearchItem[], query: string) {
   if (!normalizedQuery) return items;
 
   const intent = getSiteSearchIntent(query);
-  const discoveryPriority = normalizedQuery === "coverletter"
+  const discoveryPriority = normalizedQuery === "coverletter" || normalizedQuery === "커버레터"
     ? coverLetterDiscoveryPriority
     : resumeDiscoveryPriority;
   const indexed = items.map((item, index) => ({ item, index }));
