@@ -16,7 +16,7 @@ for (const term of ["communication skills", "inventory management", "attention t
 assert.equal(result.matchedCount + result.missingCount, result.terms.length);
 assert.ok(result.terms.length <= 12, "the result must stay scannable");
 
-const [component, page, visitTracker, jsonLd, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder, homeTools, openGraphImage, twitterImage, socialImage] = await Promise.all([
+const [component, page, visitTracker, jsonLd, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder, homeTools, homePremium, openGraphImage, twitterImage, socialImage] = await Promise.all([
   readFile(new URL("../src/components/tools/ResumeJobAdChecker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeJobAdVisitTracker.tsx", import.meta.url), "utf8"),
@@ -35,6 +35,7 @@ const [component, page, visitTracker, jsonLd, contract, analytics, attribution, 
   readFile(new URL("../src/components/tools/ContentPerformanceTracker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/CampaignLinkBuilder.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/ToolsSection.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/sections/PremiumToolsSection.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/opengraph-image.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/twitter-image.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/resumeJobAdCheckerSocialImage.tsx", import.meta.url), "utf8"),
@@ -51,6 +52,10 @@ assert.ok(homeTools.includes('section: "resume_job_ad_evidence"') && homeTools.i
 assert.ok(page.includes("ResumeJobAdVisitTracker") && visitTracker.includes("trackResumeJobAdViewed()"), "the checker needs an anonymous reach event before activation events");
 for (const value of ["지원할 Job Ad가 있다면", "입력 원문 서버 전송 없음", "실제 경험 근거부터 확인", "최대 3개", "무료 공고 맞춤 점검"]) {
   assert.ok(homeTools.includes(value), `the high-intent home entry is missing: ${value}`);
+}
+assert.ok(homePremium.includes('<ResumeProProofLink entry="home-premium"'), "the home Resume Pro card must route high-intent interest through the free proof");
+for (const value of ["결제 전에 내 공고로 무료 확인", "로그인 없이 현재 브라우저에서만", "이력서·공고 원문을 서버로 전송하지 않아요"]) {
+  assert.ok(homePremium.includes(value), `the home Resume Pro proof entry is missing: ${value}`);
 }
 for (const text of ["서버로 보내거나 브라우저에 저장하지 않습니다", "채용 가능성이나 ‘ATS 점수’를 만들어내지 않습니다", "빠진 표현을 그대로 추가하지 마세요"]) {
   assert.ok(`${page}\n${component}`.includes(text), `the checker is missing its safety boundary: ${text}`);
