@@ -7,7 +7,7 @@ import { BreadcrumbJsonLd, ProductJsonLd } from "@/components/seo/JsonLd";
 import { ResumeProCheckoutForm } from "@/components/tools/ResumeProCheckoutForm";
 import { ResumeProCheckoutFailureNotice } from "@/components/tools/ResumeProCheckoutFailureNotice";
 import { ResumeProCheckoutJumpLink } from "@/components/tools/ResumeProCheckoutJumpLink";
-import { ResumeProLaunchInterestLink } from "@/components/tools/ResumeProLaunchInterestLink";
+import { ResumeProLaunchInterestCopyButton, ResumeProLaunchInterestLink } from "@/components/tools/ResumeProLaunchInterestLink";
 import { Container } from "@/components/ui/Container";
 import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
 import { getPublicSellerDetails } from "@/lib/publicSeller";
@@ -172,6 +172,9 @@ export default async function ResumeProPage({ searchParams }: Props) {
                   판매 시작 시 1회 안내 요청
                 </ResumeProLaunchInterestLink>
               )}
+              {!existingBuyerIssue && !canOfferCheckout && seller.email && (
+                <ResumeProLaunchInterestCopyButton email={seller.email} entry={entry} className="inline-flex min-h-12 items-center justify-center border border-white/60 px-5 py-3 text-sm font-semibold text-white hover:bg-white hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold" />
+              )}
               <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface">경력 초안이 없다면 무료로 시작</Link>
             </div>
             <section className="mt-8 border-y border-navy/20 bg-white" aria-labelledby="persistent-value-heading">
@@ -229,9 +232,12 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 ) : canOfferCheckout ? (
                   <ResumeProCheckoutJumpLink className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">Resume Pro 시작하기 ↓</ResumeProCheckoutJumpLink>
                 ) : seller.email ? (
-                  <ResumeProLaunchInterestLink email={seller.email} entry={entry} className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">
-                    판매 시작 시 1회 안내 요청
-                  </ResumeProLaunchInterestLink>
+                  <div className="mt-5 grid gap-2">
+                    <ResumeProLaunchInterestLink email={seller.email} entry={entry} className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">
+                      판매 시작 시 1회 안내 요청
+                    </ResumeProLaunchInterestLink>
+                    <ResumeProLaunchInterestCopyButton email={seller.email} entry={entry} className="inline-flex min-h-12 items-center justify-center border border-navy/30 bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold" />
+                  </div>
                 ) : (
                   <span className="mt-5 inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted">결제 기능 준비 중</span>
                 )}

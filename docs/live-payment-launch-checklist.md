@@ -110,7 +110,7 @@ Check the same Australia/Sydney reporting window once each day after deployment.
 | Builder start | `Resume Builder Started` | Fixed `surface` and `context`; fires on the first real Builder interaction and is not a passive route-view proxy |
 | Pro CTA | `Resume Pro CTA Clicked` | Fixed `surface` and `context`; keep it separate from older `Pro Interest` observations |
 | Resume Pro visit | `Resume Pro Viewed` | Fixed allowlisted `entry` plus checkout available/unavailable state |
-| One-time launch notice intent | `Resume Pro Launch Interest` | Fixed allowlisted `entry`; records only the mail-app link click, never the email address or message body |
+| One-time launch notice preparation | `Resume Pro Launch Interest` | Fixed allowlisted `entry` and `method=mailto|copy`; records a mail-app draft open or successful fixed-request copy, never the email address/message body, and never counts as proof that an email was sent |
 | Checkout start | `Checkout Started` where `product=resume_pro` | Existing anonymous Vercel event; compare only with the same date and acquisition entry |
 | Completed purchase | Live, paid, complete Resume Pro Checkout at A$19.90 | Read-only Stripe aggregate; exclude test and owner-controlled transactions and show refunds separately |
 

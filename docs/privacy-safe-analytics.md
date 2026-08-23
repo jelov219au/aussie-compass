@@ -29,7 +29,7 @@ Hoju Compass uses Vercel Web Analytics for aggregate product decisions without a
 | `Resume Pro CTA Clicked` | `surface`, `context` | Which fixed, anonymous page surface sends interest to Resume Pro |
 | `Resume Pro Viewed` | `entry`, `checkout` | Which fixed entry reaches the offer and whether checkout was available |
 | `Resume Pro Free Proof Opened` | `entry` | Whether a visitor starts the local-only Job Ad proof step from the offer; the fixed acquisition entry is used instead of resume or Job Ad text |
-| `Resume Pro Launch Interest` | `entry` | Which fixed entry produces a one-time launch-notice email intent while checkout is closed |
+| `Resume Pro Launch Interest` | `entry`, `method` | Which fixed entry opens a launch-notice email draft or copies the fixed request text while checkout is closed; `method` is only `mailto` or `copy` and does not prove the message was sent |
 | `Checkout Started` | `product`, `entry` | Whether product interest becomes a Stripe checkout attempt |
 
 The properties are deliberately limited to two per event so their meaning stays stable and compatible with the standard Vercel custom-event limits.

@@ -51,9 +51,11 @@ day windows.
 - `Resume Pro 방문 → 무료 확인 시작` shows whether the offer leads to a
   local-only Job Ad proof step before purchase. The event contains only the
   fixed acquisition entry, never resume or Job Ad text.
-- `Resume Pro 방문 → 판매 시작 1회 안내 요청` is a pre-launch intent signal
-  while Checkout remains closed. It counts only the mail-app link click and
-  never sends the visitor's email address to analytics.
+- `Resume Pro 방문 → 판매 시작 메일 준비 행동` is a pre-launch intent signal
+  while Checkout remains closed. It counts a mail-app link click or successful
+  fixed-request copy, with `method=mailto|copy`; it does not prove the message
+  was sent. Always compare it with requests actually received in the support
+  mailbox. It never sends the visitor's email address to analytics.
 - `Builder 시작` and `Pro CTA 클릭` show the earlier aggregate steps. Do not
   treat them as person-level paths or join them to resume input, search text or
   URL queries.
