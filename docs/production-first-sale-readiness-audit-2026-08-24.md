@@ -13,13 +13,19 @@ and pay out, and live Resume Pro has no existing open Checkout Session. The
 strict audit still reports `required_migrations_present=false` because
 `20260824_entitlement_link_conflict_v1` has not been applied. Launch also
 requires Stripe's missing public support email, a proven live restricted
-runtime key, and a controlled Production post-migration alert/access rehearsal.
+runtime key, the missing strict-audit Neon endpoint pin, and a controlled
+Production post-migration alert/access rehearsal.
 
 ## Read-only evidence
 
 - Vercel lists the required Production payment, Stripe, Neon, seller, support
   and SMTP variable names. Values were not opened. Public Checkout still
   returns HTTP 503 `checkout_unavailable`, so no card data is accepted.
+- A fresh Vercel project environment-variable name search on 24 August found no
+  `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` result. Existing variable values and
+  scopes were not opened. The approved non-secret endpoint ID remains recorded
+  only in the forward-fix ticket, so the target-environment strict audit cannot
+  yet prove both database connections resolve to that endpoint.
 - Neon Primary / `neondb` ran the exact catalog and effective-privilege query
   from `docs/first-sale-gate-runbook.md`. It returned one row and every named
   boolean below was `true`, including `all_privilege_checks_pass`.
@@ -135,17 +141,21 @@ runtime key, and a controlled Production post-migration alert/access rehearsal.
    Products Read, Checkout Sessions create/retrieve and PaymentIntents Read.
    Run the target-environment strict remote product audit without printing the
    key, IDs or product values.
-4. With payments still off, run one approved controlled Production
+4. Inject the approved non-secret endpoint ID as
+   `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` only for the strict operator audit and
+   prove both the runtime and `hoju_payment_auditor` connections resolve to it.
+   Do not persist the audit DB credential in Preview or application runtime.
+5. With payments still off, run one approved controlled Production
    post-migration rehearsal that proves reservation, attached Checkout expiry
    handling, payment/refund alert outbox delivery, activation same-nonce
    response-loss, different-nonce denial, permanent device release and one-time
    restore. The Preview rehearsal is supporting evidence, not a substitute.
-5. Record suffix-only and count-only Production evidence for the resulting
+6. Record suffix-only and count-only Production evidence for the resulting
    gate, outbox, entitlement and access-session rows. Zero current Production
    rows cannot prove these paths.
-6. Confirm the actual Managed Payments Checkout and issued receipt/invoice
+7. Confirm the actual Managed Payments Checkout and issued receipt/invoice
    wording for transaction seller, document issuer and transaction support.
-7. Complete ABN/GST and bookkeeping treatment review with the registered tax
+8. Complete ABN/GST and bookkeeping treatment review with the registered tax
    agent and preserve it outside the repository.
 
 After these pass, the owner may approve a single opt-in first-customer notice

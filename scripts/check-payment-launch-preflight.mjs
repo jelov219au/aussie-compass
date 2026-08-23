@@ -3,14 +3,17 @@ import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const [source, packageJson, readiness, checklist, auditRoleGrants, productionAudit] = await Promise.all([
+const [source, packageJson, readiness, checklist, auditRoleGrants, productionAudit, envExample, releaseManifest] = await Promise.all([
   readFile(new URL("./check-payment-launch.mjs", import.meta.url), "utf8"),
   readFile(new URL("../package.json", import.meta.url), "utf8"),
   readFile(new URL("../docs/payment-readiness.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/live-payment-launch-checklist.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/payment-audit-role-grants.sql", import.meta.url), "utf8"),
   readFile(new URL("../docs/production-first-sale-readiness-audit-2026-08-24.md", import.meta.url), "utf8"),
+  readFile(new URL("../.env.example", import.meta.url), "utf8"),
+  readFile(new URL("../docs/release-candidate-manifest-2026-08-23.md", import.meta.url), "utf8"),
 ]);
+const compactProductionAudit = productionAudit.replace(/\s+/g, " ");
 
 for (const flag of ["--preflight", "--verify-stripe", "--verify-database"]) {
   assert.ok(source.includes(flag), `payment launch audit is missing ${flag}`);
@@ -94,6 +97,11 @@ assert.ok(
   "the Production audit must record the dedicated audit login evidence",
 );
 assert.ok(productionAudit.includes("`required_migrations_present=false`"), "the Production audit must preserve the fail-closed migration result");
+assert.ok(compactProductionAudit.includes("found no `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` result"), "the Production audit must preserve the observed missing endpoint-pin state");
+assert.ok(envExample.includes("PAYMENTS_EXPECTED_NEON_ENDPOINT_ID="), "the environment example must expose the required non-secret endpoint pin by name");
+for (const auditOnlyVariable of ["PAYMENTS_AUDIT_DB_URL", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID"]) {
+  assert.ok(releaseManifest.includes(`- \`${auditOnlyVariable}\``), `the protected Preview exclusion list must include audit-only variable: ${auditOnlyVariable}`);
+}
 
 const sanitizedEnv = {
   ...process.env,
