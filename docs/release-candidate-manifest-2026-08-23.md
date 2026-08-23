@@ -284,7 +284,7 @@ At pre-manifest application head `b0434caefe345ed8fb3cda17a3fe5d18880044d6`, the
 3. `git diff --check` passes. The manifest finalization commit must leave the working tree clean and must not alter `package-lock.json`.
 4. `npm run quality:gate` passes, including the production build of 108 pages, lint, security/CSP/JSON-LD/navigation, Stripe Checkout/Product/failure handling, entitlement ordering/isolation, Resume Pro Builder storage/mobile/interview/onboarding/privacy, anonymous funnel, `test:push-exclusion`, database operations and secret scan. This release has no push-delivery test or runtime.
 5. A production-mode local server returned HTTP 200 for `/resume-pro` with the expected CSP, including `script-src 'self'`, `script-src-attr 'none'`, `object-src 'none'`, `form-action 'self'` and `frame-ancestors 'none'`.
-6. `npm run payments:check -- --strict` runs only inside an intentionally configured target environment. Add `--verify-stripe` only when read-only external verification is separately approved; neither command is part of Stage 1.
+6. `npm run payments:check -- --preflight --strict --verify-stripe --verify-database` runs only inside an intentionally configured target environment while Checkout remains off and with the separately approved read-only audit database credential injected for that command. Strict mode fails when either remote verification flag is absent; local environment settings alone can never produce a launch pass. The command is not part of Stage 1.
 7. If payments remain off, confirm the purchase CTA is unavailable and no Checkout request occurs. Confirm push remains disabled; do not invoke a provider or cron test in this release.
 
 ### Stage 1 GET-only smoke contract

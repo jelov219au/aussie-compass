@@ -82,4 +82,38 @@ assert.match(dryRun.stdout, /WAIT  운영 결제 알림 — SMTP 인증·발신�
 assert.match(dryRun.stdout, /WAIT  Stripe 원격 사전감사 — --verify-stripe 필요/, "strict preflight must require remote Stripe evidence");
 assert.match(dryRun.stdout, /WAIT  Production DB 사전감사 — --verify-database 필요/, "strict preflight must require remote database evidence");
 
+const apparentlyReadyEnv = {
+  ...sanitizedEnv,
+  VERCEL_ENV: "production",
+  PAYMENTS_ENABLED: "true",
+  STRIPE_SECRET_KEY: "rk_live_placeholder_for_contract_test_only",
+  STRIPE_WEBHOOK_SECRET: "whsec_placeholder_for_contract_test_only",
+  STRIPE_RESUME_PRO_PRICE_ID: "price_placeholder",
+  STRIPE_RESUME_PRO_PRODUCT_ID: "prod_placeholder",
+  STRIPE_RESUME_PRO_TAX_CODE: "txcd_placeholder",
+  STRIPE_MANAGED_PAYMENTS_ENABLED: "true",
+  PAYMENTS_ENTITLEMENT_STORE: "neon",
+  ENTITLEMENT_DB_URL: "postgresql://placeholder.invalid/neondb",
+  FIRST_SALE_GATE_ENABLED: "true",
+  ENTITLEMENT_SESSION_SECRET: "contract-test-placeholder-32-chars-minimum",
+  BUSINESS_LEGAL_NAME: "Contract Test Seller",
+  BUSINESS_ABN: "12345678901",
+  NEXT_PUBLIC_SUPPORT_EMAIL: "support@example.invalid",
+  PAYMENT_ALERTS_ENABLED: "true",
+  PAYMENT_ALERT_TO_EMAIL: "support@example.invalid",
+  PAYMENT_ALERT_FROM_EMAIL: "support@example.invalid",
+  ZOHO_SMTP_HOST: "smtp.example.invalid",
+  ZOHO_SMTP_PORT: "465",
+  ZOHO_SMTP_USER: "support@example.invalid",
+  ZOHO_SMTP_APP_PASSWORD: "contract-test-placeholder",
+};
+const strictWithoutEvidence = spawnSync(process.execPath, [fileURLToPath(new URL("./check-payment-launch.mjs", import.meta.url)), "--strict"], {
+  encoding: "utf8",
+  env: apparentlyReadyEnv,
+});
+assert.equal(strictWithoutEvidence.status, 1, "strict launch audit must fail when remote verification flags are omitted even if every local setting appears ready");
+assert.match(strictWithoutEvidence.stdout, /결과: 17\/17 통과, 0개 대기/, "the missing-evidence test must prove local settings alone are insufficient");
+assert.match(strictWithoutEvidence.stdout, /WAIT  Stripe 원격 사전감사 — --verify-stripe 필요/, "strict launch audit must require remote Stripe evidence outside preflight mode too");
+assert.match(strictWithoutEvidence.stdout, /WAIT  Production DB 사전감사 — --verify-database 필요/, "strict launch audit must require remote database evidence outside preflight mode too");
+
 console.log("Fail-closed payment launch preflight contract passed.");

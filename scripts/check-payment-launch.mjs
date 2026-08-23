@@ -63,10 +63,10 @@ for (const [label, passed, requirement] of checks) {
 const pending = checks.filter(([, passed]) => !passed).length;
 console.log(`\n결과: ${checks.length - pending}/${checks.length} 통과, ${pending}개 대기`);
 
-let stripeProductVerified = !verifyStripe;
+let stripeProductVerified = false;
 let zeroOpenCheckoutVerified = !preflight;
-let stripeAccountVerified = !verifyStripe;
-let stripeSupportProfileVerified = !verifyStripe;
+let stripeAccountVerified = false;
+let stripeSupportProfileVerified = false;
 
 if (verifyStripe) {
   try {
@@ -116,10 +116,10 @@ if (verifyStripe) {
     console.log("WAIT  Stripe 원격 사전감사 — Dashboard 값 또는 제한 키 읽기 권한 확인 필요");
   }
 } else {
-  console.log(`${preflight ? "WAIT" : "INFO"}  Stripe 원격 사전감사 — --verify-stripe 필요`);
+  console.log(`${preflight || strict ? "WAIT" : "INFO"}  Stripe 원격 사전감사 — --verify-stripe 필요`);
 }
 
-let databaseVerified = !preflight;
+let databaseVerified = false;
 
 if (verifyDatabase) {
   try {
@@ -222,11 +222,11 @@ if (verifyDatabase) {
     console.log("WAIT  Production DB 사전감사 — 연결, migration 또는 runtime 권한 확인 필요");
   }
 } else {
-  console.log(`${preflight ? "WAIT" : "INFO"}  Production DB 사전감사 — --verify-database 필요`);
+  console.log(`${preflight || strict ? "WAIT" : "INFO"}  Production DB 사전감사 — --verify-database 필요`);
 }
 
 const stripeRemoteVerified = stripeProductVerified
   && stripeAccountVerified
   && stripeSupportProfileVerified
   && zeroOpenCheckoutVerified;
-if (strict && (pending > 0 || !stripeRemoteVerified || !databaseVerified)) process.exitCode = 1;
+if (strict && (pending > 0 || !verifyStripe || !verifyDatabase || !stripeRemoteVerified || !databaseVerified)) process.exitCode = 1;
