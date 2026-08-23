@@ -50,7 +50,7 @@ for (const [decisionMarker, evidenceSource, evidenceMarker] of [
   ["Production 결제·환불 alert", compactProductionAudit, "Production post-migration alert/access rehearsal"],
   ["Managed Payments Checkout·영수증", compactProductionAudit, "Managed Payments Checkout and issued receipt/invoice wording"],
   ["등록 세무사", compactProductionAudit, "registered tax agent"],
-  ["accounting preflight", checklist, "npm run accounting:preflight"],
+  ["accounting preflight", checklist, ".\\scripts\\run-accounting-preflight.ps1"],
 ]) {
   requireText(decision, decisionMarker, "audited blocker decision");
   requireText(evidenceSource, evidenceMarker, "audited blocker evidence");

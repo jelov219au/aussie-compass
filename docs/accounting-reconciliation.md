@@ -50,28 +50,27 @@ Official Stripe references:
 
 The repository includes a read-only exporter for Stripe Balance Transactions. Use a separate restricted key with only the minimum read permissions needed for Balance Transactions. Never reuse the Checkout key and never put the key in source control.
 
-Example (the end date is exclusive):
-
-```powershell
-$env:STRIPE_ACCOUNTING_KEY = "rk_live_..."
-npm run accounting:export -- --from 2026-07-01 --to 2026-08-01
-Remove-Item Env:STRIPE_ACCOUNTING_KEY
-```
+For recurring exports, use `scripts/setup-accounting-automation.ps1`. It prompts
+for the dedicated restricted key with masked input, verifies the permission
+before saving it with Windows user-scoped encryption, and runs the idempotent
+monthly exporter without placing the key in shell history. The end date passed
+to the exporter is exclusive.
 
 Before the first export or after any restricted-key permission change, run the
 no-write permission check while payments remain off:
 
 ```powershell
-$env:STRIPE_ACCOUNTING_KEY = "rk_live_..."
-npm run accounting:preflight
-Remove-Item Env:STRIPE_ACCOUNTING_KEY
+.\scripts\run-accounting-preflight.ps1
 ```
 
 The preflight requests at most one Balance Transaction only to prove the
 dedicated key can read that resource. It prints the live/test mode and PASS or a
 redacted actionable failure; it prints no transaction, account, request-log or
-key identifier and imports no file-writing API. A PASS does not export or alter
-any accounting record.
+key identifier and imports no file-writing API. The wrapper requires a live
+restricted key by default, keeps masked input out of shell history, clears the
+process environment and zeroes its unmanaged plaintext buffer. `-AllowTest` is
+only for an explicit non-launch test. A PASS does not export or alter any
+accounting record.
 
 The exporter writes a new CSV under `private/accounting/` and refuses to overwrite an existing file. That directory is excluded from Git.
 If the restricted key lacks Balance Transactions Read permission, the exporter

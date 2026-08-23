@@ -15,6 +15,7 @@ const preflightSource = await readFile(new URL("./preflight-stripe-accounting.mj
 const mergeSource = await readFile(new URL("./merge-stripe-accounting.mjs", import.meta.url), "utf8");
 const schemaSource = await readFile(new URL("./accounting-ledger-schema.mjs", import.meta.url), "utf8");
 const setupSource = await readFile(new URL("./setup-accounting-automation.ps1", import.meta.url), "utf8");
+const securePreflightSource = await readFile(new URL("./run-accounting-preflight.ps1", import.meta.url), "utf8");
 const accountingRunbook = await readFile(new URL("../docs/accounting-reconciliation.md", import.meta.url), "utf8");
 const packageSource = await readFile(new URL("../package.json", import.meta.url), "utf8");
 const compactAccountingRunbook = accountingRunbook.replace(/\s+/g, " ");
@@ -54,6 +55,20 @@ for (const writeBoundary of ["node:fs", "writeFile", "mkdir", '"private"', "Expo
   assert.ok(!preflightSource.includes(writeBoundary), `Accounting preflight must not contain a file-write boundary: ${writeBoundary}`);
 }
 assert.ok(packageSource.includes('"accounting:preflight": "node scripts/preflight-stripe-accounting.mjs"'), "The no-write accounting preflight must be exposed as a package command.");
+for (const secureBoundary of [
+  'Read-Host "Stripe accounting restricted key" -AsSecureString',
+  "SecureStringToBSTR",
+  "PtrToStringBSTR",
+  'SetEnvironmentVariable("STRIPE_ACCOUNTING_KEY", $plainKey, "Process")',
+  'Remove-Item -LiteralPath "Env:STRIPE_ACCOUNTING_KEY"',
+  "ZeroFreeBSTR",
+  'plainKey.StartsWith("rk_live_")',
+  "npm.cmd run accounting:preflight",
+]) assert.ok(securePreflightSource.includes(secureBoundary), `Secure accounting preflight is missing: ${secureBoundary}`);
+assert.ok(securePreflightSource.indexOf("SetEnvironmentVariable") < securePreflightSource.indexOf("npm.cmd run accounting:preflight"), "The masked key must be process-scoped before the preflight starts.");
+assert.ok(securePreflightSource.indexOf("npm.cmd run accounting:preflight") < securePreflightSource.indexOf("Remove-Item -LiteralPath"), "The process key must be cleared after the preflight attempt.");
+assert.ok(accountingRunbook.includes(".\\scripts\\run-accounting-preflight.ps1"), "The accounting runbook must use the masked live preflight wrapper.");
+assert.ok(!accountingRunbook.includes('$env:STRIPE_ACCOUNTING_KEY = "rk_live_..."'), "The accounting runbook must not place a live restricted key placeholder in shell history.");
 
 const sensitiveStripeMarker = "acct_sensitive_request_fixture";
 const permissionFailure = safeStripeAccountingError({
