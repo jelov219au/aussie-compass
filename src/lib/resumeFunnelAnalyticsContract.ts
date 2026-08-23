@@ -27,4 +27,6 @@ export type ResumeProCtaHref =
   | "/resume-pro"
   | "/resume-pro?from=article-job-search-plan"
   | "/resume-pro?from=article-achievement-examples"
-  | "/resume-pro?from=resume-builder-complete";
+  | "/resume-pro?from=resume-builder-complete"
+  | "/resume-pro?from=home-premium"
+  | "/resume-pro?from=pro-finder";

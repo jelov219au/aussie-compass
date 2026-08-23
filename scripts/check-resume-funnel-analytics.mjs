@@ -35,6 +35,14 @@ for (const value of [
   "job_search_guide",
 ]) assert.ok(contract.includes(value), `missing fixed analytics value: ${value}`);
 
+for (const [source, href] of [
+  [homeSection, '/resume-pro?from=home-premium'],
+  [finder, '/resume-pro?from=pro-finder'],
+]) {
+  assert.ok(source.includes(`href="${href}"`), `major Resume Pro CTA is missing its fixed acquisition entry: ${href}`);
+  assert.ok(contract.includes(href), `CTA href contract is missing its fixed acquisition entry: ${href}`);
+}
+
 assert.match(client, /new Set<string>\(\)/, "funnel events need an in-session duplicate guard");
 assert.match(client, /if \(emittedEvents\.has\(eventKey\)\) return/, "duplicate events must return before tracking");
 assert.match(client, /try\s*\{[\s\S]*track\(eventName, \{ surface, context \}\);[\s\S]*\}\s*catch/, "analytics failures must not interrupt product actions");

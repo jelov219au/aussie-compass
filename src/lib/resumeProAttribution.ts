@@ -2,6 +2,8 @@ export const resumeProEntries = [
   "article-job-search-plan",
   "article-achievement-examples",
   "resume-builder-complete",
+  "home-premium",
+  "pro-finder",
 ] as const;
 
 export type ResumeProEntry = (typeof resumeProEntries)[number] | "direct";
