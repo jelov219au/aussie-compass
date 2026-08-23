@@ -84,7 +84,12 @@ try {
   const code = typeof error === "object" && error !== null && "code" in error
     ? String(error.code).replace(/[^A-Z0-9_]/gi, "").slice(0, 24)
     : "UNKNOWN";
-  console.error(`Stage 2 sandbox migration failed at ${activeStep} (${code || "UNKNOWN"}).`);
+  const constraint = typeof error === "object" && error !== null && "constraint" in error
+    ? String(error.constraint).replace(/[^A-Z0-9_]/gi, "").slice(0, 80)
+    : "";
+  console.error(
+    `Stage 2 sandbox migration failed at ${activeStep} (${code || "UNKNOWN"}${constraint ? `:${constraint}` : ""}).`,
+  );
   process.exitCode = 1;
 } finally {
   try {
