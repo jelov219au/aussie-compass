@@ -154,6 +154,13 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
             <h2 id="next-decision-heading" className="mt-2 text-2xl font-semibold text-navy">숫자가 말해 주는 다음 일</h2>
             <ul className="mt-6 grid gap-4 sm:grid-cols-2">{report.rows.map((row) => <li key={row.entry} className="border border-border bg-white p-5"><h3 className="font-semibold text-navy">{row.label}</h3><p className="mt-2 text-sm leading-6 text-muted">{nextAction(row, connected)}</p></li>)}</ul>
           </section>
+          <section className="mt-10 border-l-2 border-gold bg-surface p-5 sm:flex sm:items-center sm:justify-between sm:gap-6" aria-labelledby="first-customer-invitation-heading">
+            <div>
+              <h2 id="first-customer-invitation-heading" className="font-semibold text-navy">첫 고객 1회 안내 준비</h2>
+              <p className="mt-1 text-sm leading-6 text-muted">고객이 먼저 요청했고 모든 결제 게이트가 통과된 경우에만 고정 안내문을 준비합니다.</p>
+            </div>
+            <Link href="/first-customer-invitation" className="mt-4 inline-flex min-h-11 shrink-0 items-center bg-navy px-4 text-sm font-semibold text-white sm:mt-0">운영 점검 열기</Link>
+          </section>
         </Container>
       </main>
       <Footer />
