@@ -20,7 +20,7 @@ Hoju Compass uses Vercel Web Analytics for aggregate product decisions without a
 | `Route Plan Saved` | `stage`, `concern` | Which situations most often become a saved plan |
 | `Route Recommendation Opened` | `destination`, `route` | Which recommendations work for each broad situation |
 | `Pro Interest` | `product`, `entry` | Which homepage offer earns enough interest to improve next |
-| `Page Shared` | `content`, `method` | Whether readers find resource guides useful enough to share |
+| `Page Shared` | `content`, `method` | Whether readers find a resource guide or the Job Ad checker useful enough to share; checker shares use the fixed `resume_job_ad_checker` value and never include pasted text |
 | `Page Saved` | `content`, `action` | Whether readers use the local return-visit workflow |
 | `App Install` | `entry`, `outcome` | Whether the install page leads to a prompt or manual instructions |
 | `Resume Builder Started` | `surface`, `context` | Whether a visitor begins interacting with the free resume builder |

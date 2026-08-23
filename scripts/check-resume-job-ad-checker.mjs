@@ -44,6 +44,15 @@ assert.doesNotMatch(component, /localStorage|sessionStorage|sendBeacon|XMLHttpRe
 assert.match(component, /MAX_LENGTH = 12_000/, "both local inputs need a hard size limit");
 assert.match(component, /trackResumeJobAdChecked\(\)/, "a completed comparison needs a fixed aggregate event");
 assert.doesNotMatch(component, /track\([^)]*(resumeText|jobAdText)|properties=.*(resumeText|jobAdText)/s, "analytics must never include pasted text");
+assert.match(component, /navigator\.clipboard\.writeText\(memo\)/, "the result needs an explicit local evidence-memo copy action");
+assert.match(component, /공고 원문이나 이력서 원문 없이/, "the copy result must explain that raw input was excluded");
+assert.match(component, /window\.location\.origin.*\/resume-job-ad-checker/, "sharing must build a canonical query-free checker URL");
+assert.match(component, /track\("Page Shared", \{ content: "resume_job_ad_checker", method \}\)/, "sharing needs a fixed privacy-safe event");
+assert.match(component, /trackCheckerShare\("native"\)/, "native sharing needs the fixed privacy-safe helper");
+assert.match(component, /trackCheckerShare\("clipboard"\)/, "clipboard sharing needs the fixed privacy-safe helper");
+assert.match(component, /function trackCheckerShare[\s\S]*try[\s\S]*track\("Page Shared"[\s\S]*catch/, "analytics failures must not interrupt sharing");
+const shareFunction = component.slice(component.indexOf("async function shareChecker"), component.indexOf("return (", component.indexOf("async function shareChecker")));
+assert.doesNotMatch(shareFunction, /resumeText|jobAdText/, "sharing must never include pasted resume or Job Ad text");
 
 for (const value of ["Resume Job Ad Checked", "resume_job_ad_checker_form", "resume_job_ad_checker_result", "resume_job_ad_checker", "/resume-pro?from=job-ad-checker"]) {
   assert.ok(contract.includes(value), `the fixed funnel contract is missing ${value}`);
@@ -52,6 +61,7 @@ assert.ok(analytics.includes("resumeFunnelEvents.jobAdChecked") && analytics.inc
 assert.ok(attribution.includes('"job-ad-checker"'), "checkout attribution must allow the checker entry");
 assert.ok(report.includes('eventName: resumeFunnelEvents.jobAdChecked') && report.includes('"job-ad-checker"'), "the local operator report must aggregate checker use and attribution");
 assert.ok(privacyDoc.includes("Resume Job Ad Checked"), "privacy documentation must disclose the aggregate event");
+assert.ok(privacyDoc.includes("resume_job_ad_checker") && privacyDoc.includes("never include pasted text"), "privacy documentation must describe the fixed checker share boundary");
 
 for (const source of [planner, performance, campaignBuilder]) {
   assert.ok(source.includes("/resume-job-ad-checker"), "a marketing workflow surface is missing the checker destination");
