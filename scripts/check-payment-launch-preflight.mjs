@@ -21,7 +21,8 @@ for (const flag of ["--preflight", "--verify-stripe", "--verify-database"]) {
 }
 
 for (const boundary of [
-  "PAYMENTS_ENABLED !== \"true\"",
+  "PAYMENTS_ENABLED === \"false\"",
+  "const failClosedAudit = strict || preflight",
   "current_user = 'hoju_app_runtime'",
   "current_user = 'hoju_payment_auditor'",
   "PAYMENTS_AUDIT_DB_URL",
@@ -205,6 +206,15 @@ assert.match(strictWithoutEvidence.stdout, /결과: 20\/20 통과, 0개 대기/,
 assert.match(strictWithoutEvidence.stdout, /WAIT  Stripe 원격 사전감사 — --verify-stripe 필요/, "strict launch audit must require remote Stripe evidence outside preflight mode too");
 assert.match(strictWithoutEvidence.stdout, /WAIT  Production DB 사전감사 — --verify-database 필요/, "strict launch audit must require remote database evidence outside preflight mode too");
 
+const preflightWithoutStrictOrEvidence = spawnSync(process.execPath, [fileURLToPath(new URL("./check-payment-launch.mjs", import.meta.url)), "--preflight"], {
+  encoding: "utf8",
+  env: { ...apparentlyReadyEnv, PAYMENTS_ENABLED: "false" },
+});
+assert.equal(preflightWithoutStrictOrEvidence.status, 1, "preflight mode itself must fail closed when remote verification flags are omitted");
+assert.match(preflightWithoutStrictOrEvidence.stdout, /PASS  결제 스위치 — PAYMENTS_ENABLED=false/, "preflight-only mode must prove Checkout is explicitly off");
+assert.match(preflightWithoutStrictOrEvidence.stdout, /WAIT  Stripe 원격 사전감사 — --verify-stripe 필요/, "preflight-only mode must require remote Stripe evidence");
+assert.match(preflightWithoutStrictOrEvidence.stdout, /WAIT  Production DB 사전감사 — --verify-database 필요/, "preflight-only mode must require remote database evidence");
+
 function runEndpointBoundary(overrides) {
   return spawnSync(process.execPath, [fileURLToPath(new URL("./check-payment-launch.mjs", import.meta.url)), "--strict"], {
     encoding: "utf8",
@@ -260,6 +270,8 @@ const missingExplicitOffState = spawnSync(process.execPath, [fileURLToPath(new U
   timeout: 5_000,
 });
 assert.equal(missingExplicitOffState.status, 1, "remote preflight must require an explicit false payment switch");
+assert.match(missingExplicitOffState.stdout, /WAIT  결제 스위치 — PAYMENTS_ENABLED=false/, "a missing payment switch must be shown as a local preflight blocker");
+assert.match(missingExplicitOffState.stdout, /결과: 19\/20 통과, 1개 대기/, "a missing payment switch must not be reported as a fully passing local configuration");
 assert.match(missingExplicitOffState.stdout, /Stripe 런타임 원격 사전감사 — 로컬 키·상품·모드 경계 미통과, 원격 조회 생략/, "Stripe reads must be skipped when PAYMENTS_ENABLED=false is not explicit");
 assert.match(missingExplicitOffState.stdout, /Production DB 사전감사 — 승인 endpoint와 두 연결의 로컬 경계 미통과, 원격 조회 생략/, "database reads must be skipped when PAYMENTS_ENABLED=false is not explicit");
 

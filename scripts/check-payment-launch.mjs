@@ -74,7 +74,7 @@ const databaseRemoteBoundaryReady = preflightRemoteBoundaryReady
   && auditNeonEndpointId === expectedNeonEndpointId;
 
 const checks = [
-  ["결제 스위치", preflight ? process.env.PAYMENTS_ENABLED !== "true" : process.env.PAYMENTS_ENABLED === "true", preflight ? "PAYMENTS_ENABLED=false" : "PAYMENTS_ENABLED=true"],
+  ["결제 스위치", preflight ? process.env.PAYMENTS_ENABLED === "false" : process.env.PAYMENTS_ENABLED === "true", preflight ? "PAYMENTS_ENABLED=false" : "PAYMENTS_ENABLED=true"],
   ["Stripe 키 환경", stripeMode === expectedStripeMode, `${expectedStripeMode} 모드 키`],
   ["최소 권한 Stripe 키", process.env.STRIPE_SECRET_KEY?.trim().startsWith("rk_") ?? false, "rk_ 제한 키"],
   ["Stripe 감사 키 분리", stripeAuditKeySeparated, "같은 모드의 별도 Account Read 제한 키"],
@@ -392,4 +392,5 @@ const stripeRemoteVerified = stripeProductVerified
   && stripeAccountVerified
   && stripeSupportProfileVerified
   && zeroOpenCheckoutVerified;
-if (strict && (pending > 0 || !verifyStripe || !verifyDatabase || !stripeRemoteVerified || !databaseVerified)) process.exitCode = 1;
+const failClosedAudit = strict || preflight;
+if (failClosedAudit && (pending > 0 || !verifyStripe || !verifyDatabase || !stripeRemoteVerified || !databaseVerified)) process.exitCode = 1;
