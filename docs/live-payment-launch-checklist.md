@@ -30,7 +30,8 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 
 - [x] Complete the live account representative identity-document task. Rechecked on 20 August 2026: the account status page shows no active tasks and payment activation is complete.
 - [x] Confirm the paused-payout warning is no longer shown after identity review.
-- [ ] Set the public business name, support email, website and a recognisable statement descriptor.
+- [x] Confirm the public business name, website, support phone and a recognisable statement descriptor are present. Read-only live Account evidence was recorded on 24 August 2026 without copying their values.
+- [ ] Add `support@hojucompass.com` as the Stripe live business-profile support email. The read-only Account result on 24 August 2026 reported it absent; the site and Vercel support setting do not substitute for this Stripe field.
 - [x] Create an active one-time AUD 19.90 Resume Pro Price.
 - [ ] Create a least-privilege `rk_live_` key with Prices Read, Products Read, Checkout Sessions create/retrieve and PaymentIntents Read so the paid webhook can verify `latest_charge` before the atomic grant.
 - [x] Create the live `/api/stripe/webhook` endpoint and subscribe to the same 11 Checkout, refund and dispute events verified in test mode.
@@ -47,8 +48,10 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 - [x] Enable Production payments for the controlled test.
 - [x] Make one real purchase through the public customer path.
 - [x] Confirm the signed live webhook persists the entitlement and the Resume Pro workspace opens only after that entitlement exists.
-- [ ] With payments off, confirm the exact migration order and versions: charge-link v2 → `20260823_payment_operator_alert_outbox_v1` → `20260823_checkout_activation_nonce_v1` → `20260823_purchase_access_sessions_v1` → `20260823_restore_activation_nonce_v1`. Prove one nonce binding, same-browser response-loss retry, different-nonce denial, permanent release, refund/review denial and independent restore-code recovery.
-- [ ] Run the catalog and effective-privilege evidence in `docs/first-sale-gate-runbook.md`: replaced overloads are absent, only the approved 12-/7-/6-argument functions remain, every protected-table direct privilege is false, and runtime can execute only the listed wrappers.
+- [x] With payments off, confirm the exact migration order and versions: charge-link v2 → `20260823_payment_operator_alert_outbox_v1` → `20260823_checkout_activation_nonce_v1` → `20260823_purchase_access_sessions_v1` → `20260823_restore_activation_nonce_v1`. The complete named version/signature result is recorded in `docs/production-first-sale-readiness-audit-2026-08-24.md`; functional response-loss, release and restore proof remains separately required below.
+- [x] Run the catalog and effective-privilege evidence in `docs/first-sale-gate-runbook.md`: every named result, including the approved 12-/7-/6-argument functions, protected-table denials, wrapper grants and `all_privilege_checks_pass`, returned true on 24 August 2026. See the complete matrix in `docs/production-first-sale-readiness-audit-2026-08-24.md`.
+- [x] Confirm live Resume Pro has zero existing open Checkout Sessions. The read-only Stripe list on 24 August 2026 returned zero total open sessions, zero Resume Pro open sessions and `has_more=false`.
+- [ ] Prove one nonce binding, same-browser response-loss retry, different-nonce denial, permanent release, refund/review denial and independent restore-code recovery on the post-migration Production schema. The current gate, gate-event, outbox, access-session and restore-activation row counts are all zero and therefore do not prove functional behavior.
 - [ ] Record suffix-only functional evidence that the issued activation/restore access session is active, unexpired and unrevoked. Record `created_at`, `expires_at` and `revoked_at` as evidence times without copying the raw session ID, cookie, customer email or full Stripe ID.
 - [ ] Confirm outbox pending/sent/attempt counts, SMTP failure 503, busy-worker 503, stale-lease recovery and actual purchase/refund mailbox receipt using suffix-only evidence.
 - [x] Issue a full AUD 19.90 refund in Stripe; `refund.created` and `charge.refunded` both returned HTTP 200 and the workspace was blocked immediately.
@@ -100,8 +103,10 @@ Check the same Australia/Sydney reporting window once each day after deployment.
 | Funnel step | Daily minimum record | Existing source or honest proxy |
 | --- | --- | --- |
 | Unique landing visits | Unique visitors to the selected high-intent landing routes | Vercel route-level unique visitors; use `N/A` if a unique count is unavailable and never substitute pageviews silently |
-| Builder start | Unique visitors who opened `/resume-builder` | Route visit is a proxy because there is no dedicated Builder-start event; do not label it as first-field interaction |
-| Pro CTA | `Pro Interest` for `product=resume_pro`, plus article next-step events whose destination is `resume_pro` | Report the two event families separately if they cannot be de-duplicated |
+| Builder start | `Resume Builder Started` | Fixed `surface` and `context`; fires on the first real Builder interaction and is not a passive route-view proxy |
+| Pro CTA | `Resume Pro CTA Clicked` | Fixed `surface` and `context`; keep it separate from older `Pro Interest` observations |
+| Resume Pro visit | `Resume Pro Viewed` | Fixed allowlisted `entry` plus checkout available/unavailable state |
+| One-time launch notice intent | `Resume Pro Launch Interest` | Fixed allowlisted `entry`; records only the mail-app link click, never the email address or message body |
 | Checkout start | `Checkout Started` where `product=resume_pro` | Existing anonymous Vercel event; compare only with the same date and acquisition entry |
 | Completed purchase | Live, paid, complete Resume Pro Checkout at A$19.90 | Read-only Stripe aggregate; exclude test and owner-controlled transactions and show refunds separately |
 
@@ -129,9 +134,42 @@ Because some stages use unique-route proxies and others use event counts, any ca
 The numbers below are decision floors, not sales goals, promised conversion rates or advertising targets. Make decisions only on day 7 and day 14; daily checks detect outages and data gaps, not reasons to keep changing the offer.
 
 1. **Data gate:** if a required stage is `N/A`, live/test traffic is mixed, or a technical checkout/access incident is unresolved, record `HOLD`. Change no price, copy or channel.
-2. **Reach gate:** if a candidate acquisition entry has fewer than 10 cumulative `Resume Pro Viewed` events, conversion is not interpretable. Keep A$19.90 and the offer copy unchanged; the only allowed experiment is one no-cost organic channel or landing distribution change for the next review window.
+2. **Reach gate:** if a candidate acquisition entry has fewer than 10 cumulative `Resume Pro Viewed` events, conversion is not interpretable. Keep A$19.90 and the offer copy unchanged; the only allowed experiment is one no-cost organic channel or landing distribution change for the next review window. A launch-notice click is a useful opt-in signal, not a conversion-rate denominator by itself.
 3. **Message gate:** with at least 10 Resume Pro views but zero Checkout starts, keep the price and channel fixed and change one value/CTA or trust sentence. Do not change the page and acquisition source together.
 4. **Price gate:** one or two Checkout starts without a purchase is still `HOLD` for price. Only at the day-14 review, after at least 3 Checkout starts and zero paid completions, and after excluding technical, access and seller-trust failures, may the owner choose one price test **or** one checkout-terms/copy test. Never change both in the same window.
 5. **Customer-payment gate:** when the first genuine customer payment completes, stop conversion changes and pause acceptance of a second sale. Run the 15-minute, 24-hour and first-payout evidence sequence in section 5. Resume selling only after the accounting system gate is `GO` and the business owner records `APPROVED`.
 
 Channel changes in this 14-day watch mean unpaid distribution through an existing owned or community route that already permits the post. This table does not authorise advertising spend, a new tracking service, unsolicited messages or paid placement.
+
+## 8. Opt-in first-customer invitation
+
+The one-time launch-notice email is a customer-initiated request, not a mailing
+list. Reply only after every pre-payment item in sections 1–4 is PASS and the
+owner records a single-customer launch approval.
+
+1. Confirm the request came from the Resume Pro launch-notice subject and the
+   sender supplied a target role, an application deadline and whether a free
+   Builder draft exists. Do not ask for the resume file, visa details, TFN,
+   identity documents, address or payment information.
+2. Prioritize a person with one public job ad, a real career draft and a
+   deadline within seven days. This is a fit check, not a promise of hiring,
+   visa, legal or professional outcomes.
+3. Immediately before replying, re-run the live zero-open-Checkout check,
+   target-environment strict payment audit and database named-result matrix.
+   Keep `PAYMENTS_ENABLED=false` if any result is missing or false.
+4. Send one reply from `support@hojucompass.com` only after the product page is
+   live and Checkout is deliberately enabled. Link to
+   `https://hojucompass.com/resume-pro`; never email a raw Stripe Checkout URL.
+5. Do not contact other requesters or send a second reminder until the first
+   customer either completes payment or explicitly declines and the attached
+   Checkout is confirmed expired, unpaid and without a PaymentIntent.
+6. Once paid, stop invitations and run the 15-minute, 24-hour and first-payout
+   evidence sequence. The database gate, not an email timestamp, is the
+   concurrency authority.
+
+Suggested single reply after approval:
+
+> Resume Pro 판매가 시작되어 요청하신 1회 안내를 드립니다. 결제 전 가격,
+> 제공 범위와 환불 안내를 확인한 뒤 공식 Resume Pro 페이지에서 진행해
+> 주세요. 이 메일에는 이력서 원문이나 민감정보를 보내지 마세요. 이번
+> 안내 뒤 추가 홍보 메일은 보내지 않습니다.

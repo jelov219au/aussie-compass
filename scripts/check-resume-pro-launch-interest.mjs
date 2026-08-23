@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [link, page, performance, performancePage, privacyPage, analyticsDoc, performanceDoc] = await Promise.all([
+const [link, page, performance, performancePage, privacyPage, analyticsDoc, performanceDoc, launchChecklist, productionAudit] = await Promise.all([
   readFile(new URL("../src/components/tools/ResumeProLaunchInterestLink.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/resumeProPerformance.ts", import.meta.url), "utf8"),
@@ -9,6 +9,8 @@ const [link, page, performance, performancePage, privacyPage, analyticsDoc, perf
   readFile(new URL("../src/app/privacy/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../docs/privacy-safe-analytics.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/resume-pro-performance.md", import.meta.url), "utf8"),
+  readFile(new URL("../docs/live-payment-launch-checklist.md", import.meta.url), "utf8"),
+  readFile(new URL("../docs/production-first-sale-readiness-audit-2026-08-24.md", import.meta.url), "utf8"),
 ]);
 
 assert.ok(link.startsWith('"use client";'), "launch-interest analytics must stay in a small client boundary");
@@ -40,5 +42,32 @@ assert.ok(privacyPage.includes("자동 마케팅 구독 명단에 추가하거�
 assert.ok(analyticsDoc.includes("`Resume Pro Launch Interest` | `entry`"), "analytics documentation must pin the event to one fixed property");
 assert.ok(performanceDoc.includes("Resume Pro Launch Interest"), "operator documentation must include the launch-interest funnel step");
 assert.ok(performanceDoc.includes("never sends the visitor's email address to analytics"), "performance documentation must state the email analytics boundary");
+
+for (const eventName of ["Resume Builder Started", "Resume Pro CTA Clicked", "Resume Pro Viewed", "Resume Pro Launch Interest", "Checkout Started"]) {
+  assert.ok(launchChecklist.includes(`\`${eventName}\``), `live launch checklist is missing the current funnel event: ${eventName}`);
+}
+for (const safeInvitationRule of [
+  "customer-initiated request, not a mailing",
+  "target-environment strict payment audit",
+  "never email a raw Stripe Checkout URL",
+  "stop invitations and run the 15-minute, 24-hour and first-payout",
+]) assert.ok(launchChecklist.includes(safeInvitationRule), `first-customer invitation control is missing: ${safeInvitationRule}`);
+
+for (const namedEvidence of [
+  "old_9_arg_paid_event_removed",
+  "charge_aware_12_arg_paid_event_present",
+  "session_7_arg_activation_present",
+  "nonce_6_arg_restore_consume_present",
+  "runtime_has_no_protected_table_privileges",
+  "public_cannot_execute_protected_functions",
+  "runtime_cannot_approve_next_sale",
+  "all_privilege_checks_pass",
+]) assert.ok(productionAudit.includes(`\`${namedEvidence}\` | PASS`), `production audit is missing named PASS evidence: ${namedEvidence}`);
+const namedPassRows = [...productionAudit.matchAll(/^\| `([a-z][a-z0-9_]+)` \| PASS \|$/gm)].map((match) => match[1]);
+assert.equal(namedPassRows.length, 54, "production audit must preserve every named Neon boolean instead of a summary count");
+assert.equal(new Set(namedPassRows).size, 54, "production audit contains a duplicate named Neon result");
+assert.ok(productionAudit.includes("NO-GO for the first customer payment"), "point-in-time audit must not overstate launch readiness");
+assert.ok(productionAudit.includes("business-profile support email is absent"), "point-in-time audit must preserve the discovered Stripe blocker");
+assert.ok(productionAudit.includes("zero Resume Pro"), "point-in-time audit must record the zero-open-Checkout evidence");
 
 console.log("Resume Pro pre-launch interest contract passed.");
