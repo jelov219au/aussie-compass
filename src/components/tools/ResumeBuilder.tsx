@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
 import Link from "next/link";
 import { track } from "@vercel/analytics";
 import { ResumeProCtaLink, trackResumeBuilderStarted } from "@/components/analytics/ResumeFunnelAnalytics";
 import { resumeFunnelContexts, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
+import {
+  createResumeBuilderStorageStatusController,
+  persistResumeBuilderDraft,
+  type ResumeBuilderStorageStatus,
+  type ResumeBuilderStorageStatusController,
+} from "@/lib/resumeBuilderStorage";
 
 type Experience = { id: string; role: string; company: string; period: string; details: string };
 type Education = { id: string; course: string; school: string; period: string };
@@ -78,12 +84,37 @@ function moveItem<T>(items: T[], from: number, to: number) {
 export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
   const [resume, setResume] = useState<ResumeData>(emptyResume);
   const [loaded, setLoaded] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [storageStatus, setStorageStatus] = useState<ResumeBuilderStorageStatus>("idle");
   const [actionMessage, setActionMessage] = useState("");
   const [koreanDraft, setKoreanDraft] = useState("");
   const [englishSuggestion, setEnglishSuggestion] = useState("");
   const importInputRef = useRef<HTMLInputElement>(null);
   const completionTrackedRef = useRef(false);
+  const storageStatusControllerRef = useRef<ResumeBuilderStorageStatusController | null>(null);
+
+  const persistResume = useCallback((draft: ResumeData) => {
+    const controller = storageStatusControllerRef.current;
+    if (!controller) return false;
+    return persistResumeBuilderDraft(
+      () => window.localStorage,
+      STORAGE_KEY,
+      JSON.stringify(draft),
+      controller,
+    ) === "saved";
+  }, []);
+
+  useEffect(() => {
+    const controller = createResumeBuilderStorageStatusController({
+      onStatusChange: setStorageStatus,
+      schedule: (callback, delayMs) => window.setTimeout(callback, delayMs),
+      cancel: (handle) => window.clearTimeout(handle as number),
+    });
+    storageStatusControllerRef.current = controller;
+    return () => {
+      controller.dispose();
+      if (storageStatusControllerRef.current === controller) storageStatusControllerRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -98,16 +129,10 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
   useEffect(() => {
     if (!loaded) return;
     const timer = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(resume));
-        setSaved(true);
-        window.setTimeout(() => setSaved(false), 1600);
-      } catch {
-        // The resume remains usable when browser storage is unavailable.
-      }
+      persistResume(resume);
     }, 500);
     return () => window.clearTimeout(timer);
-  }, [loaded, resume]);
+  }, [loaded, persistResume, resume]);
 
   const skills = useMemo(() => resume.skills.split(",").map((skill) => skill.trim()).filter(Boolean), [resume.skills]);
   const licences = useMemo(() => resume.licences.split("\n").map((item) => item.trim()).filter(Boolean), [resume.licences]);
@@ -262,8 +287,19 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-form-heading" onClickCapture={trackBuilderInteraction} onInputCapture={trackBuilderInteraction}>
         <div className="flex items-start justify-between gap-4">
           <div><h2 id="resume-form-heading" className="text-xl font-semibold text-navy">이력서 내용</h2><p className="mt-1 text-sm leading-6 text-muted">영문으로 작성하면 오른쪽에 바로 반영됩니다.</p></div>
-          <span className="min-w-16 text-right text-xs text-muted" aria-live="polite">{saved ? "저장됨" : "자동 저장"}</span>
+          <span className={`max-w-48 text-right text-xs leading-5 ${storageStatus === "failed" ? "font-semibold text-red-700" : "text-muted"}`} aria-live="polite" aria-atomic="true">
+            {storageStatus === "failed" ? "기기에 저장되지 않음 — PDF·작성본 백업 권장" : storageStatus === "saved" ? "저장됨" : "자동 저장"}
+          </span>
         </div>
+        {storageStatus === "failed" && <section data-resume-storage-status="failed" className="mt-4 border-l-4 border-red-600 bg-red-50 p-4 text-sm text-red-900" aria-labelledby="resume-storage-failure-heading">
+          <h3 id="resume-storage-failure-heading" className="font-semibold">현재 탭에서는 유지되지만 닫거나 새로고침하면 사라질 수 있어요.</h3>
+          <p className="mt-1 leading-6">지금 보이는 내용을 PDF나 Builder 작성본 백업으로 먼저 보관해 주세요.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" onClick={() => saveAsPdf("builder_actions")} className="min-h-11 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-light">PDF 저장</button>
+            <button type="button" onClick={exportDraft} className="min-h-11 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-navy hover:border-navy">작성본 백업</button>
+            <button type="button" onClick={() => persistResume(resume)} className="min-h-11 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-navy hover:border-navy">다시 저장 확인</button>
+          </div>
+        </section>}
         <div className="mt-5 rounded-xl bg-surface p-4">
           <div className="flex items-center justify-between gap-4 text-sm"><span className="font-medium text-navy">필수 내용 {completedEssentials}/7</span><button type="button" onClick={loadExample} className="min-h-11 font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">예시 불러오기</button></div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white" role="progressbar" aria-label="이력서 필수 내용 완성도" aria-valuemin={0} aria-valuemax={7} aria-valuenow={completedEssentials}><div className="h-full rounded-full bg-gold transition-[width]" style={{ width: `${(completedEssentials / 7) * 100}%` }} /></div>
