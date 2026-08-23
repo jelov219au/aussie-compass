@@ -190,6 +190,34 @@ export default async function ResumeProPage({ searchParams }: Props) {
               </ol>
               <p className="px-4 py-4 text-xs leading-5 text-muted sm:px-6">지원 자료는 현재 브라우저에 저장됩니다. 기기를 바꾸기 전에는 지원서 묶음을 내려받아 보관해 주세요.</p>
             </section>
+            <section className="mt-5 border border-navy/20 bg-surface p-5 sm:p-6" aria-labelledby="ai-role-heading">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#806515]">AI와 함께 써도 남는 것</p>
+              <h2 id="ai-role-heading" className="mt-2 max-w-3xl text-2xl font-semibold text-navy">답변보다, 내가 제출할 근거와 파일이 남아야 해요.</h2>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">Resume Pro는 AI를 대신한다고 약속하지 않아요. 어떤 글쓰기 도구를 쓰더라도 실제 경험을 확인하고, 채용 공고에 맞춰 제출할 자료를 정리하는 일은 남습니다.</p>
+              <ol className="mt-6 grid gap-px bg-border md:grid-cols-3">
+                <li className="bg-white p-4 sm:p-5">
+                  <span className="font-mono text-xs text-[#806515]">01</span>
+                  <strong className="mt-2 block text-sm text-navy">AI로 물어보기 좋은 일</strong>
+                  <p className="mt-2 text-xs leading-5 text-muted">표현을 떠올리거나 초안을 비교해 보세요. 결과는 내 실제 경험과 맞는지 직접 확인하고 고쳐야 해요.</p>
+                </li>
+                <li className="bg-white p-4 sm:p-5">
+                  <span className="font-mono text-xs text-[#806515]">02</span>
+                  <strong className="mt-2 block text-sm text-navy">무료로 확인하는 일</strong>
+                  <p className="mt-2 text-xs leading-5 text-muted">내 이력서와 공고를 브라우저 안에서만 비교해, 이미 있는 표현과 확인할 근거를 나눠 보세요.</p>
+                </li>
+                <li className="bg-white p-4 sm:p-5">
+                  <span className="font-mono text-xs text-[#806515]">03</span>
+                  <strong className="mt-2 block text-sm text-navy">Resume Pro에 남기는 일</strong>
+                  <p className="mt-2 text-xs leading-5 text-muted">확인한 사실을 회사별 이력서·커버레터·STAR 메모와 지원서 묶음에 연결해 다음 지원에도 다시 쓰세요.</p>
+                </li>
+              </ol>
+              <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+                <ResumeProProofLink entry={entry} className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">
+                  결제 전에 내 공고로 차이 확인하기 →
+                </ResumeProProofLink>
+                <p className="max-w-2xl text-xs leading-5 text-muted">어떤 AI나 글쓰기 도구를 쓰더라도 없는 경력·성과·자격을 만들지 않습니다.</p>
+              </div>
+            </section>
             {canOfferCheckout && <div id="resume-pro-checkout" className="scroll-mt-24 mt-5"><ResumeProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
             <p className="mt-4 text-xs leading-5 text-muted">
               {existingBuyerIssue
