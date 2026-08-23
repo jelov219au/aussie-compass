@@ -7,6 +7,7 @@ export const resumeProEntries = [
   "resume-builder-complete",
   "home-premium",
   "pro-finder",
+  "pro-catalog-card",
 ] as const;
 
 export type ResumeProEntry = (typeof resumeProEntries)[number] | "direct";

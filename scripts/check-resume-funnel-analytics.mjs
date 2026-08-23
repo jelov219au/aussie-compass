@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [contract, client, builder, checker, articleStep, homeSection, finder, offerPage, proofLink, report, reportPage, privacyDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage] = await Promise.all([
+const [contract, client, builder, checker, articleStep, homeSection, finder, proHub, offerPage, proofLink, report, reportPage, privacyDoc, performanceDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage] = await Promise.all([
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeFunnelAnalytics.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeBuilder.tsx", import.meta.url), "utf8"),
@@ -9,11 +9,13 @@ const [contract, client, builder, checker, articleStep, homeSection, finder, off
   readFile(new URL("../src/components/resources/ArticleNextStep.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/PremiumToolsSection.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ProProductFinder.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeProProofLink.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/resumeProPerformance.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-pro-performance/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../docs/privacy-safe-analytics.md", import.meta.url), "utf8"),
+  readFile(new URL("../docs/resume-pro-performance.md", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeProVisitTracker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeProCheckoutForm.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeProActivationForm.tsx", import.meta.url), "utf8"),
@@ -54,6 +56,7 @@ assert.ok(contract.includes('/resume-pro?from=job-ad-checker'), "CTA href contra
 for (const [source, href] of [
   [homeSection, '/resume-pro?from=home-premium'],
   [finder, '/resume-pro?from=pro-finder'],
+  [proHub, '/resume-pro?from=pro-catalog-card'],
 ]) {
   assert.ok(source.includes(`href="${href}"`), `major Resume Pro CTA is missing its fixed acquisition entry: ${href}`);
   assert.ok(contract.includes(href), `CTA href contract is missing its fixed acquisition entry: ${href}`);
@@ -69,9 +72,13 @@ assert.ok(builder.includes("onClickCapture={trackBuilderInteraction}") && builde
 assert.ok(builder.includes('closest("input, textarea, select, button")'), "Builder start must ignore passive page views and links");
 assert.ok(builder.includes("trackResumeBuilderStarted()"), "Builder start helper is not connected");
 
-for (const source of [builder, checker, articleStep, homeSection, finder]) {
+for (const source of [builder, checker, articleStep, homeSection, finder, proHub]) {
   assert.ok(source.includes("ResumeProCtaLink"), "a primary Resume Pro CTA is missing the fixed analytics link");
 }
+
+assert.ok(finder.includes('freeHref: "/resume-job-ad-checker"') && finder.includes("결제 전에 내 공고로 무료 점검하기"), "the Pro finder must offer the free proof step to job seekers");
+assert.ok(finder.includes('href="/resume-builder"') && finder.includes("이력서 초안이 없다면 무료 Builder부터"), "the Pro finder must preserve a free start for visitors without a resume draft");
+assert.ok(proHub.includes('freeHref: "/resume-job-ad-checker"'), "the Resume Pro catalog card must link to the free proof tool");
 
 assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("report.jobAdChecks") && reportPage.includes("report.proCtaClicks"), "operator report must show all anonymous pre-offer aggregate steps");
 assert.ok(privacyDoc.includes("Names, STAR text, company names, search terms, full URLs and URL queries are never read or sent."), "privacy boundary must name prohibited resume and URL values");
@@ -94,6 +101,7 @@ assert.doesNotMatch(proofLink, /window\.location|URLSearchParams|searchParams|lo
 assert.ok(report.includes('eventName: "Resume Pro Free Proof Opened"') && report.includes("proofStarts: aggregateMap(proofStarts)"), "the operator report must aggregate free proof starts by fixed entry");
 assert.ok(reportPage.includes("totals.proofStarts") && reportPage.includes("row.proofStarts"), "the operator report must show free proof totals and source rows");
 assert.ok(privacyDoc.includes("Resume Pro Free Proof Opened"), "privacy documentation is missing the free proof event");
+assert.ok(performanceDoc.includes("Resume Pro Free Proof Opened") && performanceDoc.includes("Resume Pro 방문 → 무료 확인 시작"), "performance guidance is missing the free proof step");
 for (const postPurchaseSource of [activationForm, successPage, restorePage]) {
   assert.doesNotMatch(postPurchaseSource, /\btrack\(|ResumeProVisitTracker/, "post-purchase issue pages must not emit a resume funnel event");
 }

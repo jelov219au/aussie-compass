@@ -12,6 +12,7 @@ export const resumeFunnelSurfaces = {
   articleNextStep: "article_next_step",
   homePremium: "home_resume_pro",
   proFinder: "pro_finder",
+  proCatalogCard: "pro_catalog_card",
 } as const;
 
 export const resumeFunnelContexts = {
@@ -38,4 +39,5 @@ export type ResumeProCtaHref =
   | "/resume-pro?from=article-cover-letter-checklist"
   | "/resume-pro?from=resume-builder-complete"
   | "/resume-pro?from=home-premium"
-  | "/resume-pro?from=pro-finder";
+  | "/resume-pro?from=pro-finder"
+  | "/resume-pro?from=pro-catalog-card";

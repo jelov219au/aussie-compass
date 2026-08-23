@@ -43,6 +43,7 @@ const entries: Array<{ entry: ResumeProEntry; label: string }> = [
   { entry: "resume-builder-complete", label: "무료 이력서 완성 화면" },
   { entry: "home-premium", label: "홈 Premium 도구 영역" },
   { entry: "pro-finder", label: "Pro 상품 선택기" },
+  { entry: "pro-catalog-card", label: "Pro 상품 비교 카드" },
   { entry: "direct", label: "직접 방문·기타" },
 ];
 
