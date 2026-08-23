@@ -4,13 +4,39 @@
 -- Apply with PAYMENTS_ENABLED=false after least-privilege roles v1.
 begin;
 
+set local statement_timeout = '10s';
+set local lock_timeout = '2s';
+
 do $$
 begin
+  if current_database() <> 'neondb' then
+    raise exception 'forward fix requires the neondb database';
+  end if;
+
+  if current_user <> 'neondb_owner' then
+    raise exception 'forward fix requires the neondb_owner console role';
+  end if;
+
   if not exists (
     select 1 from public.schema_migrations
     where version = '20260823_payment_least_privilege_roles_v1'
   ) then
     raise exception 'payment least-privilege roles v1 must be applied first';
+  end if;
+end;
+$$;
+
+-- Freeze first-sale gate writes for this short transaction so the preflight
+-- no-reservation result cannot race a new claim. A concurrent claim makes the
+-- 2-second lock timeout fail closed instead of waiting through a live request.
+lock table public.first_sale_gates in share row exclusive mode;
+
+do $$
+begin
+  if exists (
+    select 1 from public.first_sale_gates where state = 'RESERVED'
+  ) then
+    raise exception 'forward fix refuses an in-flight first-sale reservation';
   end if;
 end;
 $$;

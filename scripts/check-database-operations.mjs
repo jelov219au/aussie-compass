@@ -308,6 +308,12 @@ for (const contract of [
 
 for (const contract of [
   "begin;",
+  "set local statement_timeout = '10s'",
+  "set local lock_timeout = '2s'",
+  "lock table public.first_sale_gates in share row exclusive mode",
+  "current_database() <> 'neondb'",
+  "current_user <> 'neondb_owner'",
+  "state = 'RESERVED'",
   "20260823_payment_least_privilege_roles_v1",
   "set role hoju_migration_owner",
   "pg_get_functiondef",

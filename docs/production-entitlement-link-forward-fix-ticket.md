@@ -56,13 +56,18 @@ read-only result does not supply the required owner window or backup reference.
 
 1. Reconfirm the backup reference and that public Checkout still returns 503.
 2. Run only `docs/migrations/20260824_entitlement_link_conflict_v1.sql`.
-3. Require the seven successful statements ending in `COMMIT`. On an error or
-   failed transaction, use `ROLLBACK`, keep payments off and preserve the exact
-   SQLSTATE without retrying an ad hoc edit.
+3. Require every statement to succeed through the final `COMMIT`, including the
+   10-second statement timeout, 2-second lock timeout and short
+   `first_sale_gates` write lock. On an error or failed transaction, use
+   `ROLLBACK`, keep payments off and preserve the exact SQLSTATE without
+   retrying an ad hoc edit.
 
 The migration itself verifies the least-privilege prerequisite, switches to
-`hoju_migration_owner`, refuses an unexpected function definition, performs one
-exact replacement and records its version in the same transaction.
+`hoju_migration_owner`, requires the `neondb_owner` console role and `neondb`
+database, refuses an in-flight reservation or unexpected function definition,
+performs one exact replacement and records its version in the same transaction.
+The gate-table lock prevents a new reservation from racing the check; lock
+contention times out and leaves the transaction unapplied.
 
 ## Postflight — read only
 
