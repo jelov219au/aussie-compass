@@ -13,7 +13,8 @@ admin authentication exists.
   Builder and CTA events contain only fixed `surface` and anonymous page
   `context` values; visits and checkout starts use the allowlisted `entry`.
 - Stripe supplies completed, paid Resume Pro Checkout Sessions grouped by the
-  `acquisition_source` metadata value.
+  `acquisition_source` metadata value, with the PaymentIntent's expanded latest
+  Charge used only to count full refunds and refund-adjusted totals.
 - The report never reads or displays customer names, email addresses, card
   details, Checkout Session IDs or individual analytics records.
 
@@ -37,8 +38,10 @@ STRIPE_ACCOUNTING_KEY=
 access token for the account or team that owns the project.
 
 `STRIPE_ACCOUNTING_KEY` must be a dedicated restricted key (`rk_live_` for
-real sales or `rk_test_` for test data) with read access to Checkout Sessions.
-Do not reuse the checkout write key. Apply an IP access policy when practical.
+real sales or `rk_test_` for test data) with read access to Checkout Sessions
+and PaymentIntents/Charges. The extra read is required to stop a fully refunded
+controlled live test from appearing as a retained purchase. Do not reuse the
+checkout write key. Apply an IP access policy when practical.
 
 The current project-scoped Vercel reporting token expires on 2026-11-19. Replace
 it through the same local form before then. The report supports 7, 30 and 90
@@ -62,8 +65,14 @@ day windows.
 - `공고 예시 확인` is the fixed fictional one-click preview. `공고 맞춤 점검`
   remains reserved for a comparison the visitor starts with their own local
   inputs, so sample use does not inflate completed checks.
-- `결제 시작 → 결제 완료` shows whether checkout confidence, price or terms
-  may need attention.
+- `live 결제 완료` includes controlled live transactions and is not a customer
+  count. `전액 환불` is removed from `유지 결제 후보`; partial refunds reduce
+  the displayed net amount. A retained live payment is still only a candidate
+  until the first-sale incident record confirms it came from a genuine customer.
+- `결제 시작 → 유지 결제 후보` can indicate whether checkout confidence,
+  price or terms need attention only after that manual customer check.
 - Do not change copy from a handful of visits. The report deliberately marks
   sources with fewer than 10 visits as needing more data.
-- Stripe revenue is gross completed payment value before refunds.
+- The summary shows gross paid value, refund value and refund-adjusted net value.
+  It is a conversion aid, not the accounting ledger; disputes, fees, payout and
+  tax evidence remain in the private reconciliation workflow.

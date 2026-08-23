@@ -3,6 +3,12 @@ import "server-only";
 import Stripe from "stripe";
 import { resumeProProduct } from "@/lib/commerce";
 import { getLocalOperatorConnectionValue } from "@/lib/localOperatorConnection";
+import {
+  addResumeProPaymentTotals,
+  classifyResumeProPerformancePayment,
+  emptyResumeProPaymentTotals,
+  type ResumeProPaymentTotals,
+} from "@/lib/resumeProPerformancePayment";
 import { normalizeResumeProEntry, type ResumeProEntry } from "@/lib/resumeProAttribution";
 import { resumeFunnelEvents, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
 
@@ -13,8 +19,12 @@ export type ResumeProPerformanceRow = {
   proofStarts: number;
   launchInterests: number;
   checkoutStarts: number;
-  purchases: number;
-  revenueCents: number;
+  paidCheckouts: number;
+  fullRefunds: number;
+  retainedPayments: number;
+  grossRevenueCents: number;
+  refundedCents: number;
+  netRevenueCents: number;
 };
 
 type ConnectionState = {
@@ -163,8 +173,8 @@ async function loadStripeTotals(sinceDate: Date) {
   const key = await getLocalOperatorConnectionValue("STRIPE_ACCOUNTING_KEY");
   if (!key?.startsWith("rk_test_") && !key?.startsWith("rk_live_")) {
     return {
-      state: { connected: false, message: "Checkout Sessions 읽기 권한만 가진 STRIPE_ACCOUNTING_KEY를 연결하면 구매와 매출을 불러옵니다." },
-      purchases: new Map<ResumeProEntry, { count: number; revenueCents: number }>(),
+      state: { connected: false, message: "Checkout Sessions와 PaymentIntents 읽기 권한을 가진 STRIPE_ACCOUNTING_KEY를 연결하면 live 결제·환불·순액을 불러옵니다." },
+      payments: new Map<ResumeProEntry, ResumeProPaymentTotals>(),
     };
   }
 
@@ -175,36 +185,47 @@ async function loadStripeTotals(sinceDate: Date) {
     timeout: 15_000,
     telemetry: false,
   });
-  const purchases = new Map<ResumeProEntry, { count: number; revenueCents: number }>();
+  const payments = new Map<ResumeProEntry, ResumeProPaymentTotals>();
 
   try {
     for await (const session of stripe.checkout.sessions.list({
       created: { gte: Math.floor(sinceDate.getTime() / 1000) },
       limit: 100,
+      expand: ["data.payment_intent.latest_charge"],
     })) {
-      const isResumeProPurchase = session.status === "complete"
-        && session.payment_status === "paid"
-        && session.metadata?.product_code === "resume_pro"
-        && session.currency === resumeProProduct.currency
-        && session.amount_total === resumeProProduct.priceCents;
-      if (!isResumeProPurchase) continue;
+      const paymentIntent = typeof session.payment_intent === "object" ? session.payment_intent : null;
+      const charge = paymentIntent && typeof paymentIntent.latest_charge === "object"
+        ? paymentIntent.latest_charge
+        : null;
+      const classified = classifyResumeProPerformancePayment({
+        status: session.status,
+        paymentStatus: session.payment_status,
+        productCode: session.metadata?.product_code ?? null,
+        currency: session.currency,
+        amountTotal: session.amount_total,
+        expectedCurrency: resumeProProduct.currency,
+        expectedAmountTotal: resumeProProduct.priceCents,
+        paymentIntentStatus: paymentIntent?.status ?? null,
+        chargePaid: charge?.paid ?? null,
+        amountRefunded: charge?.amount_refunded ?? null,
+      });
+      if (!classified) continue;
 
       const entry = normalizeResumeProEntry(session.metadata?.acquisition_source);
-      const current = purchases.get(entry) ?? { count: 0, revenueCents: 0 };
-      purchases.set(entry, {
-        count: current.count + 1,
-        revenueCents: current.revenueCents + (session.amount_total ?? 0),
-      });
+      payments.set(entry, addResumeProPaymentTotals(
+        payments.get(entry) ?? emptyResumeProPaymentTotals(),
+        classified,
+      ));
     }
 
     return {
-      state: { connected: true, mode, message: mode === "live" ? "Stripe 실결제 집계가 연결됐습니다." : "Stripe 테스트 결제 집계가 연결됐습니다." },
-      purchases,
+      state: { connected: true, mode, message: mode === "live" ? "Stripe live 결제·전액 환불·환불 반영 순액이 연결됐습니다." : "Stripe 테스트 결제·전액 환불·환불 반영 순액이 연결됐습니다." },
+      payments,
     };
   } catch {
     return {
-      state: { connected: false, mode, message: "Stripe 연결을 확인해 주세요. 제한 키에 Checkout Sessions 읽기 권한이 필요합니다." },
-      purchases: new Map<ResumeProEntry, { count: number; revenueCents: number }>(),
+      state: { connected: false, mode, message: "Stripe 연결을 확인해 주세요. 제한 키에 Checkout Sessions와 PaymentIntents 읽기 권한이 필요합니다." },
+      payments: new Map<ResumeProEntry, ResumeProPaymentTotals>(),
     };
   }
 }
@@ -231,15 +252,17 @@ export async function getResumeProPerformance(days: 7 | 30 | 90): Promise<Resume
     jobAdSampleViews: vercel.jobAdSampleViews,
     jobAdChecks: vercel.jobAdChecks,
     proCtaClicks: vercel.proCtaClicks,
-    rows: entries.map(({ entry, label }) => ({
-      entry,
-      label,
-      visits: vercel.visits.get(entry) ?? 0,
-      proofStarts: vercel.proofStarts.get(entry) ?? 0,
-      launchInterests: vercel.launchInterests.get(entry) ?? 0,
-      checkoutStarts: vercel.checkouts.get(entry) ?? 0,
-      purchases: stripe.purchases.get(entry)?.count ?? 0,
-      revenueCents: stripe.purchases.get(entry)?.revenueCents ?? 0,
-    })),
+    rows: entries.map(({ entry, label }) => {
+      const payment = stripe.payments.get(entry) ?? emptyResumeProPaymentTotals();
+      return {
+        entry,
+        label,
+        visits: vercel.visits.get(entry) ?? 0,
+        proofStarts: vercel.proofStarts.get(entry) ?? 0,
+        launchInterests: vercel.launchInterests.get(entry) ?? 0,
+        checkoutStarts: vercel.checkouts.get(entry) ?? 0,
+        ...payment,
+      };
+    }),
   };
 }

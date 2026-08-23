@@ -87,6 +87,10 @@ assert.ok(finder.includes('href="/resume-builder"') && finder.includes("이력�
 assert.ok(proHub.includes('freeHref: "/resume-job-ad-checker"'), "the Resume Pro catalog card must link to the free proof tool");
 
 assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("report.jobAdChecks") && reportPage.includes("report.proCtaClicks"), "operator report must show all anonymous pre-offer aggregate steps");
+assert.ok(report.includes('expand: ["data.payment_intent.latest_charge"]'), "operator report must retrieve refund evidence for paid Checkouts");
+assert.ok(report.includes("classifyResumeProPerformancePayment") && reportPage.includes("totals.fullRefunds") && reportPage.includes("totals.retainedPayments") && reportPage.includes("totals.netRevenueCents"), "operator report must separate paid, fully refunded, retained-candidate and net values");
+assert.ok(reportPage.includes("실제 신규 고객인지 자동 판정하지 않아요") && performanceDoc.includes("genuine customer"), "operator guidance must not treat a retained live payment as a proven customer");
+assert.ok(reportPage.indexOf("row.paidCheckouts > 0") < reportPage.indexOf("row.visits < 10"), "payment and refund evidence must outrank low-sample copy advice");
 assert.ok(privacyDoc.includes("Names, STAR text, company names, search terms, full URLs and URL queries are never read or sent."), "privacy boundary must name prohibited resume and URL values");
 
 assert.equal((contract.match(/^\s+\w+:\s+"Resume /gm) ?? []).length, 4, "the fixed resume funnel contract must keep exactly four shared event names");

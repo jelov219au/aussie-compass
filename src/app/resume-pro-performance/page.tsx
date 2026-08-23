@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   ...createPageMetadata({
     title: "Resume Pro 성과 확인 | Hoju Compass",
-    description: "Builder 시작, 공고 예시 확인, 공고 맞춤 점검, Resume Pro CTA 클릭, 방문, 무료 확인, 판매 시작 메일 준비 행동, 결제 시작과 구매 전환을 익명 합계로 비교하는 운영자용 화면입니다.",
+    description: "Builder 시작부터 live 결제, 전액 환불과 환불 반영 순액까지 익명 합계로 비교하는 운영자용 화면입니다.",
     path: "/resume-pro-performance",
   }),
   robots: { index: false, follow: false },
@@ -26,12 +26,13 @@ function money(cents: number) {
 
 function nextAction(row: ResumeProPerformanceRow, connected: { vercel: boolean; stripe: boolean }) {
   if (!connected.vercel || !connected.stripe) return "두 데이터 연결을 마친 뒤 판단하세요.";
+  if (row.paidCheckouts > 0 && row.retainedPayments === 0) return "전액 환불된 live 거래만 있어요. 통제 결제인지 실제 고객 환불인지 운영 사건과 대조하고 구매 성과로 세지 마세요.";
+  if (row.retainedPayments > 0) return "전액 환불되지 않은 live 결제가 있어요. 실제 고객 여부를 운영 사건과 대조한 뒤에만 같은 유입 경로를 넓히세요.";
   if (row.visits < 10) return "아직 표본이 적어요. 문구를 바꾸기 전에 더 지켜보세요.";
   if (row.proofStarts === 0) return "방문 뒤 무료 확인이 시작되지 않았어요. 샘플과 무료 점검 연결을 먼저 점검하세요.";
   if (row.launchInterests > 0 && row.checkoutStarts === 0) return "메일 앱 열기·요청문 복사 행동이 나온 경로예요. 실제 메일 수신함 요청과 대조한 뒤 준비 게이트가 끝나면 제한적으로 알리세요.";
   if (row.checkoutStarts === 0) return "CTA보다 Resume Pro 소개 페이지에서 가치가 충분히 전달되는지 확인하세요.";
-  if (row.purchases === 0) return "가격, 결제 조건과 구매 전 신뢰 설명을 먼저 점검하세요.";
-  return "구매가 나온 경로예요. 같은 상황의 글과 CTA에 넓혀볼 수 있어요.";
+  return "가격, 결제 조건과 구매 전 신뢰 설명을 먼저 점검하세요.";
 }
 
 type Props = { searchParams: Promise<{ days?: string | string[]; connection?: string | string[] }> };
@@ -49,9 +50,13 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
     proofStarts: sum.proofStarts + row.proofStarts,
     launchInterests: sum.launchInterests + row.launchInterests,
     checkoutStarts: sum.checkoutStarts + row.checkoutStarts,
-    purchases: sum.purchases + row.purchases,
-    revenueCents: sum.revenueCents + row.revenueCents,
-  }), { visits: 0, proofStarts: 0, launchInterests: 0, checkoutStarts: 0, purchases: 0, revenueCents: 0 });
+    paidCheckouts: sum.paidCheckouts + row.paidCheckouts,
+    fullRefunds: sum.fullRefunds + row.fullRefunds,
+    retainedPayments: sum.retainedPayments + row.retainedPayments,
+    grossRevenueCents: sum.grossRevenueCents + row.grossRevenueCents,
+    refundedCents: sum.refundedCents + row.refundedCents,
+    netRevenueCents: sum.netRevenueCents + row.netRevenueCents,
+  }), { visits: 0, proofStarts: 0, launchInterests: 0, checkoutStarts: 0, paidCheckouts: 0, fullRefunds: 0, retainedPayments: 0, grossRevenueCents: 0, refundedCents: 0, netRevenueCents: 0 });
   const connected = { vercel: report.vercel.connected, stripe: report.stripe.connected };
 
   return (
@@ -63,8 +68,8 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
           <header className="mt-5 grid gap-7 border-b border-navy/20 pb-9 lg:grid-cols-[1fr_20rem] lg:items-end">
             <div className="max-w-4xl">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro funnel</p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">어느 글이 방문을 넘어<br /><span className="font-normal text-navy-light">실제 구매로 이어지는지 봅니다.</span></h1>
-              <p className="mt-5 max-w-3xl leading-7 text-muted">Builder 시작, 공고 예시 확인, 실제 공고 맞춤 점검, Pro CTA 클릭, 방문, 무료 확인, 판매 시작 메일 준비 행동, 결제 시작과 결제 완료를 같은 기간의 익명 합계로 비교합니다. 메일 앱 열기와 요청문 복사는 실제 발송이나 수신을 뜻하지 않으며, 이메일 주소, 이름, 이력서·공고 내용, 회사명, 검색어나 URL 쿼리는 가져오지 않아요.</p>
+              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">어느 글이 방문을 넘어<br /><span className="font-normal text-navy-light">어떤 결제 상태로 이어지는지 봅니다.</span></h1>
+              <p className="mt-5 max-w-3xl leading-7 text-muted">Builder 시작, 공고 예시 확인, 실제 공고 맞춤 점검, Pro CTA 클릭, 방문, 무료 확인, 판매 시작 메일 준비 행동, 결제 시작과 live 결제·전액 환불을 같은 기간의 익명 합계로 비교합니다. 전액 환불된 통제 결제는 유지 결제에서 제외하지만, 남은 live 결제도 실제 신규 고객인지 자동 판정하지 않아요. 이메일 주소, 이름, 이력서·공고 내용, 회사명, 검색어나 URL 쿼리는 가져오지 않습니다.</p>
             </div>
             <form method="get" className="border-l-2 border-gold pl-5">
               <label className="text-sm font-semibold text-navy">확인 기간
@@ -85,7 +90,7 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
               <p className="mt-2 text-sm leading-6 text-muted">{report.vercel.message}</p>
             </div>
             <div className={`border-l-2 p-5 ${report.stripe.connected ? "border-emerald-600 bg-emerald-50" : "border-gold bg-white"}`}>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">결제 완료·매출</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">live 결제·환불 반영</p>
               <h2 className="mt-2 text-lg font-semibold text-navy">Stripe {report.stripe.connected ? `${report.stripe.mode === "test" ? "테스트 " : ""}연결됨` : "연결 필요"}</h2>
               <p className="mt-2 text-sm leading-6 text-muted">{report.stripe.message}</p>
             </div>
@@ -118,7 +123,7 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
               <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">{report.since} – {report.until}</p><h2 id="funnel-summary-heading" className="mt-2 text-2xl font-semibold text-navy">전체 흐름</h2></div>
               <p className="text-xs leading-5 text-muted">수치는 선택한 기간 안에 발생한 합계입니다.</p>
             </div>
-            <dl className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-5">
+            <dl className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-6">
               <div className="bg-white p-5"><dt className="text-xs text-muted">Builder 시작</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.builderStarts.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">공고 예시 확인</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.jobAdSampleViews.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">공고 맞춤 점검</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.jobAdChecks.toLocaleString() : "—"}</dd></div>
@@ -127,17 +132,19 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
               <div className="bg-white p-5"><dt className="text-xs text-muted">무료 확인 시작</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? totals.proofStarts.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">방문 대비 {connected.vercel ? rate(totals.proofStarts, totals.visits) : "—"}</p></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">안내 메일 준비 행동</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? totals.launchInterests.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">방문 대비 {connected.vercel ? rate(totals.launchInterests, totals.visits) : "—"} · 실제 발송 아님</p></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">결제 시작</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? totals.checkoutStarts.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">방문 대비 {connected.vercel ? rate(totals.checkoutStarts, totals.visits) : "—"}</p></div>
-              <div className="bg-white p-5"><dt className="text-xs text-muted">결제 완료</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.stripe ? totals.purchases.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">시작 대비 {connected.vercel && connected.stripe ? rate(totals.purchases, totals.checkoutStarts) : "—"}</p></div>
-              <div className="bg-white p-5"><dt className="text-xs text-muted">결제 금액</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.stripe ? money(totals.revenueCents) : "—"}</dd><p className="mt-1 text-xs text-muted">환불 전 결제 완료 기준</p></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">live 결제 완료</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.stripe ? totals.paidCheckouts.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">통제 거래 포함</p></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">전액 환불</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.stripe ? totals.fullRefunds.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">유지 결제에서 제외</p></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">유지 결제 후보</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.stripe ? totals.retainedPayments.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">시작 대비 {connected.vercel && connected.stripe ? rate(totals.retainedPayments, totals.checkoutStarts) : "—"} · 고객 여부 수동 확인</p></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">환불 반영 순액</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.stripe ? money(totals.netRevenueCents) : "—"}</dd><p className="mt-1 text-xs text-muted">총 {connected.stripe ? money(totals.grossRevenueCents) : "—"} · 환불 {connected.stripe ? money(totals.refundedCents) : "—"}</p></div>
             </dl>
           </section>
 
           <section className="mt-10" aria-labelledby="source-performance-heading">
             <div className="border-b border-navy/20 pb-5"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Source comparison</p><h2 id="source-performance-heading" className="mt-2 text-2xl font-semibold text-navy">출처별 성과</h2></div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[70rem] border-collapse text-left text-sm">
-                <thead><tr className="border-b border-navy/20"><th className="px-3 py-4 font-semibold text-navy">유입 경로</th><th className="px-3 py-4 text-right font-semibold text-navy">방문</th><th className="px-3 py-4 text-right font-semibold text-navy">무료 확인</th><th className="px-3 py-4 text-right font-semibold text-navy">메일 준비 행동</th><th className="px-3 py-4 text-right font-semibold text-navy">결제 시작</th><th className="px-3 py-4 text-right font-semibold text-navy">결제 완료</th><th className="px-3 py-4 text-right font-semibold text-navy">방문→확인</th><th className="px-3 py-4 text-right font-semibold text-navy">방문→메일 준비</th><th className="px-3 py-4 text-right font-semibold text-navy">시작→구매</th><th className="px-3 py-4 text-right font-semibold text-navy">결제 금액</th></tr></thead>
-                <tbody>{report.rows.map((row) => <tr key={row.entry} className="border-b border-border"><th className="px-3 py-4 font-medium text-navy">{row.label}</th><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.visits.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.proofStarts.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.launchInterests.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.checkoutStarts.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.stripe ? row.purchases.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? rate(row.proofStarts, row.visits) : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? rate(row.launchInterests, row.visits) : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel && connected.stripe ? rate(row.purchases, row.checkoutStarts) : "—"}</td><td className="px-3 py-4 text-right font-medium text-navy">{connected.stripe ? money(row.revenueCents) : "—"}</td></tr>)}</tbody>
+              <table className="w-full min-w-[82rem] border-collapse text-left text-sm">
+                <thead><tr className="border-b border-navy/20"><th className="px-3 py-4 font-semibold text-navy">유입 경로</th><th className="px-3 py-4 text-right font-semibold text-navy">방문</th><th className="px-3 py-4 text-right font-semibold text-navy">무료 확인</th><th className="px-3 py-4 text-right font-semibold text-navy">메일 준비 행동</th><th className="px-3 py-4 text-right font-semibold text-navy">결제 시작</th><th className="px-3 py-4 text-right font-semibold text-navy">live 결제</th><th className="px-3 py-4 text-right font-semibold text-navy">전액 환불</th><th className="px-3 py-4 text-right font-semibold text-navy">유지 후보</th><th className="px-3 py-4 text-right font-semibold text-navy">방문→확인</th><th className="px-3 py-4 text-right font-semibold text-navy">방문→메일 준비</th><th className="px-3 py-4 text-right font-semibold text-navy">시작→유지</th><th className="px-3 py-4 text-right font-semibold text-navy">환불 반영 순액</th></tr></thead>
+                <tbody>{report.rows.map((row) => <tr key={row.entry} className="border-b border-border"><th className="px-3 py-4 font-medium text-navy">{row.label}</th><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.visits.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.proofStarts.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.launchInterests.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.checkoutStarts.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.stripe ? row.paidCheckouts.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.stripe ? row.fullRefunds.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.stripe ? row.retainedPayments.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? rate(row.proofStarts, row.visits) : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? rate(row.launchInterests, row.visits) : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel && connected.stripe ? rate(row.retainedPayments, row.checkoutStarts) : "—"}</td><td className="px-3 py-4 text-right font-medium text-navy">{connected.stripe ? money(row.netRevenueCents) : "—"}</td></tr>)}</tbody>
               </table>
             </div>
           </section>
