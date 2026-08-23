@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   ...createPageMetadata({
     title: "Resume Pro 성과 확인 | Hoju Compass",
-    description: "Builder 시작, Resume Pro CTA 클릭, 방문, 결제 시작과 구매 전환을 익명 합계로 비교하는 운영자용 화면입니다.",
+    description: "Builder 시작, Resume Pro CTA 클릭, 방문, 판매 시작 안내 요청, 결제 시작과 구매 전환을 익명 합계로 비교하는 운영자용 화면입니다.",
     path: "/resume-pro-performance",
   }),
   robots: { index: false, follow: false },
@@ -27,6 +27,7 @@ function money(cents: number) {
 function nextAction(row: ResumeProPerformanceRow, connected: { vercel: boolean; stripe: boolean }) {
   if (!connected.vercel || !connected.stripe) return "두 데이터 연결을 마친 뒤 판단하세요.";
   if (row.visits < 10) return "아직 표본이 적어요. 문구를 바꾸기 전에 더 지켜보세요.";
+  if (row.launchInterests > 0 && row.checkoutStarts === 0) return "결제 차단 기간에도 구매 의향이 나온 경로예요. 준비 게이트가 끝나면 이 경로부터 제한적으로 알리세요.";
   if (row.checkoutStarts === 0) return "CTA보다 Resume Pro 소개 페이지에서 가치가 충분히 전달되는지 확인하세요.";
   if (row.purchases === 0) return "가격, 결제 조건과 구매 전 신뢰 설명을 먼저 점검하세요.";
   return "구매가 나온 경로예요. 같은 상황의 글과 CTA에 넓혀볼 수 있어요.";
@@ -44,10 +45,11 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
   const report = await getResumeProPerformance(days);
   const totals = report.rows.reduce((sum, row) => ({
     visits: sum.visits + row.visits,
+    launchInterests: sum.launchInterests + row.launchInterests,
     checkoutStarts: sum.checkoutStarts + row.checkoutStarts,
     purchases: sum.purchases + row.purchases,
     revenueCents: sum.revenueCents + row.revenueCents,
-  }), { visits: 0, checkoutStarts: 0, purchases: 0, revenueCents: 0 });
+  }), { visits: 0, launchInterests: 0, checkoutStarts: 0, purchases: 0, revenueCents: 0 });
   const connected = { vercel: report.vercel.connected, stripe: report.stripe.connected };
 
   return (
@@ -60,7 +62,7 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
             <div className="max-w-4xl">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro funnel</p>
               <h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">어느 글이 방문을 넘어<br /><span className="font-normal text-navy-light">실제 구매로 이어지는지 봅니다.</span></h1>
-              <p className="mt-5 max-w-3xl leading-7 text-muted">Builder 시작, Pro CTA 클릭, 방문, 결제 시작과 결제 완료를 같은 기간의 익명 합계로 비교합니다. 이름, 이력서 내용, 회사명, 검색어나 URL 쿼리는 가져오지 않아요.</p>
+              <p className="mt-5 max-w-3xl leading-7 text-muted">Builder 시작, Pro CTA 클릭, 방문, 판매 시작 안내 요청, 결제 시작과 결제 완료를 같은 기간의 익명 합계로 비교합니다. 이메일 주소, 이름, 이력서 내용, 회사명, 검색어나 URL 쿼리는 가져오지 않아요.</p>
             </div>
             <form method="get" className="border-l-2 border-gold pl-5">
               <label className="text-sm font-semibold text-navy">확인 기간
@@ -114,10 +116,11 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
               <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">{report.since} – {report.until}</p><h2 id="funnel-summary-heading" className="mt-2 text-2xl font-semibold text-navy">전체 흐름</h2></div>
               <p className="text-xs leading-5 text-muted">수치는 선택한 기간 안에 발생한 합계입니다.</p>
             </div>
-            <dl className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-6">
+            <dl className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-7">
               <div className="bg-white p-5"><dt className="text-xs text-muted">Builder 시작</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.builderStarts.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">Pro CTA 클릭</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.proCtaClicks.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">Resume Pro 방문</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? totals.visits.toLocaleString() : "—"}</dd></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">1회 안내 요청</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? totals.launchInterests.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">방문 대비 {connected.vercel ? rate(totals.launchInterests, totals.visits) : "—"}</p></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">결제 시작</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? totals.checkoutStarts.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">방문 대비 {connected.vercel ? rate(totals.checkoutStarts, totals.visits) : "—"}</p></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">결제 완료</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.stripe ? totals.purchases.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">시작 대비 {connected.vercel && connected.stripe ? rate(totals.purchases, totals.checkoutStarts) : "—"}</p></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">결제 금액</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.stripe ? money(totals.revenueCents) : "—"}</dd><p className="mt-1 text-xs text-muted">환불 전 결제 완료 기준</p></div>
@@ -127,9 +130,9 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
           <section className="mt-10" aria-labelledby="source-performance-heading">
             <div className="border-b border-navy/20 pb-5"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Source comparison</p><h2 id="source-performance-heading" className="mt-2 text-2xl font-semibold text-navy">출처별 성과</h2></div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[54rem] border-collapse text-left text-sm">
-                <thead><tr className="border-b border-navy/20"><th className="px-3 py-4 font-semibold text-navy">유입 경로</th><th className="px-3 py-4 text-right font-semibold text-navy">방문</th><th className="px-3 py-4 text-right font-semibold text-navy">결제 시작</th><th className="px-3 py-4 text-right font-semibold text-navy">결제 완료</th><th className="px-3 py-4 text-right font-semibold text-navy">방문→시작</th><th className="px-3 py-4 text-right font-semibold text-navy">시작→구매</th><th className="px-3 py-4 text-right font-semibold text-navy">결제 금액</th></tr></thead>
-                <tbody>{report.rows.map((row) => <tr key={row.entry} className="border-b border-border"><th className="px-3 py-4 font-medium text-navy">{row.label}</th><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.visits.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.checkoutStarts.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.stripe ? row.purchases.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? rate(row.checkoutStarts, row.visits) : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel && connected.stripe ? rate(row.purchases, row.checkoutStarts) : "—"}</td><td className="px-3 py-4 text-right font-medium text-navy">{connected.stripe ? money(row.revenueCents) : "—"}</td></tr>)}</tbody>
+              <table className="w-full min-w-[62rem] border-collapse text-left text-sm">
+                <thead><tr className="border-b border-navy/20"><th className="px-3 py-4 font-semibold text-navy">유입 경로</th><th className="px-3 py-4 text-right font-semibold text-navy">방문</th><th className="px-3 py-4 text-right font-semibold text-navy">1회 안내 요청</th><th className="px-3 py-4 text-right font-semibold text-navy">결제 시작</th><th className="px-3 py-4 text-right font-semibold text-navy">결제 완료</th><th className="px-3 py-4 text-right font-semibold text-navy">방문→안내</th><th className="px-3 py-4 text-right font-semibold text-navy">시작→구매</th><th className="px-3 py-4 text-right font-semibold text-navy">결제 금액</th></tr></thead>
+                <tbody>{report.rows.map((row) => <tr key={row.entry} className="border-b border-border"><th className="px-3 py-4 font-medium text-navy">{row.label}</th><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.visits.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.launchInterests.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? row.checkoutStarts.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.stripe ? row.purchases.toLocaleString() : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel ? rate(row.launchInterests, row.visits) : "—"}</td><td className="px-3 py-4 text-right text-muted">{connected.vercel && connected.stripe ? rate(row.purchases, row.checkoutStarts) : "—"}</td><td className="px-3 py-4 text-right font-medium text-navy">{connected.stripe ? money(row.revenueCents) : "—"}</td></tr>)}</tbody>
               </table>
             </div>
           </section>

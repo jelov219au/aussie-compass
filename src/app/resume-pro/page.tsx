@@ -6,8 +6,10 @@ import { BreadcrumbJsonLd, ProductJsonLd } from "@/components/seo/JsonLd";
 import { ResumeProCheckoutForm } from "@/components/tools/ResumeProCheckoutForm";
 import { ResumeProCheckoutFailureNotice } from "@/components/tools/ResumeProCheckoutFailureNotice";
 import { ResumeProCheckoutJumpLink } from "@/components/tools/ResumeProCheckoutJumpLink";
+import { ResumeProLaunchInterestLink } from "@/components/tools/ResumeProLaunchInterestLink";
 import { Container } from "@/components/ui/Container";
 import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
+import { getPublicSellerDetails } from "@/lib/publicSeller";
 import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
 import { getResumeProCheckoutFailure } from "@/lib/resumeProCheckoutFailure";
 import { createPageMetadata } from "@/lib/site";
@@ -96,6 +98,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
   const canOfferCheckout = checkoutAvailable && !existingBuyerIssue;
   const entry = normalizeResumeProEntry(from);
   const checkoutFailure = getResumeProCheckoutFailure(checkout);
+  const seller = getPublicSellerDetails();
 
   return (
     <>
@@ -163,6 +166,11 @@ export default async function ResumeProPage({ searchParams }: Props) {
               ) : (
                 <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">Pro 작업 공간 출시 준비 중</span>
               )}
+              {!existingBuyerIssue && !canOfferCheckout && seller.email && (
+                <ResumeProLaunchInterestLink email={seller.email} entry={entry} className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">
+                  판매 시작 시 1회 안내 요청
+                </ResumeProLaunchInterestLink>
+              )}
               <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface">경력 초안이 없다면 무료로 시작</Link>
             </div>
             <section className="mt-8 border-y border-navy/20 bg-white" aria-labelledby="persistent-value-heading">
@@ -184,10 +192,13 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 ? "이미 구매했다면 다시 결제하지 말고, 1회용 복구 코드나 고객지원 확인 순서를 이용해 주세요."
                 : testCheckoutAvailable
                 ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다. 테스트 이용권과 결제 처리 기술 기록만 생성됩니다."
-                : canOfferCheckout
+                  : canOfferCheckout
                   ? "결제는 Stripe의 보안 결제 페이지에서 진행되며, 결제가 완료되면 Resume Pro 작업 공간을 바로 열 수 있어요."
                   : "현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다."}
             </p>
+            {!existingBuyerIssue && !canOfferCheckout && seller.email && (
+              <p className="mt-2 max-w-3xl text-xs leading-5 text-muted">안내 요청을 누르면 이메일 앱이 열립니다. 직접 보낸 주소로 판매 시작 시 한 번만 답하며 자동 마케팅 구독 명단에 추가하지 않습니다. 지원 직무와 마감일만 적고 이력서 원문이나 민감정보는 보내지 마세요.</p>
+            )}
             {!canOfferCheckout && (
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-navy">
                 <Link href="/purchase-information" className="underline decoration-gold underline-offset-4">구매·환불 안내</Link>
@@ -216,6 +227,10 @@ export default async function ResumeProPage({ searchParams }: Props) {
                   <Link href="/resume-pro/restore" className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">구매 이용권 복구하기</Link>
                 ) : canOfferCheckout ? (
                   <ResumeProCheckoutJumpLink className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">Resume Pro 시작하기 ↓</ResumeProCheckoutJumpLink>
+                ) : seller.email ? (
+                  <ResumeProLaunchInterestLink email={seller.email} entry={entry} className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">
+                    판매 시작 시 1회 안내 요청
+                  </ResumeProLaunchInterestLink>
                 ) : (
                   <span className="mt-5 inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted">결제 기능 준비 중</span>
                 )}

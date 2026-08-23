@@ -10,6 +10,7 @@ export type ResumeProPerformanceRow = {
   entry: ResumeProEntry;
   label: string;
   visits: number;
+  launchInterests: number;
   checkoutStarts: number;
   purchases: number;
   revenueCents: number;
@@ -105,6 +106,7 @@ async function loadVercelTotals(since: string, until: string) {
     return {
       state: { connected: false, message: "VERCEL_TOKEN과 VERCEL_PROJECT_ID를 연결하면 Builder 시작부터 결제 시작까지 익명 합계를 자동으로 불러옵니다." },
       visits: new Map<ResumeProEntry, number>(),
+      launchInterests: new Map<ResumeProEntry, number>(),
       checkouts: new Map<ResumeProEntry, number>(),
       builderStarts: 0,
       proCtaClicks: 0,
@@ -112,8 +114,9 @@ async function loadVercelTotals(since: string, until: string) {
   }
 
   try {
-    const [visits, checkouts, builderStarts, proCtaClicks] = await Promise.all([
+    const [visits, launchInterests, checkouts, builderStarts, proCtaClicks] = await Promise.all([
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Resume Pro Viewed" }),
+      fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Resume Pro Launch Interest" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Checkout Started", extraFilter: "eventData/product eq 'resume_pro'" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.builderStarted, extraFilter: `eventData/surface eq '${resumeFunnelSurfaces.builderForm}'`, groupBy: "context" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.proCtaClicked, groupBy: "context" }),
@@ -121,6 +124,7 @@ async function loadVercelTotals(since: string, until: string) {
     return {
       state: { connected: true, message: "Vercel의 익명 집계 데이터가 연결됐습니다." },
       visits: aggregateMap(visits),
+      launchInterests: aggregateMap(launchInterests),
       checkouts: aggregateMap(checkouts),
       builderStarts: aggregateTotal(builderStarts),
       proCtaClicks: aggregateTotal(proCtaClicks),
@@ -129,6 +133,7 @@ async function loadVercelTotals(since: string, until: string) {
     return {
       state: { connected: false, message: "Vercel 연결을 확인해 주세요. 토큰 권한과 프로젝트·팀 ID가 맞아야 합니다." },
       visits: new Map<ResumeProEntry, number>(),
+      launchInterests: new Map<ResumeProEntry, number>(),
       checkouts: new Map<ResumeProEntry, number>(),
       builderStarts: 0,
       proCtaClicks: 0,
@@ -210,6 +215,7 @@ export async function getResumeProPerformance(days: 7 | 30 | 90): Promise<Resume
       entry,
       label,
       visits: vercel.visits.get(entry) ?? 0,
+      launchInterests: vercel.launchInterests.get(entry) ?? 0,
       checkoutStarts: vercel.checkouts.get(entry) ?? 0,
       purchases: stripe.purchases.get(entry)?.count ?? 0,
       revenueCents: stripe.purchases.get(entry)?.revenueCents ?? 0,

@@ -7,7 +7,8 @@ admin authentication exists.
 ## Data sources
 
 - Vercel Web Analytics supplies aggregate `Resume Builder Started`,
-  `Resume Pro CTA Clicked`, `Resume Pro Viewed` and `Checkout Started` counts.
+  `Resume Pro CTA Clicked`, `Resume Pro Viewed`, `Resume Pro Launch Interest`
+  and `Checkout Started` counts.
   Builder and CTA events contain only fixed `surface` and anonymous page
   `context` values; visits and checkout starts use the allowlisted `entry`.
 - Stripe supplies completed, paid Resume Pro Checkout Sessions grouped by the
@@ -46,6 +47,9 @@ day windows.
 
 - `Resume Pro 방문 → 결제 시작` shows whether the product page helps a
   visitor decide to begin checkout.
+- `Resume Pro 방문 → 판매 시작 1회 안내 요청` is a pre-launch intent signal
+  while Checkout remains closed. It counts only the mail-app link click and
+  never sends the visitor's email address to analytics.
 - `Builder 시작` and `Pro CTA 클릭` show the earlier aggregate steps. Do not
   treat them as person-level paths or join them to resume input, search text or
   URL queries.
