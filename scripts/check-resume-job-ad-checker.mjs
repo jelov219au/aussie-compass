@@ -16,7 +16,7 @@ for (const term of ["communication skills", "inventory management", "attention t
 assert.equal(result.matchedCount + result.missingCount, result.terms.length);
 assert.ok(result.terms.length <= 12, "the result must stay scannable");
 
-const [component, page, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder, homeTools] = await Promise.all([
+const [component, page, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder, homeTools, openGraphImage, twitterImage, socialImage] = await Promise.all([
   readFile(new URL("../src/components/tools/ResumeJobAdChecker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
@@ -33,6 +33,9 @@ const [component, page, contract, analytics, attribution, report, toolsPage, sea
   readFile(new URL("../src/components/tools/ContentPerformanceTracker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/CampaignLinkBuilder.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/ToolsSection.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/resume-job-ad-checker/opengraph-image.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/resume-job-ad-checker/twitter-image.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/resumeJobAdCheckerSocialImage.tsx", import.meta.url), "utf8"),
 ]);
 
 for (const source of [page, toolsPage, searchPage, sitemap, journey, builder, homeTools]) {
@@ -80,6 +83,18 @@ assert.ok(attribution.includes('"job-ad-checker"'), "checkout attribution must a
 assert.ok(report.includes('eventName: resumeFunnelEvents.jobAdSampleViewed') && report.includes('eventName: resumeFunnelEvents.jobAdChecked') && report.includes('"job-ad-checker"'), "the local operator report must aggregate sample use, checker use and attribution");
 assert.ok(privacyDoc.includes("Resume Job Ad Sample Viewed") && privacyDoc.includes("Resume Job Ad Checked"), "privacy documentation must disclose both aggregate events");
 assert.ok(privacyDoc.includes("resume_job_ad_checker") && privacyDoc.includes("never include pasted text"), "privacy documentation must describe the fixed checker share boundary");
+
+for (const imageRoute of [openGraphImage, twitterImage]) {
+  assert.ok(imageRoute.includes("createResumeJobAdCheckerSocialImage"), "the checker needs a route-specific social image on both metadata surfaces");
+  assert.ok(imageRoute.includes('contentType = "image/png"'), "the checker social image needs an explicit PNG type");
+  assert.ok(imageRoute.includes("무료 이력서·Job Ad 공고 맞춤 근거 점검기"), "the checker social image needs descriptive Korean alt text");
+}
+assert.ok(socialImage.includes("new ImageResponse") && socialImage.includes("width: 1200, height: 630"), "the checker social image must render at the standard large-card size");
+for (const boundary of ["LOCAL ONLY", "NO ATS SCORE", "FREE CHECK", "No login · No upload · No invented experience"]) {
+  assert.ok(socialImage.includes(boundary), `the checker social image is missing its trust boundary: ${boundary}`);
+}
+assert.ok(socialImage.includes("MATCH THE WORDS.") && socialImage.includes("VERIFY THE FACTS."), "the checker social image must communicate the concrete job to be done");
+assert.doesNotMatch(socialImage, /resumeText|jobAdText|searchParams|URLSearchParams|\bfetch\(/, "the static social image must never read visitor inputs, queries or external data");
 
 for (const source of [planner, performance, campaignBuilder]) {
   assert.ok(source.includes("/resume-job-ad-checker"), "a marketing workflow surface is missing the checker destination");
