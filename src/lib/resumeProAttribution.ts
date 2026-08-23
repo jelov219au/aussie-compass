@@ -1,4 +1,5 @@
 export const resumeProEntries = [
+  "article-resume-template",
   "article-job-search-plan",
   "article-achievement-examples",
   "article-cover-letter-checklist",

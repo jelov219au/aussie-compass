@@ -33,6 +33,7 @@ export type ResumeProPerformance = {
 };
 
 const entries: Array<{ entry: ResumeProEntry; label: string }> = [
+  { entry: "article-resume-template", label: "무료 이력서 양식 안내 글" },
   { entry: "article-job-search-plan", label: "구직 관리 안내 글" },
   { entry: "article-achievement-examples", label: "이력서 성과 문장 안내 글" },
   { entry: "article-cover-letter-checklist", label: "커버레터 제출 점검 글" },

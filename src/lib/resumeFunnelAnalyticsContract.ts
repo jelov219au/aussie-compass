@@ -13,6 +13,7 @@ export const resumeFunnelSurfaces = {
 
 export const resumeFunnelContexts = {
   resumeBuilder: "resume_builder",
+  resumeTemplateGuide: "resume_template_guide",
   achievementGuide: "resume_achievement_guide",
   jobSearchGuide: "job_search_guide",
   coverLetterGuide: "cover_letter_guide",
@@ -26,6 +27,7 @@ export type ResumeFunnelContext = (typeof resumeFunnelContexts)[keyof typeof res
 export type ResumeProCtaSurface = Exclude<ResumeFunnelSurface, typeof resumeFunnelSurfaces.builderForm>;
 export type ResumeProCtaHref =
   | "/resume-pro"
+  | "/resume-pro?from=article-resume-template"
   | "/resume-pro?from=article-job-search-plan"
   | "/resume-pro?from=article-achievement-examples"
   | "/resume-pro?from=article-cover-letter-checklist"

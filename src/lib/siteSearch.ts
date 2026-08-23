@@ -17,11 +17,14 @@ const resumeIntentAliases = new Set([
   "selectioncriteria",
   "coverletter",
   "커버레터",
+  "이력서양식",
+  "resumetemplate",
   "호주취업이력서",
 ]);
 
 const resumeDiscoveryPriority = new Map([
-  ["/resume-builder", 3],
+  ["/resume-builder", 4],
+  ["/resources/australia-resume-template-submission-checklist", 3],
   ["/resources/english-resume-achievement-examples", 2],
   ["/resume-pro", 1],
 ]);

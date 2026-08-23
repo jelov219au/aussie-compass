@@ -15,6 +15,7 @@ const targets: Target[] = [
   { path: "/resources/australia-gp-hospital-pharmacy-guide", label: "GP·병원 이용", title: "호주에서 처음 아프면 어디로 가야 할까?", body: "000, 응급실, GP, 약국을 구분하고 진료비·Medicare·OSHC와 검사 결과를 확인하세요.", cta: "무료 의료 이용 가이드 보기" },
   { path: "/salary-calculator", label: "급여 계산기", title: "호주 급여, 시급만 보고 판단하면 안 되는 이유", body: "세전·세후 급여와 Super를 같은 화면에서 확인하세요.", cta: "급여 계산기 열기" },
   { path: "/resume-builder", label: "영문 이력서 빌더", title: "호주 구직용 영문 이력서를 무료로 준비하세요", body: "영문 예시 문장과 디자인을 선택해 PDF로 저장할 수 있습니다.", cta: "이력서 만들기" },
+  { path: "/resources/australia-resume-template-submission-checklist", label: "호주 이력서 양식·제출 점검", title: "호주 이력서 양식, 무료 PDF부터 시작하세요", body: "읽기 쉬운 순서로 실제 경력을 정리하고 공고 맞춤·사실·연락처·파일 형식을 제출 전에 확인하세요.", cta: "무료 양식과 체크리스트 보기" },
   { path: "/resources/australia-cover-letter-job-ad-checklist", label: "커버레터 제출 점검", title: "호주 커버레터, 첫 문장보다 공고 지시가 먼저예요", body: "수신자, 실제 경험, 공고 키워드, 한 페이지 분량과 파일 형식을 제출 전에 확인하세요.", cta: "무료 체크리스트 보기" },
   { path: "/property-inspection-checklist", label: "집 방문 체크리스트", title: "쉐어하우스 방문에서 놓치기 쉬운 것", body: "Bond, 공과금, 계약 상대, 곰팡이와 교통까지 현장에서 확인하세요.", cta: "집 체크리스트 보기" },
   { path: "/tax-return-guide", label: "택스 리턴 준비", title: "EOFY 전에 먼저 모아야 할 자료", body: "Income statement와 공제 증빙을 신고 전에 정리하세요.", cta: "택스 리턴 가이드 보기" },
@@ -23,6 +24,7 @@ const targets: Target[] = [
 ];
 
 const campaignCardCopy: Record<string, Pick<Target, "title" | "body" | "cta">> = {
+  "resume-template-free-pdf": { title: "호주 이력서 양식, 무료 PDF부터 시작하세요", body: "실제 경력을 읽기 쉬운 순서로 정리하고 공고 맞춤·사실·연락처·파일 형식을 제출 전에 확인하세요.", cta: "무료 양식과 체크리스트 보기" },
   "cover-letter-job-ad-checklist": { title: "호주 커버레터, 첫 문장보다 공고 지시가 먼저예요", body: "공고 요구사항과 내 실제 경험을 연결하고 수신자·분량·파일 형식을 제출 전에 확인하세요.", cta: "무료 체크리스트 보기" },
   "english-phrase-bank": { title: "Are there any monthly or ATM fees?", body: "월 관리비나 ATM 수수료가 있나요? 계좌를 열기 전에 비용과 조건을 글로 확인해 두세요.", cta: "은행에서 쓰는 문장 더 보기" },
   "english-phrase-rent": { title: "Could you send me the agreement before I pay?", body: "돈을 보내기 전에 계약서를 보내주실 수 있나요? Bond와 포함 비용도 글로 확인하세요.", cta: "렌트할 때 쓰는 문장 더 보기" },

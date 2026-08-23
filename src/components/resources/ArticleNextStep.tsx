@@ -20,6 +20,16 @@ const nextSteps: Record<
     note: string;
   }
 > = {
+  "australia-resume-template-submission-checklist": {
+    heading: "무료 양식으로 먼저 완성하고, 실제 공고가 생기면 맞추세요",
+    description:
+      "무료 Builder에서 실제 경력을 저장하고 PDF를 직접 확인하세요. 지원할 공고가 정해진 뒤 같은 사실을 이력서·커버레터·면접 메모에 일관되게 연결해야 할 때만 Resume Pro를 검토하면 돼요.",
+    freeLabel: "무료 이력서 작성·PDF 저장하기",
+    proLabel: "이 공고용 지원서 묶음 준비하기",
+    proHref: "/resume-pro?from=article-resume-template",
+    context: resumeFunnelContexts.resumeTemplateGuide,
+    note: "무료 Builder는 현재 브라우저에 저장돼요. Resume Pro도 입력하지 않은 경력·자격·수치를 만들지 않으며, 면접이나 취업 결과를 보장하지 않아요.",
+  },
   "australia-job-search-plan": {
     heading: "지원할 공고가 생겼다면, 다음 단계로 이어가세요",
     description:

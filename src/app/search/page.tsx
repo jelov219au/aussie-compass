@@ -64,6 +64,7 @@ const articleItems: SearchItem[] = articles.map((article) => ({
     article.category,
     article.toolLabel,
     ...article.sections.map((section) => section.heading),
+    ...(article.slug === "australia-resume-template-submission-checklist" ? ["이력서", "이력서 양식", "호주 이력서 양식", "영문 이력서 양식", "resume", "resume template", "CV", "무료 이력서", "PDF 이력서", "호주 취업 이력서"] : []),
     ...(article.slug === "english-resume-achievement-examples" ? ["이력서", "resume", "CV", "커버레터", "cover letter", "STAR", "STAR 예시", "STAR examples", "면접", "selection criteria", "호주 취업 이력서"] : []),
     ...(article.slug === "australia-cover-letter-job-ad-checklist" ? ["커버레터", "cover letter", "cover letter examples", "job application", "호주 커버레터", "호주 취업 이력서"] : []),
   ],
