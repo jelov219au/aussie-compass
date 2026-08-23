@@ -39,6 +39,8 @@ for (const boundary of [
   "account.settings?.payments?.statement_descriptor?.trim()",
   "&& stripeAccountVerified",
   "&& stripeSupportProfileVerified",
+  "paymentAlertsConfigured()",
+  '"운영 결제 알림"',
 ]) {
   assert.ok(source.includes(boundary), `payment launch preflight is missing: ${boundary}`);
 }
@@ -62,6 +64,13 @@ const sanitizedEnv = {
   ENTITLEMENT_DB_URL: "",
   ENTITLEMENT_DB_DATABASE_URL: "",
   PAYMENTS_AUDIT_DB_URL: "",
+  PAYMENT_ALERTS_ENABLED: "false",
+  PAYMENT_ALERT_TO_EMAIL: "",
+  PAYMENT_ALERT_FROM_EMAIL: "",
+  ZOHO_SMTP_HOST: "",
+  ZOHO_SMTP_PORT: "",
+  ZOHO_SMTP_USER: "",
+  ZOHO_SMTP_APP_PASSWORD: "",
 };
 const dryRun = spawnSync(process.execPath, [fileURLToPath(new URL("./check-payment-launch.mjs", import.meta.url)), "--preflight", "--strict"], {
   encoding: "utf8",
@@ -69,6 +78,7 @@ const dryRun = spawnSync(process.execPath, [fileURLToPath(new URL("./check-payme
 });
 assert.equal(dryRun.status, 1, "strict preflight must fail when remote Stripe and database evidence are absent");
 assert.match(dryRun.stdout, /PASS  결제 스위치 — PAYMENTS_ENABLED=false/, "preflight must require Checkout to remain off during the audit");
+assert.match(dryRun.stdout, /WAIT  운영 결제 알림 — SMTP 인증·발신자·지원 수신함 일치/, "preflight must expose an invalid operator-alert configuration");
 assert.match(dryRun.stdout, /WAIT  Stripe 원격 사전감사 — --verify-stripe 필요/, "strict preflight must require remote Stripe evidence");
 assert.match(dryRun.stdout, /WAIT  Production DB 사전감사 — --verify-database 필요/, "strict preflight must require remote database evidence");
 

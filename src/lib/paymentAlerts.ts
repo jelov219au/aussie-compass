@@ -4,6 +4,11 @@ import type Stripe from "stripe";
 import type { PaymentOperatorAlertKind } from "./paymentAlertOutbox";
 
 const defaultAlertEmail = "support@hojucompass.com";
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function normalizeEmail(value: string | undefined) {
+  return value?.trim().toLowerCase() ?? "";
+}
 
 const productLabels = {
   resume_pro: "Resume Pro",
@@ -196,8 +201,22 @@ function getMailConfig(): MailConfig | null {
   const user = process.env.ZOHO_SMTP_USER?.trim() || defaultAlertEmail;
   const host = process.env.ZOHO_SMTP_HOST?.trim() || "smtppro.zoho.com";
   const port = Number(process.env.ZOHO_SMTP_PORT?.trim() || 465);
+  const from = process.env.PAYMENT_ALERT_FROM_EMAIL?.trim() || user;
+  const to = process.env.PAYMENT_ALERT_TO_EMAIL?.trim() || defaultAlertEmail;
+  const publicSupportEmail = normalizeEmail(process.env.NEXT_PUBLIC_SUPPORT_EMAIL) || defaultAlertEmail;
 
-  if (!password || !Number.isInteger(port) || port < 1 || port > 65535) return null;
+  if (
+    !password
+    || !host
+    || !Number.isInteger(port)
+    || port < 1
+    || port > 65535
+    || !emailPattern.test(user)
+    || !emailPattern.test(from)
+    || !emailPattern.test(to)
+    || normalizeEmail(from) !== normalizeEmail(user)
+    || normalizeEmail(to) !== publicSupportEmail
+  ) return null;
 
   return {
     host,
@@ -205,8 +224,8 @@ function getMailConfig(): MailConfig | null {
     secure: port === 465,
     user,
     password,
-    from: process.env.PAYMENT_ALERT_FROM_EMAIL?.trim() || user,
-    to: process.env.PAYMENT_ALERT_TO_EMAIL?.trim() || defaultAlertEmail,
+    from,
+    to,
   };
 }
 

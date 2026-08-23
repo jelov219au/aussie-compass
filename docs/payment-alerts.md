@@ -25,6 +25,12 @@ The outbox stores only a one-way event lookup key, reference suffixes and fixed 
    - `ZOHO_SMTP_PORT=465`
    - `ZOHO_SMTP_USER=support@hojucompass.com`
    - `ZOHO_SMTP_APP_PASSWORD` with the dedicated app password
+
+`paymentAlertsConfigured()` and the fail-closed `payments:check` preflight
+require the SMTP user and From address to match, and the To address to match
+`NEXT_PUBLIC_SUPPORT_EMAIL` case-insensitively. A disabled alert switch, invalid
+email, invalid port or missing app password keeps live Checkout closed. This
+configuration proof does not replace the controlled real-email delivery test.
 3. After `20260823_first_sale_gate_charge_link_v2`, apply `docs/migrations/20260823_payment_operator_alert_outbox_v1.sql` and verify its version, table, receipt trigger, explicit claim outcomes, guarded delivery functions and effective runtime privileges described in `docs/first-sale-gate-runbook.md`.
 4. Redeploy Production.
 5. Complete one controlled live purchase and full refund, then confirm that one purchase alert and one refund alert actually arrive in the monitored mailbox. Record only received booleans, timestamps and reference suffixes. Inject one SMTP failure and two-worker interleaving in Sandbox and prove `claimed + busy → 503`, `pending → retry → sent + 200`, stale-lease recovery, and sent duplicate without another send attempt.

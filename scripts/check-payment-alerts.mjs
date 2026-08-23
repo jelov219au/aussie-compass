@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 import { supportedProductCodes } from "../src/lib/entitlements.ts";
-import { buildStripeOperatorAlert } from "../src/lib/paymentAlerts.ts";
+import { buildStripeOperatorAlert, paymentAlertsConfigured } from "../src/lib/paymentAlerts.ts";
 import {
   deliverDurablePaymentOperatorAlert,
   getPaymentOperatorAlertKind,
@@ -10,6 +10,55 @@ import {
 
 function stripeEvent(type, object, id) {
   return { id, type, livemode: true, data: { object } };
+}
+
+const alertEnvironmentNames = [
+  "PAYMENT_ALERTS_ENABLED",
+  "PAYMENT_ALERT_TO_EMAIL",
+  "PAYMENT_ALERT_FROM_EMAIL",
+  "NEXT_PUBLIC_SUPPORT_EMAIL",
+  "ZOHO_SMTP_HOST",
+  "ZOHO_SMTP_PORT",
+  "ZOHO_SMTP_USER",
+  "ZOHO_SMTP_APP_PASSWORD",
+];
+const originalAlertEnvironment = Object.fromEntries(
+  alertEnvironmentNames.map((name) => [name, process.env[name]]),
+);
+
+try {
+  Object.assign(process.env, {
+    PAYMENT_ALERTS_ENABLED: "true",
+    PAYMENT_ALERT_TO_EMAIL: "support@hojucompass.com",
+    PAYMENT_ALERT_FROM_EMAIL: "support@hojucompass.com",
+    NEXT_PUBLIC_SUPPORT_EMAIL: "support@hojucompass.com",
+    ZOHO_SMTP_HOST: "smtppro.zoho.com",
+    ZOHO_SMTP_PORT: "465",
+    ZOHO_SMTP_USER: "support@hojucompass.com",
+    ZOHO_SMTP_APP_PASSWORD: "test-app-password",
+  });
+  assert.equal(paymentAlertsConfigured(), true, "the monitored support mailbox configuration must be accepted");
+
+  for (const [name, value] of [
+    ["PAYMENT_ALERTS_ENABLED", "false"],
+    ["PAYMENT_ALERT_TO_EMAIL", "unmonitored@example.com"],
+    ["PAYMENT_ALERT_FROM_EMAIL", "alias@example.com"],
+    ["NEXT_PUBLIC_SUPPORT_EMAIL", "other-support@example.com"],
+    ["ZOHO_SMTP_USER", "not-an-email"],
+    ["ZOHO_SMTP_PORT", "70000"],
+    ["ZOHO_SMTP_APP_PASSWORD", ""],
+  ]) {
+    const previous = process.env[name];
+    process.env[name] = value;
+    assert.equal(paymentAlertsConfigured(), false, `invalid ${name} must keep Checkout closed`);
+    process.env[name] = previous;
+  }
+} finally {
+  for (const name of alertEnvironmentNames) {
+    const value = originalAlertEnvironment[name];
+    if (value === undefined) delete process.env[name];
+    else process.env[name] = value;
+  }
 }
 
 const paidAlert = buildStripeOperatorAlert(stripeEvent("checkout.session.completed", {

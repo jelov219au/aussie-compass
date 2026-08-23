@@ -4,6 +4,7 @@ import {
   assertResumeProStripeProduct,
   getResumeProStripeProductConfig,
 } from "../src/lib/resumeProStripeProduct.ts";
+import { paymentAlertsConfigured } from "../src/lib/paymentAlerts.ts";
 
 const strict = process.argv.includes("--strict");
 const preflight = process.argv.includes("--preflight");
@@ -49,6 +50,7 @@ const checks = [
   ["법적 판매자", present(process.env.BUSINESS_LEGAL_NAME), "고객 공개용"],
   ["ABN", /^\d{11}$/.test(abnDigits), "11자리"],
   ["지원 이메일", /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail), "유효한 이메일"],
+  ["운영 결제 알림", paymentAlertsConfigured(), "SMTP 인증·발신자·지원 수신함 일치"],
 ];
 
 console.log(`Hoju Compass 결제 출시 점검 (${isProduction ? "Production" : "Preview/Local"}${preflight ? ", 결제 OFF 사전감사" : ""})`);
