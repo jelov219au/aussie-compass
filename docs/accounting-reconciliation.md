@@ -76,7 +76,7 @@ Run the one-time setup locally and paste the key only into the protected PowerSh
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-accounting-automation.ps1
 ```
 
-The live key should have only the read permission required for Balance Transactions. Do not give it write access and do not reuse the Checkout key. The generated CSV intentionally excludes customer names, email addresses, billing details and card information.
+The live key should have only the read permission required for Balance Transactions. Do not give it write access and do not reuse the Checkout key or the separate `STRIPE_PERFORMANCE_KEY`; the performance report needs different read permissions. The generated CSV intentionally excludes customer names, email addresses, billing details and card information.
 
 The formatted workbook in the private output folder remains the management and reconciliation file. Treat the automatically generated CSV as the read-only Stripe source ledger, and record bank matching, GST/BAS review and accountant notes in the formatted workbook rather than editing the derived CSV.
 

@@ -32,6 +32,8 @@ for (const forbidden of ["customer_email", "billing_details", "receipt_email", "
   assert.ok(!mergeSource.includes(forbidden), `Accounting ledger must not collect customer data: ${forbidden}`);
 }
 
+assert.ok(!source.includes("STRIPE_PERFORMANCE_KEY"), "The Balance Transaction exporter must not accept the performance-report key role.");
+
 for (const unsafeErrorField of ["error.message", "request_log_url", "requestId", "raw.message"]) {
   assert.ok(!source.includes(unsafeErrorField), `Accounting export must not print raw Stripe error data: ${unsafeErrorField}`);
 }

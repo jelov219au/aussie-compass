@@ -8,7 +8,8 @@ type SupportedKey =
   | "VERCEL_TOKEN"
   | "VERCEL_PROJECT_ID"
   | "VERCEL_TEAM_ID"
-  | "STRIPE_ACCOUNTING_KEY";
+  | "STRIPE_ACCOUNTING_KEY"
+  | "STRIPE_PERFORMANCE_KEY";
 
 function parseEnvFile(contents: string) {
   const values = new Map<string, string>();
@@ -46,13 +47,13 @@ function upsertEnvLine(contents: string, key: SupportedKey, value: string) {
 export async function saveLocalOperatorConnection(input: {
   vercelToken?: string;
   vercelTeamId?: string;
-  stripeAccountingKey?: string;
+  stripePerformanceKey?: string;
 }) {
   if (process.env.NODE_ENV === "production") throw new Error("Local operator connection is unavailable.");
 
   let contents = await readLocalEnvFile();
   if (input.vercelToken) contents = upsertEnvLine(contents, "VERCEL_TOKEN", input.vercelToken);
   if (input.vercelTeamId) contents = upsertEnvLine(contents, "VERCEL_TEAM_ID", input.vercelTeamId);
-  if (input.stripeAccountingKey) contents = upsertEnvLine(contents, "STRIPE_ACCOUNTING_KEY", input.stripeAccountingKey);
+  if (input.stripePerformanceKey) contents = upsertEnvLine(contents, "STRIPE_PERFORMANCE_KEY", input.stripePerformanceKey);
   await writeFile(localEnvPath, contents, { encoding: "utf8", mode: 0o600 });
 }

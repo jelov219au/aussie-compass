@@ -170,10 +170,10 @@ async function loadVercelTotals(since: string, until: string) {
 }
 
 async function loadStripeTotals(sinceDate: Date) {
-  const key = await getLocalOperatorConnectionValue("STRIPE_ACCOUNTING_KEY");
+  const key = await getLocalOperatorConnectionValue("STRIPE_PERFORMANCE_KEY");
   if (!key?.startsWith("rk_test_") && !key?.startsWith("rk_live_")) {
     return {
-      state: { connected: false, message: "Checkout Sessions와 PaymentIntents 읽기 권한을 가진 STRIPE_ACCOUNTING_KEY를 연결하면 live 결제·환불·순액을 불러옵니다." },
+      state: { connected: false, message: "Checkout Sessions와 PaymentIntents 읽기 권한을 가진 전용 STRIPE_PERFORMANCE_KEY를 연결하면 live 결제·환불·순액을 불러옵니다." },
       payments: new Map<ResumeProEntry, ResumeProPaymentTotals>(),
     };
   }

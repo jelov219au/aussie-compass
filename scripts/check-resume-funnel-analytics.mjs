@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [contract, client, builder, checker, articleStep, homeSection, finder, proHub, offerPage, proofLink, report, reportPage, privacyDoc, performanceDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage] = await Promise.all([
+const [contract, client, builder, checker, articleStep, homeSection, finder, proHub, offerPage, proofLink, report, reportPage, privacyDoc, performanceDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage, localConnection, connectionRoute, envExample, accountingExporter] = await Promise.all([
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeFunnelAnalytics.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeBuilder.tsx", import.meta.url), "utf8"),
@@ -21,6 +21,10 @@ const [contract, client, builder, checker, articleStep, homeSection, finder, pro
   readFile(new URL("../src/components/tools/ResumeProActivationForm.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-pro/success/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-pro/restore/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/localOperatorConnection.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/api/resume-pro-performance/connection/route.ts", import.meta.url), "utf8"),
+  readFile(new URL("../.env.example", import.meta.url), "utf8"),
+  readFile(new URL("./export-stripe-accounting.mjs", import.meta.url), "utf8"),
 ]);
 
 for (const eventName of ["Resume Builder Started", "Resume Job Ad Sample Viewed", "Resume Job Ad Checked", "Resume Pro CTA Clicked"]) {
@@ -93,6 +97,13 @@ assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("re
 assert.ok(report.includes('expand: ["data.payment_intent.latest_charge"]'), "operator report must retrieve refund evidence for paid Checkouts");
 assert.ok(report.includes("classifyResumeProPerformancePayment") && reportPage.includes("totals.fullRefunds") && reportPage.includes("totals.retainedPayments") && reportPage.includes("totals.netRevenueCents"), "operator report must separate paid, fully refunded, retained-candidate and net values");
 assert.ok(reportPage.includes("실제 신규 고객인지 자동 판정하지 않아요") && performanceDoc.includes("genuine customer"), "operator guidance must not treat a retained live payment as a proven customer");
+assert.ok(report.includes('getLocalOperatorConnectionValue("STRIPE_PERFORMANCE_KEY")'), "the performance report must use its dedicated restricted key");
+assert.ok(!report.includes('getLocalOperatorConnectionValue("STRIPE_ACCOUNTING_KEY")'), "the performance report must not reuse the Balance Transactions key");
+assert.ok(localConnection.includes('"STRIPE_PERFORMANCE_KEY"') && localConnection.includes("stripePerformanceKey"), "local operator storage must support the dedicated performance key");
+assert.ok(connectionRoute.includes('form.get("stripe_performance_key")') && !connectionRoute.includes('form.get("stripe_accounting_key")'), "the local connection route must save the performance key under its own role");
+assert.ok(envExample.includes("STRIPE_ACCOUNTING_KEY=") && envExample.includes("STRIPE_PERFORMANCE_KEY="), "the environment example must keep accounting and performance roles separate");
+assert.ok(accountingExporter.includes("STRIPE_ACCOUNTING_KEY") && !accountingExporter.includes("STRIPE_PERFORMANCE_KEY"), "the Balance Transaction exporter must keep its accounting-only key");
+assert.ok(performanceDoc.includes("intentionally use different") && performanceDoc.includes("neither role receives the other's permissions"), "operator guidance must explain the least-privilege key boundary");
 assert.ok(reportPage.indexOf("row.paidCheckouts > 0") < reportPage.indexOf("row.visits < 10"), "payment and refund evidence must outrank low-sample copy advice");
 assert.ok(privacyDoc.includes("Names, STAR text, company names, search terms, full URLs and URL queries are never read or sent."), "privacy boundary must name prohibited resume and URL values");
 

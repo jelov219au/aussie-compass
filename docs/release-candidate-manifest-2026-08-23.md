@@ -179,6 +179,7 @@ Assign none of the following variables to the Stage 1 Preview scope:
 - `ENTITLEMENT_SESSION_SECRET`
 - `ZOHO_SMTP_APP_PASSWORD`
 - `STRIPE_ACCOUNTING_KEY`
+- `STRIPE_PERFORMANCE_KEY`
 
 No value may be copied into this manifest, build log, smoke report or chat. These names are the complete Stage 1 assignment exclusion list; inherited team/project values count as assigned and must be removed from the Preview scope before deployment.
 

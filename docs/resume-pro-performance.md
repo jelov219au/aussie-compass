@@ -31,17 +31,20 @@ The same values can be added manually when needed:
 VERCEL_TOKEN=
 VERCEL_PROJECT_ID=
 VERCEL_TEAM_ID=
-STRIPE_ACCOUNTING_KEY=
+STRIPE_PERFORMANCE_KEY=
 ```
 
 `VERCEL_TEAM_ID` is only needed for a team-owned project. Create the Vercel
 access token for the account or team that owns the project.
 
-`STRIPE_ACCOUNTING_KEY` must be a dedicated restricted key (`rk_live_` for
+`STRIPE_PERFORMANCE_KEY` must be a dedicated restricted key (`rk_live_` for
 real sales or `rk_test_` for test data) with read access to Checkout Sessions
 and PaymentIntents/Charges. The extra read is required to stop a fully refunded
 controlled live test from appearing as a retained purchase. Do not reuse the
-checkout write key. Apply an IP access policy when practical.
+Checkout runtime key or the Balance-Transactions-only `STRIPE_ACCOUNTING_KEY`.
+The accounting exporter and performance report intentionally use different
+restricted keys so neither role receives the other's permissions. Apply an IP
+access policy when practical.
 
 The current project-scoped Vercel reporting token expires on 2026-11-19. Replace
 it through the same local form before then. The report supports 7, 30 and 90
