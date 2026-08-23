@@ -83,8 +83,11 @@ for (const source of [builder, checker, articleStep, homeSection, finder, proHub
 }
 
 assert.ok(finder.includes('freeHref: "/resume-job-ad-checker"') && finder.includes("결제 전에 내 공고로 무료 점검하기"), "the Pro finder must offer the free proof step to job seekers");
+assert.ok(finder.includes('<ResumeProProofLink entry="pro-finder"'), "the Pro finder free proof must retain its fixed acquisition entry");
 assert.ok(finder.includes('href="/resume-builder"') && finder.includes("이력서 초안이 없다면 무료 Builder부터"), "the Pro finder must preserve a free start for visitors without a resume draft");
 assert.ok(proHub.includes('freeHref: "/resume-job-ad-checker"'), "the Resume Pro catalog card must link to the free proof tool");
+assert.ok(proHub.includes('<ResumeProProofLink entry="pro-catalog-card"'), "the Resume Pro catalog free proof must retain its fixed acquisition entry");
+assert.ok(finder.includes("Resume Pro 가격은 A$19.90 1회 결제이며") && finder.includes("결제·이용 복구 안전 확인 중이라 판매하지 않아요"), "closed Resume Pro copy must distinguish its fixed price from its temporary sales hold");
 
 assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("report.jobAdChecks") && reportPage.includes("report.proCtaClicks"), "operator report must show all anonymous pre-offer aggregate steps");
 assert.ok(report.includes('expand: ["data.payment_intent.latest_charge"]'), "operator report must retrieve refund evidence for paid Checkouts");
