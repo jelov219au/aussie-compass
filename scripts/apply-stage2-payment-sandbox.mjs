@@ -43,10 +43,29 @@ const expectedVersions = [
   "20260823_restore_activation_nonce_v1",
 ];
 
-const client = new Client(connectionString);
-let activeStep = "connection";
+const sandboxDatabase = "hoju_stage2_sandbox";
+const sandboxUrl = new URL(connectionString);
+sandboxUrl.pathname = `/${sandboxDatabase}`;
+let client;
+let activeStep = "sandbox database";
 
 try {
+  const controlClient = new Client(connectionString);
+  await controlClient.connect();
+  try {
+    const databaseResult = await controlClient.query(
+      "select exists(select 1 from pg_database where datname = $1) as exists",
+      [sandboxDatabase],
+    );
+    if (databaseResult.rows[0]?.exists !== true) {
+      await controlClient.query("create database hoju_stage2_sandbox");
+    }
+  } finally {
+    await controlClient.end();
+  }
+
+  activeStep = "connection";
+  client = new Client(sandboxUrl.toString());
   await client.connect();
 
   for (const [name, url] of migrationFiles) {
@@ -93,7 +112,7 @@ try {
   process.exitCode = 1;
 } finally {
   try {
-    await client.end();
+    await client?.end();
   } catch {
     // The build already has the migration result; never print connection details.
   }
