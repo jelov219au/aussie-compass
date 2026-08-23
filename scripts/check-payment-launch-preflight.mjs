@@ -28,6 +28,17 @@ for (const boundary of [
   "runtime_cannot_mutate_entitlement_table",
   "runtime_cannot_mutate_alert_table",
   "sessions.data.length === 0 && sessions.has_more === false",
+  "stripe.accounts.retrieveCurrent()",
+  "account.charges_enabled === true",
+  "account.payouts_enabled === true",
+  "account.details_submitted === true",
+  "requirements?.currently_due?.length ?? 0",
+  "requirements?.past_due?.length ?? 0",
+  "profile?.support_email?.trim().toLowerCase()",
+  "accountSupportEmail === supportEmail.toLowerCase()",
+  "account.settings?.payments?.statement_descriptor?.trim()",
+  "&& stripeAccountVerified",
+  "&& stripeSupportProfileVerified",
 ]) {
   assert.ok(source.includes(boundary), `payment launch preflight is missing: ${boundary}`);
 }

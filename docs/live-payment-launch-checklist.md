@@ -32,6 +32,7 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 - [x] Confirm the paused-payout warning is no longer shown after identity review.
 - [x] Confirm the public business name, website, support phone and a recognisable statement descriptor are present. Read-only live Account evidence was recorded on 24 August 2026 without copying their values.
 - [ ] Add `support@hojucompass.com` as the Stripe live business-profile support email. The read-only Account result on 24 August 2026 reported it absent; the site and Vercel support setting do not substitute for this Stripe field.
+- [ ] Rerun the fail-closed preflight after that change. It must report PASS for both `Stripe 계정 운영 상태` and `Stripe 구매자 지원 프로필`; the latter requires the Stripe support email to match `NEXT_PUBLIC_SUPPORT_EMAIL` without printing either value.
 - [x] Create an active one-time AUD 19.90 Resume Pro Price.
 - [ ] Create a least-privilege `rk_live_` key with Prices Read, Products Read, Checkout Sessions create/retrieve and PaymentIntents Read so the paid webhook can verify `latest_charge` before the atomic grant.
 - [x] Create the live `/api/stripe/webhook` endpoint and subscribe to the same 11 Checkout, refund and dispute events verified in test mode.

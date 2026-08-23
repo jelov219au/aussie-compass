@@ -63,6 +63,8 @@ console.log(`\n결과: ${checks.length - pending}/${checks.length} 통과, ${pen
 
 let stripeProductVerified = !verifyStripe;
 let zeroOpenCheckoutVerified = !preflight;
+let stripeAccountVerified = !verifyStripe;
+let stripeSupportProfileVerified = !verifyStripe;
 
 if (verifyStripe) {
   try {
@@ -77,6 +79,28 @@ if (verifyStripe) {
     stripeProductVerified = true;
     console.log("PASS  Stripe 원격 상품·세금 계약 — Product ID, tax code, 포함세 가격 일치");
 
+    const account = await stripe.accounts.retrieveCurrent();
+    const requirements = account.requirements;
+    stripeAccountVerified = account.charges_enabled === true
+      && account.payouts_enabled === true
+      && account.details_submitted === true
+      && requirements?.disabled_reason == null
+      && (requirements?.currently_due?.length ?? 0) === 0
+      && (requirements?.past_due?.length ?? 0) === 0;
+    console.log(`${stripeAccountVerified ? "PASS" : "WAIT"}  Stripe 계정 운영 상태 — 결제·지급 활성, 제출 완료, 현재·연체 요구사항 없음`);
+
+    const profile = account.business_profile;
+    const accountSupportEmail = profile?.support_email?.trim().toLowerCase() ?? "";
+    stripeSupportProfileVerified = Boolean(
+      profile?.name?.trim()
+      && profile.url?.trim()
+      && profile.support_phone?.trim()
+      && accountSupportEmail
+      && accountSupportEmail === supportEmail.toLowerCase()
+      && account.settings?.payments?.statement_descriptor?.trim()
+    );
+    console.log(`${stripeSupportProfileVerified ? "PASS" : "WAIT"}  Stripe 구매자 지원 프로필 — 사업명, 웹사이트, 전화, 지원 이메일 일치, 명세서 문구`);
+
     if (preflight) {
       const sessions = await stripe.checkout.sessions.list({ status: "open", limit: 100 });
       zeroOpenCheckoutVerified = sessions.data.length === 0 && sessions.has_more === false;
@@ -84,8 +108,10 @@ if (verifyStripe) {
     }
   } catch {
     stripeProductVerified = false;
+    stripeAccountVerified = false;
+    stripeSupportProfileVerified = false;
     zeroOpenCheckoutVerified = false;
-    console.log("WAIT  Stripe 원격 상품·세금 계약 — Dashboard 값 또는 읽기 권한 확인 필요");
+    console.log("WAIT  Stripe 원격 사전감사 — Dashboard 값 또는 제한 키 읽기 권한 확인 필요");
   }
 } else {
   console.log(`${preflight ? "WAIT" : "INFO"}  Stripe 원격 사전감사 — --verify-stripe 필요`);
@@ -197,5 +223,8 @@ if (verifyDatabase) {
   console.log(`${preflight ? "WAIT" : "INFO"}  Production DB 사전감사 — --verify-database 필요`);
 }
 
-const stripeRemoteVerified = stripeProductVerified && zeroOpenCheckoutVerified;
+const stripeRemoteVerified = stripeProductVerified
+  && stripeAccountVerified
+  && stripeSupportProfileVerified
+  && zeroOpenCheckoutVerified;
 if (strict && (pending > 0 || !stripeRemoteVerified || !databaseVerified)) process.exitCode = 1;
