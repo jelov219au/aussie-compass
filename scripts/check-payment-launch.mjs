@@ -56,6 +56,22 @@ const auditDatabaseUrl = process.env.PAYMENTS_AUDIT_DB_URL?.trim() || "";
 const expectedNeonEndpointId = process.env.PAYMENTS_EXPECTED_NEON_ENDPOINT_ID?.trim().toLowerCase() || "";
 const runtimeNeonEndpointId = neonEndpointId(entitlementDatabaseUrl);
 const auditNeonEndpointId = neonEndpointId(auditDatabaseUrl);
+const preflightRemoteBoundaryReady = !preflight || process.env.PAYMENTS_ENABLED === "false";
+const runtimeStripeRemoteBoundaryReady = preflightRemoteBoundaryReady
+  && stripeMode === expectedStripeMode
+  && runtimeStripeKey.startsWith("rk_")
+  && process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_")
+  && process.env.STRIPE_RESUME_PRO_PRODUCT_ID?.trim().startsWith("prod_")
+  && process.env.STRIPE_RESUME_PRO_TAX_CODE?.trim().startsWith("txcd_");
+const stripeAuditRemoteBoundaryReady = runtimeStripeRemoteBoundaryReady
+  && stripeAuditKeySeparated
+  && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail);
+const databaseRemoteBoundaryReady = preflightRemoteBoundaryReady
+  && /^postgres(?:ql)?:\/\//.test(entitlementDatabaseUrl)
+  && /^postgres(?:ql)?:\/\//.test(auditDatabaseUrl)
+  && /^ep-[a-z0-9-]+$/.test(expectedNeonEndpointId)
+  && runtimeNeonEndpointId === expectedNeonEndpointId
+  && auditNeonEndpointId === expectedNeonEndpointId;
 
 const checks = [
   ["결제 스위치", preflight ? process.env.PAYMENTS_ENABLED !== "true" : process.env.PAYMENTS_ENABLED === "true", preflight ? "PAYMENTS_ENABLED=false" : "PAYMENTS_ENABLED=true"],
@@ -95,7 +111,7 @@ let zeroOpenCheckoutVerified = !preflight;
 let stripeAccountVerified = false;
 let stripeSupportProfileVerified = false;
 
-if (verifyStripe) {
+if (verifyStripe && runtimeStripeRemoteBoundaryReady) {
   try {
     const config = getResumeProStripeProductConfig();
     const stripe = new Stripe(runtimeStripeKey, {
@@ -119,7 +135,7 @@ if (verifyStripe) {
     console.log("WAIT  Stripe 런타임 원격 사전감사 — 상품·open Session 읽기 권한 확인 필요");
   }
 
-  if (stripeAuditKeySeparated) {
+  if (stripeAuditRemoteBoundaryReady && stripeProductVerified) {
     try {
       const auditStripe = new Stripe(stripeAuditKey, {
         maxNetworkRetries: 2,
@@ -155,15 +171,18 @@ if (verifyStripe) {
   } else {
     stripeAccountVerified = false;
     stripeSupportProfileVerified = false;
-    console.log("WAIT  Stripe 계정 프로필 사전감사 — 런타임과 분리된 같은 모드의 rk_ 감사 키 필요");
+    console.log("WAIT  Stripe 계정 프로필 사전감사 — 검증된 런타임 상품과 분리된 같은 모드의 rk_ 감사 키 필요");
   }
+} else if (verifyStripe) {
+  console.log("WAIT  Stripe 런타임 원격 사전감사 — 로컬 키·상품·모드 경계 미통과, 원격 조회 생략");
+  console.log("WAIT  Stripe 계정 프로필 사전감사 — 로컬 런타임 경계 미통과, 원격 조회 생략");
 } else {
   console.log(`${preflight || strict ? "WAIT" : "INFO"}  Stripe 원격 사전감사 — --verify-stripe 필요`);
 }
 
 let databaseVerified = false;
 
-if (verifyDatabase) {
+if (verifyDatabase && databaseRemoteBoundaryReady) {
   try {
     const { neon } = await import("@neondatabase/serverless");
     const readOnlyOptions = {
@@ -363,6 +382,8 @@ if (verifyDatabase) {
     databaseVerified = false;
     console.log("WAIT  Production DB 사전감사 — 연결, migration 또는 runtime 권한 확인 필요");
   }
+} else if (verifyDatabase) {
+  console.log("WAIT  Production DB 사전감사 — 승인 endpoint와 두 연결의 로컬 경계 미통과, 원격 조회 생략");
 } else {
   console.log(`${preflight || strict ? "WAIT" : "INFO"}  Production DB 사전감사 — --verify-database 필요`);
 }

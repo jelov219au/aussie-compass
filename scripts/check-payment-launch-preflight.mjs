@@ -3,8 +3,9 @@ import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const [source, packageJson, readiness, checklist, auditRoleGrants, productionAudit, envExample, releaseManifest] = await Promise.all([
+const [source, secureRunner, packageJson, readiness, checklist, auditRoleGrants, productionAudit, envExample, releaseManifest] = await Promise.all([
   readFile(new URL("./check-payment-launch.mjs", import.meta.url), "utf8"),
+  readFile(new URL("./run-production-payment-preflight.ps1", import.meta.url), "utf8"),
   readFile(new URL("../package.json", import.meta.url), "utf8"),
   readFile(new URL("../docs/payment-readiness.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/live-payment-launch-checklist.md", import.meta.url), "utf8"),
@@ -63,6 +64,12 @@ for (const boundary of [
   "&& stripeSupportProfileVerified",
   "paymentAlertsConfigured()",
   '"운영 결제 알림"',
+  "preflightRemoteBoundaryReady",
+  "runtimeStripeRemoteBoundaryReady",
+  "stripeAuditRemoteBoundaryReady",
+  "databaseRemoteBoundaryReady",
+  "로컬 키·상품·모드 경계 미통과, 원격 조회 생략",
+  "승인 endpoint와 두 연결의 로컬 경계 미통과, 원격 조회 생략",
 ]) {
   assert.ok(source.includes(boundary), `payment launch preflight is missing: ${boundary}`);
 }
@@ -76,6 +83,24 @@ assert.ok(packageJson.includes("npm run test:payment-launch-preflight"), "the fu
 const command = "npm run payments:check -- --preflight --strict --verify-stripe --verify-database";
 assert.ok(readiness.includes(command), "payment readiness must document the fail-closed preflight command");
 assert.ok(checklist.includes(command), "the live launch checklist must document the fail-closed preflight command");
+for (const secureBoundary of [
+  'Read-Host "One-off Stripe Account-Read audit key" -AsSecureString',
+  'Read-Host "One-off hoju_payment_auditor database URL" -AsSecureString',
+  "SecureStringToBSTR",
+  "PtrToStringBSTR",
+  'SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY", $plainAuditKey, "Process")',
+  'SetEnvironmentVariable("PAYMENTS_AUDIT_DB_URL", $plainAuditDatabaseUrl, "Process")',
+  'Remove-Item -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY"',
+  'Remove-Item -LiteralPath "Env:PAYMENTS_AUDIT_DB_URL"',
+  "ZeroFreeBSTR",
+  '$env:PAYMENTS_ENABLED -cne "false"',
+  '$env:VERCEL_ENV -cne "production"',
+  'npm.cmd run payments:check -- --preflight --strict --verify-stripe --verify-database',
+]) assert.ok(secureRunner.includes(secureBoundary), `secure Production preflight is missing: ${secureBoundary}`);
+assert.ok(secureRunner.indexOf('SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY"') < secureRunner.indexOf("npm.cmd run payments:check"), "temporary audit credentials must be process-scoped before the strict audit starts");
+assert.ok(secureRunner.indexOf("npm.cmd run payments:check") < secureRunner.indexOf('Remove-Item -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY"'), "temporary audit credentials must be cleared after the strict audit attempt");
+assert.ok(readiness.includes(".\\scripts\\run-production-payment-preflight.ps1"), "payment readiness must route live audits through the masked wrapper");
+assert.ok(checklist.includes(".\\scripts\\run-production-payment-preflight.ps1"), "the live launch checklist must route live audits through the masked wrapper");
 
 for (const contract of [
   "current_database() <> 'neondb'",
@@ -219,5 +244,23 @@ const wrongModeStripeAuditKey = runEndpointBoundary({
   PAYMENTS_STRIPE_AUDIT_KEY: "rk_test_audit_placeholder_for_contract_test_only",
 });
 assert.match(wrongModeStripeAuditKey.stdout, /WAIT  Stripe 감사 키 분리/, "the operator audit must reject a key from the wrong Stripe mode");
+
+const guardedRemoteAttempt = spawnSync(process.execPath, [fileURLToPath(new URL("./check-payment-launch.mjs", import.meta.url)), "--preflight", "--strict", "--verify-stripe", "--verify-database"], {
+  encoding: "utf8",
+  env: sanitizedEnv,
+  timeout: 5_000,
+});
+assert.equal(guardedRemoteAttempt.status, 1, "an invalid local target boundary must fail closed");
+assert.match(guardedRemoteAttempt.stdout, /Stripe 런타임 원격 사전감사 — 로컬 키·상품·모드 경계 미통과, 원격 조회 생략/, "Stripe reads must be skipped before the local target boundary passes");
+assert.match(guardedRemoteAttempt.stdout, /Production DB 사전감사 — 승인 endpoint와 두 연결의 로컬 경계 미통과, 원격 조회 생략/, "database reads must be skipped before both connections match the approved endpoint");
+
+const missingExplicitOffState = spawnSync(process.execPath, [fileURLToPath(new URL("./check-payment-launch.mjs", import.meta.url)), "--preflight", "--strict", "--verify-stripe", "--verify-database"], {
+  encoding: "utf8",
+  env: { ...apparentlyReadyEnv, PAYMENTS_ENABLED: "" },
+  timeout: 5_000,
+});
+assert.equal(missingExplicitOffState.status, 1, "remote preflight must require an explicit false payment switch");
+assert.match(missingExplicitOffState.stdout, /Stripe 런타임 원격 사전감사 — 로컬 키·상품·모드 경계 미통과, 원격 조회 생략/, "Stripe reads must be skipped when PAYMENTS_ENABLED=false is not explicit");
+assert.match(missingExplicitOffState.stdout, /Production DB 사전감사 — 승인 endpoint와 두 연결의 로컬 경계 미통과, 원격 조회 생략/, "database reads must be skipped when PAYMENTS_ENABLED=false is not explicit");
 
 console.log("Fail-closed payment launch preflight contract passed.");
