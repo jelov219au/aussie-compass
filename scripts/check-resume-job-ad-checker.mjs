@@ -16,9 +16,10 @@ for (const term of ["communication skills", "inventory management", "attention t
 assert.equal(result.matchedCount + result.missingCount, result.terms.length);
 assert.ok(result.terms.length <= 12, "the result must stay scannable");
 
-const [component, page, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder, homeTools, openGraphImage, twitterImage, socialImage] = await Promise.all([
+const [component, page, jsonLd, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder, homeTools, openGraphImage, twitterImage, socialImage] = await Promise.all([
   readFile(new URL("../src/components/tools/ResumeJobAdChecker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/seo/JsonLd.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeFunnelAnalytics.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/resumeProAttribution.ts", import.meta.url), "utf8"),
@@ -52,6 +53,17 @@ for (const value of ["지원할 Job Ad가 있다면", "입력 원문 서버 전�
 for (const text of ["서버로 보내거나 브라우저에 저장하지 않습니다", "채용 가능성이나 ‘ATS 점수’를 만들어내지 않습니다", "빠진 표현을 그대로 추가하지 마세요"]) {
   assert.ok(`${page}\n${component}`.includes(text), `the checker is missing its safety boundary: ${text}`);
 }
+assert.ok(page.includes("<WebApplicationJsonLd") && page.includes('path="/resume-job-ad-checker"'), "the checker must describe its main page purpose as a WebApplication");
+for (const visibleFact of [
+  'applicationCategory="BusinessApplication"',
+  "이력서와 Job Ad 텍스트를 현재 브라우저에서만 비교",
+  "문구 일치와 실제 경력 근거 질문을 구분",
+  "가상 예시와 원문 없는 근거 메모 제공",
+]) assert.ok(page.includes(visibleFact), `the checker WebApplication markup is missing its visible fact: ${visibleFact}`);
+for (const schemaFact of ['"@type": "WebApplication"', 'price: 0', 'isAccessibleForFree: true', 'operatingSystem: "Any modern web browser"', 'browserRequirements: "Requires JavaScript"']) {
+  assert.ok(jsonLd.includes(schemaFact), `the shared WebApplication schema is missing ${schemaFact}`);
+}
+assert.doesNotMatch(`${page}\n${jsonLd}`, /aggregateRating|ratingValue|review:/, "the checker must not invent reviews or ratings for structured data eligibility");
 assert.doesNotMatch(component, /localStorage|sessionStorage|sendBeacon|XMLHttpRequest|\bfetch\(/, "resume and Job Ad text must stay in component memory");
 assert.match(component, /MAX_LENGTH = 12_000/, "both local inputs need a hard size limit");
 assert.match(component, /trackResumeJobAdChecked\(\)/, "a completed comparison needs a fixed aggregate event");

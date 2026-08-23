@@ -151,6 +151,44 @@ export function ProductJsonLd({ name, description, path, currency, priceCents, a
   );
 }
 
+type WebApplicationJsonLdProps = {
+  name: string;
+  description: string;
+  path: `/${string}`;
+  applicationCategory: "BusinessApplication" | "EducationalApplication" | "UtilitiesApplication";
+  featureList: string[];
+};
+
+export function WebApplicationJsonLd({ name, description, path, applicationCategory, featureList }: WebApplicationJsonLdProps) {
+  const url = `${siteUrl}${path}`;
+
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "@id": `${url}#web-application`,
+        name,
+        description,
+        url,
+        applicationCategory,
+        operatingSystem: "Any modern web browser",
+        browserRequirements: "Requires JavaScript",
+        inLanguage: "ko",
+        isAccessibleForFree: true,
+        offers: {
+          "@type": "Offer",
+          price: 0,
+          priceCurrency: "AUD",
+          availability: "https://schema.org/InStock",
+        },
+        featureList,
+        provider: { "@id": `${siteUrl}/#organization` },
+      }}
+    />
+  );
+}
+
 type CollectionItem = { name: string; path: `/${string}` };
 
 export function CollectionJsonLd({ name, description, path, items }: { name: string; description: string; path: `/${string}`; items: CollectionItem[] }) {
