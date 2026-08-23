@@ -53,6 +53,11 @@ Neon Primary / `neondb` returned one row at
 - counts: gate 0, gate events 0, webhook receipts 23, entitlements 7,
   alerts 0, access sessions 0, restore activations 0.
 
+The Neon Console `main` branch compute was rechecked on 24 August 2026. Its
+non-secret endpoint ID is `ep-curly-wave-a78bktnq`. Supply that exact value as
+`PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` only for the strict audit; this record does
+not prove that either injected database URL currently resolves to it.
+
 These counts are the immutable comparison baseline for this change window. This
 read-only result does not supply the required owner window or backup reference.
 
