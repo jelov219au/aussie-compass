@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [section, homePage, checkerPage, builderPage] = await Promise.all([
+const [section, homePage, proPage, checkerPage, builderPage] = await Promise.all([
   readFile(new URL("../src/components/sections/PremiumToolsSection.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-builder/page.tsx", import.meta.url), "utf8"),
 ]);
@@ -35,4 +36,16 @@ assert.ok(freeProof >= 0 && freeProof < freeBuilder && freeBuilder < proPreview,
 assert.match(closedBranch, /ResumeProProofLink[\s\S]*min-h-12[\s\S]*Link href="\/resume-builder"[\s\S]*min-h-12/, "both ready-now mobile actions need 48px targets");
 assert.doesNotMatch(closedBranch, /출시 준비 중|결제 시작|checkout|disabled/, "the unavailable state must not lead with a dead-end or imply checkout availability");
 
-console.log("Home Resume Pro ready-now free path contract passed.");
+const productCtaStart = proPage.indexOf('<div className="mt-10 flex flex-wrap items-start gap-3">');
+const productCtaEnd = proPage.indexOf("</div>", productCtaStart);
+assert.ok(productCtaStart >= 0 && productCtaEnd > productCtaStart, "the Resume Pro landing needs a stable primary action group");
+const productCtas = proPage.slice(productCtaStart, productCtaEnd);
+const productFreeProof = productCtas.indexOf("내 이력서와 공고 무료 비교하기 →");
+const productFreeBuilder = productCtas.indexOf("무료 이력서 PDF 저장하기");
+const productLaunchInterest = productCtas.indexOf("판매 시작 시 1회 안내 요청");
+assert.ok(productFreeProof >= 0 && productFreeProof < productFreeBuilder && productFreeBuilder < productLaunchInterest, "when checkout is closed, the product landing must offer working free proof and a saved PDF before launch interest");
+assert.match(productCtas, /ResumeProProofLink[\s\S]*min-h-12[\s\S]*Link href="\/resume-builder"[\s\S]*min-h-12/, "the Resume Pro ready-now actions need 48px mobile targets");
+assert.doesNotMatch(productCtas, /Pro 작업 공간 출시 준비 중|aria-label="결제 기능 준비 중"/, "the Resume Pro primary action group must not lead with a disabled launch state");
+assert.ok(proPage.includes("A$19.90") && proPage.includes("매달 빠져나가는 구독료 없이 한 번만 결제해요."), "the ready-now path must preserve the one-time Resume Pro value beside the free actions");
+
+console.log("Home and Resume Pro ready-now free path contract passed.");

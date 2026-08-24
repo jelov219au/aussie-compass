@@ -198,7 +198,12 @@ export default async function ResumeProPage({ searchParams }: Props) {
               ) : canOfferCheckout ? (
                 <ResumeProCheckoutJumpLink className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">이번 공고 지원서 묶음 만들기 ↓</ResumeProCheckoutJumpLink>
               ) : (
-                <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted" aria-label="결제 기능 준비 중">Pro 작업 공간 출시 준비 중</span>
+                <>
+                  <ResumeProProofLink entry={entry} className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">
+                    내 이력서와 공고 무료 비교하기 →
+                  </ResumeProProofLink>
+                  <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface">무료 이력서 PDF 저장하기</Link>
+                </>
               )}
               {!existingBuyerIssue && !canOfferCheckout && seller.email && (
                 <ResumeProLaunchInterestLink email={seller.email} entry={entry} className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">
@@ -208,7 +213,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
               {!existingBuyerIssue && !canOfferCheckout && seller.email && (
                 <ResumeProLaunchInterestCopyButton email={seller.email} entry={entry} className="inline-flex min-h-12 items-center justify-center border border-navy/30 bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold" />
               )}
-              <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface">경력 초안이 없다면 무료로 시작</Link>
+              {(existingBuyerIssue || canOfferCheckout) && <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface">경력 초안이 없다면 무료로 시작</Link>}
             </div>
             <section className="mt-8 border-y border-navy/20 bg-white" aria-labelledby="persistent-value-heading">
               <div className="px-4 py-5 sm:px-6">
