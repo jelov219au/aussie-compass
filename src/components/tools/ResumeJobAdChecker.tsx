@@ -107,7 +107,7 @@ export function ResumeJobAdChecker() {
     setResultActionMessage("");
   }
 
-  async function copyEvidenceMemo() {
+  function buildEvidenceMemo() {
     if (!result) return;
     const matched = result.terms.filter((item) => item.matched).map((item) => `• ${item.term}`);
     const missing = result.terms.filter((item) => !item.matched).map((item) => `• ${item.term} — 언제, 어떤 행동을 했고 어떤 결과가 있었는지 확인`);
@@ -117,7 +117,7 @@ export function ResumeJobAdChecker() {
       "   - 내가 직접 한 행동은 무엇인가?",
       "   - 숫자·변화·피드백으로 확인할 결과가 있는가?",
     ].join("\n"));
-    const memo = [
+    return [
       "Hoju Compass · Job Ad 맞춤 근거 메모",
       "",
       `현재 이력서에서 문구 확인 ${result.matchedCount}개`,
@@ -132,6 +132,23 @@ export function ResumeJobAdChecker() {
       "공고 문구를 그대로 복사하거나 없는 경험을 만들지 않습니다.",
       "https://hojucompass.com/resume-job-ad-checker",
     ].join("\n");
+  }
+
+  function downloadEvidenceMemo() {
+    const memo = buildEvidenceMemo();
+    if (!memo) return;
+    const url = URL.createObjectURL(new Blob([memo], { type: "text/plain;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "resume-job-ad-evidence-memo.txt";
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setResultActionMessage("공고·이력서 원문 없이 표현 후보와 근거 질문을 TXT로 저장했습니다. 다음 지원에서 파일을 다시 열어 재사용할 수 있어요.");
+  }
+
+  async function copyEvidenceMemo() {
+    const memo = buildEvidenceMemo();
+    if (!memo) return;
 
     try {
       await navigator.clipboard.writeText(memo);
@@ -205,19 +222,19 @@ export function ResumeJobAdChecker() {
           </ol>
           <p className="mt-4 text-xs leading-5 text-muted">최대 3개만 먼저 보여줍니다. 근거 메모를 복사하면 같은 질문을 원문 없이 가져갈 수 있어요.</p>
         </section>
-        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2"><button type="button" onClick={copyEvidenceMemo} className="inline-flex min-h-11 items-center border-b-2 border-gold text-sm font-semibold text-navy">근거 메모 복사</button><button type="button" onClick={shareChecker} className="inline-flex min-h-11 items-center border-b-2 border-border text-sm font-semibold text-navy">점검기 링크 공유 ↗</button></div>
+        <div className="mt-6 flex flex-wrap gap-3"><button type="button" onClick={downloadEvidenceMemo} className="inline-flex min-h-12 items-center bg-navy px-4 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">근거 메모 TXT 저장</button><button type="button" onClick={copyEvidenceMemo} className="inline-flex min-h-11 items-center border-b-2 border-gold px-2 text-sm font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">근거 메모 복사</button><button type="button" onClick={shareChecker} className="inline-flex min-h-11 items-center border-b-2 border-border px-2 text-sm font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">점검기 링크 공유 ↗</button></div>
         <p className="mt-2 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{resultActionMessage}</p>
         <section className="mt-7 border border-navy/20 bg-white p-5 sm:p-6" aria-labelledby="job-ad-next-step-heading" aria-describedby="job-ad-next-step-description">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Resume Pro가 줄이는 반복</p>
-          <h3 id="job-ad-next-step-heading" className="mt-2 text-xl font-semibold text-navy">이번 비교, 어디까지 남길까요?</h3>
+          <h3 id="job-ad-next-step-heading" className="mt-2 text-xl font-semibold text-navy">무료 메모 저장과 회사별 저장은 이렇게 달라요.</h3>
           <p id="job-ad-next-step-description" className="mt-2 max-w-3xl text-sm leading-6 text-muted">무료 점검의 이력서·공고 원문과 세부 비교 결과는 저장되지 않고, 현재 탭에는 문구 확인·근거 확인 개수만 최대 30분 남아요. 한 번 수정하면 충분한지, 회사별 지원 기록으로 다시 열어 비교할지에 따라 선택하세요.</p>
           <ol className="mt-5 grid gap-px bg-border sm:grid-cols-3" aria-label="무료 점검과 Resume Pro 저장 가치 비교">
-            <li className="bg-surface p-4"><span className="font-mono text-xs text-muted">01 · 지금</span><strong className="mt-2 block text-navy">무료로 사실 확인</strong><span className="mt-1 block text-xs leading-5 text-muted">현재 화면에서 표현과 실제 경험 근거를 비교해요.</span></li>
+            <li className="bg-surface p-4"><span className="font-mono text-xs text-muted">01 · 무료 저장</span><strong className="mt-2 block text-navy">근거 메모 TXT 저장</strong><span className="mt-1 block text-xs leading-5 text-muted">원문 없이 표현 후보와 근거 질문을 저장해 다음 지원에서 파일로 다시 열어요.</span></li>
             <li className="bg-white p-4"><span className="font-mono text-xs text-muted">02 · 회사별</span><strong className="mt-2 block text-navy">경력 + 실제 공고 저장</strong><span className="mt-1 block text-xs leading-5 text-muted">저장된 Builder 경력과 공고를 공고별 이력서·커버레터·면접 메모로 묶어요.</span></li>
             <li className="bg-white p-4"><span className="font-mono text-xs text-muted">03 · 다음 지원</span><strong className="mt-2 block text-navy">다시 열어 나란히 비교</strong><span className="mt-1 block text-xs leading-5 text-muted">회사별 버전을 다시 열고, 확인한 근거와 체크리스트를 재사용해요.</span></li>
           </ol>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <ResumeProCtaLink href="/resume-pro?from=job-ad-checker" surface={resumeFunnelSurfaces.jobAdCheckerResult} context={resumeFunnelContexts.jobAdChecker} className="flex min-h-12 flex-col items-center justify-center bg-navy px-5 py-3 text-center font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"><span>이 근거를 공고별 지원서에 연결하기</span><span className="mt-1 text-xs font-medium text-white/75">회사별 저장·재열기 흐름 보기</span></ResumeProCtaLink>
+            <ResumeProCtaLink href="/resume-pro?from=job-ad-checker" surface={resumeFunnelSurfaces.jobAdCheckerResult} context={resumeFunnelContexts.jobAdChecker} className="flex min-h-12 flex-col items-center justify-center bg-navy px-5 py-3 text-center font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"><span>회사별 지원서 저장 방식 비교하기</span><span className="mt-1 text-xs font-medium text-white/75">현재 탭의 요약 개수만 이어져요</span></ResumeProCtaLink>
             <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy/30 px-5 py-3 text-center font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">이번 이력서만 무료로 수정하기</Link>
           </div>
           <p className="mt-4 text-xs leading-5 text-muted">Resume Pro는 지원할 공고가 정해졌고 회사별 버전을 저장·재열기·비교해야 할 때만 검토하세요. 입력하지 않은 경험을 만들거나 면접·취업 결과를 보장하지 않습니다.</p>

@@ -66,5 +66,5 @@ if (!result.passed) {
   process.exit(1);
 }
 
-console.log(`ACCOUNTING_PRODUCT_ISOLATION=PASS mode=${packet.environment} products=resume_pro+rental_application_pro price_identity=PASS source_chain=PASS adjustment_support_chain=PASS shared_reconciliation=PASS unresolved=0`);
+console.log(`ACCOUNTING_PRODUCT_ISOLATION=PASS mode=${packet.environment} products=resume_pro+rental_application_pro price_identity=PASS source_chain=PASS adjustment_support_chain=PASS non_app_unallocated=PASS shared_reconciliation=PASS unresolved=0`);
 console.log("이 판정은 읽기 전용이며 가격 변경, 결제, 환불, 고객 연락, 장부 입력 또는 세무 판단을 승인하지 않습니다.");

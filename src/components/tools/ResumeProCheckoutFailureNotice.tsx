@@ -18,6 +18,7 @@ export function ResumeProCheckoutFailureNotice({
       role="status"
       aria-live="polite"
       aria-atomic="true"
+      tabIndex={-1}
     >
       <p>{failure.message}</p>
       {failure.retryable && (

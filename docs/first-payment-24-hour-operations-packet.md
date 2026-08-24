@@ -160,6 +160,14 @@ private 연결표가 하나의 원거래를 가리킬 때만 `PASS`다. JSON 증
 `FAIL`이고 24시간 결과는 `HOLD`다. owner 승인만으로 `PASS`로 바꾸지
 않는다.
 
+다른 active Stripe Product가 존재한다는 사실만으로 Resume 첫 결제를
+막거나 그 Product를 변경하지 않는다. Resume 장부 귀속은 exact Resume
+Product → Price → signed `metadata.product_code=resume_pro` → Checkout →
+PaymentIntent → Charge → Balance Transaction chain이 모두 같을 때만
+허용한다. 계정 전체 export의 다른 Product, chain 불명 또는 미연결 movement는
+Resume gross·fee·refund에 넣지 말고 private attribution view의
+`UNALLOCATED`로 남긴 뒤 shared ledger에서 그대로 대사한다.
+
 통합 preflight chain이 추가된 현재 템플릿은 `schema_version=4`다. 반드시
 `npm.cmd run first-sale:evidence -- --template`로 새 private 입력을 만들고,
 기존 v1/v2/v3 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다.

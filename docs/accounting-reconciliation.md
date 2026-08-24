@@ -177,6 +177,25 @@ native Checkout metadata → PaymentIntent → Charge → Balance Transaction
 relationship. Refunds, disputes and chargebacks inherit the product only from
 that original chain.
 
+An unrelated active Stripe Product is not a Resume launch blocker. The
+integrated first-sale preflight proves only the configured Resume Price and its
+expanded exact Product; it must not list, mutate or disable an unrelated Product
+just because it is active. Resume attribution requires the private native chain
+exact Resume Product → Price → signed `metadata.product_code=resume_pro` →
+Checkout → PaymentIntent → Charge → Balance Transaction. Product name, active
+status, amount, currency, description, timing, alert text or payout membership
+cannot replace any link.
+
+The immutable account-level export remains unchanged. A row whose complete app
+chain is absent, conflicting or belongs to a non-app Product stays
+`UNALLOCATED` in the private attribution view; never force it into Resume or
+Rental to make a subledger balance. If a native source chain positively proves
+an unrelated non-app transaction, it may be reported in a separate
+`OTHER_NON_APP` private view, but its mere catalogue existence is not a sale and
+must not create a launch blocker. Unexpected live money movement still requires
+accounting review and shared-ledger reconciliation, without changing or
+disabling the Product.
+
 Fees and taxes without a proven source relationship remain `UNALLOCATED` or
 `UNRESOLVED`; they must not be spread between products just to make a product
 report balance. Payouts remain shared Stripe-clearing movements rather than

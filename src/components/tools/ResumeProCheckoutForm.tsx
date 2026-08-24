@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { track } from "@vercel/analytics";
 import type { ResumeProEntry } from "@/lib/resumeProAttribution";
 import { getResumeProCheckoutFailure } from "@/lib/resumeProCheckoutFailure";
 import { ResumeProCheckoutFailureNotice } from "@/components/tools/ResumeProCheckoutFailureNotice";
+
+const checkoutRequestTimeoutMs = 45_000;
+const checkoutFailureId = "resume-pro-checkout-failure";
 
 function getSafeCheckoutUrl(value: unknown) {
   if (typeof value !== "string") return null;
@@ -24,11 +27,18 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
   const [failureCode, setFailureCode] = useState<string | null>(null);
   const failure = getResumeProCheckoutFailure(failureCode);
 
+  useEffect(() => {
+    if (!failure) return;
+    document.getElementById(checkoutFailureId)?.focus();
+  }, [failure]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!accepted || submitting) return;
 
     const form = event.currentTarget;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), checkoutRequestTimeoutMs);
     setSubmitting(true);
     setFailureCode(null);
 
@@ -37,6 +47,7 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
         method: "POST",
         body: new FormData(form),
         headers: { Accept: "application/json" },
+        signal: controller.signal,
       });
       const payload = await response.json().catch(() => null) as {
         checkoutUrl?: unknown;
@@ -63,6 +74,7 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
     } catch {
       setFailureCode("checkout_temporarily_unavailable");
     } finally {
+      window.clearTimeout(timeoutId);
       setSubmitting(false);
     }
   }
@@ -96,7 +108,7 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
         <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">결제 데이터 처리 안내</Link>를 확인해 주세요.
       </p>
       {failure && (
-        <ResumeProCheckoutFailureNotice failure={failure} id="resume-pro-checkout-failure" />
+        <ResumeProCheckoutFailureNotice failure={failure} id={checkoutFailureId} />
       )}
       <p id="resume-pro-checkout-requirement" className="mt-4 text-sm leading-6 text-muted" aria-live="polite">
         {accepted

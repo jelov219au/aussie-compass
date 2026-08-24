@@ -31,7 +31,12 @@ function passingPacket() {
 }
 
 assert.deepEqual(Object.keys(createAccountingProductIsolationTemplate().products), accountingProductCodes);
+assert.equal(createAccountingProductIsolationTemplate().schema_version, 2);
 assert.equal(evaluateAccountingProductIsolation(passingPacket()).decision, "PASS");
+
+const legacyPacket = passingPacket();
+legacyPacket.schema_version = 1;
+assert.ok(evaluateAccountingProductIsolation(legacyPacket).errors.includes("schema_version"));
 
 const rentalPriceMissing = passingPacket();
 rentalPriceMissing.products.rental_application_pro.checkout_price_verified = "MISSING";
@@ -41,6 +46,10 @@ const reusedPrice = passingPacket();
 reusedPrice.cross_product_checks.stripe_prices_distinct = "FAIL";
 assert.equal(evaluateAccountingProductIsolation(reusedPrice).decision, "UNRESOLVED");
 
+const wrongResumePriceProduct = passingPacket();
+wrongResumePriceProduct.products.resume_pro.checkout_price_product_link_verified = "FAIL";
+assert.equal(evaluateAccountingProductIsolation(wrongResumePriceProduct).decision, "UNRESOLVED");
+
 const brokenPaymentIntentChain = passingPacket();
 brokenPaymentIntentChain.products.rental_application_pro.checkout_payment_intent_link_verified = "FAIL";
 assert.equal(evaluateAccountingProductIsolation(brokenPaymentIntentChain).decision, "UNRESOLVED");
@@ -48,6 +57,14 @@ assert.equal(evaluateAccountingProductIsolation(brokenPaymentIntentChain).decisi
 const crossedRefundSupport = passingPacket();
 crossedRefundSupport.cross_product_checks.no_cross_product_refund_dispute_support_links = "FAIL";
 assert.equal(evaluateAccountingProductIsolation(crossedRefundSupport).decision, "UNRESOLVED");
+
+const nonAppAttributedToResume = passingPacket();
+nonAppAttributedToResume.cross_product_checks.non_app_products_excluded_from_app_attribution = "FAIL";
+assert.equal(evaluateAccountingProductIsolation(nonAppAttributedToResume).decision, "UNRESOLVED");
+
+const unmatchedRowForcedIntoAnApp = passingPacket();
+unmatchedRowForcedIntoAnApp.cross_product_checks.unmatched_rows_unallocated = "MISSING";
+assert.equal(evaluateAccountingProductIsolation(unmatchedRowForcedIntoAnApp).decision, "UNRESOLVED");
 
 const wrongProducts = passingPacket();
 wrongProducts.products.rental_pack = wrongProducts.products.rental_application_pro;
@@ -77,16 +94,23 @@ assert.ok(packageSource.includes('"test:accounting-product-isolation": "node scr
 for (const boundary of [
   "npm.cmd run accounting:product-isolation -- --template",
   "price_identity=PASS",
+  "non_app_unallocated=PASS",
   "products=resume_pro+rental_application_pro",
   "Do not copy Resume PASS values into Rental rows",
   "A `mode=test` PASS is not live launch evidence",
   "Rental product switch remains off",
+  "unrelated active Stripe Product is not a Resume launch blocker",
+  "schema_version=2",
+  "A v1 file",
 ]) assert.ok(compactRollout.includes(boundary), `rollout runbook is missing executable product isolation: ${boundary}`);
 for (const boundary of [
   "Executable cross-product attribution gate",
   "checkout metadata → Price → PaymentIntent → Charge → Balance Transaction",
   "refund, dispute, support and entitlement links",
   "Resume-only first-sale packet cannot prove Rental isolation",
+  "exact Resume Product → Price → signed `metadata.product_code=resume_pro`",
+  "UNALLOCATED",
+  "must not list, mutate or disable an unrelated Product",
 ]) assert.ok(compactAccounting.includes(boundary), `accounting runbook is missing executable product isolation: ${boundary}`);
 
 console.log("Accounting product-isolation classifier contract passed.");

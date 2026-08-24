@@ -3,6 +3,7 @@ export const accountingProductCodes = ["resume_pro", "rental_application_pro"];
 export const productIsolationChecks = [
   "catalog_product_identity_verified",
   "catalog_price_identity_verified",
+  "checkout_price_product_link_verified",
   "catalog_price_amount_currency_verified",
   "checkout_metadata_product_code_verified",
   "checkout_price_verified",
@@ -21,6 +22,8 @@ export const crossProductIsolationChecks = [
   "charges_distinct",
   "balance_transactions_distinct",
   "no_cross_product_refund_dispute_support_links",
+  "non_app_products_excluded_from_app_attribution",
+  "unmatched_rows_unallocated",
   "shared_ledger_reconciled",
 ];
 
@@ -41,7 +44,7 @@ function missingChecks(names) {
 
 export function createAccountingProductIsolationTemplate() {
   return {
-    schema_version: 1,
+    schema_version: 2,
     environment: "live",
     currency: "aud",
     window_start: "REPLACE_WITH_UTC_TIMESTAMP",
@@ -87,7 +90,7 @@ function structuralErrors(packet) {
   const errors = [];
   if (!hasExactKeys(packet, rootKeys)) errors.push("packet_shape");
   if (!isPlainObject(packet)) return errors;
-  if (packet.schema_version !== 1) errors.push("schema_version");
+  if (packet.schema_version !== 2) errors.push("schema_version");
   if (!new Set(["test", "live"]).has(packet.environment)) errors.push("environment");
   if (packet.currency !== "aud") errors.push("currency");
   if (!isCanonicalUtc(packet.window_start)) errors.push("window_start");

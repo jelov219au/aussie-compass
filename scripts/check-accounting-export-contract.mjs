@@ -231,7 +231,7 @@ for (const boundary of [
   "Balance Transaction",
   "UNALLOCATED",
   "Resume subledger totals",
-  "ACCOUNTING_PRODUCT_ISOLATION=PASS mode=live products=resume_pro+rental_application_pro price_identity=PASS source_chain=PASS adjustment_support_chain=PASS shared_reconciliation=PASS unresolved=0",
+  "ACCOUNTING_PRODUCT_ISOLATION=PASS mode=live products=resume_pro+rental_application_pro price_identity=PASS source_chain=PASS adjustment_support_chain=PASS non_app_unallocated=PASS shared_reconciliation=PASS unresolved=0",
   "ACCOUNTING_PRODUCT_ISOLATION=UNRESOLVED",
   "launch `NO-GO`",
 ]) assert.ok(compactProductRollout.includes(boundary), `Rental accounting isolation gate is missing: ${boundary}`);

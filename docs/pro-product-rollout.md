@@ -74,18 +74,25 @@ npm.cmd run accounting:product-isolation -- --template
 npm.cmd run accounting:product-isolation -- --file <private-json-path>
 ```
 
+The current template is `schema_version=2`. A v1 file lacks the exact
+Price→Product and non-app/UNALLOCATED checks and is a structural `STOP`; create
+a fresh private input rather than copying prior PASS values.
+
 The template requires separate Resume and Rental results for catalogue Product,
 Price identity, amount/currency, signed Checkout `product_code`, Checkout →
 PaymentIntent → Charge → Balance Transaction, refund/dispute and
 support/entitlement linkage. It also requires cross-product proof that Product,
 Price, PaymentIntent, Charge and Balance Transaction identities are distinct and
-that the shared source ledger still reconciles. Keep full identifiers and source
-documents out of the JSON. Do not copy Resume PASS values into Rental rows. The
+that any non-app Product or unmatched account-level row is excluded from Resume
+and Rental and retained as `UNALLOCATED`, while the shared source ledger still
+reconciles. An unrelated active Stripe Product is not a Resume launch blocker
+and must not be disabled or altered for this gate. Keep full identifiers and
+source documents out of the JSON. Do not copy Resume PASS values into Rental rows. The
 Resume-only `first-sale:evidence` packet cannot prove Rental isolation and must
 not be cloned with a changed `product_code`.
 
 Only the exact live result
-`ACCOUNTING_PRODUCT_ISOLATION=PASS mode=live products=resume_pro+rental_application_pro price_identity=PASS source_chain=PASS adjustment_support_chain=PASS shared_reconciliation=PASS unresolved=0`
+`ACCOUNTING_PRODUCT_ISOLATION=PASS mode=live products=resume_pro+rental_application_pro price_identity=PASS source_chain=PASS adjustment_support_chain=PASS non_app_unallocated=PASS shared_reconciliation=PASS unresolved=0`
 is rollout evidence. A `mode=test` PASS is not live launch evidence. Any
 `MISSING`/`FAIL`, missing or reused Product/Price identity, broken
 PaymentIntent chain, cross-product refund/support link, non-zero reconciliation

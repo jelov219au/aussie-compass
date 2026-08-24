@@ -141,6 +141,8 @@ assert.match(component, /job-ad-result-heading" tabIndex=\{-1\}/, "the revealed 
 assert.match(component, /prefers-reduced-motion: reduce/, "result reveal must respect reduced-motion preferences");
 assert.doesNotMatch(component, /track\([^)]*(resumeText|jobAdText)|properties=.*(resumeText|jobAdText)/s, "analytics must never include pasted text");
 assert.match(component, /navigator\.clipboard\.writeText\(memo\)/, "the result needs an explicit local evidence-memo copy action");
+assert.match(component, /anchor\.download = "resume-job-ad-evidence-memo\.txt"/, "the result needs a durable user-controlled evidence-memo download");
+assert.match(component, /다음 지원에서 파일을 다시 열어 재사용할 수 있어요/, "the saved memo must name its concrete reuse boundary");
 assert.match(component, /공고 원문이나 이력서 원문 없이/, "the copy result must explain that raw input was excluded");
 assert.match(component, /aria-labelledby="evidence-priority-heading"/, "the personalised next-step plan needs an accessible section name");
 assert.match(component, /priorityTerms[\s\S]*\.slice\(0, 3\)/, "the next-step plan must stay focused on at most three terms");
@@ -148,7 +150,8 @@ for (const prompt of ["언제·어디서 한 일인가", "내가 직접 한 행�
   assert.ok(component.includes(prompt), `the evidence plan is missing its factual prompt: ${prompt}`);
 }
 assert.ok(component.includes("Resume Pro가 줄이는 반복") && component.includes("공고별 이력서·커버레터·면접 메모"), "the result must explain the paid reuse value without promising an outcome");
-assert.match(component, /이 근거를 공고별 지원서에 연결하기/, "the checker CTA needs to describe the next paid job clearly");
+assert.match(component, /회사별 지원서 저장 방식 비교하기/, "the checker CTA needs to describe the next paid job clearly");
+assert.match(component, /현재 탭의 요약 개수만 이어져요/, "the checker CTA must disclose the count-only handoff boundary");
 assert.match(component, /window\.location\.origin.*\/resume-job-ad-checker/, "sharing must build a canonical query-free checker URL");
 assert.match(component, /track\("Page Shared", \{ content: "resume_job_ad_checker", method \}\)/, "sharing needs a fixed privacy-safe event");
 assert.match(component, /trackCheckerShare\("native"\)/, "native sharing needs the fixed privacy-safe helper");
