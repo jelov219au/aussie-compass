@@ -28,6 +28,8 @@ for (const contract of [
   "managed_payments: { enabled: true }",
   "acquisition_source",
   "normalizeResumeProEntry",
+  "getActiveResumeProEntitlement",
+  "checkout_already_purchased",
 ]) {
   assert.ok(checkout.includes(contract), `Checkout safety contract is missing: ${contract}`);
 }
@@ -92,6 +94,11 @@ for (const entry of ["article-job-search-plan", "article-achievement-examples", 
 
 assert.ok(!checkout.includes("payment_method_types"), "Checkout must keep Stripe dynamic payment methods enabled");
 assert.ok(!checkout.includes("automatic_tax"), "The app must not add a separate automatic-tax setting on top of Managed Payments");
+assert.ok(
+  checkout.indexOf("getActiveResumeProEntitlement()") < checkout.indexOf("stripe.prices.retrieve")
+    && checkout.indexOf("getActiveResumeProEntitlement()") < checkout.indexOf("checkout.sessions.create"),
+  "an active entitlement must stop a direct Checkout POST before every Stripe read or Session creation",
+);
 assert.ok(purchaseVerification.includes("(?:test|live)_"), "Purchase verification must accept both test and live Checkout Session IDs");
 assert.ok(entitlementStore.includes("(?:test|live)_"), "Entitlement lookup must accept both test and live Checkout Session IDs");
 for (const notice of ["/terms", "/purchase-information", "/privacy"]) {

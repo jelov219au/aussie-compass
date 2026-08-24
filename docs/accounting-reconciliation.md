@@ -26,6 +26,53 @@ private `overall_tax_handoff=PASS` criteria are satisfied, record
 
 The generated workbook starts with the controlled live A$19.90 Resume Pro purchase and full refund recorded on 20 August 2026. Unknown fee and payout values remain blank until reconciled against Stripe reports and the bank statement. Do not add customer names, email addresses, card details, ABNs or secret keys to the workbook.
 
+### Status-only controlled-payment reconciliation gate
+
+After reconciling the 20 August owner-controlled live Resume Pro purchase and
+full refund in the approved private workbook, record a separate status-only JSON
+and run the local classifier. The JSON must not contain amounts, cash
+differences, customer or bank information, full Stripe identifiers, source
+document text, URLs, notes or credentials. Those remain only in the private
+source reports, workbook and bank evidence.
+
+```powershell
+npm.cmd run accounting:controlled-reconciliation -- --template
+npm.cmd run accounting:controlled-reconciliation -- --file <private-json-path>
+```
+
+The classifier reads one local file only. It does not query Stripe, read
+environment variables, write a file, alter the ledger or contact a bank. It
+requires the fixed live Resume scope and verifies status for the original
+Checkout → PaymentIntent → Charge → Balance Transaction chain, preserved gross
+sale, separately recorded Stripe fee, fee-tax boundary, full-refund original
+chain, refund Balance movement and any refund-related fee adjustment, ending
+balance, payout disposition, live/test isolation, private source retention and
+the private workbook's cash-difference result.
+Unknown values must remain `MISSING`; the JSON records only whether the private
+source proves the difference is within ±A$0.01 and never records the difference
+or any component amount.
+
+`payout_state=matched` means an itemised payout was matched to the bank arrival.
+`payout_state=source_verified_none` is allowed only when the closed Stripe
+source window and bank evidence positively establish that this controlled
+sale/refund chain created no payout movement requiring a bank match. The absence
+of a downloaded report, a blank workbook cell or an assumed net-zero result does
+not count. `pending` and `unresolved` remain `HOLD`.
+
+Only the exact final result beginning
+`CONTROLLED_PAYMENT_RECONCILIATION=PASS mode=live` satisfies this one accounting
+gate. Any `HOLD`, `STOP`, missing final line, changed schema, non-live packet or
+manually typed PASS keeps the first customer at `NO-GO`. The PASS does not
+replace `CUSTOMER_DOCUMENT_TRUST_GATE=GO`: that separate classifier establishes
+whether customer-facing artifacts show the transaction seller, document issuer
+and support route, while this classifier accepts none of those fields and
+decides only financial source-chain completeness. Neither classifier supplies a
+tax conclusion or replaces the registered-tax-agent handoff.
+
+The completed status file remains private and uncommitted. A PASS does not
+authorise a customer payment, refund, payout, bank action, ledger entry, tax
+position, customer contact, Production change or sale-gate reopen.
+
 ## Stripe source report
 
 Stripe recommends Balance Transactions as the basis of balance reporting. For automatic payouts, use the itemised payout reconciliation report to match transactions and fees to the bank deposit.

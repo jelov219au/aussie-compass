@@ -12,9 +12,11 @@ import {
 } from "@/lib/firstSaleGate";
 import { getConfiguredFirstSaleGate } from "@/lib/neonFirstSaleGate";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
+import { getActiveResumeProEntitlement } from "@/lib/resumeProAccess";
 import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
 import {
   classifyResumeProCheckoutFailure,
+  getResumeProCheckoutFailure,
   getResumeProCheckoutConfigurationFailure,
   type ResumeProCheckoutFailureCode,
   type ResumeProCheckoutFailure,
@@ -181,6 +183,13 @@ export async function POST(request: NextRequest) {
 
   try {
     assertSafeStripeEnvironment();
+
+    const activeEntitlement = await getActiveResumeProEntitlement();
+    if (activeEntitlement) {
+      const alreadyPurchased = getResumeProCheckoutFailure("checkout_already_purchased");
+      if (!alreadyPurchased) throw new Error("Resume Pro repurchase guard is unavailable.");
+      return checkoutFailureResponse(request, acquisitionSource, alreadyPurchased);
+    }
 
     const stripe = getStripe();
     const firstSaleGate = getConfiguredFirstSaleGate();

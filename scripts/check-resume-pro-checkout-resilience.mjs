@@ -67,6 +67,7 @@ assert.equal(unknownFailure.code, "checkout_failed");
 assert.equal(unknownFailure.status, 500);
 
 for (const code of [
+  "checkout_already_purchased",
   "checkout_unavailable",
   "checkout_temporarily_unavailable",
   "checkout_retry_later",
@@ -87,10 +88,12 @@ const failureNotice = readFileSync(resolve("src/components/tools/ResumeProChecko
 const page = readFileSync(resolve("src/app/resume-pro/page.tsx"), "utf8");
 
 const readinessGate = route.indexOf("if (!allowed)");
+const activeEntitlementGate = route.indexOf("getActiveResumeProEntitlement()");
 const remoteLookup = route.indexOf("stripe.prices.retrieve");
 const sessionCreation = route.indexOf("stripe.checkout.sessions.create");
 const successfulJson = route.indexOf("checkoutUrl: session.url");
 assert.ok(readinessGate >= 0 && remoteLookup > readinessGate, "missing environment configuration must stop before the remote Product lookup");
+assert.ok(activeEntitlementGate > readinessGate && remoteLookup > activeEntitlementGate && sessionCreation > activeEntitlementGate, "active buyers must be stopped before Stripe Product lookup and Session creation");
 assert.ok(sessionCreation >= 0 && successfulJson > sessionCreation, "a Checkout URL response must only follow Session creation");
 assert.ok(route.includes("classifyResumeProCheckoutFailure(error)"), "Stripe and Product lookup failures must use the public classifier");
 assert.ok(route.includes("checkoutFailureResponse(request, acquisitionSource"), "native and enhanced forms must share the safe failure boundary");
@@ -131,6 +134,17 @@ assert.ok(
     && purchaseInformationIndex < privacyIndex
     && privacyIndex < submitIndex,
   "after the Checkout heading, keyboard order must be checkbox, terms, purchase information, privacy, then payment button",
+);
+
+const alreadyPurchasedFailure = getResumeProCheckoutFailure("checkout_already_purchased");
+assert.deepEqual(
+  {
+    status: alreadyPurchasedFailure?.status,
+    retryable: alreadyPurchasedFailure?.retryable,
+    action: alreadyPurchasedFailure?.action?.href,
+  },
+  { status: 409, retryable: false, action: "/resume-pro/workspace#resume-pro-workspace" },
+  "an active buyer must receive a fixed workspace continuation instead of a second Checkout",
 );
 assert.match(jumpLink, /href="#resume-pro-checkout"/);
 assert.match(jumpLink, /requestAnimationFrame[\s\S]*getElementById\(checkoutHeadingId\)\?\.focus\(\{ preventScroll: true \}\)/);

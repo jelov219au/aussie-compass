@@ -1,4 +1,5 @@
 export type ResumeProCheckoutFailureCode =
+  | "checkout_already_purchased"
   | "checkout_unavailable"
   | "checkout_temporarily_unavailable"
   | "checkout_retry_later"
@@ -7,7 +8,7 @@ export type ResumeProCheckoutFailureCode =
   | "checkout_failed";
 
 export type ResumeProCheckoutFailureAction = {
-  href: "#resume-pro-checkout" | "/resume-builder" | "/contact";
+  href: "#resume-pro-checkout" | "/resume-builder" | "/contact" | "/resume-pro/workspace#resume-pro-workspace";
   label: string;
 };
 
@@ -16,11 +17,19 @@ export type ResumeProCheckoutFailure = {
   logCategory: "configuration" | "temporary" | "internal";
   message: string;
   retryable: boolean;
-  status: 500 | 503;
+  status: 409 | 500 | 503;
   action?: ResumeProCheckoutFailureAction;
 };
 
 const failures: Record<ResumeProCheckoutFailureCode, ResumeProCheckoutFailure> = {
+  checkout_already_purchased: {
+    code: "checkout_already_purchased",
+    logCategory: "configuration",
+    message: "이 기기의 Resume Pro 이용권이 이미 확인됐어요. 다시 결제하지 말고 작업공간에서 계속해 주세요.",
+    retryable: false,
+    status: 409,
+    action: { href: "/resume-pro/workspace#resume-pro-workspace", label: "작업공간에서 계속하기" },
+  },
   checkout_unavailable: {
     code: "checkout_unavailable",
     logCategory: "configuration",
@@ -89,7 +98,8 @@ const temporaryStripeErrors = new Set([
 
 export function getResumeProCheckoutFailure(code: string | null | undefined) {
   if (
-    code === "checkout_unavailable"
+    code === "checkout_already_purchased"
+    || code === "checkout_unavailable"
     || code === "checkout_temporarily_unavailable"
     || code === "checkout_retry_later"
     || code === "checkout_sales_closed"

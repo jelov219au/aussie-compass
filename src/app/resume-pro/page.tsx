@@ -200,9 +200,19 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 </ol>
               </div>
               <aside className="border-l-2 border-gold pl-6">
-                <p className="text-sm font-semibold text-muted">Resume Pro 1회 이용권</p>
-                <p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$19.90</p>
-                <p className="mt-2 text-sm leading-6 text-muted">매달 빠져나가는 구독료 없이 한 번만 결제해요.</p>
+                {hasActiveEntitlement ? (
+                  <>
+                    <p className="text-sm font-semibold text-[#315f4e]">이용권 확인 완료</p>
+                    <p className="mt-2 text-xl font-semibold tracking-tight text-navy">추가 결제 없이 계속 이용</p>
+                    <p className="mt-2 text-sm leading-6 text-muted">작업공간에서 저장한 지원서를 다시 열거나 새 지원서를 시작하세요.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-muted">Resume Pro 1회 이용권</p>
+                    <p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$19.90</p>
+                    <p className="mt-2 text-sm leading-6 text-muted">매달 빠져나가는 구독료 없이 한 번만 결제해요.</p>
+                  </>
+                )}
               </aside>
             </div>
             <div className="mt-10 flex flex-wrap items-start gap-3">
@@ -276,9 +286,11 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 </li>
               </ol>
               <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
-                <ResumeProProofLink entry={entry} className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">
-                  결제 전에 내 공고로 차이 확인하기 →
-                </ResumeProProofLink>
+                {!hasActiveEntitlement && (
+                  <ResumeProProofLink entry={entry} className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">
+                    결제 전에 내 공고로 차이 확인하기 →
+                  </ResumeProProofLink>
+                )}
                 <p className="max-w-2xl text-xs leading-5 text-muted">어떤 AI나 글쓰기 도구를 쓰더라도 없는 경력·성과·자격을 만들지 않습니다.</p>
               </div>
             </section>
@@ -306,6 +318,8 @@ export default async function ResumeProPage({ searchParams }: Props) {
           </Container>
         </section>
 
+        {!hasActiveEntitlement && (
+          <>
         <section className="border-b border-navy/15 bg-surface py-12 sm:py-16" aria-labelledby="buyer-fit-heading">
           <Container>
             <div className="grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-end">
@@ -470,6 +484,8 @@ export default async function ResumeProPage({ searchParams }: Props) {
             <Link href="/resume-builder" className="inline-flex min-h-12 shrink-0 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">무료 빌더 열기 <span className="ml-3" aria-hidden="true">→</span></Link>
           </Container>
         </section>
+          </>
+        )}
       </main>
       <Footer />
     </>

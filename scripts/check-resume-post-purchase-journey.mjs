@@ -19,6 +19,9 @@ assert.ok((offerPage.match(/href="\/resume-pro\/workspace#resume-pro-workspace"/
 assert.ok(offerPage.indexOf("hasActiveEntitlement ? (") < offerPage.indexOf("<ResumeProCheckoutJumpLink"), "workspace continuation must take precedence over checkout");
 assert.ok(offerPage.includes('{canOfferCheckout && <div id="resume-pro-checkout"'), "the checkout form must remain behind the active-entitlement-aware guard");
 assert.ok(offerPage.includes('checkoutFailure && !hasActiveEntitlement'), "stale Checkout errors must not replace an active buyer's safe continuation");
+assert.match(offerPage, /hasActiveEntitlement \? \([\s\S]*추가 결제 없이 계속 이용[\s\S]*\) : \([\s\S]*A\$19\.90/, "the active-buyer price card must become a paid-access continuation state");
+assert.match(offerPage, /\{!hasActiveEntitlement && \(\s*<ResumeProProofLink[\s\S]*결제 전에 내 공고로 차이 확인하기/, "the in-hero pre-purchase proof CTA must be hidden from active buyers");
+assert.match(offerPage, /\{!hasActiveEntitlement && \(\s*<>\s*<section[^>]+buyer-fit-heading[\s\S]*무료 빌더 열기[\s\S]*<\/section>\s*<\/>\s*\)\}/, "price-fit, launch-interest and pre-purchase comparison sections must share one active-buyer guard");
 assert.doesNotMatch(offerPage, /href=\{[^}]*resume-pro\/workspace|redirect\([^)]*resume-pro\/workspace/, "active-buyer recovery must not accept or construct an arbitrary workspace URL");
 
 assert.ok(successPage.includes("결제가 확인됐습니다. 이제 작업공간을 여세요."), "the paid success state needs one clear outcome");
