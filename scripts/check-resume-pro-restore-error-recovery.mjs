@@ -1,7 +1,16 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const restoreForm = await readFile(new URL("../src/components/tools/ResumeProRestoreForm.tsx", import.meta.url), "utf8");
+const [restorePage, restoreForm] = await Promise.all([
+  readFile(new URL("../src/app/resume-pro/restore/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/ResumeProRestoreForm.tsx", import.meta.url), "utf8"),
+]);
+
+assert.ok(restorePage.includes("getActiveResumeProEntitlement()"), "the restore page must recognise an already connected device");
+assert.match(restorePage, /hasActiveEntitlement \? \([\s\S]*복구 코드를 다시 입력할 필요가 없습니다\.[\s\S]*href="\/resume-pro\/workspace#resume-pro-workspace"[\s\S]*\) : \([\s\S]*<ResumeProRestoreForm initialStatus=\{status\}/, "active access must bypass restore input for the fixed protected workspace destination");
+assert.ok(restorePage.includes("새 결제나 복구를 진행하지 말고"), "active access must explicitly prevent duplicate purchase and restore actions");
+assert.ok(restorePage.includes("작업공간에서도 이용권을 다시 확인합니다."), "the direct continuation must preserve the protected workspace boundary");
+assert.doesNotMatch(restorePage, /href=\{[^}]*resume-pro\/workspace|redirect\([^)]*resume-pro\/workspace/, "restore continuation must not accept or construct an arbitrary destination");
 
 for (const contract of [
   "useRef<HTMLTextAreaElement>(null)",

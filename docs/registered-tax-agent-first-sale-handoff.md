@@ -123,3 +123,46 @@ The overall result can be `PASS` only when `facts_complete`,
 `questions_complete` and `mapping_complete` are all `PASS`, contradictions are
 `NONE`, the agent confirmation reference exists privately, and there are no
 open follow-ups. Otherwise record `overall_tax_handoff=UNRESOLVED`.
+
+## Status-only registered-tax-agent handoff gate
+
+After the registered tax agent has completed the private handoff, create a
+separate private status JSON from the repository template. Enter only the fixed
+states; do not copy the adviser's name, practice, registration reference, ABN,
+contact details, amounts, bank information, Stripe or document identifiers,
+URLs, evidence references, recommendations or advice text into it.
+
+```powershell
+npm.cmd run accounting:tax-agent-handoff -- --template
+npm.cmd run accounting:tax-agent-handoff -- --file <private-status-json>
+```
+
+The classifier reads one local file only. It does not query a registration
+service, Stripe, a bank or another data source, inspect environment variables,
+contact the adviser, make a tax determination or write a file. The operator
+must verify the registration from an approved source and retain that source
+privately before setting `adviser_registration_verified=VERIFIED`.
+
+`overall_tax_handoff=PASS` alone cannot pass the gate. Every fixed check must
+also be `PASS`, including F1–F6 facts, Q1–Q9 conclusions, every bookkeeping
+mapping row, entity and ABN/GST applicability, GST reporting treatment, Managed
+Payments role and revenue owner, gross-sale treatment, Stripe fee and fee-tax
+treatment, refund/dispute treatment, payout/clearing treatment, private source
+retention, retained registration evidence, registered-tax-agent confirmation,
+dated advice and evidence index, no contradictions, no open follow-ups and owner
+acknowledgement. Missing or failed evidence produces
+`HOLD`; changed fields, invalid states, non-canonical time or sensitive input
+produces `STOP`.
+
+Only the exact result beginning
+`REGISTERED_TAX_AGENT_HANDOFF_GATE=PASS mode=production` satisfies this tax-agent
+handoff gate. It does not replace `CONTROLLED_PAYMENT_RECONCILIATION=PASS`, which
+classifies the controlled transaction's gross, fee, refund and payout evidence.
+It does not replace `CUSTOMER_DOCUMENT_TRUST_GATE=GO`, which classifies the
+actual customer-visible documents. It does not replace
+`PAYMENT_REFUND_SUPPORT_ALERT_GATE=PASS`, which classifies alert delivery.
+
+Keep the completed status file and every source record private and uncommitted.
+The result is not tax or legal advice and does not authorise a payment, refund,
+customer contact, filing, ledger entry, configuration change or sale-gate
+reopen.
