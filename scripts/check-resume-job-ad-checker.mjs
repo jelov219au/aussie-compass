@@ -156,14 +156,14 @@ assert.ok(handoff.includes("30 * 60 * 1000"), "the proof summary must expire aft
 assert.ok(handoff.includes("matchedCount") && handoff.includes("missingCount") && handoff.includes("terms") && handoff.includes("checkedAt"), "the handoff schema must contain counts, extracted terms and time");
 assert.match(handoff, /terms\.filter\(\(item\) => item\.matched\)\.length !== summary\.matchedCount/, "the handoff must reject a forged term/status count");
 assert.ok(offerPage.includes("<ResumeJobAdProofContinuation entry={entry} />"), "the Resume Pro offer must render the checker continuation at its client boundary");
-assert.ok(offerPage.includes("이력서·공고 원문은 이 페이지·URL·분석 이벤트·안내 요청문으로 넘어오지 않습니다") && offerPage.includes("표현 후보와 확인 상태만 현재 탭에 최대 30분 남아"), "the offer must disclose the exact evidence-only handoff boundary");
+assert.ok(offerPage.includes("점검기에 붙여 넣은 이력서·공고 원문과 표현은 이 페이지·URL·분석 이벤트·안내 요청문으로 넘어오지 않습니다") && offerPage.includes("별도로 보관한 표현 후보와 확인 상태는 현재 탭에 최대 30분 남아"), "the offer must disclose the exact evidence-only handoff boundary");
 for (const copy of ["문구 확인 {summary.matchedCount}개", "실제 근거 확인 {summary.missingCount}개", "이력서·공고 원문은 저장하지 않았습니다", "요약 지우기"]) {
   assert.ok(continuation.includes(copy), `the proof continuation is missing: ${copy}`);
 }
 assert.ok(continuation.includes('aria-live="polite"') && continuation.includes('aria-labelledby="job-ad-proof-continuation-heading"'), "the hydrated proof summary needs an accessible announcement and name");
 assert.doesNotMatch(continuation, /track\(|@vercel\/analytics/, "the local proof summary must not create a new analytics payload");
 for (const contract of [
-  "readResumeJobAdProofSummary()",
+  "readResumeJobAdEvidenceHandoff()",
   'setField("jobAdEvidence", recentJobAdProof.terms)',
   "무료 점검에서 정리한 Job Ad 근거",
   "근거 {recentJobAdProof.terms.length}개 불러오기",

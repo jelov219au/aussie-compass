@@ -89,7 +89,7 @@ export default function PurchaseInformationPage() {
               </div>
             </section>
 
-            <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
+            <section id="remedies" className="grid scroll-mt-24 gap-5 py-8 lg:grid-cols-[15rem_1fr]">
               <div><p className="font-mono text-xs text-gold">04 / REMEDIES</p><h2 className="mt-2 text-xl font-semibold text-navy">문제 해결과 환불 요청</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>단순 변심에 대한 환불은 자동으로 보장되지 않습니다. 다만 이 정책은 Australian Consumer Law에 따른 소비자 보장 권리를 제한하지 않습니다. 제품이 설명과 크게 다르거나 정상적으로 제공되지 않는 등 문제가 있다면 Hoju Compass가 제품 문제를 확인하고, 거래상 판매자와 필요한 절차를 조율해 적용되는 수리, 교체, 재제공 또는 환불 같은 해결 방법을 안내합니다.</p>

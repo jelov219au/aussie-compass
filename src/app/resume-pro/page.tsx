@@ -117,6 +117,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
   const paymentReadiness = getPaymentReadiness();
   const testCheckoutAvailable = canCreateTestCheckout();
   const checkoutAvailable = paymentReadiness.ready || testCheckoutAvailable;
+  const liveCheckoutAvailable = process.env.VERCEL_ENV === "production" && paymentReadiness.ready;
   const existingBuyerIssue = access === "required" || access === "released" || checkout === "checkout_support_required";
   const canOfferCheckout = checkoutAvailable && !existingBuyerIssue;
   const entry = normalizeResumeProEntry(from);
@@ -127,14 +128,17 @@ export default async function ResumeProPage({ searchParams }: Props) {
   return (
     <>
       {!existingBuyerIssue && <ResumeProVisitTracker entry={entry} checkoutAvailable={checkoutAvailable} />}
-      <ProductJsonLd
-        name={resumeProProduct.name}
-        description={resumeProDescription}
-        path="/resume-pro"
-        currency={resumeProProduct.currency}
-        priceCents={resumeProProduct.priceCents}
-        available={process.env.VERCEL_ENV === "production" && paymentReadiness.ready}
-      />
+      {liveCheckoutAvailable && (
+        <ProductJsonLd
+          name={resumeProProduct.name}
+          description={resumeProDescription}
+          path="/resume-pro"
+          imagePath="/resume-pro/opengraph-image"
+          currency={resumeProProduct.currency}
+          priceCents={resumeProProduct.priceCents}
+          available
+        />
+      )}
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "영문 이력서 빌더", path: "/resume-builder" }, { name: "Resume Pro", path: "/resume-pro" }]} />
       <Header />
       <main>

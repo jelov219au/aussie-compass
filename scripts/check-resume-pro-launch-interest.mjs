@@ -56,7 +56,8 @@ assert.ok(page.includes("지원 직무, 마감일, 공개 채용 공고 링크�
 assert.ok(page.includes("이력서 원문이나 민감정보는 보내지 마세요"), "the product page must prevent unnecessary resume or sensitive-data sharing");
 assert.ok(
   page.includes("이력서·공고 원문과 표현은 이 페이지·URL·분석 이벤트·안내 요청문으로 넘어오지 않습니다")
-    && page.includes("비교 개수만 현재 탭에 최대 30분 남고 서버로 전송되지 않습니다")
+    && page.includes("별도로 보관한 표현 후보와 확인 상태는 현재 탭에 최대 30분 남아 결제 후 Pro 작업공간에서 불러올 수 있습니다")
+    && page.includes("어느 정보도 서버로 전송되지 않습니다")
     && page.includes("경력 원문은 현재 브라우저에 남고 URL·분석 이벤트·안내 요청문에 포함되지 않습니다"),
   "high-intent continuity must state that local resume and Job Ad text is excluded from analytics and launch email drafts",
 );

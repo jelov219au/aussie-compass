@@ -122,12 +122,13 @@ type ProductJsonLdProps = {
   name: string;
   description: string;
   path: `/${string}`;
+  imagePath: `/${string}`;
   currency: string;
   priceCents: number;
   available: boolean;
 };
 
-export function ProductJsonLd({ name, description, path, currency, priceCents, available }: ProductJsonLdProps) {
+export function ProductJsonLd({ name, description, path, imagePath, currency, priceCents, available }: ProductJsonLdProps) {
   const url = `${siteUrl}${path}`;
 
   return (
@@ -139,6 +140,7 @@ export function ProductJsonLd({ name, description, path, currency, priceCents, a
         name,
         description,
         url,
+        image: `${siteUrl}${imagePath}`,
         brand: { "@type": "Brand", name: siteName },
         offers: {
           "@type": "Offer",
@@ -146,7 +148,6 @@ export function ProductJsonLd({ name, description, path, currency, priceCents, a
           priceCurrency: currency.toUpperCase(),
           price: (priceCents / 100).toFixed(2),
           availability: available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-          seller: { "@id": `${siteUrl}/#organization` },
         },
       }}
     />
