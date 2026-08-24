@@ -20,12 +20,25 @@ assert.ok(link.includes('trackLaunchInterest(entry, "mailto")'), "mail-app launc
 assert.ok(link.includes('trackLaunchInterest(entry, "copy")'), "successful request copy must identify the copy method");
 assert.doesNotMatch(link, /track\([^\n]+\b(email|subject|body|href|url|job|deadline)\b/i, "analytics must not receive email or mail contents");
 assert.ok(link.includes("mailto:${email}"), "launch interest must open the visitor's email app instead of submitting personal data to the site");
-assert.ok(link.includes("navigator.clipboard.writeText(launchInterestCopyText(email))"), "webmail users must have a fixed request-copy fallback");
+assert.ok(link.includes("navigator.clipboard.writeText(copyText)"), "webmail users must have a fixed request-copy fallback");
 assert.ok(link.includes("받는 사람: ${email}"), "the copy fallback must include the public support address");
 assert.ok(link.includes('type="button"') && link.includes('aria-live="polite"'), "copy feedback must be keyboard-safe and announced");
-for (const stateText of ["요청문과 이메일 주소를 복사했어요", "복사 실패", "메일 앱이 없으면 요청문 복사"]) {
+for (const stateText of ["요청문과 이메일 주소를 복사했어요", "자동 복사 실패", "메일 앱이 없으면 요청문 복사"]) {
   assert.ok(link.includes(stateText), `copy fallback is missing its visible state: ${stateText}`);
 }
+for (const manualBoundary of [
+  'copyState === "failed"',
+  "const manualCopyHeadingId = useId()",
+  'role="status"',
+  "aria-labelledby={manualCopyHeadingId}",
+  "id={manualCopyHeadingId}",
+  "value={copyText}",
+  "readOnly",
+  "onFocus={(event) => event.currentTarget.select()}",
+  'aria-label="Resume Pro 판매 시작 1회 안내 요청문"',
+  "Hoju Compass 서버로 전송되지 않습니다",
+]) assert.ok(link.includes(manualBoundary), `manual clipboard-failure recovery is missing: ${manualBoundary}`);
+assert.ok(link.includes("sm:col-span-2"), "the manual request text must remain readable across both offer-button columns");
 for (const text of [
   "지원하려는 직무:",
   "지원 마감일(YYYY-MM-DD, 모르면 미정):",
@@ -41,7 +54,12 @@ assert.ok(page.includes("!existingBuyerIssue && !canOfferCheckout && seller.emai
 assert.ok(page.includes("판매 시작 시 한 번만 답하며 자동 마케팅 구독 명단에 추가하지 않습니다"), "the product page must explain the one-time reply boundary");
 assert.ok(page.includes("지원 직무, 마감일, 공개 채용 공고 링크와 무료 경력 초안 여부만 적고"), "the product page must explain the fixed first-customer fit fields");
 assert.ok(page.includes("이력서 원문이나 민감정보는 보내지 마세요"), "the product page must prevent unnecessary resume or sensitive-data sharing");
-assert.ok(page.includes("분석 이벤트·안내 요청문으로 넘어오지 않습니다") && page.includes("분석 이벤트·안내 요청문에 포함되지 않습니다"), "high-intent continuity must state that local resume and Job Ad text is excluded from analytics and launch email drafts");
+assert.ok(
+  page.includes("이력서·공고 원문과 표현은 넘어오지 않습니다")
+    && page.includes("서버·URL·분석 이벤트·안내 요청문에는 포함되지 않습니다")
+    && page.includes("경력 원문은 현재 브라우저에 남고 URL·분석 이벤트·안내 요청문에 포함되지 않습니다"),
+  "high-intent continuity must state that local resume and Job Ad text is excluded from analytics and launch email drafts",
+);
 assert.equal((page.match(/<ResumeProLaunchInterestCopyButton/g) ?? []).length, 2, "both closed-checkout notice surfaces must offer a webmail copy fallback");
 assert.equal(
   (page.match(/<ResumeProLaunchInterestCopyButton[^>]+border border-navy\/30 bg-white[^>]+text-navy/g) ?? []).length,
