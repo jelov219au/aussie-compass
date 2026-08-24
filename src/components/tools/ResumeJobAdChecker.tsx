@@ -6,6 +6,7 @@ import { track } from "@vercel/analytics";
 import { ResumeProCtaLink, trackResumeJobAdChecked, trackResumeJobAdSampleViewed } from "@/components/analytics/ResumeFunnelAnalytics";
 import { resumeFunnelContexts, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
 import { analyseResumeJobAd, type ResumeJobAdTerm } from "@/lib/resumeJobAdMatch";
+import { clearResumeJobAdProofSummary, saveResumeJobAdProofSummary } from "@/lib/resumeJobAdProofHandoff";
 
 const MAX_LENGTH = 12_000;
 const sampleResume = `Customer Service Assistant
@@ -64,12 +65,14 @@ export function ResumeJobAdChecker() {
 
   function compare() {
     if (resumeText.trim().length < 80 || jobAdText.trim().length < 80) {
+      clearResumeJobAdProofSummary();
       setResult(null);
       setMessage("이력서와 공고를 각각 80자 이상 붙여 넣어 주세요. 이름·연락처와 회사 내부정보는 먼저 지워도 됩니다.");
       return;
     }
     const next = analyseResumeJobAd(resumeText, jobAdText);
     if (!next.terms.length) {
+      clearResumeJobAdProofSummary();
       setResult(null);
       setMessage("비교할 영문 표현을 충분히 찾지 못했어요. Job Ad의 업무와 요구사항 부분을 조금 더 포함해 주세요.");
       return;
@@ -78,10 +81,12 @@ export function ResumeJobAdChecker() {
     setResult(next);
     setMessage("비교가 끝났어요. 일치 여부는 문구 확인일 뿐, 경력의 사실 여부나 채용 가능성을 판정하지 않습니다.");
     setResultActionMessage("");
+    saveResumeJobAdProofSummary(next);
     trackResumeJobAdChecked();
   }
 
   function loadSample() {
+    clearResumeJobAdProofSummary();
     const next = analyseResumeJobAd(sampleResume, sampleJobAd);
     setResumeText(sampleResume);
     setJobAdText(sampleJobAd);
@@ -93,6 +98,7 @@ export function ResumeJobAdChecker() {
   }
 
   function clear() {
+    clearResumeJobAdProofSummary();
     setResumeText("");
     setJobAdText("");
     setResult(null);
@@ -168,8 +174,8 @@ export function ResumeJobAdChecker() {
         </div>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">입력 내용은 서버로 보내거나 브라우저에 저장하지 않습니다. 이름, 전화번호, 이메일, 주소, 추천인 연락처, 회사 기밀은 지우고 붙여 넣어도 비교할 수 있어요.</p>
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
-          <label className="block"><span className="text-sm font-semibold text-navy">현재 이력서 영문 텍스트</span><textarea value={resumeText} onChange={(event) => { setResumeText(event.target.value.slice(0, MAX_LENGTH)); setResult(null); }} rows={13} spellCheck={false} placeholder="PDF나 DOCX에서 필요한 영문 부분만 복사해 붙여 넣으세요." className="mt-2 w-full resize-y border border-border bg-surface p-4 text-sm leading-6 text-navy outline-none focus:border-gold" /><span className="mt-1 block text-right font-mono text-xs text-muted">{resumeText.length.toLocaleString()} / {MAX_LENGTH.toLocaleString()}</span></label>
-          <label className="block"><span className="text-sm font-semibold text-navy">지원할 Job Ad 영문 텍스트</span><textarea value={jobAdText} onChange={(event) => { setJobAdText(event.target.value.slice(0, MAX_LENGTH)); setResult(null); }} rows={13} spellCheck={false} placeholder="업무, 필수·우대 조건이 포함된 공고 본문을 붙여 넣으세요." className="mt-2 w-full resize-y border border-border bg-surface p-4 text-sm leading-6 text-navy outline-none focus:border-gold" /><span className="mt-1 block text-right font-mono text-xs text-muted">{jobAdText.length.toLocaleString()} / {MAX_LENGTH.toLocaleString()}</span></label>
+          <label className="block"><span className="text-sm font-semibold text-navy">현재 이력서 영문 텍스트</span><textarea value={resumeText} onChange={(event) => { clearResumeJobAdProofSummary(); setResumeText(event.target.value.slice(0, MAX_LENGTH)); setResult(null); }} rows={13} spellCheck={false} placeholder="PDF나 DOCX에서 필요한 영문 부분만 복사해 붙여 넣으세요." className="mt-2 w-full resize-y border border-border bg-surface p-4 text-sm leading-6 text-navy outline-none focus:border-gold" /><span className="mt-1 block text-right font-mono text-xs text-muted">{resumeText.length.toLocaleString()} / {MAX_LENGTH.toLocaleString()}</span></label>
+          <label className="block"><span className="text-sm font-semibold text-navy">지원할 Job Ad 영문 텍스트</span><textarea value={jobAdText} onChange={(event) => { clearResumeJobAdProofSummary(); setJobAdText(event.target.value.slice(0, MAX_LENGTH)); setResult(null); }} rows={13} spellCheck={false} placeholder="업무, 필수·우대 조건이 포함된 공고 본문을 붙여 넣으세요." className="mt-2 w-full resize-y border border-border bg-surface p-4 text-sm leading-6 text-navy outline-none focus:border-gold" /><span className="mt-1 block text-right font-mono text-xs text-muted">{jobAdText.length.toLocaleString()} / {MAX_LENGTH.toLocaleString()}</span></label>
         </div>
         <div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={compare} className="min-h-12 bg-navy px-6 py-3 text-sm font-semibold text-white">공고 맞춤 근거 점검하기</button><button type="button" onClick={clear} className="min-h-12 border border-border px-5 py-3 text-sm font-semibold text-muted hover:text-red-700">입력 내용 지우기</button></div>
         <p className="mt-4 min-h-6 text-sm leading-6 text-muted" aria-live="polite">{message}</p>

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { analyseResumeJobAd } from "../src/lib/resumeJobAdMatch.ts";
+import {
+  clearResumeJobAdProofSummary,
+  readResumeJobAdProofSummary,
+  saveResumeJobAdProofSummary,
+} from "../src/lib/resumeJobAdProofHandoff.ts";
 
 const resume = "Provided customer service in a busy retail store. Processed point of sale payments and cash handling. Used Microsoft Excel for weekly stock records.";
 const jobAd = "Customer service and communication skills are required. Duties include customer service, point of sale transactions, cash handling, inventory management, weekly reporting and Microsoft Excel. Attention to detail and teamwork are essential.";
@@ -16,9 +21,48 @@ for (const term of ["communication skills", "inventory management", "attention t
 assert.equal(result.matchedCount + result.missingCount, result.terms.length);
 assert.ok(result.terms.length <= 12, "the result must stay scannable");
 
-const [component, page, visitTracker, jsonLd, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder, homeTools, homePremium, openGraphImage, twitterImage, socialImage] = await Promise.all([
+const storedProofSummary = new Map();
+const originalWindow = globalThis.window;
+Object.defineProperty(globalThis, "window", {
+  configurable: true,
+  writable: true,
+  value: {
+    sessionStorage: {
+      getItem: (key) => storedProofSummary.get(key) ?? null,
+      setItem: (key, value) => storedProofSummary.set(key, value),
+      removeItem: (key) => storedProofSummary.delete(key),
+    },
+  },
+});
+try {
+  saveResumeJobAdProofSummary({ matchedCount: 4, missingCount: 5 });
+  assert.equal(storedProofSummary.size, 1, "a valid real comparison should create one session-only summary");
+  const storedKey = [...storedProofSummary.keys()][0];
+  const storedValue = JSON.parse([...storedProofSummary.values()][0]);
+  assert.deepEqual(Object.keys(storedValue).sort(), ["checkedAt", "matchedCount", "missingCount"], "the handoff must store counts and time only");
+  const restoredSummary = readResumeJobAdProofSummary();
+  assert.deepEqual(restoredSummary && {
+    matchedCount: restoredSummary.matchedCount,
+    missingCount: restoredSummary.missingCount,
+  }, { matchedCount: 4, missingCount: 5 });
+  storedProofSummary.set(storedKey, JSON.stringify({ ...storedValue, checkedAt: Date.now() - (31 * 60 * 1000) }));
+  assert.equal(readResumeJobAdProofSummary(), null, "a summary older than 30 minutes must expire closed");
+  assert.equal(storedProofSummary.size, 0, "an expired summary must be removed from the current tab");
+  clearResumeJobAdProofSummary();
+  assert.equal(storedProofSummary.size, 0, "the local summary must be removable without affecting checker input");
+  saveResumeJobAdProofSummary({ matchedCount: 12, missingCount: 1 });
+  assert.equal(storedProofSummary.size, 0, "a result beyond the checker maximum must not be stored");
+} finally {
+  if (originalWindow === undefined) delete globalThis.window;
+  else globalThis.window = originalWindow;
+}
+
+const [component, page, handoff, continuation, offerPage, visitTracker, jsonLd, contract, analytics, attribution, report, toolsPage, searchPage, sitemap, journey, builder, privacyDoc, planner, performance, campaignBuilder, homeTools, homePremium, openGraphImage, twitterImage, socialImage] = await Promise.all([
   readFile(new URL("../src/components/tools/ResumeJobAdChecker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/resumeJobAdProofHandoff.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/ResumeJobAdProofContinuation.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeJobAdVisitTracker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/seo/JsonLd.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
@@ -72,6 +116,21 @@ for (const schemaFact of ['"@type": "WebApplication"', 'price: 0', 'isAccessible
 }
 assert.doesNotMatch(`${page}\n${jsonLd}`, /aggregateRating|ratingValue|review:/, "the checker must not invent reviews or ratings for structured data eligibility");
 assert.doesNotMatch(component, /localStorage|sessionStorage|sendBeacon|XMLHttpRequest|\bfetch\(/, "resume and Job Ad text must stay in component memory");
+assert.ok(component.includes("saveResumeJobAdProofSummary(next)"), "a real completed comparison must make its count-only summary available to the offer page");
+assert.ok(component.includes("clearResumeJobAdProofSummary()"), "editing, clearing and sample use must remove a stale real-comparison summary");
+for (const source of [handoff, continuation]) {
+  assert.doesNotMatch(source, /resumeText|jobAdText|\.terms\b|sendBeacon|XMLHttpRequest|\bfetch\(/, "the cross-page handoff must never store or transmit pasted text or extracted terms");
+}
+assert.ok(handoff.includes("window.sessionStorage") && !handoff.includes("localStorage"), "the proof summary must stay in the current tab only");
+assert.ok(handoff.includes("30 * 60 * 1000"), "the proof summary must expire after 30 minutes");
+assert.ok(handoff.includes("matchedCount") && handoff.includes("missingCount") && handoff.includes("checkedAt"), "the handoff schema must contain counts and time only");
+assert.ok(offerPage.includes("<ResumeJobAdProofContinuation entry={entry} />"), "the Resume Pro offer must render the checker continuation at its client boundary");
+assert.ok(offerPage.includes("비교 개수만 현재 탭에 최대 30분") && offerPage.includes("서버·URL·분석 이벤트"), "the offer must disclose the exact count-only handoff boundary");
+for (const copy of ["문구 확인 {summary.matchedCount}개", "실제 근거 확인 {summary.missingCount}개", "원문과 표현은 저장하지 않았습니다", "요약 지우기"]) {
+  assert.ok(continuation.includes(copy), `the proof continuation is missing: ${copy}`);
+}
+assert.ok(continuation.includes('aria-live="polite"') && continuation.includes('aria-labelledby="job-ad-proof-continuation-heading"'), "the hydrated proof summary needs an accessible announcement and name");
+assert.doesNotMatch(continuation, /track\(|@vercel\/analytics/, "the local proof summary must not create a new analytics payload");
 assert.match(component, /MAX_LENGTH = 12_000/, "both local inputs need a hard size limit");
 assert.match(component, /trackResumeJobAdChecked\(\)/, "a completed comparison needs a fixed aggregate event");
 assert.match(component, /const next = analyseResumeJobAd\(sampleResume, sampleJobAd\)/, "the fictional sample must open a result in one action");
