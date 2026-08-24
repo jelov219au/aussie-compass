@@ -125,7 +125,7 @@ assert.ok(handoff.includes("window.sessionStorage") && !handoff.includes("localS
 assert.ok(handoff.includes("30 * 60 * 1000"), "the proof summary must expire after 30 minutes");
 assert.ok(handoff.includes("matchedCount") && handoff.includes("missingCount") && handoff.includes("checkedAt"), "the handoff schema must contain counts and time only");
 assert.ok(offerPage.includes("<ResumeJobAdProofContinuation entry={entry} />"), "the Resume Pro offer must render the checker continuation at its client boundary");
-assert.ok(offerPage.includes("비교 개수만 현재 탭에 최대 30분") && offerPage.includes("서버·URL·분석 이벤트"), "the offer must disclose the exact count-only handoff boundary");
+assert.ok(offerPage.includes("이 페이지·URL·분석 이벤트·안내 요청문으로 넘어오지 않습니다") && offerPage.includes("비교 개수만 현재 탭에 최대 30분 남고 서버로 전송되지 않습니다"), "the offer must disclose the exact count-only handoff boundary");
 for (const copy of ["문구 확인 {summary.matchedCount}개", "실제 근거 확인 {summary.missingCount}개", "원문과 표현은 저장하지 않았습니다", "요약 지우기"]) {
   assert.ok(continuation.includes(copy), `the proof continuation is missing: ${copy}`);
 }

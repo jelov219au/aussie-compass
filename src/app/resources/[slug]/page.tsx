@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { PageShareButton } from "@/components/pwa/PageShareButton";
 import { ArticleNextStep } from "@/components/resources/ArticleNextStep";
 import { ArticleReadingNav } from "@/components/resources/ArticleReadingNav";
+import { ResumeTemplateDownloadLink } from "@/components/analytics/ResumeTemplateDownloadLink";
 import { Container } from "@/components/ui/Container";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import {
@@ -87,6 +88,14 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               <h1 className="mt-4 max-w-4xl text-balance text-3xl font-semibold leading-tight tracking-tight text-navy sm:text-5xl">{article.title}</h1>
               <p className="mt-6 max-w-3xl text-lg leading-8 text-muted sm:text-xl sm:leading-9">{article.description}</p>
               <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2">
+                {article.slug === "australia-resume-template-submission-checklist" && (
+                  <ResumeTemplateDownloadLink
+                    entry="article_resume_template"
+                    className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy/90"
+                  >
+                    ATS용 Word 양식 무료 다운로드 ↓
+                  </ResumeTemplateDownloadLink>
+                )}
                 {article.slug === "english-resume-achievement-examples" && (
                   <Link href={article.toolHref} className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy/90">
                     내 사례를 무료로 저장하기 →

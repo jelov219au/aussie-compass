@@ -29,7 +29,7 @@ const entryContinuations: Partial<Record<ResumeProEntry, {
     eyebrow: "무료 공고 맞춤 점검 다음 단계",
     title: "표현 후보를 찾았다면, 실제 근거를 지원서 전체에 한 번만 연결하세요.",
     description: "Resume Pro는 확인한 경험을 회사별 이력서·커버레터·STAR 면접 메모와 지원서 묶음에 이어 쓰는 단계입니다.",
-    privacy: "점검기에 붙여 넣은 이력서·공고 원문과 표현은 넘어오지 않습니다. 비교 개수만 현재 탭에 최대 30분 남고 서버·URL·분석 이벤트·안내 요청문에는 포함되지 않습니다.",
+    privacy: "점검기에 붙여 넣은 이력서·공고 원문과 표현은 이 페이지·URL·분석 이벤트·안내 요청문으로 넘어오지 않습니다. 비교 개수만 현재 탭에 최대 30분 남고 서버로 전송되지 않습니다.",
   },
   "resume-builder-complete": {
     eyebrow: "무료 이력서 초안 다음 단계",

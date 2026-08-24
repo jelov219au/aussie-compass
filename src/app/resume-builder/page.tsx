@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { ResumeBuilder } from "@/components/tools/ResumeBuilder";
 import { Container } from "@/components/ui/Container";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { ResumeTemplateDownloadLink } from "@/components/analytics/ResumeTemplateDownloadLink";
 import { isResumeProLive } from "@/lib/commerce";
 import { createPageMetadata } from "@/lib/site";
 
@@ -33,6 +34,12 @@ export default function ResumeBuilderPage() {
               <li className="bg-white px-4 py-4"><strong className="block text-navy">실제 경험 다시 사용</strong><span className="mt-1 block text-xs leading-5 text-muted">저장한 경험을 다음 지원 때 불러와 다시 다듬어요.</span></li>
             </ul>
             <p className="mt-3 text-xs leading-5 text-muted">입력하지 않은 성과나 자격을 만들어 주지 않아요. 예시와 영문 초안은 내 사실에 맞는지 직접 확인하세요.</p>
+            <div className="mt-6 border-l-2 border-gold bg-white px-5 py-4">
+              <p className="text-sm leading-6 text-muted">Word에서 직접 편집할 빈 양식이 먼저 필요하다면, 표·사진·그래픽 없이 만든 A4 DOCX를 내려받으세요.</p>
+              <ResumeTemplateDownloadLink entry="resume_builder" className="mt-2 inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">
+                ATS용 호주 이력서 Word 양식 무료 다운로드 ↓
+              </ResumeTemplateDownloadLink>
+            </div>
           </div>
           <ResumeBuilder resumeProLive={resumeProLive} />
           <section className="mt-10 border-l-2 border-gold bg-surface p-6 sm:p-8" aria-labelledby="resume-job-ad-check-heading"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">실제 공고가 생겼다면</p><h2 id="resume-job-ad-check-heading" className="mt-2 text-xl font-semibold text-navy">이력서와 Job Ad를 로컬에서 비교하세요</h2><p className="mt-3 max-w-4xl text-sm leading-7 text-muted">공고의 표현을 무조건 복사하지 않고, 현재 이력서에서 같은 문구를 찾은 뒤 실제로 설명할 수 있는 경험인지 확인할 수 있어요. 입력 내용은 저장하거나 서버로 보내지 않습니다.</p><Link href="/resume-job-ad-checker" className="mt-4 inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">공고 맞춤 근거 점검하기 &rarr;</Link></section>
