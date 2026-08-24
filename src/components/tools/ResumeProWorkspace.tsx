@@ -404,7 +404,7 @@ export function ResumeProWorkspace() {
       return;
     }
     if (next.id === "resume") {
-      router.push("/resume-builder");
+      router.push("/resume-builder#resume-pro-workspace-return");
       return;
     }
     const targetId = next.id === "application"
@@ -420,6 +420,11 @@ export function ResumeProWorkspace() {
     target?.scrollIntoView({ behavior: "smooth", block: "center" });
     window.setTimeout(() => target?.focus(), 350);
   };
+
+  useEffect(() => {
+    if (window.location.hash !== "#resume-pro-workspace") return;
+    window.setTimeout(() => document.getElementById("resume-pro-workspace")?.focus(), 0);
+  }, []);
 
   const refreshResume = () => {
     const next = readSavedResume();
