@@ -21,7 +21,7 @@ const features = [
   ["01", "Document readiness", "신분·지불 능력·임대 이력·레퍼런스 자료를 올리지 않고, 빠진 준비가 없는지 확인해요."],
   ["02", "Privacy guard", "TFN, 전체 거래내역이나 불필요한 신분증 번호를 보내기 전에 한 번 더 확인해요."],
   ["03", "English note", "입주일·계약기간과 생활 패턴을 바탕으로 에이전트에게 보낼 짧은 영문 소개문을 만들어요."],
-  ["04", "Local pack", "서류 상태와 확인 질문, 영문 소개문을 내 기기에 한 개의 정리본으로 저장해요."],
+  ["04", "Property board", "최대 6개 집의 준비율과 후속 날짜를 따로 저장하고, 공통 준비사항은 다음 신청에 재사용해요."],
 ];
 
 const comparison = [
@@ -30,7 +30,7 @@ const comparison = [
   ["렌트 신청 서류 상태 관리", false, true],
   ["개인정보 과다 제출 점검", false, true],
   ["영문 신청 소개문", false, true],
-  ["집 후보별 준비 패키지 저장", false, true],
+  ["최대 6개 집 후보 비교·재사용", false, true],
 ] as const;
 
 const officialSources = [
@@ -66,8 +66,8 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
           <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
             <div className="max-w-3xl">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Rental Application Pack Pro</p>
-              <h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">한 집에 지원할 때마다,<br /><span className="font-normal text-navy-light">안전한 준비 패키지 하나.</span></h1>
-              <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">필요 서류의 준비 상태를 확인하고, 과도한 개인정보 요청을 한 번 더 점검하고, 에이전트에게 보낼 영문 소개문까지 정리합니다.</p>
+              <h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">여러 집에 지원해도,<br /><span className="font-normal text-navy-light">준비와 후속 연락은 집마다.</span></h1>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">최대 6개 집의 서류 준비율과 다음 확인일을 따로 비교하고, 과도한 개인정보 요청을 점검하고, 집별 영문 소개문까지 정리합니다.</p>
             </div>
             <aside className="border-l-2 border-gold pl-6">
               <p className="text-sm font-semibold text-muted">{checkoutAvailable ? "1회 가격" : "검증 중인 1회 가격"}</p>

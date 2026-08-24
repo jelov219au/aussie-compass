@@ -31,6 +31,49 @@ Before public sale:
 7. Verify test purchase, duplicate and out-of-order webhooks, recovery-code single use, full refund and immediate access revocation.
 8. Complete one controlled live purchase and full refund before changing the public status to available.
 
+### Rental accounting isolation gate
+
+The Stripe Balance Transaction export is an account-level source ledger. It has
+no trustworthy `product_code`, so Rental rows will arrive in the same source
+file as Resume Pro, payouts and account-level adjustments. Never infer a product
+from amount, description, statement descriptor, alert subject, timing or payout
+batch. Adding a guessed product column to that immutable source is also
+forbidden.
+
+Keep the Rental product switch off until a private attribution index proves all
+of the following for the same Stripe mode and accounting window:
+
+1. The private product catalogue maps `rental_application_pro` to its own exact
+   Stripe Product and Price and proves neither is a Resume Pro identifier. Store
+   full identifiers only in the approved private accounting location.
+2. The controlled Rental Checkout's signed `metadata.product_code`, exact Price,
+   PaymentIntent, Charge and Balance Transaction form one source-system chain.
+   A payment-alert product label is operational notice only, not this evidence.
+3. Every refund, dispute or chargeback inherits `rental_application_pro` only
+   through its original Charge/PaymentIntent/Checkout chain. Amount matching or
+   a nearby Rental alert is never sufficient.
+4. A fee or tax amount is allocated to Rental only when the source relationship
+   and applicable private document prove it. Anything account-level or unclear
+   remains `UNALLOCATED`; customer-facing tax and Managed Payments withheld
+   amounts remain `UNRESOLVED` until the registered tax-agent gate and source
+   document support the treatment.
+5. Payouts stay in the shared Stripe clearing reconciliation. A payout may
+   contain multiple products and must never be relabelled as Rental revenue.
+6. For `gross_amount`, `fee_amount` and `net_amount`, the sum of the Resume,
+   Rental, other-product and `UNALLOCATED` private views exactly equals the
+   immutable shared source ledger for the same `environment + currency + UTC
+   window`. Rental purchase/refund posting must not change the Resume subledger
+   totals.
+
+Record only the redacted result
+`ACCOUNTING_PRODUCT_ISOLATION=PASS product=rental_application_pro source_chain=PASS refund_chain=PASS shared_reconciliation=PASS unresolved=0`
+in the rollout evidence. Any missing chain, reused Product/Price, mismatch,
+test/live mixing, non-zero unexplained difference or value inferred from price
+or alert output is
+`ACCOUNTING_PRODUCT_ISOLATION=UNRESOLVED product=rental_application_pro` and a
+launch `NO-GO`. This accounting PASS does not enable the product, set a price,
+make a sale, issue a refund or decide tax treatment.
+
 ## Later products
 
 - Pay Evidence Pack Pro needs an additional employment-information review so the tool does not present an entered difference as a legal underpayment finding.

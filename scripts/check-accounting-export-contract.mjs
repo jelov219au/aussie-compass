@@ -22,8 +22,12 @@ const securePreflightSource = await readFile(new URL("./run-accounting-preflight
 const accountingRunbook = await readFile(new URL("../docs/accounting-reconciliation.md", import.meta.url), "utf8");
 const taxAgentHandoff = await readFile(new URL("../docs/registered-tax-agent-first-sale-handoff.md", import.meta.url), "utf8");
 const firstPaymentOperationsPacket = await readFile(new URL("../docs/first-payment-24-hour-operations-packet.md", import.meta.url), "utf8");
+const productRollout = await readFile(new URL("../docs/pro-product-rollout.md", import.meta.url), "utf8");
+const paymentAlertsRunbook = await readFile(new URL("../docs/payment-alerts.md", import.meta.url), "utf8");
 const packageSource = await readFile(new URL("../package.json", import.meta.url), "utf8");
 const compactAccountingRunbook = accountingRunbook.replace(/\s+/g, " ");
+const compactProductRollout = productRollout.replace(/\s+/g, " ");
+const compactPaymentAlertsRunbook = paymentAlertsRunbook.replace(/\s+/g, " ");
 const accessContract = `${source}\n${accessSource}`;
 
 for (const contract of [
@@ -212,5 +216,35 @@ assert.ok(accountingRunbook.includes("docs/registered-tax-agent-first-sale-hando
 assert.ok(firstPaymentOperationsPacket.includes("docs/registered-tax-agent-first-sale-handoff.md"), "The 24-hour packet must not bypass the pre-sale tax-agent gate.");
 assert.ok(accountingRunbook.includes("overall_tax_handoff=PASS") && accountingRunbook.includes("UNRESOLVED"), "The accounting runbook must fail closed until tax-agent advice is complete.");
 assert.ok(firstPaymentOperationsPacket.includes("overall_tax_handoff=PASS") && firstPaymentOperationsPacket.includes("UNRESOLVED"), "The first-payment packet must fail closed when later evidence contradicts tax advice.");
+
+assert.ok(!accountingLedgerHeader.includes("product_code"), "The immutable Balance Transaction ledger must not pretend to contain Stripe product attribution.");
+for (const boundary of [
+  "Rental accounting isolation gate",
+  "account-level source ledger",
+  "Never infer a product",
+  "rental_application_pro",
+  "signed `metadata.product_code`",
+  "PaymentIntent",
+  "Charge",
+  "Balance Transaction",
+  "UNALLOCATED",
+  "Resume subledger totals",
+  "ACCOUNTING_PRODUCT_ISOLATION=PASS product=rental_application_pro source_chain=PASS refund_chain=PASS shared_reconciliation=PASS unresolved=0",
+  "ACCOUNTING_PRODUCT_ISOLATION=UNRESOLVED product=rental_application_pro",
+  "launch `NO-GO`",
+]) assert.ok(compactProductRollout.includes(boundary), `Rental accounting isolation gate is missing: ${boundary}`);
+for (const boundary of [
+  "contains no `product_code`",
+  "Checkout metadata → PaymentIntent → Charge → Balance Transaction",
+  "Refunds, disputes and chargebacks inherit the product only from that original chain",
+  "Payouts remain shared Stripe-clearing movements rather than product revenue",
+  "ACCOUNTING_PRODUCT_ISOLATION=PASS",
+]) assert.ok(compactAccountingRunbook.includes(boundary), `Accounting runbook is missing product isolation: ${boundary}`);
+for (const boundary of [
+  "An alert is not accounting product-attribution evidence",
+  "refund and dispute alerts can omit a product label",
+  "Never classify Resume or Rental revenue, refunds, fees, taxes or payouts",
+  "docs/pro-product-rollout.md",
+]) assert.ok(compactPaymentAlertsRunbook.includes(boundary), `Payment-alert runbook is missing accounting isolation: ${boundary}`);
 
 console.log("Private Stripe accounting-export contract checks passed.");

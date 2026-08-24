@@ -2,6 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  RentalApplicationPortfolio,
+  rentalContactStatusLabels,
+  type RentalApplicationPackSummary,
+  type RentalContactStatus,
+} from "@/components/tools/RentalApplicationPortfolio";
+
 type DocumentStatus = "todo" | "review" | "ready";
 type RentalDraft = {
   propertyLabel: string;
@@ -14,6 +21,18 @@ type RentalDraft = {
   strengths: string;
   statuses: Record<string, DocumentStatus>;
   coverNote: string;
+};
+
+type RentalPack = RentalDraft & {
+  id: string;
+  contactStatus: RentalContactStatus;
+  followUpDate: string;
+};
+
+type RentalWorkspaceState = {
+  version: 2;
+  activeId: string;
+  packs: RentalPack[];
 };
 
 type DocumentItem = {
@@ -38,6 +57,26 @@ const initialDraft: RentalDraft = {
   coverNote: "",
 };
 
+const MAX_PACKS = 6;
+const REUSABLE_DOCUMENT_IDS = new Set(["identity", "income", "employment", "rental-history"]);
+
+function createBlankPack(id = "pack-1", label = "집 후보 1"): RentalPack {
+  return {
+    ...initialDraft,
+    id,
+    propertyLabel: label,
+    statuses: {},
+    contactStatus: "not-contacted",
+    followUpDate: "",
+  };
+}
+
+const initialWorkspace: RentalWorkspaceState = {
+  version: 2,
+  activeId: "pack-1",
+  packs: [createBlankPack()],
+};
+
 const documents: DocumentItem[] = [
   { id: "identity", group: "신원 확인", title: "요청 범위에 맞는 신분증", detail: "에이전트가 요구한 종류와 개수를 확인하고 필요한 사본만 준비합니다.", caution: "TFN, 불필요한 면허번호·Medicare 정보는 가릴 수 있는지 먼저 물어보세요." },
   { id: "income", group: "지불 능력", title: "소득 또는 자금 증빙", detail: "Payslip, 거래내역을 가린 은행 잔액 증명, Centrelink 자료 등 허용된 선택지에서 준비합니다.", caution: "인터넷뱅킹 로그인이나 전체 거래내역은 제공하지 마세요." },
@@ -52,19 +91,76 @@ const documents: DocumentItem[] = [
 const inputClass = "mt-1.5 min-h-11 w-full border border-border bg-white px-3 py-2 text-sm text-navy outline-none transition placeholder:text-muted/60 focus:border-navy focus:ring-2 focus:ring-navy/15";
 const statusLabels: Record<DocumentStatus, string> = { todo: "준비 전", review: "확인 필요", ready: "준비 완료" };
 
+function safeText(value: unknown, fallback = "", maxLength = 1000) {
+  return typeof value === "string" ? value.slice(0, maxLength) : fallback;
+}
+
+function safeStatuses(value: unknown): Record<string, DocumentStatus> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const entries: Array<[string, DocumentStatus]> = documents.flatMap((document) => {
+    const status = (value as Record<string, unknown>)[document.id];
+    return status === "todo" || status === "review" || status === "ready" ? [[document.id, status]] : [];
+  });
+  return Object.fromEntries(entries);
+}
+
+function safeContactStatus(value: unknown): RentalContactStatus {
+  return value === "drafting" || value === "sent" || value === "follow-up" || value === "closed" ? value : "not-contacted";
+}
+
+function normalizePack(value: unknown, index: number): RentalPack {
+  const candidate = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  return {
+    id: safeText(candidate.id, `pack-${index + 1}`, 80).replace(/[^A-Za-z0-9_-]/g, "") || `pack-${index + 1}`,
+    propertyLabel: safeText(candidate.propertyLabel, `집 후보 ${index + 1}`, 80),
+    moveDate: /^\d{4}-\d{2}-\d{2}$/.test(safeText(candidate.moveDate)) ? safeText(candidate.moveDate) : "",
+    leaseTerm: ["6 months", "12 months", "18 months", "24 months", "Flexible"].includes(safeText(candidate.leaseTerm)) ? safeText(candidate.leaseTerm) : "12 months",
+    householdSize: safeText(candidate.householdSize, "1", 2),
+    employmentSummary: safeText(candidate.employmentSummary, "", 300),
+    rentalSummary: safeText(candidate.rentalSummary, "", 300),
+    petSummary: safeText(candidate.petSummary, "No pets", 200),
+    strengths: safeText(candidate.strengths, "", 600),
+    statuses: safeStatuses(candidate.statuses),
+    coverNote: safeText(candidate.coverNote, "", 5000),
+    contactStatus: safeContactStatus(candidate.contactStatus),
+    followUpDate: /^\d{4}-\d{2}-\d{2}$/.test(safeText(candidate.followUpDate)) ? safeText(candidate.followUpDate) : "",
+  };
+}
+
+function readStoredWorkspace(value: string): RentalWorkspaceState | null {
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>;
+    if (parsed?.version === 2 && Array.isArray(parsed.packs)) {
+      const packs = parsed.packs.slice(0, MAX_PACKS).map(normalizePack);
+      if (!packs.length) return initialWorkspace;
+      const requestedActiveId = safeText(parsed.activeId, "", 80);
+      return { version: 2, activeId: packs.some((pack) => pack.id === requestedActiveId) ? requestedActiveId : packs[0].id, packs };
+    }
+    const migrated = normalizePack(parsed, 0);
+    return { version: 2, activeId: migrated.id, packs: [migrated] };
+  } catch {
+    return null;
+  }
+}
+
 function safeFileName(value: string) {
   return value.trim().replace(/[^a-z0-9가-힣]+/gi, "-").replace(/^-|-$/g, "").slice(0, 50) || "rental-application";
 }
 
 export function RentalApplicationWorkspace() {
-  const [draft, setDraft] = useState<RentalDraft>(initialDraft);
+  const [workspace, setWorkspace] = useState<RentalWorkspaceState>(initialWorkspace);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
+
+  const draft = workspace.packs.find((pack) => pack.id === workspace.activeId) ?? workspace.packs[0] ?? createBlankPack();
 
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) setDraft((current) => ({ ...current, ...JSON.parse(saved) }));
+      if (saved) {
+        const storedWorkspace = readStoredWorkspace(saved);
+        if (storedWorkspace) setWorkspace(storedWorkspace);
+      }
     } catch {
       // The workspace remains usable when local storage is unavailable.
     }
@@ -74,17 +170,66 @@ export function RentalApplicationWorkspace() {
   useEffect(() => {
     if (!loaded) return;
     const timer = window.setTimeout(() => {
-      try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft)); } catch {}
+      try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace)); } catch {}
     }, 400);
     return () => window.clearTimeout(timer);
-  }, [draft, loaded]);
+  }, [workspace, loaded]);
 
   const readyCount = useMemo(() => documents.filter((item) => draft.statuses[item.id] === "ready").length, [draft.statuses]);
   const reviewItems = useMemo(() => documents.filter((item) => draft.statuses[item.id] === "review"), [draft.statuses]);
   const progress = Math.round((readyCount / documents.length) * 100);
 
-  const setField = <K extends keyof RentalDraft>(field: K, value: RentalDraft[K]) => setDraft((current) => ({ ...current, [field]: value }));
-  const setStatus = (id: string, status: DocumentStatus) => setDraft((current) => ({ ...current, statuses: { ...current.statuses, [id]: status } }));
+  const packSummaries = useMemo<RentalApplicationPackSummary[]>(() => workspace.packs.map((pack, index) => {
+    const packReadyCount = documents.filter((item) => pack.statuses[item.id] === "ready").length;
+    return {
+      id: pack.id,
+      label: pack.propertyLabel || `집 후보 ${index + 1}`,
+      progress: Math.round((packReadyCount / documents.length) * 100),
+      reviewCount: documents.filter((item) => pack.statuses[item.id] === "review").length,
+      contactStatus: pack.contactStatus,
+      followUpDate: pack.followUpDate,
+    };
+  }), [workspace.packs]);
+
+  const updateActivePack = (update: (current: RentalPack) => RentalPack) => setWorkspace((current) => ({
+    ...current,
+    packs: current.packs.map((pack) => pack.id === current.activeId ? update(pack) : pack),
+  }));
+  const setField = <K extends keyof RentalDraft>(field: K, value: RentalDraft[K]) => updateActivePack((current) => ({ ...current, [field]: value }));
+  const setStatus = (id: string, status: DocumentStatus) => updateActivePack((current) => ({ ...current, statuses: { ...current.statuses, [id]: status } }));
+
+  const addPack = (reuseCurrent: boolean) => {
+    if (workspace.packs.length >= MAX_PACKS) {
+      setMessage("집 후보는 최대 6개까지 비교할 수 있어요.");
+      return;
+    }
+    const id = window.crypto.randomUUID();
+    const label = `집 후보 ${workspace.packs.length + 1}`;
+    const nextPack = reuseCurrent
+      ? {
+          ...createBlankPack(id, label),
+          leaseTerm: draft.leaseTerm,
+          householdSize: draft.householdSize,
+          employmentSummary: draft.employmentSummary,
+          rentalSummary: draft.rentalSummary,
+          petSummary: draft.petSummary,
+          strengths: draft.strengths,
+          statuses: Object.fromEntries(Object.entries(draft.statuses).filter(([id]) => REUSABLE_DOCUMENT_IDS.has(id))),
+        }
+      : createBlankPack(id, label);
+    setWorkspace((current) => ({ ...current, activeId: id, packs: [...current.packs, nextPack] }));
+    setMessage(reuseCurrent ? "공통 프로필과 재사용 가능한 증빙 상태를 복사했습니다. 집별 조건·레퍼런스 동의·신청 경로·개인정보 안내와 소개문은 새로 확인하세요." : "빈 집 후보를 추가했습니다.");
+  };
+
+  const removeActivePack = () => {
+    if (workspace.packs.length <= 1) return;
+    if (!window.confirm(`“${draft.propertyLabel || "현재 집 후보"}”의 저장 내용을 삭제할까요? 이 브라우저에서는 되돌릴 수 없습니다.`)) return;
+    setWorkspace((current) => {
+      const packs = current.packs.filter((pack) => pack.id !== current.activeId);
+      return { ...current, activeId: packs[0].id, packs };
+    });
+    setMessage("현재 집 후보를 삭제했습니다.");
+  };
 
   const createCoverNote = () => {
     const property = draft.propertyLabel.trim() || "the advertised property";
@@ -122,6 +267,8 @@ export function RentalApplicationWorkspace() {
       `Preferred move-in: ${draft.moveDate || "Not set"}`,
       `Lease term: ${draft.leaseTerm || "Not set"}`,
       `Household size: ${draft.householdSize || "Not set"}`,
+      `Contact status: ${rentalContactStatusLabels[draft.contactStatus]}`,
+      `Next follow-up: ${draft.followUpDate || "Not set"}`,
       "",
       "DOCUMENT STATUS",
       ...documents.map((item) => `- [${statusLabels[draft.statuses[item.id] ?? "todo"]}] ${item.title}`),
@@ -143,12 +290,23 @@ export function RentalApplicationWorkspace() {
     setMessage("준비 현황과 소개문을 텍스트 파일로 저장했습니다.");
   };
 
-  return <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(34rem,1.1fr)]">
-    <div className="space-y-8">
+  return <div className="space-y-8">
+    <RentalApplicationPortfolio
+      packs={packSummaries}
+      activeId={workspace.activeId}
+      onSelect={(id) => setWorkspace((current) => ({ ...current, activeId: id }))}
+      onCreate={() => addPack(false)}
+      onReuse={() => addPack(true)}
+      onRemove={removeActivePack}
+      atLimit={workspace.packs.length >= MAX_PACKS}
+      canRemove={workspace.packs.length > 1}
+    />
+    <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(34rem,1.1fr)]">
+      <div className="space-y-8">
       <section className="border-t border-navy/20 pt-6" aria-labelledby="rental-profile-heading">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Application brief</p><h2 id="rental-profile-heading" className="mt-2 text-2xl font-semibold text-navy">집과 신청 조건</h2><p className="mt-3 text-sm leading-6 text-muted">정확한 주소 대신 내가 알아볼 수 있는 별칭만 적어도 됩니다. 이 정보는 현재 브라우저에만 자동 저장됩니다.</p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <label className="text-sm font-medium text-navy sm:col-span-2">집 후보 별칭<input className={inputClass} value={draft.propertyLabel} onChange={(event) => setField("propertyLabel", event.target.value)} placeholder="Carlton 후보 1" /></label>
+          <label className="text-sm font-medium text-navy sm:col-span-2">집 후보 별칭<input maxLength={80} className={inputClass} value={draft.propertyLabel} onChange={(event) => setField("propertyLabel", event.target.value)} placeholder="Carlton 후보 1" /></label>
           <label className="text-sm font-medium text-navy">희망 입주일<input type="date" className={inputClass} value={draft.moveDate} onChange={(event) => setField("moveDate", event.target.value)} /></label>
           <label className="text-sm font-medium text-navy">희망 계약기간<select className={inputClass} value={draft.leaseTerm} onChange={(event) => setField("leaseTerm", event.target.value)}><option>6 months</option><option>12 months</option><option>18 months</option><option>24 months</option><option>Flexible</option></select></label>
           <label className="text-sm font-medium text-navy">입주 인원<input type="number" min="1" max="12" className={inputClass} value={draft.householdSize} onChange={(event) => setField("householdSize", event.target.value)} /></label>
@@ -160,15 +318,26 @@ export function RentalApplicationWorkspace() {
         <button type="button" onClick={createCoverNote} className="mt-6 min-h-12 bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">영문 소개문 만들기</button>
       </section>
 
-      <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="privacy-check-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Before sharing documents</p><h2 id="privacy-check-heading" className="mt-2 text-xl font-semibold text-navy">제출 전에 반드시 멈춰볼 정보</h2><ul className="mt-5 space-y-3 text-sm leading-6 text-muted"><li className="border-l-2 border-gold pl-3"><strong className="text-navy">TFN·은행 로그인·카드정보</strong>는 임대 신청서에 입력하지 않습니다.</li><li className="border-l-2 border-gold pl-3">은행 명세서가 필요하다면 거래내역을 가린 자료가 허용되는지 확인합니다.</li><li className="border-l-2 border-gold pl-3">신분증 사본을 보내기 전 불필요한 번호와 정보를 가릴 수 있는지 묻습니다.</li><li className="border-l-2 border-gold pl-3">신청 링크를 메시지로 받았다면 에이전트 공식 번호로 다시 확인합니다.</li></ul></section>
-    </div>
+      <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="rental-follow-up-heading">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Contact and next action</p>
+        <h2 id="rental-follow-up-heading" className="mt-2 text-xl font-semibold text-navy">연락 상태와 다음 확인일</h2>
+        <p className="mt-3 text-sm leading-6 text-muted">에이전트 이름·이메일·전화번호는 적지 않고, 이 집에 언제 다시 확인할지만 관리합니다.</p>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <label className="text-sm font-medium text-navy">현재 상태<select className={inputClass} value={draft.contactStatus} onChange={(event) => updateActivePack((current) => ({ ...current, contactStatus: event.target.value as RentalContactStatus }))}>{Object.entries(rentalContactStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label className="text-sm font-medium text-navy">다음 확인일 <span className="font-normal text-muted">(선택)</span><input type="date" className={inputClass} value={draft.followUpDate} onChange={(event) => updateActivePack((current) => ({ ...current, followUpDate: event.target.value }))} /></label>
+        </div>
+      </section>
 
-    <div className="space-y-8 xl:sticky xl:top-24">
+      <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="privacy-check-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Before sharing documents</p><h2 id="privacy-check-heading" className="mt-2 text-xl font-semibold text-navy">제출 전에 반드시 멈춰볼 정보</h2><ul className="mt-5 space-y-3 text-sm leading-6 text-muted"><li className="border-l-2 border-gold pl-3"><strong className="text-navy">TFN·은행 로그인·카드정보</strong>는 임대 신청서에 입력하지 않습니다.</li><li className="border-l-2 border-gold pl-3">은행 명세서가 필요하다면 거래내역을 가린 자료가 허용되는지 확인합니다.</li><li className="border-l-2 border-gold pl-3">신분증 사본을 보내기 전 불필요한 번호와 정보를 가릴 수 있는지 묻습니다.</li><li className="border-l-2 border-gold pl-3">신청 링크를 메시지로 받았다면 에이전트 공식 번호로 다시 확인합니다.</li></ul></section>
+      </div>
+
+      <div className="space-y-8 xl:sticky xl:top-24">
       <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="document-pack-heading"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Document readiness</p><h2 id="document-pack-heading" className="mt-2 text-xl font-semibold text-navy">서류 준비 현황</h2></div><div className="text-right"><p className="font-mono text-3xl text-navy">{progress}%</p><p className="text-xs text-muted">{readyCount} / {documents.length} 준비 완료</p></div></div><div className="mt-5 h-1.5 bg-surface"><div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} /></div>
         <ol className="mt-6 divide-y divide-border border-y border-navy/20">{documents.map((item, index) => { const status = draft.statuses[item.id] ?? "todo"; return <li key={item.id} className="py-5"><div className="grid gap-3 sm:grid-cols-[2rem_1fr_8rem] sm:items-start"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{item.group}</p><h3 className="mt-1 font-semibold text-navy">{item.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{item.detail}</p>{item.caution && status === "review" ? <p className="mt-2 border-l-2 border-gold pl-3 text-xs leading-5 text-[#755b20]">{item.caution}</p> : null}</div><label className="text-xs font-medium text-muted">상태<select className="mt-1 min-h-10 w-full border border-border bg-white px-2 text-sm text-navy" value={status} onChange={(event) => setStatus(item.id, event.target.value as DocumentStatus)}><option value="todo">준비 전</option><option value="review">확인 필요</option><option value="ready">준비 완료</option></select></label></div></li>; })}</ol>
       </section>
 
       <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="rental-note-heading"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Application note</p><h2 id="rental-note-heading" className="mt-2 text-xl font-semibold text-navy">영문 소개문 초안</h2></div><button type="button" onClick={copyCoverNote} disabled={!draft.coverNote} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-35">텍스트 복사</button></div><label className="sr-only" htmlFor="rental-cover-note">영문 소개문 초안</label><textarea id="rental-cover-note" className={`${inputClass} mt-5 min-h-80 resize-y font-serif leading-7`} value={draft.coverNote} onChange={(event) => setField("coverNote", event.target.value)} placeholder="왼쪽에서 조건을 입력한 뒤 영문 소개문을 만드세요." /><div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={downloadSummary} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">준비 패키지 저장</button><span className="self-center text-xs leading-5 text-muted">TXT 파일 · 원본 서류 미포함</span></div><p className="mt-4 min-h-6 text-sm leading-6 text-muted" aria-live="polite">{message}</p></section>
+      </div>
     </div>
   </div>;
 }

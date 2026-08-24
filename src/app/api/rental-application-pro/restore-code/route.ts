@@ -18,13 +18,6 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  if (process.env.VERCEL_ENV === "production") {
-    return NextResponse.json({ error: "Rental Application Pack Pro access is not available." }, {
-      status: 503,
-      headers: { "Cache-Control": "no-store" },
-    });
-  }
-
   const entitlement = await getActiveRentalApplicationProEntitlement();
   const store = getConfiguredEntitlementStore();
   if (!entitlement || !store) {

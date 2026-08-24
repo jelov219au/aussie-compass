@@ -105,6 +105,26 @@ The live key should have only the read permission required for Balance Transacti
 
 The formatted workbook in the private output folder remains the management and reconciliation file. Treat the automatically generated CSV as the read-only Stripe source ledger, and record bank matching, GST/BAS review and accountant notes in the formatted workbook rather than editing the derived CSV.
 
+## Product-specific attribution
+
+The automatic Stripe ledger is intentionally account-level and contains no
+`product_code`. Once another paid product is introduced, do not treat every row
+as Resume Pro and do not derive a product from price, description, an operator
+alert or payout membership. Preserve the shared source unchanged and maintain a
+separate private attribution index that traces each product row through the
+native Checkout metadata → PaymentIntent → Charge → Balance Transaction
+relationship. Refunds, disputes and chargebacks inherit the product only from
+that original chain.
+
+Fees and taxes without a proven source relationship remain `UNALLOCATED` or
+`UNRESOLVED`; they must not be spread between products just to make a product
+report balance. Payouts remain shared Stripe-clearing movements rather than
+product revenue. For each environment, currency and UTC window, Resume, Rental,
+other-product and `UNALLOCATED` private views must sum exactly to the immutable
+shared ledger's gross, fee and net columns. Follow the Rental launch gate in
+`docs/pro-product-rollout.md`; its product switch remains off unless the exact
+redacted `ACCOUNTING_PRODUCT_ISOLATION=PASS` result exists.
+
 ## Retention and review
 
 ATO guidance says business and GST records generally need to be retained for five years, with longer periods applying in some circumstances. Preserve the original Stripe invoice, refund or credit document, Stripe report, bank statement and the reconciliation workbook. Confirm the period that applies to the business with the registered tax agent.

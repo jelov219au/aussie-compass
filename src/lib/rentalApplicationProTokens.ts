@@ -10,9 +10,10 @@ type RentalApplicationProAccessInput = {
 };
 
 export type RentalApplicationProAccessPayload = {
-  v: 1;
+  v: 2;
   entitlementId: string;
   productCode: "rental_application_pro";
+  accessSessionId: string;
   exp: number;
 };
 
@@ -28,6 +29,7 @@ function sign(encodedPayload: string, secret: string) {
 
 export function encodeRentalApplicationProAccessToken(
   entitlement: RentalApplicationProAccessInput,
+  accessSessionId: string,
   secret: string,
   nowMs = Date.now(),
 ) {
@@ -35,11 +37,15 @@ export function encodeRentalApplicationProAccessToken(
   if (entitlement.productCode !== "rental_application_pro" || entitlement.status !== "active" || !/^\d+$/.test(entitlement.id)) {
     throw new Error("An active Rental Application Pack Pro entitlement is required.");
   }
+  if (!/^[A-Za-z0-9_-]{43}$/.test(accessSessionId)) {
+    throw new Error("A valid server-tracked access session is required.");
+  }
 
   const payload: RentalApplicationProAccessPayload = {
-    v: 1,
+    v: 2,
     entitlementId: entitlement.id,
     productCode: "rental_application_pro",
+    accessSessionId,
     exp: Math.floor(nowMs / 1000) + rentalApplicationProAccessLifetimeSeconds,
   };
   const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -63,16 +69,35 @@ export function decodeRentalApplicationProAccessToken(
 
   try {
     const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as Partial<RentalApplicationProAccessPayload>;
-    if (payload.v !== 1
+    if (payload.v !== 2
       || payload.productCode !== "rental_application_pro"
       || typeof payload.entitlementId !== "string"
       || !/^\d+$/.test(payload.entitlementId)
+      || typeof payload.accessSessionId !== "string"
+      || !/^[A-Za-z0-9_-]{43}$/.test(payload.accessSessionId)
       || typeof payload.exp !== "number"
       || payload.exp <= Math.floor(nowMs / 1000)) return null;
     return payload as RentalApplicationProAccessPayload;
   } catch {
     return null;
   }
+}
+
+export function deriveRentalApplicationProAccessSessionId(
+  source: "activation" | "restore",
+  sourceHash: string,
+  secret: string,
+) {
+  const signingSecret = requireSessionSecret(secret);
+  if (!/^[a-f0-9]{64}$/.test(sourceHash)) throw new Error("A hashed access source is required.");
+  return createHmac("sha256", signingSecret)
+    .update(`rental-application-pro-access-v1:${source}:${sourceHash}`)
+    .digest("base64url");
+}
+
+export function hashRentalApplicationProAccessSessionId(accessSessionId: string) {
+  if (!/^[A-Za-z0-9_-]{43}$/.test(accessSessionId)) throw new Error("Invalid access session identifier.");
+  return createHash("sha256").update(accessSessionId).digest("hex");
 }
 
 export function createRentalApplicationProRestoreCode(nowMs = Date.now()) {
@@ -86,4 +111,18 @@ export function createRentalApplicationProRestoreCode(nowMs = Date.now()) {
 
 export function hashRentalApplicationProRestoreCode(token: string) {
   return createHash("sha256").update(token.trim()).digest("hex");
+}
+
+export function hashRentalApplicationProRestoreNonce(nonce: string) {
+  if (!/^[A-Za-z0-9_-]{40,128}$/.test(nonce)) throw new Error("Invalid restore nonce.");
+  return createHash("sha256").update(nonce).digest("hex");
+}
+
+export function deriveRentalApplicationProRestoreSourceHash(tokenHash: string, nonceHash: string) {
+  if (!/^[a-f0-9]{64}$/.test(tokenHash) || !/^[a-f0-9]{64}$/.test(nonceHash)) {
+    throw new Error("Hashed restore credentials are required.");
+  }
+  return createHash("sha256")
+    .update(`rental-application-pro-restore-v1:${tokenHash}:${nonceHash}`)
+    .digest("hex");
 }
