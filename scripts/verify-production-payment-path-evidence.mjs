@@ -40,4 +40,3 @@ try {
 const result = evaluateProductionPaymentPathEvidence(packet);
 if (!result.passed) fail(result.reason);
 console.log(passLine);
-

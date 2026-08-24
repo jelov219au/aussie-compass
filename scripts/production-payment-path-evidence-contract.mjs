@@ -181,4 +181,3 @@ export function evaluateProductionPaymentPathEvidence(packet) {
 
   return { passed: true, reason: null };
 }
-

@@ -31,4 +31,3 @@ Run the offline contract test with:
 ```powershell
 node scripts/check-production-payment-path-evidence.mjs
 ```
-
