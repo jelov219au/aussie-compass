@@ -32,6 +32,10 @@ function passingPacket() {
   packet.paid_at = "2026-08-24T00:00:00.000Z";
   packet.fifteen_minute.observed_at = "2026-08-24T00:14:59.000Z";
   packet.twenty_four_hour.observed_at = "2026-08-25T00:00:00.000Z";
+  packet.twenty_four_hour.financial_event_outcome = "none_confirmed";
+  packet.twenty_four_hour.entitlement_outcome = "active";
+  packet.twenty_four_hour.accounting_outcome = "no_adjustment";
+  packet.twenty_four_hour.support_outcome = "no_refund_or_dispute";
   packet.first_payout.observed_at = "2026-08-26T00:00:00.000Z";
   packet.first_payout.cash_difference_cents = 1;
   for (const section of [packet.fifteen_minute, packet.twenty_four_hour, packet.first_payout]) {
@@ -40,12 +44,12 @@ function passingPacket() {
   return packet;
 }
 
-assert.equal(createFirstSaleEvidenceTemplate().schema_version, 2, "the financial-event handoff check requires evidence schema v2");
+assert.equal(createFirstSaleEvidenceTemplate().schema_version, 3, "the refund/dispute outcome matrix requires evidence schema v3");
 const legacyPacket = passingPacket();
-legacyPacket.schema_version = 1;
+legacyPacket.schema_version = 2;
 assert.ok(
   evaluateFirstSaleEvidence(legacyPacket, "24h").errors.includes("schema_version"),
-  "a v1 packet must not bypass the new original-transaction chain check",
+  "a v2 packet must not bypass the new refund/dispute outcome matrix",
 );
 
 for (const phase of ["15m", "24h", "payout"]) {
@@ -86,6 +90,47 @@ assert.equal(
   "separately complete accounting and support checks must not pass without one original-transaction chain",
 );
 
+const outcomeMatrixCases = [
+  ["none_confirmed", "active", "no_adjustment", "refund_request_pending"],
+  ["partial_refund_succeeded", "review", "partial_refund_adjustment", "partial_refund_confirmed"],
+  ["full_refund_succeeded", "revoked", "full_refund_adjustment", "full_refund_confirmed"],
+  ["dispute_open", "revoked", "dispute_open_adjustment", "dispute_needs_response"],
+  ["dispute_won_or_funds_reinstated", "active", "dispute_reinstatement_adjustment", "dispute_won_or_funds_reinstated"],
+  ["dispute_lost", "revoked", "dispute_loss_adjustment", "dispute_lost"],
+];
+for (const [financial, entitlement, accounting, support] of outcomeMatrixCases) {
+  const packet = passingPacket();
+  packet.twenty_four_hour.financial_event_outcome = financial;
+  packet.twenty_four_hour.entitlement_outcome = entitlement;
+  packet.twenty_four_hour.accounting_outcome = accounting;
+  packet.twenty_four_hour.support_outcome = support;
+  assert.equal(
+    evaluateFirstSaleEvidence(packet, "24h").passed,
+    true,
+    `the documented ${financial} outcome must pass only with its matching handoff states`,
+  );
+}
+
+const inconsistentOutcomeCases = [
+  ["partial_refund_succeeded", "active", "partial_refund_adjustment", "partial_refund_confirmed"],
+  ["full_refund_succeeded", "revoked", "partial_refund_adjustment", "full_refund_confirmed"],
+  ["dispute_open", "revoked", "dispute_open_adjustment", "full_refund_confirmed"],
+  ["unresolved", "unresolved", "unresolved", "unresolved"],
+];
+for (const [financial, entitlement, accounting, support] of inconsistentOutcomeCases) {
+  const packet = passingPacket();
+  packet.twenty_four_hour.financial_event_outcome = financial;
+  packet.twenty_four_hour.entitlement_outcome = entitlement;
+  packet.twenty_four_hour.accounting_outcome = accounting;
+  packet.twenty_four_hour.support_outcome = support;
+  const result = evaluateFirstSaleEvidence(packet, "24h");
+  assert.equal(result.decision, "HOLD", `the inconsistent ${financial} handoff must fail closed`);
+  assert.equal(
+    result.rows.find(({ check }) => check === "refund_dispute_outcome_matrix_consistent")?.status,
+    "FAIL",
+  );
+}
+
 for (const boundary of [
   "첫 결제 → 회계 원장 → 지원 인계 연결 gate",
   "support_ledger_original_transaction_chain_preserved",
@@ -95,8 +140,15 @@ for (const boundary of [
   "음수 조정이 정확히 한 번 반영",
   "동일 금액 또는 가까운 시각은 chain 증거가 아니다",
   "24시간 결과는 `HOLD`",
-  "schema_version=2",
-  "기존 v1 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다",
+  "환불·분쟁 결과 일관성 gate",
+  "refund_dispute_outcome_matrix_consistent",
+  "financial_event_outcome",
+  "support_outcome",
+  "부분 환불은 전액 환불 완료로 안내하지 않는다",
+  "dispute는 refund가 아니다",
+  "혼합·순서 불명·원본 미열람",
+  "schema_version=3",
+  "기존 v1/v2 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다",
 ]) assert.ok(compactRunbookSource.includes(boundary), `the 24-hour runbook is missing financial-event handoff evidence: ${boundary}`);
 for (const boundary of [
   "First-payment support handoff link",
@@ -104,6 +156,10 @@ for (const boundary of [
   "Do not join records by amount, timestamp, receipt wording or alert suffix",
   "support_ledger_original_transaction_chain_preserved",
   "keeps the 24-hour close at `HOLD`",
+  "Refund/dispute outcome isolation",
+  "partial refund, full refund and dispute movements are not interchangeable",
+  "refund_dispute_outcome_matrix_consistent",
+  "Do not duplicate a refund adjustment for a dispute movement",
 ]) assert.ok(compactAccountingRunbookSource.includes(boundary), `the accounting runbook is missing first-payment support linkage: ${boundary}`);
 
 const unexpectedField = passingPacket();

@@ -122,6 +122,27 @@ original transaction, an uninspected source or an unlinked support/entitlement
 result is `FAIL`. Either result keeps the 24-hour close at `HOLD` even if gross,
 fee, refund and support checks separately appear complete.
 
+### Refund/dispute outcome isolation
+
+For the same dated source observation, partial refund, full refund and dispute
+movements are not interchangeable. Preserve the original gross sale and post
+only the actual source movement as a separate adjustment. A partial refund uses
+a partial-refund adjustment and leaves entitlement in review; a succeeded full
+refund uses a full-refund adjustment and revoked entitlement. An open dispute,
+reinstated funds and a lost dispute use their respective dispute movements and
+entitlement outcomes. Do not duplicate a refund adjustment for a dispute
+movement or infer a tax/credit classification before its source document is
+inspected.
+
+The 24-hour evidence classifier computes
+`refund_dispute_outcome_matrix_consistent` from the financial event,
+entitlement, accounting and support outcomes. Pending, failed, mixed,
+out-of-order or uninspected source states remain `unresolved` and keep the
+24-hour close at `HOLD`; a manual check or owner approval cannot make an
+inconsistent combination pass. The support outcome is an internal evidence
+classification only and does not authorise customer contact, a refund, a
+ledger entry or an entitlement change.
+
 ## Product-specific attribution
 
 The automatic Stripe ledger is intentionally account-level and contains no

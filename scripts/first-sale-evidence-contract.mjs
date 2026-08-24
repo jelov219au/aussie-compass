@@ -62,6 +62,39 @@ export const firstPayoutChecks = [
   "ending_balance_carried_forward",
 ];
 
+export const financialEventOutcomes = [
+  "none_confirmed",
+  "partial_refund_succeeded",
+  "full_refund_succeeded",
+  "dispute_open",
+  "dispute_won_or_funds_reinstated",
+  "dispute_lost",
+  "unresolved",
+];
+
+export const entitlementOutcomes = ["active", "review", "revoked", "unresolved"];
+
+export const accountingOutcomes = [
+  "no_adjustment",
+  "partial_refund_adjustment",
+  "full_refund_adjustment",
+  "dispute_open_adjustment",
+  "dispute_reinstatement_adjustment",
+  "dispute_loss_adjustment",
+  "unresolved",
+];
+
+export const supportOutcomes = [
+  "no_refund_or_dispute",
+  "refund_request_pending",
+  "partial_refund_confirmed",
+  "full_refund_confirmed",
+  "dispute_needs_response",
+  "dispute_won_or_funds_reinstated",
+  "dispute_lost",
+  "unresolved",
+];
+
 const rootKeys = [
   "schema_version",
   "product_code",
@@ -73,8 +106,53 @@ const rootKeys = [
   "first_payout",
 ];
 const sectionKeys = ["observed_at", "checks"];
+const twentyFourHourKeys = [
+  "observed_at",
+  "checks",
+  "financial_event_outcome",
+  "entitlement_outcome",
+  "accounting_outcome",
+  "support_outcome",
+];
 const payoutKeys = ["observed_at", "checks", "cash_difference_cents"];
 const allowedStatuses = new Set(["PASS", "MISSING", "FAIL"]);
+const allowedFinancialEventOutcomes = new Set(financialEventOutcomes);
+const allowedEntitlementOutcomes = new Set(entitlementOutcomes);
+const allowedAccountingOutcomes = new Set(accountingOutcomes);
+const allowedSupportOutcomes = new Set(supportOutcomes);
+
+const refundDisputeOutcomeMatrix = {
+  none_confirmed: {
+    entitlement: "active",
+    accounting: "no_adjustment",
+    support: new Set(["no_refund_or_dispute", "refund_request_pending"]),
+  },
+  partial_refund_succeeded: {
+    entitlement: "review",
+    accounting: "partial_refund_adjustment",
+    support: new Set(["partial_refund_confirmed"]),
+  },
+  full_refund_succeeded: {
+    entitlement: "revoked",
+    accounting: "full_refund_adjustment",
+    support: new Set(["full_refund_confirmed"]),
+  },
+  dispute_open: {
+    entitlement: "revoked",
+    accounting: "dispute_open_adjustment",
+    support: new Set(["dispute_needs_response"]),
+  },
+  dispute_won_or_funds_reinstated: {
+    entitlement: "active",
+    accounting: "dispute_reinstatement_adjustment",
+    support: new Set(["dispute_won_or_funds_reinstated"]),
+  },
+  dispute_lost: {
+    entitlement: "revoked",
+    accounting: "dispute_loss_adjustment",
+    support: new Set(["dispute_lost"]),
+  },
+};
 
 function missingChecks(checkNames) {
   return Object.fromEntries(checkNames.map((name) => [name, "MISSING"]));
@@ -82,7 +160,7 @@ function missingChecks(checkNames) {
 
 export function createFirstSaleEvidenceTemplate() {
   return {
-    schema_version: 2,
+    schema_version: 3,
     product_code: "resume_pro",
     environment: "live",
     event_suffix: "REPLACE8",
@@ -94,6 +172,10 @@ export function createFirstSaleEvidenceTemplate() {
     twenty_four_hour: {
       observed_at: null,
       checks: missingChecks(twentyFourHourChecks),
+      financial_event_outcome: "unresolved",
+      entitlement_outcome: "unresolved",
+      accounting_outcome: "unresolved",
+      support_outcome: "unresolved",
     },
     first_payout: {
       observed_at: null,
@@ -129,6 +211,23 @@ function validateSection(value, names, keys = sectionKeys) {
     && validateChecks(value.checks, names);
 }
 
+function validateTwentyFourHourSection(value) {
+  return validateSection(value, twentyFourHourChecks, twentyFourHourKeys)
+    && allowedFinancialEventOutcomes.has(value.financial_event_outcome)
+    && allowedEntitlementOutcomes.has(value.entitlement_outcome)
+    && allowedAccountingOutcomes.has(value.accounting_outcome)
+    && allowedSupportOutcomes.has(value.support_outcome);
+}
+
+export function refundDisputeOutcomeMatrixConsistent(section) {
+  if (!isPlainObject(section)) return false;
+  const expected = refundDisputeOutcomeMatrix[section.financial_event_outcome];
+  return Boolean(expected)
+    && section.entitlement_outcome === expected.entitlement
+    && section.accounting_outcome === expected.accounting
+    && expected.support.has(section.support_outcome);
+}
+
 export function containsSensitiveEvidence(raw) {
   if (typeof raw !== "string") return true;
   return [
@@ -144,7 +243,7 @@ function structuralErrors(packet) {
   const errors = [];
   if (!hasExactKeys(packet, rootKeys)) errors.push("packet_shape");
   if (!isPlainObject(packet)) return errors;
-  if (packet.schema_version !== 2) errors.push("schema_version");
+  if (packet.schema_version !== 3) errors.push("schema_version");
   if (packet.product_code !== "resume_pro") errors.push("product_code");
   if (packet.environment !== "live") errors.push("environment");
   if (!/^[A-Za-z0-9]{8}$/.test(packet.event_suffix ?? "") || packet.event_suffix === "REPLACE8") {
@@ -152,7 +251,7 @@ function structuralErrors(packet) {
   }
   if (!isCanonicalUtc(packet.paid_at)) errors.push("paid_at");
   if (!validateSection(packet.fifteen_minute, fifteenMinuteChecks)) errors.push("fifteen_minute_shape");
-  if (!validateSection(packet.twenty_four_hour, twentyFourHourChecks)) errors.push("twenty_four_hour_shape");
+  if (!validateTwentyFourHourSection(packet.twenty_four_hour)) errors.push("twenty_four_hour_shape");
   if (!validateSection(packet.first_payout, firstPayoutChecks, payoutKeys)) errors.push("first_payout_shape");
   if (
     isPlainObject(packet.first_payout)
@@ -199,6 +298,11 @@ export function evaluateFirstSaleEvidence(packet, phase) {
       Number.isFinite(twentyFourObservedAt)
         && twentyFourObservedAt >= paidAt + (24 * 60 * 60 * 1000)
         && twentyFourObservedAt >= fifteenObservedAt,
+    );
+    addTimingRow(
+      rows,
+      "refund_dispute_outcome_matrix_consistent",
+      refundDisputeOutcomeMatrixConsistent(packet.twenty_four_hour),
     );
 
     if (phase === "payout") {

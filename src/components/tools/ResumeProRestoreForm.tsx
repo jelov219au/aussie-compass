@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 
 const restoreNonceStorageKey = "hoju_compass_resume_pro_restore_nonce_v1";
 const noncePattern = /^[A-Za-z0-9_-]{40,128}$/;
@@ -43,6 +43,7 @@ export function ResumeProRestoreForm({ initialStatus }: { initialStatus?: string
   const [code, setCode] = useState("");
   const [notice, setNotice] = useState<RestoreNotice>(initialNotice);
   const [submitting, setSubmitting] = useState(false);
+  const codeInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     try {
@@ -51,6 +52,12 @@ export function ResumeProRestoreForm({ initialStatus }: { initialStatus?: string
       setNotice("unavailable");
     }
   }, []);
+
+  useEffect(() => {
+    if (notice !== "invalid") return;
+    codeInputRef.current?.focus();
+    codeInputRef.current?.select();
+  }, [notice]);
 
   async function restore(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -91,13 +98,13 @@ export function ResumeProRestoreForm({ initialStatus }: { initialStatus?: string
   return (
     <>
       {notice !== "idle" && (
-        <p className="mt-5 border-l-2 border-gold bg-gold/10 p-4 text-sm leading-6 text-navy" role={notice === "invalid" ? "alert" : "status"} aria-live="polite">
+        <p id="resume-pro-restore-notice" className="mt-5 border-l-2 border-gold bg-gold/10 p-4 text-sm leading-6 text-navy" role={notice === "invalid" ? "alert" : "status"} aria-live="polite" aria-atomic="true">
           {notices[notice]}
         </p>
       )}
       <form action="/api/resume-pro/restore" method="post" onSubmit={restore} className="mt-8 border border-navy/15 bg-white p-5 sm:p-6">
         <label htmlFor="restore-code" className="text-sm font-semibold text-navy">복구 코드</label>
-        <textarea id="restore-code" name="restore_code" required minLength={32} maxLength={128} autoComplete="off" spellCheck={false} value={code} onChange={(event) => setCode(event.target.value)} className="mt-2 min-h-28 w-full border border-border bg-surface p-3 text-sm text-navy outline-none focus:border-gold" />
+        <textarea ref={codeInputRef} id="restore-code" name="restore_code" required minLength={32} maxLength={128} autoComplete="off" spellCheck={false} value={code} onChange={(event) => { setCode(event.target.value); if (notice === "invalid") setNotice("idle"); }} aria-invalid={notice === "invalid"} aria-describedby={notice === "invalid" ? "resume-pro-restore-notice" : undefined} className={`mt-2 min-h-28 w-full border bg-surface p-3 text-sm text-navy outline-none ${notice === "invalid" ? "border-red-600" : "border-border focus:border-gold"}`} />
         <input type="hidden" name="restore_nonce" value={nonce} />
         <button type="submit" disabled={!nonce || submitting} aria-busy={submitting} className="mt-4 inline-flex min-h-12 w-full items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-50 sm:w-auto">
           {submitting ? "이용권 확인 중…" : "이용권 복구"}

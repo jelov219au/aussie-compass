@@ -10,6 +10,9 @@ $locationPushed = $false
 $passwordPointer = [IntPtr]::Zero
 $plainPassword = $null
 $securePassword = $null
+$outcome = "NO-GO"
+$failureReason = "unexpected_failure"
+$sendRequested = if ($SendTest) { "yes" } else { "no" }
 $temporaryEnvironmentNames = @(
   "VERCEL_ENV",
   "PAYMENTS_ENABLED",
@@ -23,26 +26,33 @@ $temporaryEnvironmentNames = @(
 )
 $originalEnvironment = @{}
 
-if ($SmtpHost -cne "smtppro.zoho.com" -or $SmtpPort -ne 465) {
-  throw "This operator check is pinned to smtppro.zoho.com on port 465."
-}
-if (Test-Path -LiteralPath "Env:ZOHO_SMTP_APP_PASSWORD") {
-  throw "ZOHO_SMTP_APP_PASSWORD must not be preloaded or persisted. Remove it and use the masked prompt."
-}
-if (Test-Path -LiteralPath "Env:PAYMENT_ALERT_TEST_ACK") {
-  throw "PAYMENT_ALERT_TEST_ACK must not be preloaded. The wrapper supplies it only for an explicit -SendTest run."
-}
-foreach ($name in $temporaryEnvironmentNames) {
-  $existing = Get-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue
-  $originalEnvironment[$name] = if ($null -eq $existing) { $null } else { $existing.Value }
-}
-
 try {
+  foreach ($name in $temporaryEnvironmentNames) {
+    $existing = Get-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue
+    $originalEnvironment[$name] = if ($null -eq $existing) { $null } else { $existing.Value }
+  }
+
+  $failureReason = "endpoint_pin_invalid"
+  if ($SmtpHost -cne "smtppro.zoho.com" -or $SmtpPort -ne 465) {
+    throw "Pinned SMTP endpoint mismatch."
+  }
+
+  $failureReason = "preloaded_credential"
+  if (Test-Path -LiteralPath "Env:ZOHO_SMTP_APP_PASSWORD") {
+    throw "Forbidden preloaded SMTP credential."
+  }
+
+  $failureReason = "preloaded_acknowledgement"
+  if (Test-Path -LiteralPath "Env:PAYMENT_ALERT_TEST_ACK") {
+    throw "Forbidden preloaded send acknowledgement."
+  }
+
+  $failureReason = "credential_cancelled"
   $securePassword = Read-Host "Zoho payment-alert app password" -AsSecureString
   $passwordPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
   $plainPassword = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($passwordPointer)
   if (-not $plainPassword) {
-    throw "The Zoho app password is required."
+    throw "Masked SMTP credential was not supplied."
   }
 
   $env:VERCEL_ENV = "production"
@@ -58,29 +68,64 @@ try {
 
   Push-Location -LiteralPath $projectRoot
   $locationPushed = $true
+  $failureReason = "transport_verification_failed"
   if ($SendTest) {
     $env:PAYMENT_ALERT_TEST_ACK = "SEND_ONE_MONITORED_SUPPORT_TEST"
-    & npm.cmd run payments:alerts:verify -- --send-test
+    & npm.cmd run payments:alerts:verify -- --send-test *> $null
   } else {
-    & npm.cmd run payments:alerts:verify
+    & npm.cmd run payments:alerts:verify *> $null
   }
   if ($LASTEXITCODE -ne 0) { throw "Payment alert transport verification failed." }
+  $outcome = "PASS"
+  $failureReason = $null
+} catch {
+  # The operator-facing result is emitted once, after every cleanup attempt.
 } finally {
   if ($locationPushed) {
-    Pop-Location
+    try {
+      Pop-Location
+    } catch {
+      $outcome = "NO-GO"
+      $failureReason = "cleanup_failed"
+    }
   }
   Remove-Item -LiteralPath "Env:ZOHO_SMTP_APP_PASSWORD" -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath "Env:PAYMENT_ALERT_TEST_ACK" -ErrorAction SilentlyContinue
+  if ((Test-Path -LiteralPath "Env:ZOHO_SMTP_APP_PASSWORD") -or (Test-Path -LiteralPath "Env:PAYMENT_ALERT_TEST_ACK")) {
+    $outcome = "NO-GO"
+    $failureReason = "cleanup_failed"
+  }
   foreach ($name in $temporaryEnvironmentNames) {
-    if ($null -eq $originalEnvironment[$name]) {
-      Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue
-    } else {
-      [Environment]::SetEnvironmentVariable($name, $originalEnvironment[$name], "Process")
+    if ($originalEnvironment.ContainsKey($name)) {
+      try {
+        if ($null -eq $originalEnvironment[$name]) {
+          Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue
+        } else {
+          [Environment]::SetEnvironmentVariable($name, $originalEnvironment[$name], "Process")
+        }
+      } catch {
+        $outcome = "NO-GO"
+        $failureReason = "cleanup_failed"
+      }
     }
   }
   if ($passwordPointer -ne [IntPtr]::Zero) {
-    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($passwordPointer)
+    try {
+      [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($passwordPointer)
+    } catch {
+      $outcome = "NO-GO"
+      $failureReason = "cleanup_failed"
+    }
   }
   $plainPassword = $null
   $securePassword = $null
 }
+
+if ($outcome -ceq "PASS") {
+  $messageSent = if ($SendTest) { "one" } else { "no" }
+  Write-Output "PAYMENT_ALERT_TRANSPORT=PASS mode=production payments_off=yes smtp=verified send_requested=$sendRequested message_sent=$messageSent secrets_printed=no"
+  exit 0
+}
+
+Write-Output "PAYMENT_ALERT_TRANSPORT=NO-GO mode=production payments_off=required smtp=unverified send_requested=$sendRequested message_sent=unverified secrets_printed=no reason=$failureReason"
+exit 1

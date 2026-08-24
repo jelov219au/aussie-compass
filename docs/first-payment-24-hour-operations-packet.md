@@ -80,6 +80,38 @@ npm.cmd run first-sale:evidence -- --file <private-json-path> --phase payout
 | 상태 보호 | refund `revoked`, review `review`, first-sale `LOCKED` | 환불/검토 뒤 자동 재결제·자동 reopen 없음 |
 | 고객 다음 행동 | 환불 완료는 환불 내역 문의, 검토 중은 상태 재확인·지원, replay/restore는 무료 Builder로 연결 | 환불·검토 화면에서 작업공간 열기·복구를 우선하지 않고 구매 페이지나 `Resume Pro Viewed`로 되돌리지 않음 |
 
+### 환불·분쟁 결과 일관성 gate
+
+24시간 JSON에는 고객정보나 전체 거래 ID 대신 아래 네 결과 코드만 기록한다.
+각 값은 같은 관찰 시각의 원본 사건을 근거로 해야 하며, 기존 수동 check
+`refund_review_release_state_consistent=PASS`나 owner 승인만으로 조합 오류를
+덮을 수 없다.
+
+| 원본 금전 사건 `financial_event_outcome` | 이용권 `entitlement_outcome` | 회계 조정 `accounting_outcome` | 지원 인계 `support_outcome` |
+| --- | --- | --- | --- |
+| `none_confirmed` | `active` | `no_adjustment` | `no_refund_or_dispute` 또는 요청만 접수한 `refund_request_pending` |
+| `partial_refund_succeeded` | `review` | `partial_refund_adjustment` | `partial_refund_confirmed` |
+| `full_refund_succeeded` | `revoked` | `full_refund_adjustment` | `full_refund_confirmed` |
+| `dispute_open` | `revoked` | `dispute_open_adjustment` | `dispute_needs_response` |
+| `dispute_won_or_funds_reinstated` | `active` | `dispute_reinstatement_adjustment` | `dispute_won_or_funds_reinstated` |
+| `dispute_lost` | `revoked` | `dispute_loss_adjustment` | `dispute_lost` |
+
+부분 환불은 전액 환불 완료로 안내하지 않는다. 원 gross를 보존하고 실제
+부분 조정만 별도 기록하며 이용권은 `review`로 인계한다. 전액 환불은 원본이
+성공을 확인한 뒤에만 완료로 분류하고, 이용권 회수와 전액 조정을 함께
+확인한다. dispute는 refund가 아니다. 진행 중 dispute, funds reinstatement,
+패소는 각각 별도 회계 movement와 지원 상태로 남기며 dispute movement에
+refund 조정을 중복 기록하지 않는다. 표시 세금·credit 문서의 분류는 해당
+원본 문서가 확인되기 전까지 추정하지 않는다.
+
+환불 요청 접수, 처리 대기·실패, 여러 사건의 혼합·순서 불명·원본 미열람,
+또는 표에 없는 상태는 네 필드를 억지로 맞추지 말고 하나 이상을
+`unresolved`로 둔다. 판정기가 계산하는
+`refund_dispute_outcome_matrix_consistent`는 정확한 한 행만 `PASS`로
+인정하며, `unresolved` 또는 행 간 혼합은 24시간·payout 판정을 `HOLD`로
+유지한다. 지원 결과 코드는 승인 전 내부 사실 분류와 답변 초안의 경계일
+뿐, 고객에게 메시지를 보냈거나 환불·접근 변경을 승인했다는 뜻이 아니다.
+
 ### 첫 결제 → 회계 원장 → 지원 인계 연결 gate
 
 24시간 판정의 `support_ledger_original_transaction_chain_preserved`는 아래
@@ -103,10 +135,10 @@ private 연결표가 하나의 원거래를 가리킬 때만 `PASS`다. JSON 증
 `FAIL`이고 24시간 결과는 `HOLD`다. owner 승인만으로 `PASS`로 바꾸지
 않는다.
 
-이 연결 check가 추가된 현재 템플릿은 `schema_version=2`다. 반드시
+결과 matrix가 추가된 현재 템플릿은 `schema_version=3`다. 반드시
 `npm.cmd run first-sale:evidence -- --template`로 새 private 입력을 만들고,
-기존 v1 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다. v1,
-새 check 누락 또는 예상 밖 필드는 구조 오류 `STOP`이다.
+기존 v1/v2 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다.
+v1/v2, 결과 필드 누락 또는 예상 밖 필드는 구조 오류 `STOP`이다.
 
 #### Restore-session 응답 유실 증거
 

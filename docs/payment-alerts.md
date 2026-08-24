@@ -49,9 +49,11 @@ app password in shell history:
 
 This command is pinned to `smtppro.zoho.com:465`, refuses a preloaded app
 password or send acknowledgement, and prompts for the dedicated Zoho app
-password using masked secure input. It authenticates, sends no message, prints
-no address or credential, restores the previous non-secret process environment,
-removes the password and zeroes the converted password buffer.
+password using masked secure input. It authenticates but sends no message. After
+restoring the previous non-secret process environment, removing the process-only
+password and acknowledgement, and zeroing the converted password buffer, it
+records success only as
+`PAYMENT_ALERT_TRANSPORT=PASS mode=production payments_off=yes smtp=verified send_requested=no message_sent=no secrets_printed=no`.
 After the mailbox owner approves exactly one harmless delivery test, run:
 
 ```powershell
@@ -61,10 +63,20 @@ After the mailbox owner approves exactly one harmless delivery test, run:
 The second command is the only wrapper path that supplies the exact send
 acknowledgement. It authenticates first and sends one message clearly labelled
 `실제 결제 아님` to the monitored support inbox. Record only the received
-boolean and UTC timestamp. It restores the previous non-secret process
-environment and clears the password and acknowledgement after the attempt. It
-does not simulate a Stripe event and therefore does not replace the controlled
+boolean and UTC timestamp. Its successful final result is exactly
+`PAYMENT_ALERT_TRANSPORT=PASS mode=production payments_off=yes smtp=verified send_requested=yes message_sent=one secrets_printed=no`.
+It does not simulate a Stripe event and therefore does not replace the controlled
 purchase/refund webhook rehearsal.
+
+For both commands, endpoint mismatch, a forbidden preloaded credential or
+acknowledgement, a cancelled or empty masked prompt, authentication/network
+failure, send failure, and cleanup failure all exit 1 with exactly one final
+`PAYMENT_ALERT_TRANSPORT=NO-GO mode=production payments_off=required smtp=unverified send_requested=<yes|no> message_sent=unverified secrets_printed=no reason=<allowlisted_reason>`
+line after cleanup. The child verifier output is suppressed, so no address,
+credential or transport error is copied into the operator record. If `-SendTest`
+ends `NO-GO`, treat delivery as unverified and inspect the monitored inbox before
+any later retry; an SMTP failure can be ambiguous after the server accepts a
+message.
 3. After `20260823_first_sale_gate_charge_link_v2`, apply `docs/migrations/20260823_payment_operator_alert_outbox_v1.sql` and verify its version, table, receipt trigger, explicit claim outcomes, guarded delivery functions and effective runtime privileges described in `docs/first-sale-gate-runbook.md`.
 4. Redeploy Production.
 5. Complete one controlled live purchase and full refund, then confirm that one purchase alert and one refund alert actually arrive in the monitored mailbox. Record only received booleans, timestamps and reference suffixes. Inject one SMTP failure and two-worker interleaving in Sandbox and prove `claimed + busy → 503`, `pending → retry → sent + 200`, stale-lease recovery, and sent duplicate without another send attempt.
