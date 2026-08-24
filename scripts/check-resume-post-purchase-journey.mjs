@@ -27,6 +27,11 @@ assert.doesNotMatch(offerPage, /href=\{[^}]*resume-pro\/workspace|redirect\([^)]
 assert.ok(successPage.includes("결제가 확인됐습니다. 이제 작업공간을 여세요."), "the paid success state needs one clear outcome");
 assert.ok(successPage.includes("paymentConfirmed={paid}"), "the progress guide must receive the verified server-side payment state");
 assert.ok(successPage.indexOf("같은 제품을 다시 결제할 필요는 없습니다.") < successPage.indexOf("<ResumeProActivationForm"), "repurchase prevention must appear before activation controls");
+assert.ok(successPage.includes("getActiveResumeProEntitlement()"), "the success page must recognise an already connected device before re-verifying Checkout");
+assert.ok(successPage.includes("if (!hasActiveEntitlement && sessionId)"), "an active buyer must not repeat Checkout verification");
+assert.match(successPage, /hasActiveEntitlement \? \([\s\S]*바로 작업공간에서 계속하세요\.[\s\S]*href="\/resume-pro\/workspace#resume-pro-workspace"[\s\S]*\) : \(\s*<ResumeProActivationForm/, "an active buyer must bypass activation for the fixed protected workspace destination");
+assert.ok(successPage.includes("결제나 이용권 연결을 다시 진행하지 마세요."), "the revisiting buyer needs explicit duplicate-action prevention");
+assert.doesNotMatch(successPage, /href=\{[^}]*resume-pro\/workspace|redirect\([^)]*resume-pro\/workspace/, "the active success path must not accept or construct an arbitrary destination");
 
 for (const step of ["결제 결과 확인", "이 기기에 이용권 연결", "작업공간에서 지원서 준비"]) {
   assert.ok(purchaseSteps.includes(step), `the post-purchase journey is missing: ${step}`);

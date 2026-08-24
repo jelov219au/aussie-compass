@@ -5,18 +5,24 @@ import { safeExternalHttpUrl, safeInternalNavigationPath } from "../src/lib/safe
 
 const projectFile = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const originalNodeEnv = process.env.NODE_ENV;
+const originalVercelEnv = process.env.VERCEL_ENV;
 
-async function loadHeaderRules(nodeEnv, cacheKey) {
+async function loadHeaderRules(nodeEnv, vercelEnv, cacheKey) {
   process.env.NODE_ENV = nodeEnv;
+  if (vercelEnv === undefined) delete process.env.VERCEL_ENV;
+  else process.env.VERCEL_ENV = vercelEnv;
   const configUrl = new URL(`../next.config.ts?security-contract=${cacheKey}`, import.meta.url);
   const config = (await import(configUrl.href)).default;
   return config.headers();
 }
 
-const productionHeaderRules = await loadHeaderRules("production", "production");
-const developmentHeaderRules = await loadHeaderRules("development", "development");
+const productionHeaderRules = await loadHeaderRules("production", "production", "production");
+const previewHeaderRules = await loadHeaderRules("production", "preview", "preview");
+const developmentHeaderRules = await loadHeaderRules("development", undefined, "development");
 if (originalNodeEnv === undefined) delete process.env.NODE_ENV;
 else process.env.NODE_ENV = originalNodeEnv;
+if (originalVercelEnv === undefined) delete process.env.VERCEL_ENV;
+else process.env.VERCEL_ENV = originalVercelEnv;
 
 const [requestSecurity, cspDecision, jsonLdComponent, dashboard, jobTracker] = await Promise.all([
   projectFile("src/lib/requestSecurity.ts"),
@@ -41,6 +47,22 @@ function parseCsp(value) {
 
 const productionCsp = parseCsp(headerValue(productionHeaderRules, "/(.*)", "Content-Security-Policy"));
 const developmentCsp = parseCsp(headerValue(developmentHeaderRules, "/(.*)", "Content-Security-Policy"));
+
+assert.equal(
+  headerValue(previewHeaderRules, "/(.*)", "X-Robots-Tag"),
+  "noindex, nofollow",
+  "authenticated Preview responses must carry a global noindex header",
+);
+assert.equal(
+  headerValue(productionHeaderRules, "/(.*)", "X-Robots-Tag"),
+  undefined,
+  "Production responses must remain indexable",
+);
+assert.equal(
+  headerValue(developmentHeaderRules, "/(.*)", "X-Robots-Tag"),
+  undefined,
+  "local development must not masquerade as a protected Preview",
+);
 
 assert.deepEqual(productionCsp.get("script-src"), ["'self'"], "production script-src must not allow inline scripts, eval, wildcards, data, or remote schemes");
 assert.deepEqual(developmentCsp.get("script-src"), ["'self'", "'unsafe-eval'"], "unsafe-eval must be limited to the documented development requirement");

@@ -82,6 +82,50 @@ message.
 5. Complete one controlled live purchase and full refund, then confirm that one purchase alert and one refund alert actually arrive in the monitored mailbox. Record only received booleans, timestamps and reference suffixes. Inject one SMTP failure and two-worker interleaving in Sandbox and prove `claimed + busy → 503`, `pending → retry → sent + 200`, stale-lease recovery, and sent duplicate without another send attempt.
 6. Revoke the app password immediately if it is ever pasted into source code, chat, logs or a public environment.
 
+## Status-only pre-customer support-alert gate
+
+After the private transport, outbox and monitored-mailbox observations above are
+complete, copy only their fixed outcomes into a separate private status JSON.
+Do not put suffixes, event or Message-ID values, timestamps from individual
+messages, email addresses, customer data, amounts, attempt counts, URLs,
+credentials or message text in this JSON. Those details remain in the approved
+private operations evidence.
+
+```powershell
+npm.cmd run payments:alerts:evidence -- --template
+npm.cmd run payments:alerts:evidence -- --file <private-json-path>
+```
+
+The classifier reads one local file and does not query Stripe or the database,
+authenticate to SMTP, inspect environment variables, send a message or write a
+file. It requires payments-off transport checks, both exact no-send and labelled
+send PASS results, monitored receipt of the labelled non-customer message, the
+outbox migration and privilege proof, and controlled purchase and refund chains
+whose signed webhook, single sent outbox intent and actual mailbox receipt are
+all verified. It also requires the refund entitlement result, SMTP-failure 503,
+busy-worker 503, stale-lease recovery, sent duplicate suppression and exclusion
+of PII, full identifiers and secrets.
+
+A transport PASS alone is insufficient: the no-send check proves only
+authentication and the labelled send proves only direct SMTP delivery. Neither
+proves that a signed purchase or refund webhook committed one outbox intent and
+reached the monitored mailbox. Any `MISSING`, `FAIL`, unresolved state, changed
+schema, non-production packet, missing final line or manually written PASS keeps
+the first customer at `NO-GO`.
+
+Only the exact final result beginning
+`PAYMENT_REFUND_SUPPORT_ALERT_GATE=PASS mode=production` satisfies this one
+support-alert gate. It does not replace `CUSTOMER_DOCUMENT_TRUST_GATE=GO`, which
+checks seller, issuer and customer-visible support wording. It also does not
+replace `CONTROLLED_PAYMENT_RECONCILIATION=PASS`, which checks gross, fee,
+refund and payout source reconciliation. The first customer's later 15-minute
+evidence must independently prove that customer's own outbox and mailbox
+delivery; this pre-customer result cannot be copied forward as event proof.
+
+The completed status file stays private and uncommitted. A PASS does not
+authorise a payment, refund, customer contact, message send, credential use,
+Production change or sale-gate reopen.
+
 Zoho's [official SMTP guide](https://www.zoho.com/mail/help/zoho-smtp.html)
 lists `smtppro.zoho.com:465` with SSL for paid organisations using a custom
 domain and says the exact account/data-centre target must be confirmed in the
