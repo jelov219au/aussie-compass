@@ -7,6 +7,7 @@ import { BreadcrumbJsonLd, ProductJsonLd } from "@/components/seo/JsonLd";
 import { ResumeProCheckoutForm } from "@/components/tools/ResumeProCheckoutForm";
 import { ResumeProCheckoutFailureNotice } from "@/components/tools/ResumeProCheckoutFailureNotice";
 import { ResumeProCheckoutJumpLink } from "@/components/tools/ResumeProCheckoutJumpLink";
+import { ResumeBuilderDraftContinuation } from "@/components/tools/ResumeBuilderDraftContinuation";
 import { ResumeJobAdProofContinuation } from "@/components/tools/ResumeJobAdProofContinuation";
 import { ResumeProLaunchInterestCopyButton, ResumeProLaunchInterestLink } from "@/components/tools/ResumeProLaunchInterestLink";
 import { Container } from "@/components/ui/Container";
@@ -173,6 +174,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
               </section>
             )}
             {!existingBuyerIssue && <ResumeJobAdProofContinuation entry={entry} />}
+            {!existingBuyerIssue && <ResumeBuilderDraftContinuation checkoutAvailable={canOfferCheckout} />}
             <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
               <div className="max-w-3xl">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#806515]">Resume Pro</p>
