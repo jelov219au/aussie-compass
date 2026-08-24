@@ -35,6 +35,6 @@ $action = New-ScheduledTaskAction -Execute $powerShell -Argument $arguments -Wor
 $trigger = New-ScheduledTaskTrigger -Daily -At 7:15am
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 20)
 
-Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Description "Refreshes the previous completed month of Hoju Compass Stripe balance records. Re-runs are idempotent." -Force | Out-Null
+Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Description "Refreshes the completed UTC month-to-date and previous completed month of Hoju Compass Stripe balance records. Re-runs are idempotent." -Force | Out-Null
 
-Write-Host "Accounting automation is ready. Balance Transactions Read was verified without writing a private export. The previous completed month will be checked daily at 7:15am and exported only once."
+Write-Host "Accounting automation is ready. Balance Transactions Read was verified without writing a private export. Completed UTC month-to-date and the previous completed month will be checked daily at 7:15am and each immutable window exported only once."

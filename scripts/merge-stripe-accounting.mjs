@@ -5,6 +5,8 @@ import {
   accountingLedgerHeader,
   accountingRecordKey,
   accountingSourcePattern,
+  accountingSourcePrecedence,
+  compareAccountingSourcePrecedence,
   normaliseAccountingRows,
 } from "./accounting-ledger-schema.mjs";
 
@@ -62,14 +64,18 @@ const records = new Map();
 
 for (const file of files) {
   const rows = parseCsv(await readFile(path.join(accountingRoot, file), "utf8"));
+  const precedence = accountingSourcePrecedence(file);
   for (const row of normaliseAccountingRows(file, rows)) {
     const recordKey = accountingRecordKey(row);
     if (!recordKey) continue;
-    records.set(recordKey, row);
+    const existing = records.get(recordKey);
+    if (!existing || compareAccountingSourcePrecedence(precedence, existing.precedence) > 0) {
+      records.set(recordKey, { row, precedence });
+    }
   }
 }
 
-const sortedRows = [...records.values()].sort((left, right) => {
+const sortedRows = [...records.values()].map((record) => record.row).sort((left, right) => {
   const createdComparison = left[1].localeCompare(right[1]);
   return createdComparison || accountingRecordKey(left).localeCompare(accountingRecordKey(right));
 });

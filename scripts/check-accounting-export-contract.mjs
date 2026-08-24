@@ -4,7 +4,9 @@ import { readFile } from "node:fs/promises";
 import {
   accountingLedgerHeader,
   accountingRecordKey,
+  accountingSourcePrecedence,
   balanceTransactionHeader,
+  compareAccountingSourcePrecedence,
   normaliseAccountingRows,
 } from "./accounting-ledger-schema.mjs";
 import { safeStripeAccountingError } from "./stripe-accounting-access.mjs";
@@ -15,6 +17,7 @@ const preflightSource = await readFile(new URL("./preflight-stripe-accounting.mj
 const mergeSource = await readFile(new URL("./merge-stripe-accounting.mjs", import.meta.url), "utf8");
 const schemaSource = await readFile(new URL("./accounting-ledger-schema.mjs", import.meta.url), "utf8");
 const setupSource = await readFile(new URL("./setup-accounting-automation.ps1", import.meta.url), "utf8");
+const refreshSource = await readFile(new URL("./run-accounting-refresh.ps1", import.meta.url), "utf8");
 const securePreflightSource = await readFile(new URL("./run-accounting-preflight.ps1", import.meta.url), "utf8");
 const accountingRunbook = await readFile(new URL("../docs/accounting-reconciliation.md", import.meta.url), "utf8");
 const packageSource = await readFile(new URL("../package.json", import.meta.url), "utf8");
@@ -88,10 +91,21 @@ assert.ok(!permissionFailure.message.includes(sensitiveStripeMarker) && !unknown
 assert.ok(schemaSource.includes("balance_transaction_id"), "The private ledger must retain the Stripe balance transaction ID.");
 assert.ok(source.includes("accountingLedgerHeader"), "Every new source export must record whether it came from live or test mode.");
 assert.ok(mergeSource.includes("accountingRecordKey"), "The private ledger must deduplicate within a Stripe environment, not across live and test mode.");
+assert.ok(mergeSource.includes("compareAccountingSourcePrecedence"), "Overlapping daily and monthly sources must use deterministic close-period precedence.");
 assert.ok(setupSource.includes("Export-Clixml"), "The setup must protect the accounting credential with Windows encryption.");
 assert.ok(setupSource.includes("rk_(live|test)_"), "The setup must reject full-access Stripe secret keys.");
 assert.ok(setupSource.includes("npm.cmd run accounting:preflight"), "The setup must verify Balance Transactions Read before saving the credential.");
 assert.ok(setupSource.indexOf("npm.cmd run accounting:preflight") < setupSource.indexOf("Export-Clixml"), "The setup must run the permission preflight before saving the credential.");
+for (const dailyBoundary of [
+  "[DateTime]::UtcNow.Date",
+  "$utcToday -gt $utcMonthStart",
+  "From = $utcMonthStart.ToString",
+  "To = $utcToday.ToString",
+  "$utcMonthStart.AddMonths(-1)",
+  "foreach ($window in $windows)",
+  "npm.cmd run accounting:export -- --from $window.From --to $window.To",
+]) assert.ok(refreshSource.includes(dailyBoundary), `The scheduled first-sale accounting refresh is missing: ${dailyBoundary}`);
+assert.ok(setupSource.includes("completed UTC month-to-date and previous completed month"), "The scheduled task description must disclose rolling first-sale capture and monthly close capture.");
 
 const sharedTransactionId = "txn_shared_fixture";
 const legacyRow = [
@@ -122,6 +136,16 @@ assert.notEqual(
   accountingRecordKey(normalisedCurrentTest),
   "Matching Stripe IDs in live and test mode must remain separate ledger records.",
 );
+const dailyPrecedence = accountingSourcePrecedence("stripe-balance-live-2026-08-20-to-2026-08-21-exclusive.csv");
+const monthlyPrecedence = accountingSourcePrecedence("stripe-balance-live-2026-08-01-to-2026-09-01-exclusive.csv");
+const sameEndDailyPrecedence = accountingSourcePrecedence("stripe-balance-live-2026-08-31-to-2026-09-01-exclusive.csv");
+assert.ok(compareAccountingSourcePrecedence(monthlyPrecedence, dailyPrecedence) > 0, "A later completed month must supersede an earlier daily snapshot of the same transaction.");
+assert.ok(compareAccountingSourcePrecedence(monthlyPrecedence, sameEndDailyPrecedence) > 0, "A wider completed-month source must supersede a daily snapshot with the same end date.");
+assert.throws(
+  () => accountingSourcePrecedence("stripe-balance-live-2026-02-30-to-2026-03-02-exclusive.csv"),
+  /Invalid Stripe accounting date window/,
+  "A calendar-invalid source window must fail closed instead of being normalised by Date.",
+);
 assert.throws(
   () => normaliseAccountingRows(
     "stripe-balance-live-2026-08-01-to-2026-09-01-exclusive.csv",
@@ -140,5 +164,13 @@ for (const boundary of [
   "https://docs.stripe.com/api/balance_transactions/object",
   "https://docs.stripe.com/payments/managed-payments/how-it-works",
 ]) assert.ok(compactAccountingRunbook.includes(boundary), `Accounting runbook is missing the Managed Payments tax boundary: ${boundary}`);
+for (const boundary of [
+  "completed UTC month-to-date window",
+  "first payment into the private source ledger on the next available run after its UTC day closes",
+  "catches days missed while the laptop was off",
+  "pending to available",
+  "completed-month export remains the close-period source",
+  "newer month-to-date snapshot or month-close record supersedes an earlier snapshot",
+]) assert.ok(compactAccountingRunbook.includes(boundary), `Accounting runbook is missing the first-sale capture boundary: ${boundary}`);
 
 console.log("Private Stripe accounting-export contract checks passed.");
