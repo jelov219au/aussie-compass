@@ -322,11 +322,14 @@ export function ResumeProWorkspace() {
   const hasResume = Boolean(savedResume.name || savedResume.summary || savedResume.experiences?.some((item) => item.role || item.details));
   const selectedStarStory = useMemo(() => starStories.find((story) => story.id === draft.starStoryId) ?? null, [draft.starStoryId, starStories]);
   const starAnswer = useMemo(() => composeStarAnswer(starStoryDraft), [starStoryDraft]);
+  const activeApplication = useMemo(() => applications.find((application) => application.id === activeApplicationId) ?? null, [activeApplicationId, applications]);
+  const currentApplicationSaved = Boolean(activeApplication && JSON.stringify(activeApplication.draft) === JSON.stringify(draft));
   const quickStartSteps = [
     { id: "resume", label: "무료 이력서 연결", done: hasResume },
     { id: "application", label: "회사와 직무 입력", done: Boolean(draft.company.trim() && (draft.role.trim() || savedResume.title?.trim())) },
     { id: "job-ad", label: "채용 공고 붙여넣기", done: Boolean(draft.jobAd.trim()) },
     { id: "cover-letter", label: "첫 커버레터 초안 만들기", done: Boolean(draft.coverLetter.trim()) },
+    { id: "save-application", label: "회사별 지원서 저장", done: currentApplicationSaved },
   ];
   const quickStartCompleted = quickStartSteps.filter((step) => step.done).length;
 
@@ -346,7 +349,9 @@ export function ResumeProWorkspace() {
       ? "resume-pro-company"
       : next.id === "job-ad"
         ? "resume-pro-job-ad"
-        : "resume-pro-cover-letter-action";
+        : next.id === "cover-letter"
+          ? "resume-pro-cover-letter-action"
+          : "resume-pro-save-application";
     const target = document.getElementById(targetId);
     target?.scrollIntoView({ behavior: "smooth", block: "center" });
     window.setTimeout(() => target?.focus(), 350);
@@ -591,10 +596,10 @@ export function ResumeProWorkspace() {
     <div className="space-y-12">
     <section className="border border-navy/15 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-pro-quick-start-heading">
       <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-        <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">첫 10분 빠른 시작</p><h2 id="resume-pro-quick-start-heading" className="mt-2 text-2xl font-semibold text-navy">먼저 커버레터 초안 하나를 완성해보세요.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-muted">디자인과 면접 준비는 나중에 해도 괜찮아요. 저장한 이력서를 연결하고 공고를 붙여 넣으면 첫 결과물을 가장 빨리 확인할 수 있어요.</p></div>
+        <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">첫 10분 빠른 시작</p><h2 id="resume-pro-quick-start-heading" className="mt-2 text-2xl font-semibold text-navy">첫 회사별 지원서 하나를 저장해보세요.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-muted">디자인과 면접 준비는 나중에 해도 괜찮아요. 저장한 이력서와 공고로 커버레터를 만든 뒤 회사별 지원서로 저장하면, 다음 공고를 시작해도 이번 준비를 다시 열어 비교할 수 있어요.</p></div>
         <div className="min-w-48"><p className="font-mono text-sm text-muted">{quickStartCompleted} / {quickStartSteps.length} 완료</p><div className="mt-2 h-2 overflow-hidden bg-surface" aria-hidden="true"><div className="h-full bg-gold transition-[width]" style={{ width: `${(quickStartCompleted / quickStartSteps.length) * 100}%` }} /></div></div>
       </div>
-      <ol className="mt-6 grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-4">{quickStartSteps.map((step, index) => <li key={step.id} className="flex min-h-20 items-center gap-3 bg-surface px-4 py-3"><span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${step.done ? "bg-[#315f4e] text-white" : "border border-navy/25 bg-white text-navy"}`}>{step.done ? "✓" : index + 1}</span><span className={`text-sm ${step.done ? "font-medium text-navy" : "text-muted"}`}>{step.label}</span></li>)}</ol>
+      <ol className="mt-6 grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-5">{quickStartSteps.map((step, index) => <li key={step.id} className="flex min-h-20 items-center gap-3 bg-surface px-4 py-3"><span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${step.done ? "bg-[#315f4e] text-white" : "border border-navy/25 bg-white text-navy"}`}>{step.done ? "✓" : index + 1}</span><span className={`text-sm ${step.done ? "font-medium text-navy" : "text-muted"}`}>{step.label}</span></li>)}</ol>
       <div className="mt-5 flex flex-wrap items-center gap-4"><button type="button" onClick={continueQuickStart} className="min-h-12 bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">{quickStartCompleted === quickStartSteps.length ? "면접 준비로 이동" : "다음 할 일 바로가기"}</button><p className="text-xs leading-5 text-muted">입력 내용은 현재 브라우저에 자동 저장됩니다.</p></div>
     </section>
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(34rem,1.08fr)]">
@@ -606,7 +611,7 @@ export function ResumeProWorkspace() {
         <div className={`mt-5 border-l-2 p-4 text-sm leading-6 ${hasResume ? "border-[#3f6d5c] bg-[#3f6d5c]/8 text-navy" : "border-gold bg-gold/8 text-muted"}`}>
           {hasResume ? <><strong className="block text-navy">{savedResume.name || "저장된 이력서"}의 내용을 연결했습니다.</strong>무료 이력서 빌더의 Summary, 경력과 Skills를 초안에 사용합니다.</> : <><strong className="block text-navy">저장된 이력서를 찾지 못했습니다.</strong>입력 없이도 사용할 수 있지만 무료 빌더를 먼저 작성하면 더 구체적인 초안이 만들어집니다.</>}
         </div>
-        <section className="mt-5 border border-border bg-white p-4" aria-labelledby="saved-applications-heading"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">현재 브라우저에 최대 30개까지 저장됩니다.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button type="button" onClick={saveApplication} className="min-h-10 bg-navy px-3 text-xs font-semibold text-white">현재 지원서 저장</button></div></div>{applications.length > 0 ? <ul className="mt-4 divide-y divide-border border-y border-border">{applications.map((application) => <li key={application.id} className="flex flex-wrap items-center gap-3 py-3"><button type="button" onClick={() => loadApplication(application)} className="min-h-10 flex-1 text-left"><strong className="block text-sm text-navy">{application.company}</strong><span className="mt-1 block text-xs text-muted">{application.role} · {new Date(application.updatedAt).toLocaleDateString("en-AU")}{activeApplicationId === application.id ? " · 현재 열림" : ""}</span></button><button type="button" onClick={() => deleteApplication(application)} className="min-h-10 px-2 text-xs text-muted hover:text-red-700">삭제</button></li>)}</ul> : <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted">저장한 지원서가 아직 없습니다. 회사명을 입력하고 현재 지원서 저장을 눌러 주세요.</p>}</section>
+        <section className="mt-5 border border-border bg-white p-4" aria-labelledby="saved-applications-heading"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">현재 브라우저에 최대 30개까지 저장됩니다. 저장 뒤 내용을 바꾸면 다시 저장해야 완료 상태가 유지돼요.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button id="resume-pro-save-application" type="button" onClick={saveApplication} className="min-h-10 bg-navy px-3 text-xs font-semibold text-white">{currentApplicationSaved ? "현재 지원서 저장됨" : "현재 지원서 저장"}</button></div></div>{applications.length > 0 ? <ul className="mt-4 divide-y divide-border border-y border-border">{applications.map((application) => <li key={application.id} className="flex flex-wrap items-center gap-3 py-3"><button type="button" onClick={() => loadApplication(application)} className="min-h-10 flex-1 text-left"><strong className="block text-sm text-navy">{application.company}</strong><span className="mt-1 block text-xs text-muted">{application.role} · {new Date(application.updatedAt).toLocaleDateString("en-AU")}{activeApplicationId === application.id ? currentApplicationSaved ? " · 저장됨" : " · 변경사항 있음" : ""}</span></button><button type="button" onClick={() => deleteApplication(application)} className="min-h-10 px-2 text-xs text-muted hover:text-red-700">삭제</button></li>)}</ul> : <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted">저장한 지원서가 아직 없습니다. 회사명을 입력하고 현재 지원서 저장을 눌러 주세요.</p>}</section>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className={labelClass}>회사명<input id="resume-pro-company" className={inputClass} value={draft.company} onChange={(event) => setField("company", event.target.value)} placeholder="Compass Cafe" /></label>
           <label className={labelClass}>지원 직무<input className={inputClass} value={draft.role} onChange={(event) => setField("role", event.target.value)} placeholder="Barista" /></label>

@@ -7,11 +7,14 @@ import { ResumeProPostPurchaseSteps, type ResumeProPostPurchaseNotice } from "@/
 
 const activationStorageKey = "hoju_compass_resume_pro_activation_v1";
 const postPurchaseNoticeStorageKey = "hoju_compass_resume_pro_notice_v1";
+const activationLifetimeMs = 24 * 60 * 60 * 1000;
 const sessionPattern = /^cs_(?:test|live)_[A-Za-z0-9]+$/;
 const noncePattern = /^[A-Za-z0-9_-]{40,128}$/;
 
-type ActivationState = { sessionId: string; nonce: string };
+type ActivationState = { sessionId: string; nonce: string; createdAt: number };
 type NoticeKind = ResumeProPostPurchaseNotice;
+
+const terminalNotices = new Set<NoticeKind>(["used", "released", "refunded", "review"]);
 
 const notices: Record<NoticeKind, string> = {
   ready: "결제가 확인됐습니다. 다시 결제하지 마세요. 아래 버튼으로 이 기기에서 Resume Pro를 열 수 있어요.",
@@ -30,13 +33,30 @@ function createActivationNonce() {
   return window.btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
 }
 
+function clearStoredActivation() {
+  try {
+    window.sessionStorage.removeItem(activationStorageKey);
+  } catch {
+    // Storage can be disabled; leaving no in-memory activation is fail-closed.
+  }
+}
+
 function readStoredActivation() {
   try {
     const value = JSON.parse(window.sessionStorage.getItem(activationStorageKey) ?? "null") as Partial<ActivationState> | null;
-    return value && sessionPattern.test(value.sessionId ?? "") && noncePattern.test(value.nonce ?? "")
-      ? value as ActivationState
-      : null;
+    const ageMs = Date.now() - (value?.createdAt ?? Number.NaN);
+    if (value
+      && sessionPattern.test(value.sessionId ?? "")
+      && noncePattern.test(value.nonce ?? "")
+      && Number.isFinite(ageMs)
+      && ageMs >= 0
+      && ageMs <= activationLifetimeMs) {
+      return value as ActivationState;
+    }
+    clearStoredActivation();
+    return null;
   } catch {
+    clearStoredActivation();
     return null;
   }
 }
@@ -89,19 +109,18 @@ export function ResumeProActivationForm({
         const storedNotice = readStoredPostPurchaseNotice();
         if (storedNotice) setNotice(storedNotice);
       }
+      if (terminalNotices.has(initialNotice)) {
+        clearStoredActivation();
+        next = null;
+      } else if (initialSessionId && sessionPattern.test(initialSessionId)) {
+        if (!next || next.sessionId !== initialSessionId) {
+          next = { sessionId: initialSessionId, nonce: createActivationNonce(), createdAt: Date.now() };
+        }
+        window.sessionStorage.setItem(activationStorageKey, JSON.stringify(next));
+      }
     } catch {
       setNotice("unavailable");
-    }
-    if (initialSessionId && sessionPattern.test(initialSessionId)) {
-      if (!next || next.sessionId !== initialSessionId) {
-        next = { sessionId: initialSessionId, nonce: createActivationNonce() };
-      }
-      try {
-        window.sessionStorage.setItem(activationStorageKey, JSON.stringify(next));
-      } catch {
-        setNotice("unavailable");
-        next = null;
-      }
+      next = null;
     }
     setActivation(next);
 
@@ -128,7 +147,7 @@ export function ResumeProActivationForm({
       const body = await response.json().catch(() => null) as { code?: string; destination?: string } | null;
 
       if (response.ok && body?.code === "activation_ready" && body.destination === "/resume-pro/workspace") {
-        window.sessionStorage.removeItem(activationStorageKey);
+        clearStoredActivation();
         window.location.assign(body.destination);
         return;
       }
@@ -149,8 +168,8 @@ export function ResumeProActivationForm({
       } catch {
         setNotice("unavailable");
       }
-      if (nextNotice === "used" || nextNotice === "released" || nextNotice === "refunded") {
-        window.sessionStorage.removeItem(activationStorageKey);
+      if (terminalNotices.has(nextNotice)) {
+        clearStoredActivation();
         setActivation(null);
       }
     } catch {

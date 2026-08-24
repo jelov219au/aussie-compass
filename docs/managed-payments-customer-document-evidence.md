@@ -37,6 +37,10 @@ refund, document or customer-data change.
   inference from Dashboard metadata, configuration or another artifact. Also
   use it when the operator cannot establish which customer payment documents
   were actually issued.
+- `NOT_ISSUED`: the set of customer payment documents was positively verified
+  and Stripe did not issue this artifact. Use it only for all three rows of the
+  fixed Receipt or Invoice group; never use it when issuance is unknown or an
+  issued artifact cannot be opened.
 
 Dashboard account details, application `BUSINESS_*` values, Product settings,
 tax-liability fields and another artifact's wording cannot upgrade an item to
@@ -97,8 +101,10 @@ note. Those belong to separate approved accounting or support procedures.
    creating, resending or regenerating a document. If this cannot be established
    or neither existing payment document can be inspected, stop with `UNVERIFIED`.
 4. Open every issued customer payment document without downloading, resending
-   or regenerating it. Copy the issued-document row group once per artifact and
-   record its type as Receipt or Invoice.
+   or regenerating it. Complete the fixed Receipt and Invoice groups separately.
+   If one type was positively not issued, mark all three rows for only that
+   group `NOT_ISSUED`. Never collapse both types into one `Receipt or Invoice`
+   group.
 5. Stop if any requested view requires a mutation, a new document, a copied
    signed URL or exposure of prohibited data. Mark the affected rows
    `UNVERIFIED`.
@@ -115,9 +121,12 @@ copy.
 | `checkout.transaction_seller` | Checkout | Transaction seller | UNVERIFIED | — | — | Not yet observed |
 | `checkout.document_issuer` | Checkout | Document issuer | UNVERIFIED | — | — | Not yet observed |
 | `checkout.transaction_support_route` | Checkout | Transaction support route | UNVERIFIED | — | — | Not yet observed |
-| `issued_document.transaction_seller` | Receipt or Invoice | Transaction seller | UNVERIFIED | — | — | Not yet observed |
-| `issued_document.document_issuer` | Receipt or Invoice | Document issuer | UNVERIFIED | — | — | Not yet observed |
-| `issued_document.transaction_support_route` | Receipt or Invoice | Transaction support route | UNVERIFIED | — | — | Not yet observed |
+| `receipt.transaction_seller` | Receipt | Transaction seller | UNVERIFIED | — | — | Not yet observed |
+| `receipt.document_issuer` | Receipt | Document issuer | UNVERIFIED | — | — | Not yet observed |
+| `receipt.transaction_support_route` | Receipt | Transaction support route | UNVERIFIED | — | — | Not yet observed |
+| `invoice.transaction_seller` | Invoice | Transaction seller | UNVERIFIED | — | — | Not yet observed |
+| `invoice.document_issuer` | Invoice | Document issuer | UNVERIFIED | — | — | Not yet observed |
+| `invoice.transaction_support_route` | Invoice | Transaction support route | UNVERIFIED | — | — | Not yet observed |
 
 Audit context: `live / owner-controlled 20 August 2026 purchase and full refund`
 
@@ -128,10 +137,11 @@ person's name or email.
 
 The customer-document trust gate is `GO` only when the three Checkout rows are
 `PRESENT`, the set of actually issued customer payment documents is verified,
-at least one existing receipt or invoice was inspected, and all three copied
-rows for every issued document are `PRESENT`. Any `ABSENT` or `UNVERIFIED` row,
-an uninspected issued artifact or an unknown artifact set makes the result
-`NO-GO`.
+at least one existing receipt or invoice was inspected, all three fixed rows for
+every issued document are `PRESENT`, and all three rows for each positively
+unissued document type are `NOT_ISSUED`. A mixed status inside an unissued
+group, any `ABSENT` or `UNVERIFIED` row, an uninspected issued artifact or an
+unknown artifact set makes the result `NO-GO`.
 
 Record only one final line in the private observation note:
 
