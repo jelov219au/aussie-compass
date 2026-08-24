@@ -90,6 +90,22 @@ missing final PASS, test result from another command, timeout or interrupted run
 means the key remains unverified for export. A PASS does not export or alter any
 accounting record.
 
+### Integrated first-sale preflight handoff
+
+The first customer's 15-minute, 24-hour and first-payout evidence must preserve
+one private reference to the exact integrated `FIRST_SALE_PREFLIGHT=PASS` that
+preceded that live Resume payment. The payment operator preserves it at 15
+minutes, the operations owner confirms the same reference is unchanged at 24
+hours, and the accounting operator carries it into the first-payout
+reconciliation. A missing reference, a later configuration change, test/live
+mixing or a reference from another approval window is fail-closed.
+
+The standalone `ACCOUNTING_PREFLIGHT=PASS` is later accounting permission
+evidence, not separate first-customer launch evidence, and cannot replace the
+exact integrated `FIRST_SALE_PREFLIGHT=PASS`. Likewise, the Resume-only packet
+cannot be used as Rental product-isolation evidence. Keep Rental off until its
+separate live cross-product gate and transaction chain pass.
+
 The exporter writes a new CSV under `private/accounting/` and refuses to overwrite an existing file. That directory is excluded from Git.
 If the restricted key lacks Balance Transactions Read permission, the exporter
 fails before writing a file and prints only the required permission. Do not copy

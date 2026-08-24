@@ -1,6 +1,7 @@
 export const evidencePhases = ["15m", "24h", "payout"];
 
 export const fifteenMinuteChecks = [
+  "integrated_first_sale_preflight_preserved",
   "live_checkout_paid",
   "currency_amount_price_match",
   "signed_webhook_2xx",
@@ -32,6 +33,7 @@ export const fifteenMinuteChecks = [
 ];
 
 export const twentyFourHourChecks = [
+  "integrated_first_sale_preflight_unchanged",
   "fifteen_minute_evidence_unchanged",
   "no_new_access_session",
   "no_new_activation_or_restore_binding",
@@ -55,6 +57,7 @@ export const twentyFourHourChecks = [
 ];
 
 export const firstPayoutChecks = [
+  "integrated_first_sale_preflight_carried_forward",
   "itemised_payout_retained",
   "bank_arrival_matched",
   "stripe_clearing_reconciled",
@@ -160,7 +163,7 @@ function missingChecks(checkNames) {
 
 export function createFirstSaleEvidenceTemplate() {
   return {
-    schema_version: 3,
+    schema_version: 4,
     product_code: "resume_pro",
     environment: "live",
     event_suffix: "REPLACE8",
@@ -243,7 +246,7 @@ function structuralErrors(packet) {
   const errors = [];
   if (!hasExactKeys(packet, rootKeys)) errors.push("packet_shape");
   if (!isPlainObject(packet)) return errors;
-  if (packet.schema_version !== 3) errors.push("schema_version");
+  if (packet.schema_version !== 4) errors.push("schema_version");
   if (packet.product_code !== "resume_pro") errors.push("product_code");
   if (packet.environment !== "live") errors.push("environment");
   if (!/^[A-Za-z0-9]{8}$/.test(packet.event_suffix ?? "") || packet.event_suffix === "REPLACE8") {

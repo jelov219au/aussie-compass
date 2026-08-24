@@ -53,6 +53,31 @@ private 회계 위치에만 보관하며, `overall_tax_handoff=PASS`가 아니�
 - 24시간 안에 gross·표시 GST·fee·refund·ending balance, 영수증/세금 문서 발행자, 실제 알림 수신, 이용권·환불 연결이 모두 PASS가 아니면 다음 판매 재개는 **HOLD**다. payout만 `pending`이고 나머지가 PASS인 경우에만 payout 후속 대사로 넘긴다.
 - STOP/HOLD 중에는 `PAYMENTS_ENABLED=false`를 유지하고, Stripe/DB 재시도나 gate reopen은 owner 승인과 런북 증거 없이 실행하지 않는다.
 
+### 통합 FIRST_SALE_PREFLIGHT 증거 chain
+
+이 패킷은 live `resume_pro` 첫 고객 결제 전 실행한 통합 gate의 정확한 최종
+결과
+`FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no`
+를 하나의 private launch reference와 실행 시각으로 보존해야 한다. JSON에는
+최종 문구, 키, DB URL 또는 전체 Stripe ID를 복사하지 않고 아래 고정 check의
+`PASS/MISSING/FAIL`만 기록한다.
+
+| 마감 | 필수 check | 책임 역할 | PASS 기준 | MISSING/FAIL 처리 |
+| --- | --- | --- | --- | --- |
+| 15분 | `integrated_first_sale_preflight_preserved` | payment operator | exact final PASS가 결제 전 마지막 승인 창의 private launch reference에 있고, 그 뒤 결제 시점까지 배포·runtime/audit/accounting key 역할·권한·DB endpoint·필수 migration이 바뀌지 않았음 | exact line 누락, `STRIPE_KEY_ROLES=PASS`만 존재, 이전 승인 창 결과, 이후 구성 변경 또는 확인 불가면 **STOP**; 발생한 결제를 되돌려 추정하지 말고 다음 판매를 닫음 |
+| 24시간 | `integrated_first_sale_preflight_unchanged` | operations owner | 15분의 동일 reference가 변경 없이 FP 사건·원거래 chain과 연결되고 새 preflight FAIL이나 구성 변경이 발견되지 않음 | 다른 실행 결과로 교체, standalone 결과만 첨부, reference 단절 또는 사후 FAIL 발견 시 **HOLD** |
+| 첫 payout | `integrated_first_sale_preflight_carried_forward` | accounting operator | 동일 reference가 첫 payout 대사와 Resume 원거래까지 이어지고 환경·통화·원장 chain이 그대로 일치함 | reference 누락, test/live 혼합, 다른 상품·거래·승인 창의 결과 재사용 또는 원장 불일치 시 **HOLD** |
+
+통합 wrapper 안에서 이미 같은 accounting key의 Balance Transactions read를
+검증했으므로 standalone `ACCOUNTING_PREFLIGHT=PASS`로 대체할 수 없다. 그
+standalone 결과는 이후 독립 export 재검증일 뿐 첫 고객 launch evidence가
+아니다. 이 packet과 세 check는 Resume-only이며 Rental accounting
+product-isolation PASS로 재사용할 수 없다. Rental은 별도
+`ACCOUNTING_PRODUCT_ISOLATION=PASS mode=live products=resume_pro+rental_application_pro ...`
+gate와 자체 거래 증거를 충족해야 한다. 역할 담당자는 증거를 확인하고
+인계할 책임만 가지며 결제 활성화, 환불, 고객 연락, 장부 입력 또는 세무
+판단 권한을 자동으로 얻지 않는다.
+
 ### 읽기 전용 증거 판정 명령
 
 첫 결제 뒤에는 원래 시스템의 증거를 접근 제한된 private 위치에 보관하고, 아래 고정 JSON 계약에는 고객정보·원문 영수증·전체 Stripe/session ID·hash·cookie·은행정보·비밀 값을 넣지 않는다. 허용되는 식별자는 사건의 마지막 8자 suffix 하나뿐이다. 템플릿은 화면에만 출력하며 저장 위치를 만들거나 원격 시스템을 조회하지 않는다.
@@ -135,10 +160,10 @@ private 연결표가 하나의 원거래를 가리킬 때만 `PASS`다. JSON 증
 `FAIL`이고 24시간 결과는 `HOLD`다. owner 승인만으로 `PASS`로 바꾸지
 않는다.
 
-결과 matrix가 추가된 현재 템플릿은 `schema_version=3`다. 반드시
+통합 preflight chain이 추가된 현재 템플릿은 `schema_version=4`다. 반드시
 `npm.cmd run first-sale:evidence -- --template`로 새 private 입력을 만들고,
-기존 v1/v2 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다.
-v1/v2, 결과 필드 누락 또는 예상 밖 필드는 구조 오류 `STOP`이다.
+기존 v1/v2/v3 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다.
+v1/v2/v3, preflight/result 필드 누락 또는 예상 밖 필드는 구조 오류 `STOP`이다.
 
 #### Restore-session 응답 유실 증거
 

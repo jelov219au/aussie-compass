@@ -5,6 +5,8 @@ import {
   containsSensitiveEvidence,
   createFirstSaleEvidenceTemplate,
   evaluateFirstSaleEvidence,
+  fifteenMinuteChecks,
+  firstPayoutChecks,
   twentyFourHourChecks,
 } from "./first-sale-evidence-contract.mjs";
 
@@ -44,12 +46,12 @@ function passingPacket() {
   return packet;
 }
 
-assert.equal(createFirstSaleEvidenceTemplate().schema_version, 3, "the refund/dispute outcome matrix requires evidence schema v3");
+assert.equal(createFirstSaleEvidenceTemplate().schema_version, 4, "the integrated preflight evidence chain requires schema v4");
 const legacyPacket = passingPacket();
-legacyPacket.schema_version = 2;
+legacyPacket.schema_version = 3;
 assert.ok(
   evaluateFirstSaleEvidence(legacyPacket, "24h").errors.includes("schema_version"),
-  "a v2 packet must not bypass the new refund/dispute outcome matrix",
+  "a v3 packet must not bypass the integrated first-sale preflight chain",
 );
 
 for (const phase of ["15m", "24h", "payout"]) {
@@ -77,6 +79,34 @@ assert.equal(evaluateFirstSaleEvidence(earlyClose, "24h").decision, "HOLD");
 const payoutDifference = passingPacket();
 payoutDifference.first_payout.cash_difference_cents = 2;
 assert.equal(evaluateFirstSaleEvidence(payoutDifference, "payout").decision, "HOLD");
+
+assert.ok(fifteenMinuteChecks.includes("integrated_first_sale_preflight_preserved"));
+assert.ok(twentyFourHourChecks.includes("integrated_first_sale_preflight_unchanged"));
+assert.ok(firstPayoutChecks.includes("integrated_first_sale_preflight_carried_forward"));
+
+const missingIntegratedPreflightAtFifteenMinutes = passingPacket();
+missingIntegratedPreflightAtFifteenMinutes.fifteen_minute.checks.integrated_first_sale_preflight_preserved = "MISSING";
+assert.equal(
+  evaluateFirstSaleEvidence(missingIntegratedPreflightAtFifteenMinutes, "15m").decision,
+  "STOP",
+  "a paid Resume transaction must not pass without its exact integrated preflight handoff",
+);
+
+const changedIntegratedPreflightAtTwentyFourHours = passingPacket();
+changedIntegratedPreflightAtTwentyFourHours.twenty_four_hour.checks.integrated_first_sale_preflight_unchanged = "FAIL";
+assert.equal(
+  evaluateFirstSaleEvidence(changedIntegratedPreflightAtTwentyFourHours, "24h").decision,
+  "HOLD",
+  "a changed or superseded integrated preflight reference must hold the 24-hour close",
+);
+
+const missingIntegratedPreflightAtPayout = passingPacket();
+missingIntegratedPreflightAtPayout.first_payout.checks.integrated_first_sale_preflight_carried_forward = "MISSING";
+assert.equal(
+  evaluateFirstSaleEvidence(missingIntegratedPreflightAtPayout, "payout").decision,
+  "HOLD",
+  "the first payout close must carry the same integrated preflight reference",
+);
 
 assert.ok(
   twentyFourHourChecks.includes("support_ledger_original_transaction_chain_preserved"),
@@ -147,8 +177,15 @@ for (const boundary of [
   "부분 환불은 전액 환불 완료로 안내하지 않는다",
   "dispute는 refund가 아니다",
   "혼합·순서 불명·원본 미열람",
-  "schema_version=3",
-  "기존 v1/v2 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다",
+  "통합 FIRST_SALE_PREFLIGHT 증거 chain",
+  "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no",
+  "integrated_first_sale_preflight_preserved",
+  "integrated_first_sale_preflight_unchanged",
+  "integrated_first_sale_preflight_carried_forward",
+  "standalone `ACCOUNTING_PREFLIGHT=PASS`로 대체할 수 없다",
+  "Rental accounting product-isolation PASS로 재사용할 수 없다",
+  "schema_version=4",
+  "기존 v1/v2/v3 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다",
 ]) assert.ok(compactRunbookSource.includes(boundary), `the 24-hour runbook is missing financial-event handoff evidence: ${boundary}`);
 for (const boundary of [
   "First-payment support handoff link",
@@ -160,6 +197,9 @@ for (const boundary of [
   "partial refund, full refund and dispute movements are not interchangeable",
   "refund_dispute_outcome_matrix_consistent",
   "Do not duplicate a refund adjustment for a dispute movement",
+  "Integrated first-sale preflight handoff",
+  "not separate first-customer launch evidence",
+  "cannot replace the exact integrated `FIRST_SALE_PREFLIGHT=PASS`",
 ]) assert.ok(compactAccountingRunbookSource.includes(boundary), `the accounting runbook is missing first-payment support linkage: ${boundary}`);
 
 const unexpectedField = passingPacket();
