@@ -2,6 +2,11 @@
 
 This is the short owner checklist for opening Resume Pro payments. Keep legal names, ABNs, bank details and credentials out of chat and source control; enter them directly in Stripe, Vercel or the relevant government service.
 
+## 0. Production deployment identity
+
+- [ ] In Vercel, record the full Production Source SHA and require it to equal the full owner-approved deployment commit. The commit must be `2f886c2` or a reviewed descendant that preserves its first-sale recovery and operations hardening; verify ancestry locally with `git merge-base --is-ancestor 2f886c2 <production-source-sha>`. A successful Vercel status on a commit, branch name, deployment URL, alias or timestamp does not prove that deployment was promoted to Production.
+- [ ] After promotion, check the public Production Resume Pro and invalid restore-state pages without submitting a Checkout or restore request. They must render the reviewed candidate while Resume Pro still shows the launch-preparing/no-payment state. Public content is supporting evidence only; it cannot replace the exact Vercel Production Source SHA match.
+
 ## 1. Business identity
 
 - [x] Register the business name `Hoju Compass` and save the ASIC Record of Registration.

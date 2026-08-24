@@ -12,14 +12,32 @@ audit-login privilege matrices are ready, the live Stripe account can charge
 and pay out, and live Resume Pro has no existing open Checkout Session. The
 Production entitlement-link forward fix is now applied and its postflight and
 complete effective-privilege matrix pass. Stripe's public support email is now
-present. Launch still requires a proven live restricted runtime key, a separate
-Account-Read-only operator audit key, the missing strict-audit Neon endpoint
-pin, real SMTP transport proof and a controlled Production functional
-rehearsal. The target-environment strict audit has not been rerun after the
-migration, so the first customer remains **NO-GO**.
+present. The latest reviewed branch commit has a successful Vercel status, but
+the public Production response does not yet contain that commit's restore-error
+accessibility marker, so Production promotion and exact Source SHA identity are
+not proven. Launch still requires a proven three-key least-privilege integrated
+preflight with the strict-audit Neon endpoint pin, real SMTP transport proof and
+a controlled Production functional rehearsal. The target-environment strict
+audit has not been rerun after the migration, so the first customer remains
+**NO-GO**.
 
 ## Read-only evidence
 
+- GitHub reports branch `codex/resume-pro-production-readiness` at local/remote
+  commit `2f886c2`, and that commit's Vercel status is `success`. This proves a
+  Vercel deployment completed; it does not prove Production promotion.
+- A fresh public GET on 24 August returned HTTP 200 from Vercel for
+  `/resume-pro`. The page rendered `Pro 작업 공간 출시 준비 중` and the
+  no-payment preview notice and did not render the Checkout form. A GET of
+  `/resume-pro/restore?status=invalid` rendered the invalid notice but did not
+  contain `resume-pro-restore-notice` or `aria-atomic="true"`, both added by
+  `2f886c2`. Until Vercel's full Production Source SHA equals the approved
+  commit and this public marker agrees, deployment identity remains `MISSING`.
+- The current local operator process contained none of the audited Production
+  payment, Stripe, Neon, accounting or SMTP environment-variable names. No
+  value was opened and no live strict preflight was attempted. Historical
+  provider evidence below therefore remains unresolved rather than being
+  promoted to PASS.
 - Vercel lists the required Production payment, Stripe, Neon, seller, support
   and SMTP variable names. Values were not opened. Public Checkout still
   returns HTTP 503 `checkout_unavailable`, so no card data is accepted.
@@ -148,16 +166,20 @@ migration, so the first customer remains **NO-GO**.
 
 ## Remaining pre-customer blockers
 
-1. Prove the Production runtime uses an `rk_live_` key with only Prices Read,
-   Products Read, Checkout Sessions create/retrieve and PaymentIntents Read.
-   Create a different one-off `rk_live_` operator-audit key with Account Read
-   only for Account/support-profile evidence; never grant Account Read to the
-   runtime key or deploy the audit key. Run the target-environment strict remote
-   audit without printing either key, IDs or product values.
-2. Inject the approved non-secret endpoint ID as
-   `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` only for the strict operator audit and
-   prove both the runtime and `hoju_payment_auditor` connections resolve to it.
-   Do not persist the audit DB credential in Preview or application runtime.
+1. Promote the reviewed candidate to Production and prove Vercel's full
+   Production Source SHA equals the full owner-approved commit. It must be
+   `2f886c2` or a reviewed descendant; a successful commit status or Preview
+   deployment is not sufficient.
+2. Run `scripts/run-production-payment-preflight.ps1` with payments off. It must
+   prove three distinct `rk_live_` roles: the runtime key with only Prices Read,
+   Products Read, Checkout Sessions create/retrieve and PaymentIntents Read; an
+   Account-Read-only audit key; and a Balance-Transactions-Read accounting key.
+   Pass the separately approved non-secret Neon endpoint ID and prove both the
+   runtime and `hoju_payment_auditor` connections resolve to it. The same masked
+   accounting key must pass the integrated accounting preflight after the strict
+   payment/database audit, and cleanup must finish before the exact final
+   `FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no`
+   result. Never deploy or persist either audit key or the audit DB credential.
 3. Run the protected no-send SMTP authentication check, then the separately
    approved labelled test-message path, and confirm receipt in the monitored
    mailbox. Keep credentials out of shell history, chat and logs.
@@ -175,8 +197,6 @@ migration, so the first customer remains **NO-GO**.
    completed evidence private and do not infer an unissued invoice.
 7. Complete ABN/GST and bookkeeping treatment review with the registered tax
    agent and preserve it outside the repository.
-8. Run the protected live accounting preflight with its dedicated restricted
-   key and retain only the PASS result outside the repository.
 
 After these pass, the owner may approve a single opt-in first-customer notice
 under `docs/live-payment-launch-checklist.md`. Keep `PAYMENTS_ENABLED=false`

@@ -17,6 +17,12 @@ const taxAgentHandoff = await readFile(
   new URL("../docs/registered-tax-agent-first-sale-handoff.md", import.meta.url),
   "utf8",
 );
+const [purchaseInformation, terms, paymentHelp, paymentSupportHelper] = await Promise.all([
+  readFile(new URL("../src/app/purchase-information/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/terms/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/payment-help/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/PaymentSupportHelper.tsx", import.meta.url), "utf8"),
+]);
 const compactEvidence = evidence.replace(/\s+/g, " ");
 const compactFirstPaymentPacket = firstPaymentPacket.replace(/\s+/g, " ");
 
@@ -78,6 +84,39 @@ assert.ok(
   taxAgentHandoff.includes("private `CUSTOMER_DOCUMENT_TRUST_GATE=GO` observation reference")
     && taxAgentHandoff.includes("partial or `NO-GO` document observation is `UNRESOLVED`"),
   "the tax-agent handoff must not infer Managed Payments parties from partial customer-document evidence",
+);
+
+for (const publicSurface of [purchaseInformation, terms, paymentHelp]) {
+  assert.ok(
+    publicSurface.includes("실제 거래 문서를 확인하기 전"),
+    "public payment guidance must not guess the Managed Payments transaction seller before document inspection",
+  );
+}
+for (const minimumSupportBoundary of [
+  "제품명, 대략적인 결제 시각과 시간대",
+  "영수증·인보이스 또는 결제 참조의 마지막 8자만",
+  "영수증·인보이스 원문이나 링크, 전체 Stripe ID",
+  "카드번호 전체·일부 또는 보안번호는 보내지 마세요",
+]) {
+  assert.ok(
+    purchaseInformation.includes(minimumSupportBoundary),
+    `purchase information must keep the support handoff privacy-minimal: ${minimumSupportBoundary}`,
+  );
+}
+assert.ok(
+  paymentSupportHelper.includes("[있다면 마지막 8자만 입력]")
+    && paymentSupportHelper.includes("영수증 전체"),
+  "the support helper must preserve the same suffix-only customer handoff boundary",
+);
+assert.ok(
+  compactFirstPaymentPacket.includes("영수증·인보이스 또는 결제 참조의 마지막 8자")
+    && compactFirstPaymentPacket.includes("전체 Stripe ID")
+    && compactFirstPaymentPacket.includes("영수증 원문"),
+  "the operating packet must preserve suffix-only support records and keep full documents in their source system",
+);
+assert.ok(
+  !purchaseInformation.includes("Stripe 영수증 정보를 보내 주세요"),
+  "public guidance must not invite an unbounded receipt, URL or full Stripe identifier into support",
 );
 
 console.log("Managed Payments customer-document evidence contract passed.");

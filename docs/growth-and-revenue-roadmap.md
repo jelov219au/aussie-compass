@@ -62,8 +62,8 @@ Current discovery gate — 24 August 2026:
 
 - Public searches for the exact brand, the domain plus Korean resume intent, and the `/resume-job-ad-checker` URL returned no Hoju Compass listing.
 - Production `/`, `/robots.txt`, `/sitemap.xml` and `/resume-job-ad-checker` returned HTTP 200. Robots allows all crawlers and names the canonical sitemap, so no public crawl block was found.
-- Name-only Vercel environment inspection found none of `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION` or `NAVER_SITE_VERIFICATION`. No value was opened and no search-console submission was made.
-- Keep copy and price fixed while this discovery prerequisite is unresolved. After an authenticated owner creates each webmaster property, add only the supplied public verification token to the matching Production variable, redeploy, confirm verification and submit `https://hojucompass.com/sitemap.xml` once. Search-console mutation remains an owner-approved external action.
+- Google Search Console now has the verified URL-prefix property `https://hojucompass.com/`. Existing DNS verified ownership automatically, so no meta-token or Production environment change was required. The submitted `/sitemap.xml` was last read on 24 August 2026 with status `Success` and 77 discovered pages.
+- Bing Webmaster Tools still requires owner OAuth approval, and Naver Search Advisor is not yet connected. Do not add `BING_SITE_VERIFICATION` or `NAVER_SITE_VERIFICATION` unless the authenticated service explicitly supplies a public verification token; never infer or reuse another service's token.
 
 - Keep one page for one clear search intent. Avoid several pages competing for the same phrase.
 - Use natural Korean titles that include the Australian term people see on the form or bill.

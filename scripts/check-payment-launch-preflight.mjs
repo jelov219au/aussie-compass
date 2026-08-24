@@ -192,6 +192,23 @@ assert.ok(
 );
 assert.ok(productionAudit.includes("`required_migrations_present=false`"), "the Production audit must preserve the fail-closed migration result");
 assert.ok(compactProductionAudit.includes("found no `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` result"), "the Production audit must preserve the observed missing endpoint-pin state");
+for (const deploymentIdentityBoundary of [
+  "## 0. Production deployment identity",
+  "full Production Source SHA",
+  "git merge-base --is-ancestor 2f886c2 <production-source-sha>",
+  "successful Vercel status on a commit",
+]) assert.ok(checklist.includes(deploymentIdentityBoundary), `the launch checklist is missing deployment identity boundary: ${deploymentIdentityBoundary}`);
+for (const observedDeploymentBoundary of [
+  "commit `2f886c2`",
+  "does not prove Production promotion",
+  "`/resume-pro/restore?status=invalid`",
+  "`resume-pro-restore-notice`",
+  "`aria-atomic=\"true\"`",
+  "deployment identity remains `MISSING`",
+  integratedPass,
+]) assert.ok(productionAudit.includes(observedDeploymentBoundary), `the Production audit is missing the current fail-closed deployment evidence: ${observedDeploymentBoundary}`);
+assert.ok(compactProductionAudit.includes("same masked accounting key must pass the integrated accounting preflight"), "the Production audit must use the same integrated three-key preflight as the canonical runbook");
+assert.doesNotMatch(productionAudit, /^8\. Run the protected live accounting preflight/m, "the Production audit must not retain a duplicate standalone accounting launch blocker");
 assert.ok(envExample.includes("PAYMENTS_EXPECTED_NEON_ENDPOINT_ID="), "the environment example must expose the required non-secret endpoint pin by name");
 assert.ok(envExample.includes("PAYMENTS_STRIPE_AUDIT_KEY="), "the environment example must expose the one-off Stripe Account audit key by name");
 assert.ok(envExample.includes("STRIPE_MANAGED_PAYMENTS_ENABLED=false") && !envExample.includes("STRIPE_MANAGED_PAYMENTS_ENABLED=true"), "the environment example must keep Managed Payments fail-closed by default");

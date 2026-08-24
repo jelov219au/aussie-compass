@@ -76,7 +76,7 @@ export default function PurchaseInformationPage() {
               <div><p className="font-mono text-xs text-gold">02 / DELIVERY</p><h2 className="mt-2 text-xl font-semibold text-navy">결제와 디지털 제공</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>결제 화면과 거래는 Stripe Managed Payments가 처리하며 Hoju Compass는 전체 카드번호나 카드 보안번호를 직접 받지 않습니다. 결제·거래 관련 지원은 최종 결제 화면과 영수증에 표시된 거래 지원 경로를 이용할 수 있습니다. 결제가 완료되고 이용권 확인이 끝나야 작업 공간을 열 수 있습니다.</p>
-                <p>웹훅 처리가 늦으면 결제 완료 화면에서 잠시 기다린 뒤 다시 확인할 수 있습니다. 결제는 확인됐지만 접근이 계속 열리지 않으면 지원 이메일로 결제 시각과 Stripe 영수증 정보를 보내 주세요. 카드번호 전체나 보안번호는 보내지 마세요.</p>
+                <p>웹훅 처리가 늦으면 결제 완료 화면에서 잠시 기다린 뒤 다시 확인할 수 있습니다. 결제는 확인됐지만 접근이 계속 열리지 않으면 지원 이메일로 제품명, 대략적인 결제 시각과 시간대, 영수증·인보이스 또는 결제 참조의 마지막 8자만 보내 주세요. 영수증·인보이스 원문이나 링크, 전체 Stripe ID, 카드번호 전체·일부 또는 보안번호는 보내지 마세요.</p>
                 <Link href="/payment-help" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">결제·접근 문제 해결 순서 보기 →</Link>
               </div>
             </section>
