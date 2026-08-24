@@ -23,6 +23,21 @@
 - 24시간 안에 gross·표시 GST·fee·refund·ending balance, 영수증/세금 문서 발행자, 실제 알림 수신, 이용권·환불 연결이 모두 PASS가 아니면 다음 판매 재개는 **HOLD**다. payout만 `pending`이고 나머지가 PASS인 경우에만 payout 후속 대사로 넘긴다.
 - STOP/HOLD 중에는 `PAYMENTS_ENABLED=false`를 유지하고, Stripe/DB 재시도나 gate reopen은 owner 승인과 런북 증거 없이 실행하지 않는다.
 
+### 읽기 전용 증거 판정 명령
+
+첫 결제 뒤에는 원래 시스템의 증거를 접근 제한된 private 위치에 보관하고, 아래 고정 JSON 계약에는 고객정보·원문 영수증·전체 Stripe/session ID·hash·cookie·은행정보·비밀 값을 넣지 않는다. 허용되는 식별자는 사건의 마지막 8자 suffix 하나뿐이다. 템플릿은 화면에만 출력하며 저장 위치를 만들거나 원격 시스템을 조회하지 않는다.
+
+```powershell
+npm.cmd run first-sale:evidence -- --template
+npm.cmd run first-sale:evidence -- --file <private-json-path> --phase 15m
+npm.cmd run first-sale:evidence -- --file <private-json-path> --phase 24h
+npm.cmd run first-sale:evidence -- --file <private-json-path> --phase payout
+```
+
+판정기는 허용된 필드가 하나라도 빠지거나 추가되면 구조 오류로 `STOP`, live 15분 필드의 `MISSING`/`FAIL` 또는 15분 초과를 `STOP`, 24시간 마감 전 실행·24시간 필드 누락·첫 payout 차이 ±A$0.01 초과를 `HOLD`로 처리한다. 15분 판정 때 아직 오지 않은 24시간·payout 필드는 `MISSING`으로 둘 수 있다. 24시간 판정은 결제 시각에서 실제 24시간이 지난 뒤에만 PASS할 수 있다. 출력은 고정 check 이름과 `PASS/MISSING/FAIL` 개수뿐이며 파일 경로와 입력값은 출력하지 않는다.
+
+이 명령은 Stripe·Neon·메일·회계 원본을 변경하거나 자동으로 신뢰하지 않는다. 각 `PASS`는 원래 시스템에서 사람이 확인한 증거를 뜻한다. 판정이 PASS여도 결제 활성화, 고객 연락, 환불, 세무 판단 또는 `LOCKED → OPEN`을 승인하지 않으며, 두 번째 판매에는 별도의 owner `APPROVED`가 계속 필요하다.
+
 ### 첫 결제 launch packet 비민감 필드
 
 | 영역 | 기록할 필드 | PASS 기준 |
