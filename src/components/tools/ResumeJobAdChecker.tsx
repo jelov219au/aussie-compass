@@ -207,12 +207,21 @@ export function ResumeJobAdChecker() {
         </section>
         <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2"><button type="button" onClick={copyEvidenceMemo} className="inline-flex min-h-11 items-center border-b-2 border-gold text-sm font-semibold text-navy">근거 메모 복사</button><button type="button" onClick={shareChecker} className="inline-flex min-h-11 items-center border-b-2 border-border text-sm font-semibold text-navy">점검기 링크 공유 ↗</button></div>
         <p className="mt-2 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{resultActionMessage}</p>
-        <div className="mt-7 grid gap-px bg-border sm:grid-cols-2">
-          <div className="bg-surface p-5"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">무료로 직접 진행</p><h3 className="mt-2 font-semibold text-navy">사실을 확인하고 이력서 한 장 수정</h3><p className="mt-2 text-sm leading-6 text-muted">위 질문에 답한 뒤 무료 빌더에서 검증한 내용만 내 말로 정리합니다.</p></div>
-          <div className="bg-navy p-5 text-white"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Resume Pro가 줄이는 반복</p><h3 className="mt-2 font-semibold">같은 근거를 지원서 묶음에 다시 연결</h3><p className="mt-2 text-sm leading-6 text-white/75">검증한 경험을 공고별 이력서·커버레터·면접 메모에 이어 쓰되, 없는 사실은 만들지 않습니다.</p></div>
-        </div>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2"><Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-center font-semibold text-white">확인한 사실로 무료 이력서 수정하기</Link><ResumeProCtaLink href="/resume-pro?from=job-ad-checker" surface={resumeFunnelSurfaces.jobAdCheckerResult} context={resumeFunnelContexts.jobAdChecker} className="inline-flex min-h-12 items-center justify-center border border-navy/30 px-5 py-3 text-center font-semibold text-navy">이 근거를 공고별 지원서에 연결하기</ResumeProCtaLink></div>
-        <p className="mt-4 text-xs leading-5 text-muted">Resume Pro는 지원할 공고가 정해졌고 같은 실제 경험을 이력서·커버레터·면접 메모에 다시 연결해야 할 때만 검토하세요. 면접이나 취업 결과를 보장하지 않습니다.</p>
+        <section className="mt-7 border border-navy/20 bg-white p-5 sm:p-6" aria-labelledby="job-ad-next-step-heading" aria-describedby="job-ad-next-step-description">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Resume Pro가 줄이는 반복</p>
+          <h3 id="job-ad-next-step-heading" className="mt-2 text-xl font-semibold text-navy">이번 비교, 어디까지 남길까요?</h3>
+          <p id="job-ad-next-step-description" className="mt-2 max-w-3xl text-sm leading-6 text-muted">무료 점검의 이력서·공고 원문과 세부 비교 결과는 저장되지 않고, 현재 탭에는 문구 확인·근거 확인 개수만 최대 30분 남아요. 한 번 수정하면 충분한지, 회사별 지원 기록으로 다시 열어 비교할지에 따라 선택하세요.</p>
+          <ol className="mt-5 grid gap-px bg-border sm:grid-cols-3" aria-label="무료 점검과 Resume Pro 저장 가치 비교">
+            <li className="bg-surface p-4"><span className="font-mono text-xs text-muted">01 · 지금</span><strong className="mt-2 block text-navy">무료로 사실 확인</strong><span className="mt-1 block text-xs leading-5 text-muted">현재 화면에서 표현과 실제 경험 근거를 비교해요.</span></li>
+            <li className="bg-white p-4"><span className="font-mono text-xs text-muted">02 · 회사별</span><strong className="mt-2 block text-navy">경력 + 실제 공고 저장</strong><span className="mt-1 block text-xs leading-5 text-muted">저장된 Builder 경력과 공고를 공고별 이력서·커버레터·면접 메모로 묶어요.</span></li>
+            <li className="bg-white p-4"><span className="font-mono text-xs text-muted">03 · 다음 지원</span><strong className="mt-2 block text-navy">다시 열어 나란히 비교</strong><span className="mt-1 block text-xs leading-5 text-muted">회사별 버전을 다시 열고, 확인한 근거와 체크리스트를 재사용해요.</span></li>
+          </ol>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <ResumeProCtaLink href="/resume-pro?from=job-ad-checker" surface={resumeFunnelSurfaces.jobAdCheckerResult} context={resumeFunnelContexts.jobAdChecker} className="flex min-h-12 flex-col items-center justify-center bg-navy px-5 py-3 text-center font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"><span>이 근거를 공고별 지원서에 연결하기</span><span className="mt-1 text-xs font-medium text-white/75">회사별 저장·재열기 흐름 보기</span></ResumeProCtaLink>
+            <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy/30 px-5 py-3 text-center font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">이번 이력서만 무료로 수정하기</Link>
+          </div>
+          <p className="mt-4 text-xs leading-5 text-muted">Resume Pro는 지원할 공고가 정해졌고 회사별 버전을 저장·재열기·비교해야 할 때만 검토하세요. 입력하지 않은 경험을 만들거나 면접·취업 결과를 보장하지 않습니다.</p>
+        </section>
       </section> : null}
     </div>
   );

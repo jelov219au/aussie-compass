@@ -17,6 +17,12 @@ import {
   hasStarContent,
   type InterviewQuestion,
 } from "@/lib/resumeInterviewPrep";
+import {
+  persistResumeProApplicationStore,
+  readResumeProApplicationStore,
+  type ResumeProApplicationStore,
+  type ResumeProStoredApplication,
+} from "@/lib/resumeProApplicationStorage";
 
 type Tone = "clear" | "warm" | "concise";
 type ProLayout = "editorial" | "split" | "minimal";
@@ -60,14 +66,8 @@ type StarStory = {
   updatedAt: string;
 };
 type StarStoryDraft = Omit<StarStory, "id" | "updatedAt">;
-type SavedApplication = {
-  id: string;
-  company: string;
-  role: string;
-  updatedAt: string;
-  draft: ProDraft;
-};
-type ApplicationStore = { activeId: string | null; items: SavedApplication[] };
+type SavedApplication = ResumeProStoredApplication<ProDraft>;
+type ApplicationStore = ResumeProApplicationStore<ProDraft>;
 
 const STAR_STORY_LIMIT = 20;
 const emptyStarStory: StarStoryDraft = { title: "", competency: "", situation: "", task: "", action: "", result: "" };
@@ -102,15 +102,35 @@ const stopWords = new Set([
 
 function normaliseDraft(value: unknown, fallback: ProDraft = initialDraft): ProDraft {
   if (!value || typeof value !== "object") return fallback;
-  const stored = value as Partial<ProDraft> & { star?: unknown };
-  const { star: _legacyEmbeddedStar, ...storedWithoutEmbeddedStar } = stored;
-  void _legacyEmbeddedStar;
+  const stored = value as Partial<Record<keyof ProDraft, unknown>>;
+  const storedQuestions = Array.isArray(stored.interviewQuestions)
+    ? stored.interviewQuestions.flatMap((item) => {
+      if (!item || typeof item !== "object") return [];
+      const question = item as Partial<Record<keyof InterviewQuestion, unknown>>;
+      return typeof question.id === "string"
+        && typeof question.focus === "string"
+        && typeof question.question === "string"
+        && typeof question.prompt === "string"
+        ? [{ id: question.id, focus: question.focus, question: question.question, prompt: question.prompt }]
+        : [];
+    }).slice(0, 10)
+    : fallback.interviewQuestions;
+  const storedAnswers = stored.interviewAnswers && typeof stored.interviewAnswers === "object" && !Array.isArray(stored.interviewAnswers)
+    ? Object.fromEntries(Object.entries(stored.interviewAnswers).filter((entry): entry is [string, string] => typeof entry[1] === "string").slice(0, 20))
+    : fallback.interviewAnswers;
+  const stringValue = <K extends "company" | "role" | "hiringManager" | "jobAd" | "coverLetter" | "starStoryId">(field: K) => typeof stored[field] === "string" ? stored[field] : fallback[field];
   return {
-    ...fallback,
-    ...storedWithoutEmbeddedStar,
-    starStoryId: typeof stored.starStoryId === "string" ? stored.starStoryId : fallback.starStoryId,
-    interviewQuestions: Array.isArray(stored.interviewQuestions) ? stored.interviewQuestions : fallback.interviewQuestions,
-    interviewAnswers: stored.interviewAnswers && typeof stored.interviewAnswers === "object" ? stored.interviewAnswers : fallback.interviewAnswers,
+    company: stringValue("company"),
+    role: stringValue("role"),
+    hiringManager: stringValue("hiringManager"),
+    jobAd: stringValue("jobAd"),
+    tone: stored.tone === "clear" || stored.tone === "warm" || stored.tone === "concise" ? stored.tone : fallback.tone,
+    layout: stored.layout === "editorial" || stored.layout === "split" || stored.layout === "minimal" ? stored.layout : fallback.layout,
+    accent: stored.accent === "eucalyptus" || stored.accent === "ocean" || stored.accent === "terracotta" ? stored.accent : fallback.accent,
+    coverLetter: stringValue("coverLetter"),
+    starStoryId: stringValue("starStoryId"),
+    interviewQuestions: storedQuestions,
+    interviewAnswers: storedAnswers,
   };
 }
 
@@ -231,19 +251,27 @@ export function ResumeProWorkspace() {
     try {
       const stored = window.localStorage.getItem(resumeProDraftStorageKey);
       if (stored) setDraft((current) => normaliseDraft(JSON.parse(stored), current));
-      const applicationStore = window.localStorage.getItem(resumeProApplicationsStorageKey);
-      if (applicationStore) {
-        const parsed = JSON.parse(applicationStore) as Partial<ApplicationStore>;
-        if (Array.isArray(parsed.items)) setApplications(parsed.items.slice(0, 30));
-        if (typeof parsed.activeId === "string") setActiveApplicationId(parsed.activeId);
-      }
+    } catch {
+      // The preview remains usable when local storage is unavailable.
+    }
+    const applicationRead = readResumeProApplicationStore(
+      window.localStorage,
+      resumeProApplicationsStorageKey,
+      (value) => normaliseDraft(value),
+      (value) => ({ company: value.company, role: value.role }),
+    );
+    setApplications(applicationRead.store.items);
+    setActiveApplicationId(applicationRead.store.activeId);
+    if (applicationRead.status === "recovered") setMessage("손상되거나 중복된 회사별 지원서 항목을 제외하고 안전하게 복구했습니다.");
+    if (applicationRead.status === "unavailable") setMessage("이 브라우저의 저장공간을 확인할 수 없습니다. 작업 내용을 별도 파일로 백업해 주세요.");
+    try {
       const storedStarStories = window.localStorage.getItem(resumeProStarStoriesStorageKey);
       if (storedStarStories) {
         const parsed = JSON.parse(storedStarStories) as unknown;
         if (Array.isArray(parsed)) setStarStories(parsed.slice(0, STAR_STORY_LIMIT) as StarStory[]);
       }
     } catch {
-      // The preview remains usable when local storage is unavailable.
+      // A damaged STAR store must not block company-application recovery.
     }
     setLoaded(true);
   }, []);
@@ -287,7 +315,11 @@ export function ResumeProWorkspace() {
   useEffect(() => {
     if (!loaded || purgingRef.current) return;
     applicationsSaveTimerRef.current = window.setTimeout(() => {
-      try { window.localStorage.setItem(resumeProApplicationsStorageKey, JSON.stringify({ activeId: activeApplicationId, items: applications.slice(0, 30) } satisfies ApplicationStore)); } catch {}
+      const saved = persistResumeProApplicationStore(window.localStorage, resumeProApplicationsStorageKey, {
+        activeId: activeApplicationId,
+        items: applications,
+      } satisfies ApplicationStore);
+      if (!saved) setMessage("회사별 지원서를 기기에 저장하지 못했습니다. 브라우저 저장공간을 확인하고 다시 저장해 주세요.");
     }, 400);
     return () => {
       if (applicationsSaveTimerRef.current !== null) window.clearTimeout(applicationsSaveTimerRef.current);
@@ -323,7 +355,7 @@ export function ResumeProWorkspace() {
   const selectedStarStory = useMemo(() => starStories.find((story) => story.id === draft.starStoryId) ?? null, [draft.starStoryId, starStories]);
   const starAnswer = useMemo(() => composeStarAnswer(starStoryDraft), [starStoryDraft]);
   const activeApplication = useMemo(() => applications.find((application) => application.id === activeApplicationId) ?? null, [activeApplicationId, applications]);
-  const currentApplicationSaved = Boolean(activeApplication && JSON.stringify(activeApplication.draft) === JSON.stringify(draft));
+  const currentApplicationSaved = Boolean(activeApplication?.updatedAt && JSON.stringify(activeApplication.draft) === JSON.stringify(draft));
   const quickStartSteps = [
     { id: "resume", label: "무료 이력서 연결", done: hasResume },
     { id: "application", label: "회사와 직무 입력", done: Boolean(draft.company.trim() && (draft.role.trim() || savedResume.title?.trim())) },
@@ -372,7 +404,14 @@ export function ResumeProWorkspace() {
     }
     const id = activeApplicationId || `application-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const saved: SavedApplication = { id, company, role, updatedAt: new Date().toISOString(), draft };
-    setApplications((current) => [saved, ...current.filter((item) => item.id !== id)].slice(0, 30));
+    const nextApplications = [saved, ...applications.filter((item) => item.id !== id)].slice(0, 30);
+    if (applicationsSaveTimerRef.current !== null) window.clearTimeout(applicationsSaveTimerRef.current);
+    applicationsSaveTimerRef.current = null;
+    if (!persistResumeProApplicationStore(window.localStorage, resumeProApplicationsStorageKey, { activeId: id, items: nextApplications })) {
+      setMessage("회사별 지원서를 기기에 저장하지 못했습니다. 브라우저 저장공간을 확인하고 다시 저장해 주세요.");
+      return;
+    }
+    setApplications(nextApplications);
     setActiveApplicationId(id);
     setMessage(`${company} 지원서를 저장했습니다.`);
   };
@@ -611,7 +650,7 @@ export function ResumeProWorkspace() {
         <div className={`mt-5 border-l-2 p-4 text-sm leading-6 ${hasResume ? "border-[#3f6d5c] bg-[#3f6d5c]/8 text-navy" : "border-gold bg-gold/8 text-muted"}`}>
           {hasResume ? <><strong className="block text-navy">{savedResume.name || "저장된 이력서"}의 내용을 연결했습니다.</strong>무료 이력서 빌더의 Summary, 경력과 Skills를 초안에 사용합니다.</> : <><strong className="block text-navy">저장된 이력서를 찾지 못했습니다.</strong>입력 없이도 사용할 수 있지만 무료 빌더를 먼저 작성하면 더 구체적인 초안이 만들어집니다.</>}
         </div>
-        <section className="mt-5 border border-border bg-white p-4" aria-labelledby="saved-applications-heading"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">현재 브라우저에 최대 30개까지 저장됩니다. 저장 뒤 내용을 바꾸면 다시 저장해야 완료 상태가 유지돼요.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button id="resume-pro-save-application" type="button" onClick={saveApplication} className="min-h-10 bg-navy px-3 text-xs font-semibold text-white">{currentApplicationSaved ? "현재 지원서 저장됨" : "현재 지원서 저장"}</button></div></div>{applications.length > 0 ? <ul className="mt-4 divide-y divide-border border-y border-border">{applications.map((application) => <li key={application.id} className="flex flex-wrap items-center gap-3 py-3"><button type="button" onClick={() => loadApplication(application)} className="min-h-10 flex-1 text-left"><strong className="block text-sm text-navy">{application.company}</strong><span className="mt-1 block text-xs text-muted">{application.role} · {new Date(application.updatedAt).toLocaleDateString("en-AU")}{activeApplicationId === application.id ? currentApplicationSaved ? " · 저장됨" : " · 변경사항 있음" : ""}</span></button><button type="button" onClick={() => deleteApplication(application)} className="min-h-10 px-2 text-xs text-muted hover:text-red-700">삭제</button></li>)}</ul> : <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted">저장한 지원서가 아직 없습니다. 회사명을 입력하고 현재 지원서 저장을 눌러 주세요.</p>}</section>
+        <section className="mt-5 border border-border bg-white p-4" aria-labelledby="saved-applications-heading"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">현재 브라우저에 최대 30개까지 저장됩니다. 저장 뒤 내용을 바꾸면 다시 저장해야 완료 상태가 유지돼요.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button id="resume-pro-save-application" type="button" onClick={saveApplication} className="min-h-10 bg-navy px-3 text-xs font-semibold text-white">{currentApplicationSaved ? "현재 지원서 저장됨" : "현재 지원서 저장"}</button></div></div>{applications.length > 0 ? <ul className="mt-4 divide-y divide-border border-y border-border">{applications.map((application) => <li key={application.id} className="flex flex-wrap items-center gap-3 py-3"><button type="button" onClick={() => loadApplication(application)} className="min-h-10 flex-1 text-left"><strong className="block text-sm text-navy">{application.company}</strong><span className="mt-1 block text-xs text-muted">{application.role} · {application.updatedAt ? new Date(application.updatedAt).toLocaleDateString("en-AU") : "저장 시간 확인 필요"}{activeApplicationId === application.id ? currentApplicationSaved ? " · 저장됨" : " · 변경사항 있음" : ""}</span></button><button type="button" onClick={() => deleteApplication(application)} className="min-h-10 px-2 text-xs text-muted hover:text-red-700">삭제</button></li>)}</ul> : <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted">저장한 지원서가 아직 없습니다. 회사명을 입력하고 현재 지원서 저장을 눌러 주세요.</p>}</section>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className={labelClass}>회사명<input id="resume-pro-company" className={inputClass} value={draft.company} onChange={(event) => setField("company", event.target.value)} placeholder="Compass Cafe" /></label>
           <label className={labelClass}>지원 직무<input className={inputClass} value={draft.role} onChange={(event) => setField("role", event.target.value)} placeholder="Barista" /></label>

@@ -5,6 +5,7 @@ const page = readFileSync(resolve("src/app/resume-pro/page.tsx"), "utf8");
 const builder = readFileSync(resolve("src/components/tools/ResumeBuilder.tsx"), "utf8");
 const builderStorage = readFileSync(resolve("src/lib/resumeBuilderStorage.ts"), "utf8");
 const workspace = readFileSync(resolve("src/components/tools/ResumeProWorkspace.tsx"), "utf8");
+const applicationStorage = readFileSync(resolve("src/lib/resumeProApplicationStorage.ts"), "utf8");
 const deviceStorage = readFileSync(resolve("src/lib/resumeProDeviceStorage.ts"), "utf8");
 const articlePage = readFileSync(resolve("src/app/resources/[slug]/page.tsx"), "utf8");
 const articleNextStep = readFileSync(resolve("src/components/resources/ArticleNextStep.tsx"), "utf8");
@@ -35,7 +36,7 @@ const checks = [
   [workspace.includes("현재 브라우저에 {starStories.length} / {STAR_STORY_LIMIT}개 저장") && workspace.includes("현재 지원서에 연결"), "STAR 경험의 저장·재사용 상태를 사용자에게 설명해야 합니다."],
   [workspace.includes("STAR_STORY_LIMIT = 20") && workspace.includes("기존 경험을 삭제한 뒤 새 경험을 추가해 주세요"), "STAR 경험 한도에 도달하면 기존 데이터를 조용히 삭제하지 않아야 합니다."],
   [builder.includes("persistResumeBuilderDraft") && builderStorage.includes("getStorage().setItem") && builder.includes("window.print()"), "무료 Builder의 브라우저 저장과 PDF 안내는 실제 기능과 일치해야 합니다."],
-  [workspace.includes("applications.slice(0, 30)") && workspace.includes("downloadApplicationKit") && workspace.includes("resumeProStarStoriesStorageKey"), "회사별 지원서·STAR·지원서 묶음 Pro 설명은 실제 기능과 일치해야 합니다."],
+  [workspace.includes("persistResumeProApplicationStore") && applicationStorage.includes("items.slice(0, maximumApplications)") && applicationStorage.includes("maximumApplications = 30") && workspace.includes("downloadApplicationKit") && workspace.includes("resumeProStarStoriesStorageKey"), "회사별 지원서·STAR·지원서 묶음 Pro 설명은 실제 기능과 일치해야 합니다."],
   [!page.includes("Compass Cafe") && !page.includes("150 coffee") && !page.includes("150잔") && page.includes("[실제 근무처]") && page.includes("[verified result]"), "구매 전 예시에는 확인되지 않은 회사명이나 성과 수치를 넣지 않아야 합니다."],
   [articleMobileCta >= 0 && articleShare >= 0 && articleMobileCta < articleShare && articlePage.includes("inline-flex min-h-12"), "STAR 글의 무료 CTA는 모바일에서도 공유 버튼보다 먼저 보여야 합니다."],
   [articleNextStep.includes("무료 Builder에 성과 문장을 저장하고 PDF로 내보내세요") && articleNextStep.includes("STAR 면접 메모와 회사별 지원서 묶음"), "글의 무료·Pro 다음 단계가 실제 제품 경계와 일치해야 합니다."],

@@ -59,7 +59,7 @@ agent's dated note.
 | `F2` | Exact ABN status, entity type and effective dates relevant to the activity | Current ABN Lookup/ATO evidence; full ABN stays private |
 | `F3` | Exact GST registration status, effective date, reporting frequency and accounting basis | Current ATO/accounting records, not a website footer or Checkout |
 | `F4` | Resume Pro supply description, intended customer jurisdictions and the rule for collecting any customer-location evidence the agent requires | Product terms plus intended supply scope; no actual customer is assumed before sale |
-| `F5` | Contractual Managed Payments role, customer-visible transaction seller and tax-document issuer | Applicable Stripe agreement/product documentation and privately retained live document evidence |
+| `F5` | Contractual Managed Payments role, customer-visible transaction seller and tax-document issuer | Applicable Stripe agreement/product documentation, the private `CUSTOMER_DOCUMENT_TRUST_GATE=GO` observation reference and privately retained live artifacts; a partial or `NO-GO` document observation is `UNRESOLVED` |
 | `F6` | Actual money flow and available source fields for sale, customer tax, withheld amounts, Stripe fees, refunds, disputes, balance and payout | Private source-document index, Balance/transaction report and itemised payout evidence |
 
 For `F5` and `F6`, preserve the original privately. A redacted consultation copy

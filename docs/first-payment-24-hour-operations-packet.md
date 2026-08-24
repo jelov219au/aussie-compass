@@ -9,6 +9,29 @@ private 회계 위치에만 보관하며, `overall_tax_handoff=PASS`가 아니�
 새 사실이 기존 세무 결론과 충돌하면 다시 `UNRESOLVED`로 내리고 두 번째
 판매를 열지 않는다.
 
+### 고객 문서 gate 재사용 경계
+
+지원·환불·회계 판단에서 Checkout, receipt 또는 invoice의 판매자·발행자·
+거래 지원 경로를 사용하기 전에
+`docs/managed-payments-customer-document-evidence.md`의 고정 9행 private
+관찰이 끝나고 최종 결과가 정확히 `CUSTOMER_DOCUMENT_TRUST_GATE=GO`인지
+확인한다. 완료된 9행 값이나 문서 원문은 이 패킷에 복사하지 않는다.
+
+- `NOT_ISSUED`는 발행 문서 집합을 실제로 확인하고 해당 Receipt 또는
+  Invoice 그룹의 세 행 전체가 같은 상태일 때만 허용된다. 적어도 하나의
+  실제 발행 문서는 열어 세 항목 모두 `PRESENT`여야 한다.
+- 미발행 여부 불명, 발행됐지만 미열람, 한 그룹 안의 혼합 상태,
+  `ABSENT`나 `UNVERIFIED`가 하나라도 있으면 문서 gate는 `NO-GO`이고
+  24시간 인계는 `HOLD`다. 한 artifact의 문구로 다른 artifact를 채우지
+  않는다.
+- `NO-GO` 중에도 지원은 접수 사실과 확인 일정을 안내할 수 있지만, 다른
+  문서·Dashboard 설정·일반 제품 지원 주소에서 Managed Payments 거래
+  지원 경로 또는 환불 처리 권한을 추정해서는 안 된다.
+- 실제 refund/charge/dispute 원본은 발생한 금전 사건 자체를 증명할 수
+  있다. 그러나 문서 gate가 `NO-GO`이면 receipt/invoice 발행 여부,
+  credit/tax 문서 연결과 판매자·발행자·세금 귀속은 `UNRESOLVED`로 두고,
+  금액·시각·다른 artifact의 문구로 장부 분류를 추정하지 않는다.
+
 ## 1. 공통 시간표와 중단 기준
 
 | 시점 | 내부 확인 | 완료 기준 |

@@ -48,8 +48,9 @@ assert.match(workspace, /composeStarAnswer\(starStoryDraft\)/, "the interview an
 assert.match(workspace, /toStarStoryDraft\(linkedStory\)/, "loading an application must restore its linked STAR library experience");
 assert.match(workspace, /setField\("starStoryId", story\.id\)/, "selecting a STAR experience must link it to the application");
 assert.match(workspace, /onClick=\{saveStarStory\}/, "the interview STAR builder must save or update the shared library");
-assert.match(workspace, /starStoryId: typeof stored\.starStoryId === "string"/, "older application drafts must retain an existing STAR library link when present");
-assert.match(workspace, /interviewQuestions: Array\.isArray\(stored\.interviewQuestions\)/, "older drafts without interview fields must receive compatible defaults");
+assert.match(workspace, /stringValue = <K extends [^\n]+"starStoryId"/, "the draft normaliser must allowlist the STAR library link");
+assert.match(workspace, /starStoryId: stringValue\("starStoryId"\)/, "older application drafts must retain an existing STAR library link when present");
+assert.match(workspace, /const storedQuestions = Array\.isArray\(stored\.interviewQuestions\)/, "older drafts without interview fields must receive compatible defaults");
 assert.match(workspace, /REUSABLE STAR EXPERIENCE/, "the TXT application kit must retain the selected reusable STAR experience");
 assert.match(workspace, /INTERVIEW PREPARATION/, "the TXT application kit must include interview notes");
 assert.match(workspace, /STAR_STORY_LIMIT = 20/, "the shared STAR library limit must remain enforced");

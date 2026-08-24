@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import {
+  normaliseResumeProApplicationStore,
+  persistResumeProApplicationStore,
+  readResumeProApplicationStore,
+} from "../src/lib/resumeProApplicationStorage.ts";
 
 const workspace = await readFile(new URL("../src/components/tools/ResumeProWorkspace.tsx", import.meta.url), "utf8");
 
@@ -14,7 +19,7 @@ for (const contract of [
 ]) assert.ok(workspace.includes(contract), `the first saved-application success contract is missing: ${contract}`);
 
 assert.match(workspace, /const activeApplication = useMemo\([\s\S]*applications\.find\([\s\S]*activeApplicationId/);
-assert.match(workspace, /currentApplicationSaved = Boolean\(activeApplication && JSON\.stringify\(activeApplication\.draft\) === JSON\.stringify\(draft\)\)/);
+assert.match(workspace, /currentApplicationSaved = Boolean\(activeApplication\?\.updatedAt && JSON\.stringify\(activeApplication\.draft\) === JSON\.stringify\(draft\)\)/, "an invalid save timestamp must not display as saved");
 assert.ok(
   workspace.indexOf('id: "cover-letter"') < workspace.indexOf('id: "save-application"'),
   "a generated cover letter must be saved as a company application before first-session completion",
@@ -24,5 +29,43 @@ assert.ok(
   "the saved application must count toward the existing quick-start completion gate",
 );
 assert.doesNotMatch(workspace, /track\("Resume Pro First Application|sendBeacon/, "the saved-application step must not add a duplicate analytics event");
+
+const draft = (value) => ({
+  company: typeof value?.company === "string" ? value.company : "",
+  role: typeof value?.role === "string" ? value.role : "",
+});
+const identify = (value) => value;
+const valid = { id: "application-1", company: "Compass Cafe", role: "Barista", updatedAt: "2026-08-24T00:00:00.000Z", draft: { company: "Compass Cafe", role: "Barista" } };
+const recovered = normaliseResumeProApplicationStore({
+  activeId: "application-1",
+  items: [valid, { ...valid, company: "Duplicate" }, { ...valid, id: "application-2", updatedAt: "not-a-date" }],
+}, draft, identify, Date.parse("2026-08-24T01:00:00.000Z"));
+assert.equal(recovered.status, "recovered");
+assert.equal(recovered.store.items.length, 2, "duplicate application IDs must collapse to one record");
+assert.equal(recovered.store.items[0].company, "Compass Cafe", "the first newest duplicate must win deterministically");
+assert.equal(recovered.store.items[1].updatedAt, "", "an invalid updatedAt must not render as a valid save time");
+assert.equal(recovered.store.activeId, "application-1");
+
+const legacy = normaliseResumeProApplicationStore([valid], draft, identify, Date.parse("2026-08-24T01:00:00.000Z"));
+assert.equal(legacy.status, "recovered", "a legacy top-level array must be migrated without losing its application");
+assert.equal(legacy.store.items.length, 1);
+
+const malformed = readResumeProApplicationStore({ getItem: () => "{broken" }, "applications", draft, identify);
+assert.deepEqual(malformed.store, { activeId: null, items: [] }, "malformed JSON must fail closed without throwing");
+assert.equal(malformed.status, "recovered");
+
+let persisted = "";
+const workingStorage = { getItem: () => persisted, setItem: (_key, value) => { persisted = value; } };
+assert.equal(persistResumeProApplicationStore(workingStorage, "applications", { activeId: valid.id, items: [valid] }), true);
+assert.equal(JSON.parse(persisted).items[0].id, valid.id);
+assert.equal(persistResumeProApplicationStore({ getItem: () => null, setItem: () => { throw new Error("quota"); } }, "applications", { activeId: valid.id, items: [valid] }), false, "a failed write must never report saved");
+assert.equal(persistResumeProApplicationStore({ getItem: () => "mismatch", setItem: () => {} }, "applications", { activeId: valid.id, items: [valid] }), false, "a write that cannot be read back must never report saved");
+
+assert.ok(workspace.includes("persistResumeProApplicationStore"), "the workspace must verify application persistence");
+assert.match(workspace, /if \(!persistResumeProApplicationStore\(window\.localStorage,[\s\S]*return;[\s\S]*setApplications\(nextApplications\);[\s\S]*setMessage\(`\$\{company\} 지원서를 저장했습니다\.`\)/, "saved copy must follow verified persistence");
+for (const guardedField of ["company", "role", "hiringManager", "jobAd", "coverLetter", "starStoryId"]) {
+  assert.ok(workspace.includes(`stringValue(\"${guardedField}\")`), `corrupt ${guardedField} values must not enter the application draft`);
+}
+assert.ok(workspace.includes('stored.tone === "clear"') && workspace.includes('stored.layout === "editorial"') && workspace.includes('stored.accent === "eucalyptus"'), "stored enum fields must be allowlisted");
 
 console.log("Resume Pro first saved-application success contract passed.");
