@@ -20,6 +20,8 @@ const setupSource = await readFile(new URL("./setup-accounting-automation.ps1", 
 const refreshSource = await readFile(new URL("./run-accounting-refresh.ps1", import.meta.url), "utf8");
 const securePreflightSource = await readFile(new URL("./run-accounting-preflight.ps1", import.meta.url), "utf8");
 const accountingRunbook = await readFile(new URL("../docs/accounting-reconciliation.md", import.meta.url), "utf8");
+const taxAgentHandoff = await readFile(new URL("../docs/registered-tax-agent-first-sale-handoff.md", import.meta.url), "utf8");
+const firstPaymentOperationsPacket = await readFile(new URL("../docs/first-payment-24-hour-operations-packet.md", import.meta.url), "utf8");
 const packageSource = await readFile(new URL("../package.json", import.meta.url), "utf8");
 const compactAccountingRunbook = accountingRunbook.replace(/\s+/g, " ");
 const accessContract = `${source}\n${accessSource}`;
@@ -178,5 +180,37 @@ for (const boundary of [
   "completed-month export remains the close-period source",
   "newer month-to-date snapshot or month-close record supersedes an earlier snapshot",
 ]) assert.ok(compactAccountingRunbook.includes(boundary), `Accounting runbook is missing the first-sale capture boundary: ${boundary}`);
+
+for (const boundary of [
+  "The repository copy must remain blank",
+  "registered tax agent",
+  "F1",
+  "F6",
+  "Q1",
+  "Q9",
+  "Required bookkeeping mapping",
+  "Gross customer consideration",
+  "Customer-facing tax shown",
+  "Managed Payments calculated/withheld amount",
+  "Stripe fee",
+  "Tax on Stripe fee",
+  "Refund or credit adjustment",
+  "Dispute/chargeback",
+  "Stripe clearing balance",
+  "Bank payout",
+  "overall_tax_handoff",
+  "PASS",
+  "UNRESOLVED",
+  "Production payments off",
+]) assert.ok(taxAgentHandoff.includes(boundary), `Registered tax-agent handoff is missing: ${boundary}`);
+for (const forbidden of [
+  /\b\d{11}\b/,
+  /\b(?:acct|ch|pi|cs|txn|re)_[A-Za-z0-9]{8,}\b/,
+  /\b(?:rk|sk)_(?:live|test)_[A-Za-z0-9]+\b/,
+]) assert.doesNotMatch(taxAgentHandoff, forbidden, `Blank tax-agent handoff contains forbidden live evidence: ${forbidden}`);
+assert.ok(accountingRunbook.includes("docs/registered-tax-agent-first-sale-handoff.md"), "The accounting runbook must route pre-sale tax advice through the handoff.");
+assert.ok(firstPaymentOperationsPacket.includes("docs/registered-tax-agent-first-sale-handoff.md"), "The 24-hour packet must not bypass the pre-sale tax-agent gate.");
+assert.ok(accountingRunbook.includes("overall_tax_handoff=PASS") && accountingRunbook.includes("UNRESOLVED"), "The accounting runbook must fail closed until tax-agent advice is complete.");
+assert.ok(firstPaymentOperationsPacket.includes("overall_tax_handoff=PASS") && firstPaymentOperationsPacket.includes("UNRESOLVED"), "The first-payment packet must fail closed when later evidence contradicts tax advice.");
 
 console.log("Private Stripe accounting-export contract checks passed.");

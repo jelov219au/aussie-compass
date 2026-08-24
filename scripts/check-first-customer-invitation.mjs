@@ -85,7 +85,7 @@ for (const [decisionMarker, evidenceSource, evidenceMarker] of [
   ["live runtime key", compactProductionAudit, "proven live restricted runtime key"],
   ["Neon endpoint pin", compactProductionAudit, "missing strict-audit Neon endpoint pin"],
   ["실 SMTP", compactProductionAudit, "Real SMTP transport proof is still missing"],
-  ["Managed Payments Checkout·영수증", compactProductionAudit, "Managed Payments Checkout and issued receipt/invoice wording"],
+  ["Managed Payments Checkout·영수증", compactProductionAudit, "Managed Payments Checkout and every receipt/invoice actually issued"],
   ["등록 세무사", compactProductionAudit, "registered tax agent"],
   ["accounting preflight", checklist, ".\\scripts\\run-accounting-preflight.ps1"],
 ]) {

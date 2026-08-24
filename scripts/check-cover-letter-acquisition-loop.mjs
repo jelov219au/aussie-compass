@@ -34,6 +34,11 @@ assert.match(planner, /onClick=\{loadCoverLetterCampaign\}/, "the publishing-pac
 assert.ok(planner.includes("커버레터 3일 발행팩을 추가했습니다"), "the operator needs a clear campaign-load confirmation");
 
 assert.ok(articleStep.includes("/resume-pro?from=article-cover-letter-checklist"), "the article must preserve its fixed Pro next step");
+assert.ok(articleStep.includes('proofEntry: "article-cover-letter-checklist"'), "the cover-letter article must preserve its allowlisted source into the free proof step");
+for (const value of ["01 · 저장", "02 · 비교", "03 · 재사용", "내 이력서와 이 공고 무료 비교하기", "회사별 버전과 실행 결과물을 한곳에 남겨요"]) {
+  assert.ok(articleStep.includes(value), `the high-intent cover-letter next step is missing: ${value}`);
+}
+assert.ok(articleStep.includes("<ResumeProProofLink entry={nextStep.proofEntry}"), "the cover-letter comparison must use the privacy-safe proof link");
 assert.ok(attribution.includes("article-cover-letter-checklist"), "the checkout attribution allowlist is missing the article source");
 assert.ok(report.includes("커버레터 제출 점검 글"), "the operator report must split cover-letter conversions");
 

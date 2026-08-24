@@ -16,6 +16,12 @@ For every reporting period, preserve these as separate amounts rather than recor
 
 The bookkeeping classification of Managed Payments sales and GST must be confirmed with the registered tax agent. Do not infer the BAS treatment from the checkout screen alone.
 
+Use `docs/registered-tax-agent-first-sale-handoff.md` for the pre-sale
+consultation. The repository file is a blank field contract only; complete it
+and retain all evidence in the approved private accounting location. Until its
+private `overall_tax_handoff=PASS` criteria are satisfied, record
+`UNRESOLVED`, keep Production payments off and do not invite the first customer.
+
 ## Private workbook
 
 The generated workbook starts with the controlled live A$19.90 Resume Pro purchase and full refund recorded on 20 August 2026. Unknown fee and payout values remain blank until reconciled against Stripe reports and the bank statement. Do not add customer names, email addresses, card details, ABNs or secret keys to the workbook.

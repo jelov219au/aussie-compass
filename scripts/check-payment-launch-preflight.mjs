@@ -86,6 +86,7 @@ assert.ok(readiness.includes(command), "payment readiness must document the fail
 assert.ok(checklist.includes(command), "the live launch checklist must document the fail-closed preflight command");
 for (const secureBoundary of [
   'Read-Host "One-off Stripe Account-Read audit key" -AsSecureString',
+  'Read-Host "Dedicated Stripe Balance-Transactions-Read accounting key" -AsSecureString',
   'Read-Host "One-off hoju_payment_auditor database URL" -AsSecureString',
   "SecureStringToBSTR",
   "PtrToStringBSTR",
@@ -93,11 +94,18 @@ for (const secureBoundary of [
   'SetEnvironmentVariable("PAYMENTS_AUDIT_DB_URL", $plainAuditDatabaseUrl, "Process")',
   'Remove-Item -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY"',
   'Remove-Item -LiteralPath "Env:PAYMENTS_AUDIT_DB_URL"',
+  'Test-Path -LiteralPath "Env:STRIPE_ACCOUNTING_KEY"',
+  '$plainAccountingKey -ceq $env:STRIPE_SECRET_KEY',
+  '$plainAccountingKey -ceq $plainAuditKey',
+  'Write-KeyRoleFailure "role_reuse" "no"',
+  'STRIPE_KEY_ROLES=PASS mode=live distinct=yes permissions=separate-preflights-required secrets_printed=no',
   "ZeroFreeBSTR",
   '$env:PAYMENTS_ENABLED -cne "false"',
   '$env:VERCEL_ENV -cne "production"',
   'npm.cmd run payments:check -- --preflight --strict --verify-stripe --verify-database',
 ]) assert.ok(secureRunner.includes(secureBoundary), `secure Production preflight is missing: ${secureBoundary}`);
+assert.equal((secureRunner.match(/ZeroFreeBSTR\(/g) ?? []).length, 3, "all three masked plaintext buffers must be zeroed");
+assert.doesNotMatch(secureRunner, /Write-Host[^\n]*(?:plainAuditKey|plainAccountingKey|STRIPE_SECRET_KEY)/, "the role-separation result must not print a Stripe key");
 assert.ok(secureRunner.indexOf('SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY"') < secureRunner.indexOf("npm.cmd run payments:check"), "temporary audit credentials must be process-scoped before the strict audit starts");
 assert.ok(secureRunner.indexOf("npm.cmd run payments:check") < secureRunner.indexOf('Remove-Item -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY"'), "temporary audit credentials must be cleared after the strict audit attempt");
 assert.ok(readiness.includes(".\\scripts\\run-production-payment-preflight.ps1"), "payment readiness must route live audits through the masked wrapper");

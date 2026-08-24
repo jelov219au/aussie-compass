@@ -27,6 +27,8 @@ for (const requiredPath of [
   "docs/first-sale-isolated-rehearsal.md",
   "docs/payment-alerts.md",
   "docs/accounting-reconciliation.md",
+  "docs/registered-tax-agent-first-sale-handoff.md",
+  "docs/managed-payments-customer-document-evidence.md",
 ]) {
   await access(new URL(`../${requiredPath}`, import.meta.url));
 }

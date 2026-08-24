@@ -8,11 +8,18 @@ $projectRoot = Split-Path -Parent $PSScriptRoot
 $locationPushed = $false
 $setEndpointVariable = $false
 $auditKeyPointer = [IntPtr]::Zero
+$accountingKeyPointer = [IntPtr]::Zero
 $auditDatabasePointer = [IntPtr]::Zero
 $plainAuditKey = $null
+$plainAccountingKey = $null
 $plainAuditDatabaseUrl = $null
 $secureAuditKey = $null
+$secureAccountingKey = $null
 $secureAuditDatabaseUrl = $null
+
+function Write-KeyRoleFailure([string]$Reason, [string]$Distinct = "unverified") {
+  Write-Host "STRIPE_KEY_ROLES=FAIL mode=live distinct=$Distinct permissions=unverified secrets_printed=no launch=NO-GO reason=$Reason"
+}
 
 if ($ExpectedNeonEndpointId -cnotmatch '^ep-[a-z0-9-]+$') {
   throw "Use the separately approved lowercase Neon endpoint ID beginning with ep-."
@@ -24,10 +31,16 @@ if ($env:PAYMENTS_ENABLED -cne "false") {
   throw "Production PAYMENTS_ENABLED must be explicitly false before this read-only preflight."
 }
 if ($env:STRIPE_SECRET_KEY -cnotmatch '^rk_live_[A-Za-z0-9]+$') {
+  Write-KeyRoleFailure "runtime_live_restricted_key_required"
   throw "The loaded Production runtime must use a live restricted Stripe key."
 }
 if (Test-Path -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY") {
+  Write-KeyRoleFailure "audit_key_preloaded"
   throw "PAYMENTS_STRIPE_AUDIT_KEY must not be preloaded or persisted. Remove it and use the masked prompt."
+}
+if (Test-Path -LiteralPath "Env:STRIPE_ACCOUNTING_KEY") {
+  Write-KeyRoleFailure "accounting_key_preloaded"
+  throw "STRIPE_ACCOUNTING_KEY must not be preloaded or persisted for the strict Production audit. Remove it and use the masked prompt."
 }
 if (Test-Path -LiteralPath "Env:PAYMENTS_AUDIT_DB_URL") {
   throw "PAYMENTS_AUDIT_DB_URL must not be preloaded or persisted. Remove it and use the masked prompt."
@@ -67,9 +80,24 @@ try {
   $secureAuditKey = Read-Host "One-off Stripe Account-Read audit key" -AsSecureString
   $auditKeyPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureAuditKey)
   $plainAuditKey = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($auditKeyPointer)
-  if ($plainAuditKey -cnotmatch '^rk_live_[A-Za-z0-9]+$' -or $plainAuditKey -ceq $env:STRIPE_SECRET_KEY) {
-    throw "Use a separate one-off rk_live_ key with Account Read only."
+
+  $secureAccountingKey = Read-Host "Dedicated Stripe Balance-Transactions-Read accounting key" -AsSecureString
+  $accountingKeyPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureAccountingKey)
+  $plainAccountingKey = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($accountingKeyPointer)
+
+  if ($plainAuditKey -cnotmatch '^rk_live_[A-Za-z0-9]+$' -or $plainAccountingKey -cnotmatch '^rk_live_[A-Za-z0-9]+$') {
+    Write-KeyRoleFailure "three_live_restricted_keys_required"
+    throw "Use three separate rk_live_ restricted keys for runtime, Account audit and accounting."
   }
+  if (
+    ($plainAuditKey -ceq $env:STRIPE_SECRET_KEY) -or
+    ($plainAccountingKey -ceq $env:STRIPE_SECRET_KEY) -or
+    ($plainAccountingKey -ceq $plainAuditKey)
+  ) {
+    Write-KeyRoleFailure "role_reuse" "no"
+    throw "Runtime, Account-audit and accounting Stripe keys must be different."
+  }
+  Write-Host "STRIPE_KEY_ROLES=PASS mode=live distinct=yes permissions=separate-preflights-required secrets_printed=no"
 
   $secureAuditDatabaseUrl = Read-Host "One-off hoju_payment_auditor database URL" -AsSecureString
   $auditDatabasePointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureAuditDatabaseUrl)
@@ -107,11 +135,16 @@ try {
   if ($auditKeyPointer -ne [IntPtr]::Zero) {
     [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($auditKeyPointer)
   }
+  if ($accountingKeyPointer -ne [IntPtr]::Zero) {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($accountingKeyPointer)
+  }
   if ($auditDatabasePointer -ne [IntPtr]::Zero) {
     [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($auditDatabasePointer)
   }
   $plainAuditKey = $null
+  $plainAccountingKey = $null
   $plainAuditDatabaseUrl = $null
   $secureAuditKey = $null
+  $secureAccountingKey = $null
   $secureAuditDatabaseUrl = $null
 }

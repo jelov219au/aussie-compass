@@ -169,8 +169,10 @@ migration, so the first customer remains **NO-GO**.
 5. Record suffix-only and count-only Production evidence for the resulting
    gate, outbox, entitlement and access-session rows. Zero current Production
    rows cannot prove these paths.
-6. Confirm the actual Managed Payments Checkout and issued receipt/invoice
-   wording for transaction seller, document issuer and transaction support.
+6. Confirm the actual Managed Payments Checkout and every receipt/invoice
+   actually issued for transaction seller, document issuer and transaction
+   support using `docs/managed-payments-customer-document-evidence.md`; keep the
+   completed evidence private and do not infer an unissued invoice.
 7. Complete ABN/GST and bookkeeping treatment review with the registered tax
    agent and preserve it outside the repository.
 8. Run the protected live accounting preflight with its dedicated restricted
