@@ -18,6 +18,13 @@ import {
   type InterviewQuestion,
 } from "@/lib/resumeInterviewPrep";
 import {
+  clearResumeJobAdProofSummary,
+  normaliseResumeJobAdProofTerms,
+  readResumeJobAdEvidenceHandoff,
+  type ResumeJobAdEvidenceHandoff,
+  type ResumeJobAdProofTerm,
+} from "@/lib/resumeJobAdProofHandoff";
+import {
   persistResumeProApplicationStore,
   readResumeProApplicationStore,
   type ResumeProApplicationStore,
@@ -51,6 +58,7 @@ type ProDraft = {
   layout: ProLayout;
   accent: ProAccent;
   coverLetter: string;
+  jobAdEvidence: ResumeJobAdProofTerm[];
   starStoryId: string;
   interviewQuestions: InterviewQuestion[];
   interviewAnswers: Record<string, string>;
@@ -92,6 +100,7 @@ const initialDraft: ProDraft = {
   layout: "editorial",
   accent: "eucalyptus",
   coverLetter: "",
+  jobAdEvidence: [],
   starStoryId: "",
   interviewQuestions: [],
   interviewAnswers: {},
@@ -128,6 +137,7 @@ function normaliseDraft(value: unknown, fallback: ProDraft = initialDraft): ProD
     layout: stored.layout === "editorial" || stored.layout === "split" || stored.layout === "minimal" ? stored.layout : fallback.layout,
     accent: stored.accent === "eucalyptus" || stored.accent === "ocean" || stored.accent === "terracotta" ? stored.accent : fallback.accent,
     coverLetter: stringValue("coverLetter"),
+    jobAdEvidence: stored.jobAdEvidence === undefined ? fallback.jobAdEvidence : normaliseResumeJobAdProofTerms(stored.jobAdEvidence),
     starStoryId: stringValue("starStoryId"),
     interviewQuestions: storedQuestions,
     interviewAnswers: storedAnswers,
@@ -240,6 +250,7 @@ export function ResumeProWorkspace() {
   const [editingStarStoryId, setEditingStarStoryId] = useState<string | null>(null);
   const [activeApplicationId, setActiveApplicationId] = useState<string | null>(null);
   const [reopenedApplicationId, setReopenedApplicationId] = useState<string | null>(null);
+  const [recentJobAdProof, setRecentJobAdProof] = useState<ResumeJobAdEvidenceHandoff | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
   const purgingRef = useRef(false);
@@ -274,6 +285,7 @@ export function ResumeProWorkspace() {
     } catch {
       // A damaged STAR store must not block company-application recovery.
     }
+    setRecentJobAdProof(readResumeJobAdEvidenceHandoff());
     setLoaded(true);
   }, []);
 
@@ -293,6 +305,7 @@ export function ResumeProWorkspace() {
       setEditingStarStoryId(null);
       setActiveApplicationId(null);
       setReopenedApplicationId(null);
+      setRecentJobAdProof(null);
       setMessage("");
     };
     window.addEventListener(resumeProDevicePurgeEventName, handleDevicePurge);
@@ -369,6 +382,20 @@ export function ResumeProWorkspace() {
   const quickStartCompleted = quickStartSteps.filter((step) => step.done).length;
 
   const setField = <K extends keyof ProDraft>(field: K, value: ProDraft[K]) => setDraft((current) => ({ ...current, [field]: value }));
+
+  const applyRecentJobAdProof = () => {
+    if (!recentJobAdProof?.terms.length) return;
+    setField("jobAdEvidence", recentJobAdProof.terms);
+    clearResumeJobAdProofSummary();
+    setRecentJobAdProof(null);
+    setMessage(`무료 점검의 표현 후보 ${recentJobAdProof.terms.length}개를 현재 지원서에 불러왔습니다. 실제 경험 근거를 확인한 뒤 회사별 지원서로 저장해 주세요.`);
+    window.setTimeout(() => document.getElementById("resume-pro-job-ad-evidence-heading")?.focus(), 0);
+  };
+
+  const clearJobAdEvidence = () => {
+    setField("jobAdEvidence", []);
+    setMessage("현재 지원서에서 무료 점검 근거를 연결 해제했습니다. 이력서와 공고 원문에는 영향을 주지 않습니다.");
+  };
 
   const continueQuickStart = () => {
     const next = quickStartSteps.find((step) => !step.done);
@@ -604,6 +631,10 @@ export function ResumeProWorkspace() {
       `- Resume name: ${savedResume.name || "Check before submitting"}`,
       `- Job-ad expressions found in resume: ${matched.length ? matched.join(", ") : "None identified"}`,
       `- Expressions to verify against real experience: ${missing.length ? missing.join(", ") : "None identified"}`,
+      ...(draft.jobAdEvidence.length ? [
+        "- Reused evidence from the free local check:",
+        ...draft.jobAdEvidence.map((item) => `  - [${item.matched ? "wording found" : "verify real experience"}] ${item.term}`),
+      ] : []),
       "- Confirm the company name, role, contact details, dates and qualifications.",
       "- Add only skills and experience you genuinely have.",
       "",
@@ -684,6 +715,32 @@ export function ResumeProWorkspace() {
           <label className={`${labelClass} sm:col-span-2`}>담당자 이름 <span className="font-normal text-muted">(선택)</span><input className={inputClass} value={draft.hiringManager} onChange={(event) => setField("hiringManager", event.target.value)} placeholder="Hiring Manager" /></label>
         </div>
         <label className="mt-5 block text-sm font-medium text-navy">채용 공고<textarea id="resume-pro-job-ad" className={`${inputClass} min-h-48 resize-y`} value={draft.jobAd} onChange={(event) => setField("jobAd", event.target.value)} placeholder="채용 공고의 Responsibilities, Requirements 부분을 붙여 넣으세요." /></label>
+        {(recentJobAdProof || draft.jobAdEvidence.length > 0) && (
+          <section className="mt-5 border border-navy/20 bg-surface p-4 sm:p-5" aria-labelledby="resume-pro-job-ad-evidence-heading">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Free check handoff</p>
+                <h3 id="resume-pro-job-ad-evidence-heading" tabIndex={-1} className="mt-1 scroll-mt-24 text-lg font-semibold text-navy focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-4">무료 점검에서 정리한 Job Ad 근거</h3>
+                <p className="mt-2 max-w-xl text-xs leading-5 text-muted">이력서·공고 원문이 아니라 표현 후보와 확인 상태만 가져옵니다. 실제로 설명할 수 있는 경험인지 확인한 뒤 회사별 지원서에 저장하세요.</p>
+              </div>
+              {recentJobAdProof ? (
+                <button type="button" onClick={applyRecentJobAdProof} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">근거 {recentJobAdProof.terms.length}개 불러오기</button>
+              ) : (
+                <button type="button" onClick={clearJobAdEvidence} className="min-h-11 px-2 text-sm font-semibold text-muted underline decoration-border underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">현재 지원서에서 연결 해제</button>
+              )}
+            </div>
+            {draft.jobAdEvidence.length > 0 && (
+              <ul className="mt-4 grid gap-2 sm:grid-cols-2" aria-label="현재 지원서에 연결한 무료 Job Ad 근거">
+                {draft.jobAdEvidence.map((item) => (
+                  <li key={`${item.term}-${item.matched}`} className="border-l-2 border-gold bg-white px-3 py-2 text-sm text-navy">
+                    <strong className="block break-words">{item.term}</strong>
+                    <span className="mt-1 block text-xs leading-5 text-muted">{item.matched ? "현재 이력서에서 문구 확인 · 실제 사례의 깊이 확인" : "이력서 추가 전 · 실제 사례부터 확인"}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
         <section className="mt-6 border border-border bg-white p-4 sm:p-5" aria-labelledby="star-library-heading">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>

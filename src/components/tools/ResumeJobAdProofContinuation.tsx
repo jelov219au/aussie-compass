@@ -32,7 +32,7 @@ export function ResumeJobAdProofContinuation({ entry }: { entry: ResumeProEntry 
           <h2 id="job-ad-proof-continuation-heading" className="mt-2 text-lg font-semibold text-navy">
             문구 확인 {summary.matchedCount}개 · 실제 근거 확인 {summary.missingCount}개
           </h2>
-          <p className="mt-2 max-w-3xl text-xs leading-5 text-muted">원문과 표현은 저장하지 않았습니다. 이 개수만 현재 탭에 최대 30분 남으며 서버·URL·분석 이벤트로 전송되지 않습니다.</p>
+          <p className="mt-2 max-w-3xl text-xs leading-5 text-muted">이력서·공고 원문은 저장하지 않았습니다. 표현 후보와 확인 상태만 현재 탭에 최대 30분 남으며, 결제 후 같은 탭의 Pro 작업공간에서 지원서에 불러올 수 있습니다. 서버·URL·분석 이벤트로는 전송되지 않습니다.</p>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold">
           <Link href="/resume-job-ad-checker" className="inline-flex min-h-11 items-center text-navy underline decoration-gold underline-offset-4">무료 점검 다시 보기</Link>
