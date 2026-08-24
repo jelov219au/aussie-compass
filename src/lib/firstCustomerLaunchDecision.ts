@@ -1,14 +1,14 @@
 import "server-only";
 
-export type FirstCustomerLaunchDecision = {
-  status: "go" | "no_go";
-  auditedAt: string;
-  blockers: readonly string[];
-};
+import type { FirstCustomerLaunchDecision } from "./firstCustomerLaunchPolicy";
+
+export type { FirstCustomerLaunchDecision } from "./firstCustomerLaunchPolicy";
 
 export const firstCustomerLaunchDecision = {
   status: "no_go",
   auditedAt: "2026-08-24",
+  approvedAt: null,
+  validUntil: null,
   blockers: [
     "Production post-migration paid-event·activation·restore functional rehearsal",
     "Stripe live business profile의 공개 support email",

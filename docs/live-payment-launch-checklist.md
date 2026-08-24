@@ -166,13 +166,18 @@ owner records a single-customer launch approval.
 3. Immediately before replying, re-run the live zero-open-Checkout check,
    target-environment strict payment audit and database named-result matrix.
    Keep `PAYMENTS_ENABLED=false` if any result is missing or false.
-4. Send one reply from `support@hojucompass.com` only after the product page is
+4. Record the blocker-free owner decision with canonical UTC `approvedAt` and
+   `validUntil` timestamps no more than 60 minutes apart. The local invitation
+   desk must show current `GO`; it automatically relocks at expiry, when a
+   blocker is present or when either timestamp is invalid. If it relocks,
+   repeat the strict audit instead of extending the old decision.
+5. Send one reply from `support@hojucompass.com` only after the product page is
    live and Checkout is deliberately enabled. Link to
    `https://hojucompass.com/resume-pro`; never email a raw Stripe Checkout URL.
-5. Do not contact other requesters or send a second reminder until the first
+6. Do not contact other requesters or send a second reminder until the first
    customer either completes payment or explicitly declines and the attached
    Checkout is confirmed expired, unpaid and without a PaymentIntent.
-6. Once paid, stop invitations and run the 15-minute, 24-hour and first-payout
+7. Once paid, stop invitations and run the 15-minute, 24-hour and first-payout
    evidence sequence. The database gate, not an email timestamp, is the
    concurrency authority.
 

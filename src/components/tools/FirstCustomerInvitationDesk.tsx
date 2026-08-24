@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import type { FirstCustomerLaunchDecision } from "@/lib/firstCustomerLaunchDecision";
+import { isFirstCustomerGoCurrent, type FirstCustomerLaunchDecision } from "@/lib/firstCustomerLaunchPolicy";
 
 const OFFICIAL_RESUME_PRO_URL = "https://hojucompass.com/resume-pro";
 const INVITATION_SUBJECT = "[Hoju Compass] Resume Pro 판매 시작 1회 안내";
@@ -39,10 +39,25 @@ const checks = [
 export function FirstCustomerInvitationDesk({ decision }: { decision: FirstCustomerLaunchDecision }) {
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState("");
+  const [clock, setClock] = useState<number | null>(null);
   const allConfirmed = useMemo(() => checks.every((check) => confirmed[check.id]), [confirmed]);
-  const releaseGateOpen = decision.status === "go";
+  const releaseGateOpen = clock !== null && isFirstCustomerGoCurrent(decision, clock);
   const copyAllowed = releaseGateOpen && allConfirmed;
   const invitation = `제목: ${INVITATION_SUBJECT}\n\n${INVITATION_BODY}`;
+  const decisionLabel = releaseGateOpen ? "GO" : decision.status === "go" ? (clock === null ? "확인 중" : "GO 만료") : "NO-GO";
+
+  useEffect(() => {
+    const updateClock = () => setClock(Date.now());
+    updateClock();
+    if (decision.status !== "go") return;
+    const timer = window.setInterval(updateClock, 15_000);
+    return () => window.clearInterval(timer);
+  }, [decision.status]);
+
+  useEffect(() => {
+    if (clock === null || releaseGateOpen) return;
+    setConfirmed((current) => Object.keys(current).length ? {} : current);
+  }, [clock, releaseGateOpen]);
 
   const toggle = (id: string, value: boolean) => {
     setConfirmed((current) => ({ ...current, [id]: value }));
@@ -50,8 +65,11 @@ export function FirstCustomerInvitationDesk({ decision }: { decision: FirstCusto
   };
 
   const copyInvitation = async () => {
-    if (!releaseGateOpen) {
-      setMessage("현재 Production 판정은 NO-GO입니다. blocker를 모두 해소하고 새 감사를 기록하기 전에는 안내할 수 없습니다.");
+    if (!isFirstCustomerGoCurrent(decision, Date.now())) {
+      setConfirmed({});
+      setMessage(decision.status === "go"
+        ? "GO 판정이 만료됐거나 유효하지 않습니다. 결제를 다시 잠그고 60분 이내의 새 감사를 기록하세요."
+        : "현재 Production 판정은 NO-GO입니다. blocker를 모두 해소하고 새 감사를 기록하기 전에는 안내할 수 없습니다.");
       return;
     }
     if (!copyAllowed) {
@@ -76,9 +94,13 @@ export function FirstCustomerInvitationDesk({ decision }: { decision: FirstCusto
     <div>
       <section className={`border-l-4 p-5 sm:p-6 ${releaseGateOpen ? "border-emerald-600 bg-emerald-50" : "border-red-600 bg-red-50"}`} aria-labelledby="current-launch-decision-heading">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Audited {decision.auditedAt}</p>
-        <h2 id="current-launch-decision-heading" className="mt-2 text-2xl font-semibold text-navy">현재 첫 고객 판정 · {releaseGateOpen ? "GO" : "NO-GO"}</h2>
-        <p className="mt-2 text-sm leading-6 text-muted">{releaseGateOpen ? "새 감사에서 모든 사전 결제 gate가 PASS로 확인됐습니다. 아래 네 조건도 지금 다시 확인하세요." : "알려진 blocker가 남아 있어 확인란과 안내문 복사를 잠갔습니다. 체크 표시만으로 이 판정을 덮어쓸 수 없습니다."}</p>
-        {!releaseGateOpen && (
+        <h2 id="current-launch-decision-heading" className="mt-2 text-2xl font-semibold text-navy" aria-live="polite">현재 첫 고객 판정 · {decisionLabel}</h2>
+        <p className="mt-2 text-sm leading-6 text-muted">{releaseGateOpen
+          ? "새 감사에서 모든 사전 결제 gate가 PASS로 확인됐습니다. 이 GO는 승인 시각부터 최대 60분만 유효하며 아래 네 조건도 지금 다시 확인해야 합니다."
+          : decision.status === "go"
+            ? "GO 승인 시간이 만료됐거나 blocker·승인 시각·만료 시각 계약이 유효하지 않아 다시 잠갔습니다. 새 strict audit 없이 확인 표시만으로 열 수 없습니다."
+            : "알려진 blocker가 남아 있어 확인란과 안내문 복사를 잠갔습니다. 체크 표시만으로 이 판정을 덮어쓸 수 없습니다."}</p>
+        {decision.status === "no_go" && (
           <ul className="mt-4 grid gap-2 text-sm leading-6 text-red-950 sm:grid-cols-2">
             {decision.blockers.map((blocker) => <li key={blocker} className="border-l-2 border-red-300 pl-3">{blocker}</li>)}
           </ul>
@@ -124,7 +146,7 @@ export function FirstCustomerInvitationDesk({ decision }: { decision: FirstCusto
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Fixed safe reply</p>
               <h2 id="invitation-preview-heading" className="mt-2 text-xl font-semibold">복사될 안내문</h2>
             </div>
-            <span className={`border px-3 py-1 text-xs font-semibold ${copyAllowed ? "border-emerald-300 text-emerald-200" : "border-white/20 text-white/55"}`}>{copyAllowed ? "복사 가능" : releaseGateOpen ? "승인 대기" : "NO-GO 잠금"}</span>
+            <span className={`border px-3 py-1 text-xs font-semibold ${copyAllowed ? "border-emerald-300 text-emerald-200" : "border-white/20 text-white/55"}`}>{copyAllowed ? "복사 가능" : releaseGateOpen ? "승인 대기" : decision.status === "go" ? "GO 만료 잠금" : "NO-GO 잠금"}</span>
           </div>
           <dl className="mt-5 space-y-4 text-sm leading-6">
             <div><dt className="font-semibold text-gold">제목</dt><dd className="mt-1 text-white/80">{INVITATION_SUBJECT}</dd></div>
