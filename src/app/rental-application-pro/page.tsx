@@ -76,8 +76,17 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
             </aside>
           </div>
           <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 체크리스트 사용</Link>
-            <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">{checkoutAvailable ? "Pro 작업 공간 이용 가능" : "유료 검증 준비 중"}</span>
+            {checkoutAvailable ? (
+              <>
+                <Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 체크리스트 사용</Link>
+                <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">Pro 작업 공간 이용 가능</span>
+              </>
+            ) : (
+              <>
+                <Link href="/property-inspection-checklist#house-hunt-project" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-center text-sm font-semibold text-white hover:bg-navy-light">무료로 다음 행동 저장하기</Link>
+                <Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 text-center text-sm font-semibold text-navy hover:bg-surface">방문 체크리스트 사용</Link>
+              </>
+            )}
             <Link href="/rental-application-pro/restore" className="inline-flex min-h-12 items-center border border-navy px-5 text-sm font-semibold text-navy">이용권 복구</Link>
           </div>
           {checkoutAvailable && <div id="rental-pro-checkout" className="mt-5 scroll-mt-24"><RentalApplicationProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
@@ -86,7 +95,7 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
               ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다. 테스트 이용권과 결제 처리 기술 기록만 생성됩니다."
               : checkoutAvailable
                 ? "결제는 Stripe의 보안 결제 페이지에서 진행되며, 결제와 이용권 확인 뒤 작업 공간을 열 수 있어요."
-                : "현재는 가격과 결제 흐름을 검증하는 단계입니다. 실제 결제는 열리지 않았고 원본 서류도 수집하지 않습니다."}
+                : "Rental Pack 결제는 아직 열리지 않았어요. 대신 무료 집 구하기 프로젝트에서 지원·계약·입주 체크 상태와 목표일을 현재 브라우저에 저장할 수 있습니다."}
           </p>
           {!checkoutAvailable && <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-navy"><Link href="/purchase-information" className="underline decoration-gold underline-offset-4">구매·환불 안내</Link><Link href="/privacy" className="underline decoration-gold underline-offset-4">결제 데이터 처리 안내</Link></div>}
         </Container>

@@ -83,6 +83,8 @@ assert.ok(!securePreflightSource.includes("AllowTest"), "The first-customer wrap
 assert.ok(!securePreflightSource.includes("rk_test_"), "The first-customer wrapper must reject test-mode key input before calling Stripe.");
 assert.ok(securePreflightSource.indexOf("$exitCode = 0") < securePreflightSource.indexOf("ACCOUNTING_PREFLIGHT=PASS"), "PASS must be emitted only after the Stripe verification succeeds.");
 assert.ok(accountingRunbook.includes(".\\scripts\\run-accounting-preflight.ps1"), "The accounting runbook must use the masked live preflight wrapper.");
+assert.ok(accountingRunbook.includes("It is not first-customer launch") && accountingRunbook.includes("must not become a second launch prerequisite"), "The accounting runbook must not turn the standalone permission probe into a duplicate first-sale gate.");
+assert.ok(accountingRunbook.includes("FIRST_SALE_PREFLIGHT=PASS") && accountingRunbook.includes("later independent revalidation"), "The accounting runbook must defer first-customer launch evidence to the integrated preflight.");
 assert.ok(!accountingRunbook.includes('$env:STRIPE_ACCOUNTING_KEY = "rk_live_..."'), "The accounting runbook must not place a live restricted key placeholder in shell history.");
 
 const sensitiveStripeMarker = "acct_sensitive_request_fixture";
@@ -229,8 +231,8 @@ for (const boundary of [
   "Balance Transaction",
   "UNALLOCATED",
   "Resume subledger totals",
-  "ACCOUNTING_PRODUCT_ISOLATION=PASS product=rental_application_pro source_chain=PASS refund_chain=PASS shared_reconciliation=PASS unresolved=0",
-  "ACCOUNTING_PRODUCT_ISOLATION=UNRESOLVED product=rental_application_pro",
+  "ACCOUNTING_PRODUCT_ISOLATION=PASS mode=live products=resume_pro+rental_application_pro price_identity=PASS source_chain=PASS adjustment_support_chain=PASS shared_reconciliation=PASS unresolved=0",
+  "ACCOUNTING_PRODUCT_ISOLATION=UNRESOLVED",
   "launch `NO-GO`",
 ]) assert.ok(compactProductRollout.includes(boundary), `Rental accounting isolation gate is missing: ${boundary}`);
 for (const boundary of [

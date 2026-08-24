@@ -62,26 +62,33 @@ before saving it with Windows user-scoped encryption, and runs the idempotent
 monthly exporter without placing the key in shell history. The end date passed
 to the exporter is exclusive.
 
-Before the first export or after any restricted-key permission change, run the
-no-write permission check while payments remain off:
+Before the first independent export, or after an accounting restricted-key
+permission change, run the standalone no-write permission check while payments
+remain off:
 
 ```powershell
 .\scripts\run-accounting-preflight.ps1
 ```
 
 The preflight requests at most one Balance Transaction only to prove the
-dedicated key can read that resource. The first-customer wrapper accepts only an
-`rk_live_` restricted key; it has no test-mode override. This prevents a
-successful non-launch test from being copied into the launch checklist as live
-evidence. It prints no transaction, account, request-log or key identifier and
-imports no file-writing API. It keeps masked input out of shell history, clears
-the process environment and zeroes its unmanaged plaintext buffer.
+dedicated key can read that resource. It accepts only an `rk_live_` restricted
+key and has no test-mode override. It prints no transaction, account,
+request-log or key identifier and imports no file-writing API. It keeps masked
+input out of shell history, clears the process environment and zeroes its
+unmanaged plaintext buffer.
 
 Only the final line
 `ACCOUNTING_PREFLIGHT=PASS mode=live permission=balance_transactions.read private_file_written=no`
-is launch evidence. Any `ACCOUNTING_PREFLIGHT=FAIL`, missing final PASS, test
-result from another command, timeout or interrupted run is `NO-GO`. A PASS does
-not export or alter any accounting record.
+is standalone accounting permission evidence. It is not first-customer launch
+evidence and must not become a second launch prerequisite. The integrated
+`scripts/run-production-payment-preflight.ps1` wrapper already exercises the
+same prompted accounting key after the payment/database strict audit; only its
+exact final `FIRST_SALE_PREFLIGHT=PASS` line satisfies the first-customer launch
+gate. Use this standalone wrapper only for later independent revalidation after
+the accounting key or its permission changes. Any `ACCOUNTING_PREFLIGHT=FAIL`,
+missing final PASS, test result from another command, timeout or interrupted run
+means the key remains unverified for export. A PASS does not export or alter any
+accounting record.
 
 The exporter writes a new CSV under `private/accounting/` and refuses to overwrite an existing file. That directory is excluded from Git.
 If the restricted key lacks Balance Transactions Read permission, the exporter
@@ -162,6 +169,23 @@ other-product and `UNALLOCATED` private views must sum exactly to the immutable
 shared ledger's gross, fee and net columns. Follow the Rental launch gate in
 `docs/pro-product-rollout.md`; its product switch remains off unless the exact
 redacted `ACCOUNTING_PRODUCT_ISOLATION=PASS` result exists.
+
+### Executable cross-product attribution gate
+
+Use `npm.cmd run accounting:product-isolation -- --template` for a fresh
+non-sensitive input contract, then classify the completed private copy with
+`--file`. It requires both products' checkout metadata → Price → PaymentIntent →
+Charge → Balance Transaction chains, distinct Product/Price and transaction
+identities, original-chain refund, dispute, support and entitlement links, and
+one shared-ledger reconciliation for the same mode, currency and UTC window.
+Full identifiers and source documents stay in the approved private accounting
+location; the classifier receives only fixed `PASS/MISSING/FAIL` outcomes.
+
+The Resume-only first-sale packet cannot prove Rental isolation. Do not change
+its `product_code`, copy its PASS values into Rental, or treat a `mode=test`
+product-isolation result as live evidence. Any missing, mixed or structurally
+invalid evidence is `UNRESOLVED`; keep the Rental switch off and do not classify
+by price, amount, alert suffix or support wording.
 
 ## Retention and review
 

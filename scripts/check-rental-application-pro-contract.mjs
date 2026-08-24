@@ -14,6 +14,9 @@ const activationForm = await readFile(new URL("../src/components/tools/RentalApp
 const successPage = await readFile(new URL("../src/app/rental-application-pro/success/page.tsx", import.meta.url), "utf8");
 const restoreForm = await readFile(new URL("../src/components/tools/RentalApplicationProRestoreForm.tsx", import.meta.url), "utf8");
 const workspace = await readFile(new URL("../src/app/rental-application-pro/workspace/page.tsx", import.meta.url), "utf8");
+const webhook = await readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
+const productEntitlementContract = await readFile(new URL("../src/lib/productEntitlementContract.ts", import.meta.url), "utf8");
+const resumeStripeProduct = await readFile(new URL("../src/lib/resumeProStripeProduct.ts", import.meta.url), "utf8");
 
 for (const contract of [
   "checkout.sessions.create",
@@ -35,6 +38,19 @@ assert.ok(checkoutForm.includes('/privacy'), "Rental checkout must link the priv
 assert.ok(commerce.includes("RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED"), "Rental payments require a product-specific kill switch");
 assert.ok(commerce.includes("STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID"), "Rental payments require a separate Stripe Price");
 assert.ok(commerce.includes('process.env.VERCEL_ENV !== "production"'), "Rental paid validation must fail closed in Production");
+const productionGuard = checkout.indexOf('if (process.env.VERCEL_ENV === "production")');
+assert.ok(productionGuard >= 0, "Rental Checkout must have a route-local Production deny gate");
+assert.ok(productionGuard < checkout.indexOf("request.formData()"), "Rental Production denial must happen before request-body or Stripe work");
+assert.ok(productionGuard < checkout.indexOf("stripe.prices.retrieve") && productionGuard < checkout.indexOf("checkout.sessions.create"), "Rental Production denial must happen before every Stripe call");
+assert.ok(checkout.slice(productionGuard, checkout.indexOf("request.formData()")).includes("status: 503"), "Rental Production denial must fail closed with HTTP 503");
+assert.ok(webhook.includes("matchesCheckoutProductEntitlementContract(entitlementCommand)"), "Webhook persistence must reject a cross-product Checkout contract before entitlement storage");
+assert.ok(webhook.indexOf("matchesCheckoutProductEntitlementContract(entitlementCommand)") < webhook.lastIndexOf("getConfiguredEntitlementStore()"), "Webhook product isolation must run before entitlement persistence is selected");
+for (const paidContract of [
+  'resume_pro: { currency: "aud", amountTotal: 1990 }',
+  'rental_application_pro: { currency: "aud", amountTotal: 1490 }',
+]) assert.ok(productEntitlementContract.includes(paidContract), `Paid product entitlement contract is missing: ${paidContract}`);
+assert.match(resumeStripeProduct, /resumeProStripeProductDefinition = \{[\s\S]*?currency: "aud",[\s\S]*?priceCents: 1990,/, "Resume entitlement contract must stay aligned with its Stripe product definition");
+assert.match(commerce, /rentalApplicationProProduct = \{[\s\S]*?currency: "aud",[\s\S]*?priceCents: 1490,/, "Rental entitlement contract must stay aligned with its commerce product definition");
 assert.ok(purchase.includes('metadata?.product_code === "rental_application_pro"'), "Paid-session verification must require the Rental product code");
 assert.ok(purchase.includes("rentalApplicationProProduct.priceCents"), "Paid-session verification must require the exact Rental price");
 assert.ok(access.includes("findActiveByAccessSession"), "Rental access must require a server-tracked device session");

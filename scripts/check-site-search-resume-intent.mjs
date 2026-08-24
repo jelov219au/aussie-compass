@@ -93,9 +93,12 @@ assert.ok(layout.includes("호주 취업·급여·정착 실용 도구 | Hoju Co
 assert.equal((jsonLd.match(/alternateName: siteAlternateNames/g) ?? []).length, 2, "the WebSite and Organization entities must share the same Korean brand aliases");
 assert.equal((jsonLd.match(/description: siteDescription/g) ?? []).length, 1, "the WebSite entity must reuse the customer-facing discovery summary");
 assert.ok(sitemap.includes('"": "2026-08-24"'), "the significantly updated homepage needs an evidence-based sitemap lastmod");
-for (const verificationName of ["GOOGLE_SITE_VERIFICATION", "BING_SITE_VERIFICATION", "NAVER_SITE_VERIFICATION"]) {
+for (const verificationName of ["BING_SITE_VERIFICATION", "NAVER_SITE_VERIFICATION"]) {
   assert.ok(growthRoadmap.includes(verificationName), `the current search-discovery HOLD is missing: ${verificationName}`);
 }
-assert.ok(growthRoadmap.includes("no Hoju Compass listing") && growthRoadmap.includes("no search-console submission was made"), "the roadmap must preserve the observed unindexed and no-mutation boundary");
+for (const googleEvidence of ["verified URL-prefix property", "status \`Success\`", "77 discovered pages", "no meta-token or Production environment change was required"]) {
+  assert.ok(growthRoadmap.includes(googleEvidence), `the completed Google Search Console evidence is missing: ${googleEvidence}`);
+}
+assert.ok(growthRoadmap.includes("no Hoju Compass listing") && growthRoadmap.includes("Bing Webmaster Tools still requires owner OAuth approval"), "the roadmap must preserve the observed unindexed result and remaining owner OAuth boundary");
 
 console.log("High-intent resume search ranking contract passed.");

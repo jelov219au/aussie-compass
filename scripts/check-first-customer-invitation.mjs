@@ -81,13 +81,15 @@ assert.equal(isFirstCustomerGoCurrent({ ...baseGo, approvedAt: "2026-08-24T00:00
 assert.equal(isFirstCustomerGoCurrent(baseGo, Number.NaN), false, "an invalid operator clock must fail closed");
 if ((decision.match(/^    "/gm) ?? []).length !== 7) errors.push("current NO-GO decision must enumerate seven known blockers");
 for (const [decisionMarker, evidenceSource, evidenceMarker] of [
+  ["Vercel exact Source SHA", compactProductionAudit, "Production Source SHA equals the full owner-approved commit"],
   ["Production post-migration", compactProductionAudit, "Production functional rehearsal is still missing"],
-  ["live runtime key", compactProductionAudit, "proven live restricted runtime key"],
-  ["Neon endpoint pin", compactProductionAudit, "missing strict-audit Neon endpoint pin"],
+  ["suffix/count", compactProductionAudit, "suffix-only and count-only Production evidence"],
+  ["live runtime", compactProductionAudit, "proven three-key least-privilege integrated preflight"],
+  ["Neon endpoint pin", compactProductionAudit, "strict-audit Neon endpoint pin"],
   ["실 SMTP", compactProductionAudit, "Real SMTP transport proof is still missing"],
   ["Managed Payments Checkout·영수증", compactProductionAudit, "Managed Payments Checkout and every receipt/invoice actually issued"],
   ["등록 세무사", compactProductionAudit, "registered tax agent"],
-  ["accounting preflight", checklist, ".\\scripts\\run-accounting-preflight.ps1"],
+  ["Balance Transactions accounting", checklist, "FIRST_SALE_PREFLIGHT=PASS"],
 ]) {
   requireText(decision, decisionMarker, "audited blocker decision");
   requireText(evidenceSource, evidenceMarker, "audited blocker evidence");

@@ -65,14 +65,34 @@ of the following for the same Stripe mode and accounting window:
    window`. Rental purchase/refund posting must not change the Resume subledger
    totals.
 
-Record only the redacted result
-`ACCOUNTING_PRODUCT_ISOLATION=PASS product=rental_application_pro source_chain=PASS refund_chain=PASS shared_reconciliation=PASS unresolved=0`
-in the rollout evidence. Any missing chain, reused Product/Price, mismatch,
-test/live mixing, non-zero unexplained difference or value inferred from price
-or alert output is
-`ACCOUNTING_PRODUCT_ISOLATION=UNRESOLVED product=rental_application_pro` and a
-launch `NO-GO`. This accounting PASS does not enable the product, set a price,
-make a sale, issue a refund or decide tax treatment.
+The redacted PASS line is classifier output, not a manual checklist value.
+Generate a fresh exact-shape template and run it only against a completed copy
+in the approved private accounting location:
+
+```powershell
+npm.cmd run accounting:product-isolation -- --template
+npm.cmd run accounting:product-isolation -- --file <private-json-path>
+```
+
+The template requires separate Resume and Rental results for catalogue Product,
+Price identity, amount/currency, signed Checkout `product_code`, Checkout →
+PaymentIntent → Charge → Balance Transaction, refund/dispute and
+support/entitlement linkage. It also requires cross-product proof that Product,
+Price, PaymentIntent, Charge and Balance Transaction identities are distinct and
+that the shared source ledger still reconciles. Keep full identifiers and source
+documents out of the JSON. Do not copy Resume PASS values into Rental rows. The
+Resume-only `first-sale:evidence` packet cannot prove Rental isolation and must
+not be cloned with a changed `product_code`.
+
+Only the exact live result
+`ACCOUNTING_PRODUCT_ISOLATION=PASS mode=live products=resume_pro+rental_application_pro price_identity=PASS source_chain=PASS adjustment_support_chain=PASS shared_reconciliation=PASS unresolved=0`
+is rollout evidence. A `mode=test` PASS is not live launch evidence. Any
+`MISSING`/`FAIL`, missing or reused Product/Price identity, broken
+PaymentIntent chain, cross-product refund/support link, non-zero reconciliation
+difference, malformed file, hand-written result or interrupted command remains
+`ACCOUNTING_PRODUCT_ISOLATION=UNRESOLVED` and launch `NO-GO`. Rental product
+switch remains off. This accounting PASS does not enable the product, set a
+price, make a sale, issue a refund or decide tax treatment.
 
 ## Later products
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 
 import { getEntitlementCommand } from "@/lib/entitlements";
+import { matchesCheckoutProductEntitlementContract } from "@/lib/productEntitlementContract";
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import { FIRST_SALE_PRODUCT_CODE } from "@/lib/firstSaleGate";
 import { FirstSalePaymentIntentContractError, verifyFirstSalePaymentIntent } from "@/lib/firstSalePaymentIntent";
@@ -72,6 +73,14 @@ export async function POST(request: NextRequest) {
   if (event.livemode !== expectsLiveEvent) {
     console.warn("Rejected Stripe webhook from the wrong environment", { eventRef: stripeReferenceSuffix(event.id), type: event.type });
     return webhookResponse({ error: "Webhook environment mismatch." }, 400);
+  }
+
+  if (!matchesCheckoutProductEntitlementContract(entitlementCommand)) {
+    console.warn("Rejected Stripe checkout entitlement with a product contract mismatch", {
+      eventRef: stripeReferenceSuffix(event.id),
+      type: event.type,
+    });
+    return webhookResponse({ error: "Checkout product entitlement mismatch." }, 503);
   }
 
   const entitlementStore = getConfiguredEntitlementStore();
