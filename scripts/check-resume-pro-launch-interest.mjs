@@ -109,7 +109,7 @@ const namedPassRows = [...productionAudit.matchAll(/^\| `([a-z][a-z0-9_]+)` \| P
 assert.equal(namedPassRows.length, 54, "production audit must preserve every named Neon boolean instead of a summary count");
 assert.equal(new Set(namedPassRows).size, 54, "production audit contains a duplicate named Neon result");
 assert.ok(productionAudit.includes("NO-GO for the first customer payment"), "point-in-time audit must not overstate launch readiness");
-assert.ok(productionAudit.includes("business-profile support email is absent"), "point-in-time audit must preserve the discovered Stripe blocker");
+assert.ok(productionAudit.includes("business-profile support email is now present"), "point-in-time audit must preserve the verified Stripe support-email evidence");
 assert.ok(productionAudit.includes("zero Resume Pro"), "point-in-time audit must record the zero-open-Checkout evidence");
 
 console.log("Resume Pro pre-launch interest contract passed.");

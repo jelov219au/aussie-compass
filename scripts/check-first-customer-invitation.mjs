@@ -79,10 +79,9 @@ assert.equal(isFirstCustomerGoCurrent({ ...baseGo, validUntil: "2026-08-24T01:00
 assert.equal(isFirstCustomerGoCurrent({ ...baseGo, approvedAt: null }, Date.parse("2026-08-24T00:30:00.000Z")), false, "GO without an approval time must fail closed");
 assert.equal(isFirstCustomerGoCurrent({ ...baseGo, approvedAt: "2026-08-24T00:00:00+00:00" }, Date.parse("2026-08-24T00:30:00.000Z")), false, "GO timestamps must use the canonical UTC format");
 assert.equal(isFirstCustomerGoCurrent(baseGo, Number.NaN), false, "an invalid operator clock must fail closed");
-if ((decision.match(/^    "/gm) ?? []).length !== 8) errors.push("current NO-GO decision must enumerate eight known blockers");
+if ((decision.match(/^    "/gm) ?? []).length !== 7) errors.push("current NO-GO decision must enumerate seven known blockers");
 for (const [decisionMarker, evidenceSource, evidenceMarker] of [
   ["Production post-migration", compactProductionAudit, "Production functional rehearsal is still missing"],
-  ["공개 support email", compactProductionAudit, "business-profile support email is absent"],
   ["live runtime key", compactProductionAudit, "proven live restricted runtime key"],
   ["Neon endpoint pin", compactProductionAudit, "missing strict-audit Neon endpoint pin"],
   ["실 SMTP", compactProductionAudit, "Real SMTP transport proof is still missing"],
@@ -93,6 +92,7 @@ for (const [decisionMarker, evidenceSource, evidenceMarker] of [
   requireText(decision, decisionMarker, "audited blocker decision");
   requireText(evidenceSource, evidenceMarker, "audited blocker evidence");
 }
+requireText(checklist, "[x] Add `support@hojucompass.com` as the Stripe live business-profile support email", "verified Stripe support email evidence");
 requireText(boundaries, '["/first-customer-invitation", "src/app/first-customer-invitation/page.tsx"]', "operator route registry");
 requireText(boundaries, '"src/components/tools/FirstCustomerInvitationDesk.tsx"', "operator file registry");
 

@@ -11,8 +11,8 @@ credential, full Stripe identifier or database connection string is recorded.
 audit-login privilege matrices are ready, the live Stripe account can charge
 and pay out, and live Resume Pro has no existing open Checkout Session. The
 Production entitlement-link forward fix is now applied and its postflight and
-complete effective-privilege matrix pass. Launch still requires Stripe's
-missing public support email, a proven live restricted runtime key, a separate
+complete effective-privilege matrix pass. Stripe's public support email is now
+present. Launch still requires a proven live restricted runtime key, a separate
 Account-Read-only operator audit key, the missing strict-audit Neon endpoint
 pin, real SMTP transport proof and a controlled Production functional
 rehearsal. The target-environment strict audit has not been rerun after the
@@ -53,7 +53,9 @@ migration, so the first customer remains **NO-GO**.
 - Stripe live account read: charges enabled, payouts enabled, details
   submitted, zero currently due, zero past due, zero pending verification and
   no disabled reason. Business name, website, support phone and statement
-  descriptor are present. The business-profile support email is absent.
+  descriptor are present. The business-profile support email is now present;
+  its authenticated Dashboard save and visible Public details row were
+  verified on 24 August 2026 without changing another public business field.
 - Stripe live Checkout Sessions read with `status=open`, `limit=100`: zero
   total, zero Resume Pro and `has_more=false`.
 - Neon Vercel Preview database `first_sale_rehearsal_20260824_v2` passed the
@@ -146,35 +148,32 @@ migration, so the first customer remains **NO-GO**.
 
 ## Remaining pre-customer blockers
 
-1. Add `support@hojucompass.com` as the Stripe live business-profile support
-   email through an authenticated Dashboard session, then re-read the account
-   and confirm it is present. Do not add a different address by assumption.
-2. Prove the Production runtime uses an `rk_live_` key with only Prices Read,
+1. Prove the Production runtime uses an `rk_live_` key with only Prices Read,
    Products Read, Checkout Sessions create/retrieve and PaymentIntents Read.
    Create a different one-off `rk_live_` operator-audit key with Account Read
    only for Account/support-profile evidence; never grant Account Read to the
    runtime key or deploy the audit key. Run the target-environment strict remote
    audit without printing either key, IDs or product values.
-3. Inject the approved non-secret endpoint ID as
+2. Inject the approved non-secret endpoint ID as
    `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` only for the strict operator audit and
    prove both the runtime and `hoju_payment_auditor` connections resolve to it.
    Do not persist the audit DB credential in Preview or application runtime.
-4. Run the protected no-send SMTP authentication check, then the separately
+3. Run the protected no-send SMTP authentication check, then the separately
    approved labelled test-message path, and confirm receipt in the monitored
    mailbox. Keep credentials out of shell history, chat and logs.
-5. With payments still off, run one approved controlled Production
+4. With payments still off, run one approved controlled Production
    post-migration rehearsal that proves reservation, attached Checkout expiry
    handling, payment/refund alert outbox delivery, activation same-nonce
    response-loss, different-nonce denial, permanent device release and one-time
    restore. The Preview rehearsal is supporting evidence, not a substitute.
-6. Record suffix-only and count-only Production evidence for the resulting
+5. Record suffix-only and count-only Production evidence for the resulting
    gate, outbox, entitlement and access-session rows. Zero current Production
    rows cannot prove these paths.
-7. Confirm the actual Managed Payments Checkout and issued receipt/invoice
+6. Confirm the actual Managed Payments Checkout and issued receipt/invoice
    wording for transaction seller, document issuer and transaction support.
-8. Complete ABN/GST and bookkeeping treatment review with the registered tax
+7. Complete ABN/GST and bookkeeping treatment review with the registered tax
    agent and preserve it outside the repository.
-9. Run the protected live accounting preflight with its dedicated restricted
+8. Run the protected live accounting preflight with its dedicated restricted
    key and retain only the PASS result outside the repository.
 
 After these pass, the owner may approve a single opt-in first-customer notice

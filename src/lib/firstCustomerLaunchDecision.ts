@@ -11,7 +11,6 @@ export const firstCustomerLaunchDecision = {
   validUntil: null,
   blockers: [
     "Production post-migration paid-event·activation·restore functional rehearsal",
-    "Stripe live business profile의 공개 support email",
     "분리된 최소권한 live runtime key와 Account-Read-only audit key",
     "승인된 Neon endpoint pin을 포함한 target-environment strict audit",
     "실 SMTP 전송 확인과 Production 결제·환불 alert 수신 증거",

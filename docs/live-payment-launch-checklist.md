@@ -32,7 +32,7 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 - [x] Complete the live account representative identity-document task. Rechecked on 20 August 2026: the account status page shows no active tasks and payment activation is complete.
 - [x] Confirm the paused-payout warning is no longer shown after identity review.
 - [x] Confirm the public business name, website, support phone and a recognisable statement descriptor are present. Read-only live Account evidence was recorded on 24 August 2026 without copying their values.
-- [ ] Add `support@hojucompass.com` as the Stripe live business-profile support email. The read-only Account result on 24 August 2026 reported it absent; the site and Vercel support setting do not substitute for this Stripe field.
+- [x] Add `support@hojucompass.com` as the Stripe live business-profile support email. Saved in the authenticated Stripe Dashboard and verified in the visible Public details on 24 August 2026; no other public business field was changed.
 - [ ] Create a separate `rk_live_` operator-audit key with Account Read only and inject it as `PAYMENTS_STRIPE_AUDIT_KEY` only for the strict preflight. Never reuse it as the Checkout, accounting or performance key and never assign it to a deployed app environment.
 - [ ] Rerun the fail-closed preflight after that change. It must report PASS for both `Stripe 계정 운영 상태` and `Stripe 구매자 지원 프로필`; the latter requires the Stripe support email to match `NEXT_PUBLIC_SUPPORT_EMAIL` without printing either value.
 - [x] Create an active one-time AUD 19.90 Resume Pro Price.
