@@ -221,6 +221,17 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 <li className="bg-surface p-4 sm:p-5"><span className="font-mono text-xs text-[#806515]">02</span><strong className="mt-2 block text-sm text-navy">STAR 경험 재사용</strong><p className="mt-2 text-xs leading-5 text-muted">한 번 정리한 실제 경험을 다른 면접과 Selection Criteria에 다시 연결해요.</p></li>
                 <li className="bg-surface p-4 sm:p-5"><span className="font-mono text-xs text-[#806515]">03</span><strong className="mt-2 block text-sm text-navy">지원서 묶음 내보내기</strong><p className="mt-2 text-xs leading-5 text-muted">이력서 요약, 공고 점검, 커버레터와 STAR 경험을 한 파일로 저장해요.</p></li>
               </ol>
+              <section className="border-t border-navy/20 px-4 py-5 sm:px-6" aria-labelledby="first-paid-outcome-heading">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#806515]">결제 직후 첫 10분 실행 순서</p>
+                <h3 id="first-paid-outcome-heading" className="mt-2 text-xl font-semibold text-navy">결제 확인 뒤, 첫 회사별 지원서 하나를 저장합니다.</h3>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">성공 화면에서 이용권을 이 기기에 연결하면 작업공간이 열려요. 아래 세 단계까지 마치면 다음 공고를 시작해도 이번 준비를 다시 열어 비교할 수 있습니다.</p>
+                <ol className="mt-5 grid gap-3 sm:grid-cols-3" aria-label="Resume Pro 결제 후 첫 회사별 지원서 저장 순서">
+                  <li className="border-l-2 border-gold bg-surface p-4"><span className="font-mono text-xs text-[#806515]">01 · 열기</span><strong className="mt-2 block text-sm text-navy">이용권 연결하고 작업공간 열기</strong><p className="mt-2 text-xs leading-5 text-muted">결제 확인 화면의 버튼으로 이 기기의 이용권을 연결해요.</p></li>
+                  <li className="border-l-2 border-gold bg-surface p-4"><span className="font-mono text-xs text-[#806515]">02 · 연결</span><strong className="mt-2 block text-sm text-navy">저장된 경력 + 실제 공고</strong><p className="mt-2 text-xs leading-5 text-muted">같은 브라우저의 무료 이력서를 확인하고 회사·직무와 공고를 입력해요.</p></li>
+                  <li className="border-l-2 border-gold bg-surface p-4"><span className="font-mono text-xs text-[#806515]">03 · 남기기</span><strong className="mt-2 block text-sm text-navy">커버레터 확인 후 회사별 저장</strong><p className="mt-2 text-xs leading-5 text-muted">초안을 직접 고친 뒤 ‘현재 지원서 저장’을 눌러 첫 결과물을 남겨요.</p></li>
+                </ol>
+                <p className="mt-4 text-xs leading-5 text-muted">완료 기준은 회사별 지원서 1개가 현재 브라우저에 저장된 상태예요. 이용권 복구 코드는 작업 데이터 백업이 아닙니다.</p>
+              </section>
               <p className="px-4 py-4 text-xs leading-5 text-muted sm:px-6">지원 자료는 현재 브라우저에 저장됩니다. 기기를 바꾸기 전에는 지원서 묶음을 내려받아 보관해 주세요.</p>
             </section>
             <section className="mt-5 border border-navy/20 bg-surface p-5 sm:p-6" aria-labelledby="ai-role-heading">

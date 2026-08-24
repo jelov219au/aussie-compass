@@ -105,6 +105,23 @@ The live key should have only the read permission required for Balance Transacti
 
 The formatted workbook in the private output folder remains the management and reconciliation file. Treat the automatically generated CSV as the read-only Stripe source ledger, and record bank matching, GST/BAS review and accountant notes in the formatted workbook rather than editing the derived CSV.
 
+### First-payment support handoff link
+
+For the first customer's 24-hour close, the private management workbook must
+link one FP incident to the same live Checkout → PaymentIntent → Charge →
+Balance Transaction source chain and its single ledger row. Record the
+refund/dispute state as `NONE_CONFIRMED` at a dated source observation or link
+each actual refund/dispute back to that original Charge, its separate balance
+movement, support incident and entitlement outcome. Do not join records by
+amount, timestamp, receipt wording or alert suffix.
+
+The corresponding first-sale evidence check is
+`support_ledger_original_transaction_chain_preserved`. It remains `MISSING`
+until the private chain is complete; duplicate ledger posting, a different
+original transaction, an uninspected source or an unlinked support/entitlement
+result is `FAIL`. Either result keeps the 24-hour close at `HOLD` even if gross,
+fee, refund and support checks separately appear complete.
+
 ## Product-specific attribution
 
 The automatic Stripe ledger is intentionally account-level and contains no

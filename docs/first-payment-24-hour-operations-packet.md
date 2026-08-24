@@ -80,6 +80,34 @@ npm.cmd run first-sale:evidence -- --file <private-json-path> --phase payout
 | 상태 보호 | refund `revoked`, review `review`, first-sale `LOCKED` | 환불/검토 뒤 자동 재결제·자동 reopen 없음 |
 | 고객 다음 행동 | 환불 완료는 환불 내역 문의, 검토 중은 상태 재확인·지원, replay/restore는 무료 Builder로 연결 | 환불·검토 화면에서 작업공간 열기·복구를 우선하지 않고 구매 페이지나 `Resume Pro Viewed`로 되돌리지 않음 |
 
+### 첫 결제 → 회계 원장 → 지원 인계 연결 gate
+
+24시간 판정의 `support_ledger_original_transaction_chain_preserved`는 아래
+private 연결표가 하나의 원거래를 가리킬 때만 `PASS`다. JSON 증거에는
+연결 결과만 `PASS/MISSING/FAIL`로 기록하고 전체 식별자나 원장 경로는
+넣지 않는다.
+
+| Private 연결 영역 | 동일 원거래 PASS 기준 |
+| --- | --- |
+| 첫 결제 사건 | 하나의 FP 사건번호가 live `resume_pro` Checkout → PaymentIntent → Charge 원본 chain에 연결됨 |
+| 회계 원장 | 같은 Charge의 Balance Transaction이 `environment=live` 원장행 한 개에 연결되고 gross·fee·net이 원문과 일치함 |
+| 환불·분쟁 상태 | 24시간 관찰 시각에 `NONE_CONFIRMED`, 또는 실제 refund/dispute가 같은 원 Charge에 연결됨; 이메일·금액·시각 유사성만으로 연결하지 않음 |
+| 조정 원장 | refund/dispute가 있으면 그 별도 Balance Transaction과 credit/tax 문서 상태가 기록되고 음수 조정이 정확히 한 번 반영됨 |
+| 지원·접근 인계 | 같은 FP 사건에 refund/dispute 지원 상태, webhook/outbox 결과, entitlement revoke/review 결과, owner와 다음 기한이 연결됨 |
+
+`NONE_CONFIRMED`는 해당 관찰 시각의 Stripe 원본 조회로 확인한 상태일
+뿐 “앞으로 환불·분쟁 없음”을 뜻하지 않는다. 이후 사건이 생기면 연결표와
+원장을 갱신하고 다시 판정한다. suffix-only alert, receipt/invoice 문구,
+동일 금액 또는 가까운 시각은 chain 증거가 아니다. 하나라도 다른 원거래,
+중복 원장행, 연결 불명 또는 원본 미열람이면 이 check는 `MISSING` 또는
+`FAIL`이고 24시간 결과는 `HOLD`다. owner 승인만으로 `PASS`로 바꾸지
+않는다.
+
+이 연결 check가 추가된 현재 템플릿은 `schema_version=2`다. 반드시
+`npm.cmd run first-sale:evidence -- --template`로 새 private 입력을 만들고,
+기존 v1 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다. v1,
+새 check 누락 또는 예상 밖 필드는 구조 오류 `STOP`이다.
+
 #### Restore-session 응답 유실 증거
 
 실제 token hash·nonce hash를 출력하거나 복사하지 않고, 동일성 비교 결과와 suffix·count·outcome만 기록한다. 원문 nonce는 동일 탭 재시도를 위해 `sessionStorage`에만 일시 저장한다. 원문 nonce는 DB·서버 로그·분석·운영 패킷에는 저장하지 않으며, raw restore code는 `sessionStorage`에 저장하지 않는다. 아래 필드는 `docs/first-sale-gate-runbook.md`의 migration 순서, 함수 overload 부재와 effective-privilege 증거가 모두 PASS인 동일 Preview 환경에서 수집해야 한다.

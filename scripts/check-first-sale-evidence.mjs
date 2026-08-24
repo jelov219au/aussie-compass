@@ -5,13 +5,17 @@ import {
   containsSensitiveEvidence,
   createFirstSaleEvidenceTemplate,
   evaluateFirstSaleEvidence,
+  twentyFourHourChecks,
 } from "./first-sale-evidence-contract.mjs";
 
-const [packageSource, runbookSource, cliSource] = await Promise.all([
+const [packageSource, runbookSource, accountingRunbookSource, cliSource] = await Promise.all([
   readFile(new URL("../package.json", import.meta.url), "utf8"),
   readFile(new URL("../docs/first-payment-24-hour-operations-packet.md", import.meta.url), "utf8"),
+  readFile(new URL("../docs/accounting-reconciliation.md", import.meta.url), "utf8"),
   readFile(new URL("./verify-first-sale-evidence.mjs", import.meta.url), "utf8"),
 ]);
+const compactRunbookSource = runbookSource.replace(/\s+/g, " ");
+const compactAccountingRunbookSource = accountingRunbookSource.replace(/\s+/g, " ");
 
 assert.ok(packageSource.includes('"first-sale:evidence": "node scripts/verify-first-sale-evidence.mjs"'));
 assert.ok(packageSource.includes('"test:first-sale-evidence": "node scripts/check-first-sale-evidence.mjs"'));
@@ -35,6 +39,14 @@ function passingPacket() {
   }
   return packet;
 }
+
+assert.equal(createFirstSaleEvidenceTemplate().schema_version, 2, "the financial-event handoff check requires evidence schema v2");
+const legacyPacket = passingPacket();
+legacyPacket.schema_version = 1;
+assert.ok(
+  evaluateFirstSaleEvidence(legacyPacket, "24h").errors.includes("schema_version"),
+  "a v1 packet must not bypass the new original-transaction chain check",
+);
 
 for (const phase of ["15m", "24h", "payout"]) {
   const result = evaluateFirstSaleEvidence(passingPacket(), phase);
@@ -61,6 +73,38 @@ assert.equal(evaluateFirstSaleEvidence(earlyClose, "24h").decision, "HOLD");
 const payoutDifference = passingPacket();
 payoutDifference.first_payout.cash_difference_cents = 2;
 assert.equal(evaluateFirstSaleEvidence(payoutDifference, "payout").decision, "HOLD");
+
+assert.ok(
+  twentyFourHourChecks.includes("support_ledger_original_transaction_chain_preserved"),
+  "24-hour evidence must join the original payment, ledger row and support incident",
+);
+const unlinkedSupportLedgerChain = passingPacket();
+unlinkedSupportLedgerChain.twenty_four_hour.checks.support_ledger_original_transaction_chain_preserved = "MISSING";
+assert.equal(
+  evaluateFirstSaleEvidence(unlinkedSupportLedgerChain, "24h").decision,
+  "HOLD",
+  "separately complete accounting and support checks must not pass without one original-transaction chain",
+);
+
+for (const boundary of [
+  "첫 결제 → 회계 원장 → 지원 인계 연결 gate",
+  "support_ledger_original_transaction_chain_preserved",
+  "NONE_CONFIRMED",
+  "Checkout → PaymentIntent → Charge",
+  "Balance Transaction",
+  "음수 조정이 정확히 한 번 반영",
+  "동일 금액 또는 가까운 시각은 chain 증거가 아니다",
+  "24시간 결과는 `HOLD`",
+  "schema_version=2",
+  "기존 v1 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다",
+]) assert.ok(compactRunbookSource.includes(boundary), `the 24-hour runbook is missing financial-event handoff evidence: ${boundary}`);
+for (const boundary of [
+  "First-payment support handoff link",
+  "same live Checkout → PaymentIntent → Charge → Balance Transaction source chain",
+  "Do not join records by amount, timestamp, receipt wording or alert suffix",
+  "support_ledger_original_transaction_chain_preserved",
+  "keeps the 24-hour close at `HOLD`",
+]) assert.ok(compactAccountingRunbookSource.includes(boundary), `the accounting runbook is missing first-payment support linkage: ${boundary}`);
 
 const unexpectedField = passingPacket();
 unexpectedField.customer_email = "not-allowed";

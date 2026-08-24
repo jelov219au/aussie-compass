@@ -82,8 +82,21 @@ assert.ok(packageJson.includes('"test:payment-launch-preflight"'), "the prefligh
 assert.ok(packageJson.includes("npm run test:payment-launch-preflight"), "the full quality gate must include the preflight contract");
 
 const command = "npm run payments:check -- --preflight --strict --verify-stripe --verify-database";
+const accountingCommand = "npm run accounting:preflight";
+const integratedPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no";
 assert.ok(readiness.includes(command), "payment readiness must document the fail-closed preflight command");
 assert.ok(checklist.includes(command), "the live launch checklist must document the fail-closed preflight command");
+for (const [label, document] of [["payment readiness", readiness], ["live launch checklist", checklist]]) {
+  assert.ok(document.includes(accountingCommand), `${label} must document the integrated accounting permission preflight`);
+  assert.ok(document.includes("same masked accounting key") || document.includes("same prompted accounting key"), `${label} must bind accounting permission evidence to the key checked for role separation`);
+  assert.ok(document.includes(integratedPass), `${label} must name the canonical integrated first-sale PASS`);
+  assert.ok(document.indexOf(command) < document.indexOf(accountingCommand), `${label} must place accounting permission verification after the strict payment/database audit`);
+  assert.ok(document.indexOf(accountingCommand) < document.indexOf(integratedPass), `${label} must place the final first-sale PASS after both permission preflights`);
+  assert.doesNotMatch(document, /(?:never assigns or uses|is never assigned to the process)[^\n]*accounting key|accounting key[^\n]*(?:never assigned|requires the separate accounting preflight|remains separately fail-closed)/i, `${label} must not claim the accounting key is excluded from the integrated wrapper`);
+}
+assert.ok(checklist.includes("this single integrated result satisfies the Balance Transactions read check"), "the first-customer checklist must use one integrated accounting criterion");
+assert.ok(checklist.includes("is not a second launch prerequisite in the same approval window"), "the standalone accounting wrapper must be classified only as later independent revalidation");
+assert.doesNotMatch(checklist, /- \[ \][^\n]*run-accounting-preflight\.ps1[^\n]*(?:Record PASS only|remains launch `NO-GO`)/, "the checklist must not require a duplicate standalone accounting launch gate");
 for (const secureBoundary of [
   'Read-Host "One-off Stripe Account-Read audit key" -AsSecureString',
   'Read-Host "Dedicated Stripe Balance-Transactions-Read accounting key" -AsSecureString',
@@ -92,8 +105,10 @@ for (const secureBoundary of [
   "PtrToStringBSTR",
   'SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY", $plainAuditKey, "Process")',
   'SetEnvironmentVariable("PAYMENTS_AUDIT_DB_URL", $plainAuditDatabaseUrl, "Process")',
+  'SetEnvironmentVariable("STRIPE_ACCOUNTING_KEY", $plainAccountingKey, "Process")',
   'Remove-Item -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY"',
   'Remove-Item -LiteralPath "Env:PAYMENTS_AUDIT_DB_URL"',
+  'Remove-Item -LiteralPath "Env:STRIPE_ACCOUNTING_KEY"',
   'Test-Path -LiteralPath "Env:STRIPE_ACCOUNTING_KEY"',
   '$plainAccountingKey -ceq $env:STRIPE_SECRET_KEY',
   '$plainAccountingKey -ceq $plainAuditKey',
@@ -103,11 +118,52 @@ for (const secureBoundary of [
   '$env:PAYMENTS_ENABLED -cne "false"',
   '$env:VERCEL_ENV -cne "production"',
   'npm.cmd run payments:check -- --preflight --strict --verify-stripe --verify-database',
+  'npm.cmd run accounting:preflight',
+  'FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no',
+  'FIRST_SALE_PREFLIGHT=FAIL mode=live payments_off=required keys=unverified required_operations=unverified database=unverified secrets_printed=no launch=NO-GO',
 ]) assert.ok(secureRunner.includes(secureBoundary), `secure Production preflight is missing: ${secureBoundary}`);
 assert.equal((secureRunner.match(/ZeroFreeBSTR\(/g) ?? []).length, 3, "all three masked plaintext buffers must be zeroed");
 assert.doesNotMatch(secureRunner, /Write-Host[^\n]*(?:plainAuditKey|plainAccountingKey|STRIPE_SECRET_KEY)/, "the role-separation result must not print a Stripe key");
 assert.ok(secureRunner.indexOf('SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY"') < secureRunner.indexOf("npm.cmd run payments:check"), "temporary audit credentials must be process-scoped before the strict audit starts");
 assert.ok(secureRunner.indexOf("npm.cmd run payments:check") < secureRunner.indexOf('Remove-Item -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY"'), "temporary audit credentials must be cleared after the strict audit attempt");
+assert.ok(secureRunner.indexOf('SetEnvironmentVariable("STRIPE_ACCOUNTING_KEY"') < secureRunner.indexOf("npm.cmd run accounting:preflight"), "the exact accounting key checked for role separation must be permission-tested in the same process");
+assert.ok(secureRunner.indexOf("npm.cmd run payments:check") < secureRunner.indexOf("npm.cmd run accounting:preflight"), "accounting permission verification must not run before the strict payment and database audit passes");
+assert.ok(secureRunner.indexOf('Remove-Item -LiteralPath "Env:STRIPE_ACCOUNTING_KEY"') < secureRunner.indexOf("FIRST_SALE_PREFLIGHT=PASS"), "the final first-sale PASS must be emitted only after the accounting key is removed from the process environment");
+assert.ok(secureRunner.indexOf("ZeroFreeBSTR") < secureRunner.lastIndexOf("FIRST_SALE_PREFLIGHT=PASS"), "the final first-sale PASS must follow unmanaged secret-buffer cleanup");
+assert.equal((secureRunner.match(/STRIPE_KEY_ROLES=PASS/g) ?? []).length, 1, "key-role PASS must be emitted once, after every required permission preflight");
+
+function runEarlyPowerShellFixture(endpointId, overrides = {}) {
+  const fixtureEnv = { ...process.env };
+  for (const name of ["PAYMENTS_STRIPE_AUDIT_KEY", "STRIPE_ACCOUNTING_KEY", "PAYMENTS_AUDIT_DB_URL", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID"]) delete fixtureEnv[name];
+  Object.assign(fixtureEnv, {
+    VERCEL_ENV: "production",
+    PAYMENTS_ENABLED: "false",
+    STRIPE_SECRET_KEY: "rk" + "_live_contract_fixture_only",
+    ENTITLEMENT_DB_URL: "postgresql://runtime:placeholder@ep-contract-primary-a1b2c3.ap-southeast-2.aws.neon.tech/neondb",
+    ENTITLEMENT_DB_DATABASE_URL: "",
+    ...overrides,
+  });
+  const powershell = `${process.env.SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`;
+  return spawnSync(powershell, [
+    "-NoProfile",
+    "-NonInteractive",
+    "-ExecutionPolicy", "Bypass",
+    "-File", fileURLToPath(new URL("./run-production-payment-preflight.ps1", import.meta.url)),
+    "-ExpectedNeonEndpointId", endpointId,
+  ], { encoding: "utf8", env: fixtureEnv, timeout: 10_000 });
+}
+
+for (const [label, fixture, reason] of [
+  ["invalid endpoint", runEarlyPowerShellFixture("not-an-endpoint"), "invalid_expected_endpoint"],
+  ["payments enabled", runEarlyPowerShellFixture("ep-contract-primary-a1b2c3", { PAYMENTS_ENABLED: "true" }), "payments_must_be_off"],
+]) {
+  assert.equal(fixture.status, 1, `${label} must exit 1 before any prompt or remote access`);
+  assert.equal((fixture.stdout.match(/FIRST_SALE_PREFLIGHT=FAIL/g) ?? []).length, 1, `${label} must emit one canonical FAIL`);
+  assert.match(fixture.stdout, new RegExp(`FIRST_SALE_PREFLIGHT=FAIL[^\\r\\n]*secrets_printed=no[^\\r\\n]*launch=NO-GO reason=${reason}`));
+  assert.doesNotMatch(fixture.stdout, /FIRST_SALE_PREFLIGHT=PASS|STRIPE_KEY_ROLES=PASS/, `${label} must never emit PASS`);
+  assert.doesNotMatch(fixture.stdout, /rk_live_|postgresql:\/\//, `${label} must not print fixture secrets or database URLs`);
+}
+
 assert.ok(readiness.includes(".\\scripts\\run-production-payment-preflight.ps1"), "payment readiness must route live audits through the masked wrapper");
 assert.ok(checklist.includes(".\\scripts\\run-production-payment-preflight.ps1"), "the live launch checklist must route live audits through the masked wrapper");
 

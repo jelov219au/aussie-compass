@@ -48,6 +48,7 @@ export const twentyFourHourChecks = [
   "liability_party_verified",
   "mailbox_receipt_preserved",
   "entitlement_refund_link_preserved",
+  "support_ledger_original_transaction_chain_preserved",
   "payout_status_recorded",
   "no_raw_nonce_or_restore_code_persistence",
   "no_pii_or_full_identifier_in_evidence",
@@ -81,7 +82,7 @@ function missingChecks(checkNames) {
 
 export function createFirstSaleEvidenceTemplate() {
   return {
-    schema_version: 1,
+    schema_version: 2,
     product_code: "resume_pro",
     environment: "live",
     event_suffix: "REPLACE8",
@@ -143,7 +144,7 @@ function structuralErrors(packet) {
   const errors = [];
   if (!hasExactKeys(packet, rootKeys)) errors.push("packet_shape");
   if (!isPlainObject(packet)) return errors;
-  if (packet.schema_version !== 1) errors.push("schema_version");
+  if (packet.schema_version !== 2) errors.push("schema_version");
   if (packet.product_code !== "resume_pro") errors.push("product_code");
   if (packet.environment !== "live") errors.push("environment");
   if (!/^[A-Za-z0-9]{8}$/.test(packet.event_suffix ?? "") || packet.event_suffix === "REPLACE8") {
