@@ -59,17 +59,23 @@ for (const writeBoundary of ["node:fs", "writeFile", "mkdir", '"private"', "Expo
 }
 assert.ok(packageSource.includes('"accounting:preflight": "node scripts/preflight-stripe-accounting.mjs"'), "The no-write accounting preflight must be exposed as a package command.");
 for (const secureBoundary of [
-  'Read-Host "Stripe accounting restricted key" -AsSecureString',
+  'Read-Host "Stripe accounting live restricted key" -AsSecureString',
   "SecureStringToBSTR",
   "PtrToStringBSTR",
   'SetEnvironmentVariable("STRIPE_ACCOUNTING_KEY", $plainKey, "Process")',
   'Remove-Item -LiteralPath "Env:STRIPE_ACCOUNTING_KEY"',
   "ZeroFreeBSTR",
-  'plainKey.StartsWith("rk_live_")',
+  "'^rk_live_[A-Za-z0-9]+$'",
   "npm.cmd run accounting:preflight",
+  'ACCOUNTING_PREFLIGHT=PASS mode=live permission=balance_transactions.read private_file_written=no',
+  'ACCOUNTING_PREFLIGHT=FAIL mode=unverified permission=unverified private_file_written=no launch=NO-GO',
+  "exit $exitCode",
 ]) assert.ok(securePreflightSource.includes(secureBoundary), `Secure accounting preflight is missing: ${secureBoundary}`);
 assert.ok(securePreflightSource.indexOf("SetEnvironmentVariable") < securePreflightSource.indexOf("npm.cmd run accounting:preflight"), "The masked key must be process-scoped before the preflight starts.");
 assert.ok(securePreflightSource.indexOf("npm.cmd run accounting:preflight") < securePreflightSource.indexOf("Remove-Item -LiteralPath"), "The process key must be cleared after the preflight attempt.");
+assert.ok(!securePreflightSource.includes("AllowTest"), "The first-customer wrapper must never turn a test-mode verification into a launch PASS.");
+assert.ok(!securePreflightSource.includes("rk_test_"), "The first-customer wrapper must reject test-mode key input before calling Stripe.");
+assert.ok(securePreflightSource.indexOf("$exitCode = 0") < securePreflightSource.indexOf("ACCOUNTING_PREFLIGHT=PASS"), "PASS must be emitted only after the Stripe verification succeeds.");
 assert.ok(accountingRunbook.includes(".\\scripts\\run-accounting-preflight.ps1"), "The accounting runbook must use the masked live preflight wrapper.");
 assert.ok(!accountingRunbook.includes('$env:STRIPE_ACCOUNTING_KEY = "rk_live_..."'), "The accounting runbook must not place a live restricted key placeholder in shell history.");
 

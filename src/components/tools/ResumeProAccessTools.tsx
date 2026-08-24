@@ -40,7 +40,7 @@ export function ResumeProAccessTools() {
   }
 
   return (
-    <section className="mt-10 border border-navy/15 bg-white p-5 sm:p-6" aria-labelledby="resume-pro-access-heading">
+    <section id="resume-pro-access" className="mt-10 scroll-mt-24 border border-navy/15 bg-white p-5 sm:p-6" aria-labelledby="resume-pro-access-heading">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">구매 내역 다시 찾기</p>
       <h2 id="resume-pro-access-heading" className="mt-2 text-xl font-semibold text-navy">다른 기기에서 이용권 복구하기</h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">현재 기기의 접근 쿠키를 잃기 전에 1회용 복구 코드를 만들어 보관하세요. 코드는 30일 안에 한 번만 사용할 수 있으며 서버에는 원문이 저장되지 않습니다.</p>

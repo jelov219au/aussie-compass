@@ -64,13 +64,18 @@ no-write permission check while payments remain off:
 ```
 
 The preflight requests at most one Balance Transaction only to prove the
-dedicated key can read that resource. It prints the live/test mode and PASS or a
-redacted actionable failure; it prints no transaction, account, request-log or
-key identifier and imports no file-writing API. The wrapper requires a live
-restricted key by default, keeps masked input out of shell history, clears the
-process environment and zeroes its unmanaged plaintext buffer. `-AllowTest` is
-only for an explicit non-launch test. A PASS does not export or alter any
-accounting record.
+dedicated key can read that resource. The first-customer wrapper accepts only an
+`rk_live_` restricted key; it has no test-mode override. This prevents a
+successful non-launch test from being copied into the launch checklist as live
+evidence. It prints no transaction, account, request-log or key identifier and
+imports no file-writing API. It keeps masked input out of shell history, clears
+the process environment and zeroes its unmanaged plaintext buffer.
+
+Only the final line
+`ACCOUNTING_PREFLIGHT=PASS mode=live permission=balance_transactions.read private_file_written=no`
+is launch evidence. Any `ACCOUNTING_PREFLIGHT=FAIL`, missing final PASS, test
+result from another command, timeout or interrupted run is `NO-GO`. A PASS does
+not export or alter any accounting record.
 
 The exporter writes a new CSV under `private/accounting/` and refuses to overwrite an existing file. That directory is excluded from Git.
 If the restricted key lacks Balance Transactions Read permission, the exporter

@@ -405,8 +405,14 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
               </Link>
             </div>
             <ResumeProCtaLink href="/resume-pro?from=resume-builder-complete" surface={resumeFunnelSurfaces.builderCompletion} context={resumeFunnelContexts.resumeBuilder} className="flex min-h-24 flex-col items-start justify-center border border-navy bg-white px-5 py-4 text-left text-navy hover:bg-surface">
-              <strong className="text-base">{resumeProLive ? "지원할 공고에 맞게 다듬기" : "공고 맞춤 준비 방식 보기"}</strong>
-              <span className="mt-1 text-xs leading-5 text-muted">이력서·커버레터와 빠진 항목을 함께 확인해요.</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#806515]">이 기기의 완성본으로 바로 이어서</span>
+              <strong className="mt-1 text-base">{resumeProLive ? "이 초안을 첫 공고용 지원서 묶음으로 만들기" : "이 초안을 공고별로 쓰는 방식 보기"}</strong>
+              <span className="mt-2 text-xs leading-5 text-muted">지금 저장된 경력 {resume.experiences.filter((item) => item.role.trim() || item.company.trim() || item.details.trim()).length}개와 Skills {skills.length}개를 다시 입력하지 않고 시작해요.</span>
+              <span className="mt-3 grid gap-1 text-xs leading-5 text-navy/75">
+                <span>✓ 공고 표현과 현재 이력서 비교</span>
+                <span>✓ 회사별 버전과 STAR 경험 저장·재사용</span>
+                <span>✓ 이력서 요약·커버레터·면접 메모 묶음 저장</span>
+              </span>
             </ResumeProCtaLink>
           </div>
           <p className="mt-4 text-xs leading-5 text-muted">무료 이력서는 그대로 이용할 수 있어요. Resume Pro는 경력을 새로 만들거나 취업 결과를 보장하는 기능이 아니에요.</p>

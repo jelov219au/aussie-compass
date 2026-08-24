@@ -65,7 +65,7 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 - [ ] Reconcile the gross sale, Stripe fee, refund and bank payout record.
 - [x] Start a private accounting register with the verified sale and full refund; unknown fee and payout values remain explicitly unconfirmed.
 - [x] Add a read-only Balance Transactions exporter that requires a separate restricted accounting key and excludes customer details.
-- [ ] With payments off, run `.\scripts\run-accounting-preflight.ps1` and enter the dedicated live accounting key only at its masked prompt. It must report live-mode PASS and write no private file before the first customer is invited; a missing permission, test-mode key, timeout or unknown result remains launch `NO-GO`.
+- [ ] With payments off, run `.\scripts\run-accounting-preflight.ps1` and enter the dedicated live accounting key only at its masked prompt. Record PASS only when the final line is exactly `ACCOUNTING_PREFLIGHT=PASS mode=live permission=balance_transactions.read private_file_written=no`. The wrapper has no test-mode override; any FAIL, missing final PASS, test-mode key, timeout, interrupted run or unknown result remains launch `NO-GO`.
 
 Production should not stay open if any identity, tax, access-delivery, refund or support check fails.
 
