@@ -117,6 +117,10 @@ for (const secureBoundary of [
   "ZeroFreeBSTR",
   '$env:PAYMENTS_ENABLED -cne "false"',
   '$env:VERCEL_ENV -cne "production"',
+  '[string]$ExpectedProductionSha',
+  "invalid_expected_production_sha",
+  'npm.cmd run deployment:verify-production -- --expected-sha $ExpectedProductionSha',
+  "production_deployment_evidence_failed",
   'npm.cmd run payments:check -- --preflight --strict --verify-stripe --verify-database',
   'npm.cmd run accounting:preflight',
   'FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no',
@@ -125,6 +129,8 @@ for (const secureBoundary of [
 assert.equal((secureRunner.match(/ZeroFreeBSTR\(/g) ?? []).length, 3, "all three masked plaintext buffers must be zeroed");
 assert.doesNotMatch(secureRunner, /Write-Host[^\n]*(?:plainAuditKey|plainAccountingKey|STRIPE_SECRET_KEY)/, "the role-separation result must not print a Stripe key");
 assert.ok(secureRunner.indexOf('SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY"') < secureRunner.indexOf("npm.cmd run payments:check"), "temporary audit credentials must be process-scoped before the strict audit starts");
+assert.ok(secureRunner.indexOf("npm.cmd run deployment:verify-production") < secureRunner.indexOf('Read-Host "One-off Stripe Account-Read audit key"'), "the exact Production deployment must pass before any masked credential is requested");
+assert.ok(secureRunner.indexOf("npm.cmd run deployment:verify-production") < secureRunner.indexOf("npm.cmd run payments:check"), "the exact Production deployment must pass before remote Stripe or Neon audits");
 assert.ok(secureRunner.indexOf("npm.cmd run payments:check") < secureRunner.indexOf('Remove-Item -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY"'), "temporary audit credentials must be cleared after the strict audit attempt");
 assert.ok(secureRunner.indexOf('SetEnvironmentVariable("STRIPE_ACCOUNTING_KEY"') < secureRunner.indexOf("npm.cmd run accounting:preflight"), "the exact accounting key checked for role separation must be permission-tested in the same process");
 assert.ok(secureRunner.indexOf("npm.cmd run payments:check") < secureRunner.indexOf("npm.cmd run accounting:preflight"), "accounting permission verification must not run before the strict payment and database audit passes");
@@ -132,7 +138,7 @@ assert.ok(secureRunner.indexOf('Remove-Item -LiteralPath "Env:STRIPE_ACCOUNTING_
 assert.ok(secureRunner.indexOf("ZeroFreeBSTR") < secureRunner.lastIndexOf("FIRST_SALE_PREFLIGHT=PASS"), "the final first-sale PASS must follow unmanaged secret-buffer cleanup");
 assert.equal((secureRunner.match(/STRIPE_KEY_ROLES=PASS/g) ?? []).length, 1, "key-role PASS must be emitted once, after every required permission preflight");
 
-function runEarlyPowerShellFixture(endpointId, overrides = {}) {
+function runEarlyPowerShellFixture(endpointId, overrides = {}, expectedProductionSha = "a".repeat(40)) {
   const fixtureEnv = { ...process.env };
   for (const name of ["PAYMENTS_STRIPE_AUDIT_KEY", "STRIPE_ACCOUNTING_KEY", "PAYMENTS_AUDIT_DB_URL", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID"]) delete fixtureEnv[name];
   Object.assign(fixtureEnv, {
@@ -150,11 +156,13 @@ function runEarlyPowerShellFixture(endpointId, overrides = {}) {
     "-ExecutionPolicy", "Bypass",
     "-File", fileURLToPath(new URL("./run-production-payment-preflight.ps1", import.meta.url)),
     "-ExpectedNeonEndpointId", endpointId,
+    "-ExpectedProductionSha", expectedProductionSha,
   ], { encoding: "utf8", env: fixtureEnv, timeout: 10_000 });
 }
 
 for (const [label, fixture, reason] of [
   ["invalid endpoint", runEarlyPowerShellFixture("not-an-endpoint"), "invalid_expected_endpoint"],
+  ["invalid Production SHA", runEarlyPowerShellFixture("ep-contract-primary-a1b2c3", {}, "not-a-full-sha"), "invalid_expected_production_sha"],
   ["payments enabled", runEarlyPowerShellFixture("ep-contract-primary-a1b2c3", { PAYMENTS_ENABLED: "true" }), "payments_must_be_off"],
 ]) {
   assert.equal(fixture.status, 1, `${label} must exit 1 before any prompt or remote access`);
@@ -166,6 +174,9 @@ for (const [label, fixture, reason] of [
 
 assert.ok(readiness.includes(".\\scripts\\run-production-payment-preflight.ps1"), "payment readiness must route live audits through the masked wrapper");
 assert.ok(checklist.includes(".\\scripts\\run-production-payment-preflight.ps1"), "the live launch checklist must route live audits through the masked wrapper");
+for (const [label, document] of [["payment readiness", readiness], ["live launch checklist", checklist]]) {
+  assert.ok(document.includes("-ExpectedProductionSha <full-owner-approved-sha>"), `${label} must pass the full owner-approved SHA to the integrated wrapper`);
+}
 
 for (const contract of [
   "current_database() <> 'neondb'",

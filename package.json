@@ -14,6 +14,7 @@
     "test:production-deployment-evidence": "node scripts/check-production-deployment-evidence.mjs",
     "test:stripe-contract": "node scripts/check-stripe-checkout-contract.mjs",
     "test:stripe-product": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-resume-pro-stripe-product.mjs",
+    "managed-payments:documents": "node scripts/verify-managed-payments-customer-document-evidence.mjs",
     "test:managed-payments-documents": "node scripts/check-managed-payments-customer-document-evidence.mjs",
     "test:checkout-resilience": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-resume-pro-checkout-resilience.mjs",
     "test:entitlement-commands": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-entitlement-commands.mjs",

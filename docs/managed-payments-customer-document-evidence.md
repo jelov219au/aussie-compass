@@ -61,7 +61,9 @@ the named party's obligations.
 
 For every row, record only:
 
-- one status: `PRESENT`, `ABSENT` or `UNVERIFIED`;
+- one status: `PRESENT`, `ABSENT`, `UNVERIFIED` or `NOT_ISSUED`;
+  `NOT_ISSUED` is allowed only for all three rows of a positively verified
+  unissued Receipt or Invoice group;
 - artifact type: Checkout, receipt or invoice;
 - visible wording location, for example `payment summary > seller line`,
   `document header > issued by`, or `footer > transaction help link`;
@@ -132,6 +134,47 @@ Audit context: `live / owner-controlled 20 August 2026 purchase and full refund`
 
 Observer record: use an internal role or approval reference only; do not use a
 person's name or email.
+
+## Read-only status classifier
+
+After completing the private nine-row observation from the original
+customer-facing artifacts, create a separate status-only JSON in the approved
+private operations location. Do not put the visible wording, business value,
+customer data, Stripe identifiers, document URLs, screenshots or reasons in
+this JSON, and never commit the completed file. The detailed observation note
+remains the source evidence; the JSON only prevents a mixed or incomplete table
+from being manually promoted to `GO`.
+
+Print a fresh blank schema to the terminal, then classify a completed private
+copy:
+
+```powershell
+npm.cmd run managed-payments:documents -- --template
+npm.cmd run managed-payments:documents -- --file <private-json-path>
+```
+
+The classifier reads one local file and does not query Stripe, open a browser,
+write a file, create or resend a document, or inspect environment variables. It
+accepts only `environment=live`, the fixed owner-controlled observation scope,
+one canonical UTC observation time, `PASS/MISSING/FAIL` for verification of the
+issued-document set, and the exact nine row keys with fixed
+`PRESENT/ABSENT/UNVERIFIED/NOT_ISSUED` values. Any extra field, changed key,
+non-live environment, URL, email, full Stripe identifier, credential or
+connection string stops before a trust decision.
+
+The only passing final line starts with:
+
+`CUSTOMER_DOCUMENT_TRUST_GATE=GO mode=live`
+
+It requires the three Checkout rows to be `PRESENT`, the issued-document set to
+be verified, every issued Receipt or Invoice group to be entirely `PRESENT`,
+every positively unissued group to be entirely `NOT_ISSUED`, at least one
+existing Receipt or Invoice to have been inspected, and a canonical observation
+time. `CUSTOMER_DOCUMENT_TRUST_GATE=NO-GO` or `STOP`, missing final output, a
+manually written `GO`, and a result from another environment or observation do
+not satisfy the launch gate. The classifier cannot replace the underlying
+artifact observation or authorise a payment, refund, customer contact, document
+action, accounting entry or tax conclusion.
 
 ## Conclusion rule
 

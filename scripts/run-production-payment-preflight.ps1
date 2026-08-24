@@ -1,6 +1,8 @@
 param(
   [Parameter(Mandatory = $true)]
-  [string]$ExpectedNeonEndpointId
+  [string]$ExpectedNeonEndpointId,
+  [Parameter(Mandatory = $true)]
+  [string]$ExpectedProductionSha
 )
 
 $ErrorActionPreference = "Stop"
@@ -27,6 +29,10 @@ try {
   $failureReason = "invalid_expected_endpoint"
   if ($ExpectedNeonEndpointId -cnotmatch '^ep-[a-z0-9-]+$') {
     throw "Use the separately approved lowercase Neon endpoint ID beginning with ep-."
+  }
+  $failureReason = "invalid_expected_production_sha"
+  if ($ExpectedProductionSha -cnotmatch '^[a-f0-9]{40}$') {
+    throw "Use the full lowercase owner-approved Production commit SHA."
   }
   $failureReason = "production_environment_required"
   if ($env:VERCEL_ENV -cne "production") {
@@ -88,6 +94,12 @@ try {
     $setEndpointVariable = $true
   }
 
+  Push-Location -LiteralPath $projectRoot
+  $locationPushed = $true
+  $failureReason = "production_deployment_evidence_failed"
+  & npm.cmd run deployment:verify-production -- --expected-sha $ExpectedProductionSha
+  if ($LASTEXITCODE -ne 0) { throw "Production deployment evidence failed closed." }
+
   $failureReason = "masked_key_input_failed"
   $secureAuditKey = Read-Host "One-off Stripe Account-Read audit key" -AsSecureString
   $auditKeyPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureAuditKey)
@@ -132,8 +144,6 @@ try {
   [Environment]::SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY", $plainAuditKey, "Process")
   [Environment]::SetEnvironmentVariable("PAYMENTS_AUDIT_DB_URL", $plainAuditDatabaseUrl, "Process")
 
-  Push-Location -LiteralPath $projectRoot
-  $locationPushed = $true
   $failureReason = "strict_payment_preflight_failed"
   & npm.cmd run payments:check -- --preflight --strict --verify-stripe --verify-database
   if ($LASTEXITCODE -ne 0) { throw "Production payment preflight failed closed." }

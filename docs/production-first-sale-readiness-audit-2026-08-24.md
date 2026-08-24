@@ -170,8 +170,11 @@ audit has not been rerun after the migration, so the first customer remains
    Production Source SHA equals the full owner-approved commit. It must be
    `2f886c2` or a reviewed descendant; a successful commit status or Preview
    deployment is not sufficient.
-2. Run `scripts/run-production-payment-preflight.ps1` with payments off. It must
-   prove three distinct `rk_live_` roles: the runtime key with only Prices Read,
+2. Run `scripts/run-production-payment-preflight.ps1` with payments off, the
+   full owner-approved Production SHA and separately approved Neon endpoint. It
+   must prove that exact SHA is the public Production deployment before asking
+   for any transient credential, then prove three distinct `rk_live_` roles:
+   the runtime key with only Prices Read,
    Products Read, Checkout Sessions create/retrieve and PaymentIntents Read; an
    Account-Read-only audit key; and a Balance-Transactions-Read accounting key.
    Pass the separately approved non-secret Neon endpoint ID and prove both the

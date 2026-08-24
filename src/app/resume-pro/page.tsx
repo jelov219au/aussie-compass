@@ -13,6 +13,7 @@ import { ResumeProLaunchInterestCopyButton, ResumeProLaunchInterestLink } from "
 import { Container } from "@/components/ui/Container";
 import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
 import { getPublicSellerDetails } from "@/lib/publicSeller";
+import { getActiveResumeProEntitlement } from "@/lib/resumeProAccess";
 import { normalizeResumeProEntry, type ResumeProEntry } from "@/lib/resumeProAttribution";
 import { getResumeProCheckoutFailure } from "@/lib/resumeProCheckoutFailure";
 import { createPageMetadata } from "@/lib/site";
@@ -114,12 +115,15 @@ type Props = { searchParams: Promise<{ access?: string; checkout?: string; devic
 
 export default async function ResumeProPage({ searchParams }: Props) {
   const { access, checkout, deviceData, from } = await searchParams;
+  const activeEntitlement = await getActiveResumeProEntitlement();
   const paymentReadiness = getPaymentReadiness();
   const testCheckoutAvailable = canCreateTestCheckout();
   const checkoutAvailable = paymentReadiness.ready || testCheckoutAvailable;
   const liveCheckoutAvailable = process.env.VERCEL_ENV === "production" && paymentReadiness.ready;
+  const hasActiveEntitlement = Boolean(activeEntitlement);
   const existingBuyerIssue = access === "required" || access === "released" || checkout === "checkout_support_required";
-  const canOfferCheckout = checkoutAvailable && !existingBuyerIssue;
+  const requiresBuyerRecovery = existingBuyerIssue && !hasActiveEntitlement;
+  const canOfferCheckout = checkoutAvailable && !requiresBuyerRecovery && !hasActiveEntitlement;
   const entry = normalizeResumeProEntry(from);
   const entryContinuation = entryContinuations[entry];
   const checkoutFailure = getResumeProCheckoutFailure(checkout);
@@ -127,7 +131,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
 
   return (
     <>
-      {!existingBuyerIssue && <ResumeProVisitTracker entry={entry} checkoutAvailable={checkoutAvailable} />}
+      {!requiresBuyerRecovery && !hasActiveEntitlement && <ResumeProVisitTracker entry={entry} checkoutAvailable={checkoutAvailable} />}
       {liveCheckoutAvailable && (
         <ProductJsonLd
           name={resumeProProduct.name}
@@ -145,31 +149,36 @@ export default async function ResumeProPage({ searchParams }: Props) {
         <section className="border-b border-navy/15 py-12 sm:py-20">
           <Container>
             <Link href="/resume-builder" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 이력서 빌더로 돌아가기</Link>
-            {access === "required" && (
+            {hasActiveEntitlement && (
+              <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">
+                이 기기의 Resume Pro 이용권을 확인했습니다. 다시 결제하지 말고 작업공간에서 저장한 지원서를 계속하세요.
+              </div>
+            )}
+            {access === "required" && !hasActiveEntitlement && (
               <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">
                 이 기기의 Resume Pro 이용권을 다시 확인해야 합니다. 다시 결제하지 마세요. 기존 기기의 1회용 복구 코드를 사용하거나 고객지원 확인 순서를 이용해 주세요.
               </div>
             )}
-            {access === "released" && (
+            {access === "released" && !hasActiveEntitlement && (
               <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">
                 {deviceData === "deleted"
                   ? "이 기기의 Resume Pro 이용 연결과 저장 데이터를 삭제했습니다. 다시 결제하지 마세요. 구매 이용권과 다른 기기의 이용은 유지됩니다."
                   : "이 기기의 Resume Pro 이용 연결을 해제했습니다. 다시 결제하지 마세요. 저장 데이터와 구매 이용권은 유지됩니다."}
               </div>
             )}
-            {checkout === "cancelled" && (
+            {checkout === "cancelled" && !hasActiveEntitlement && (
               <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">
                 결제가 취소됐습니다. 청구되지 않았으며 준비가 되면 다시 시작할 수 있습니다.
               </div>
             )}
-            {checkoutFailure && (
+            {checkoutFailure && !hasActiveEntitlement && (
               <ResumeProCheckoutFailureNotice
                 failure={checkoutFailure}
                 id="resume-pro-checkout-page-failure"
                 className="mt-5"
               />
             )}
-            {!existingBuyerIssue && entryContinuation && (
+            {!requiresBuyerRecovery && !hasActiveEntitlement && entryContinuation && (
               <section className="mt-5 border-l-2 border-gold bg-gold/8 px-5 py-4 sm:px-6" aria-labelledby="entry-continuation-heading">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#806515]">{entryContinuation.eyebrow}</p>
                 <h2 id="entry-continuation-heading" className="mt-2 max-w-3xl text-xl font-semibold text-navy">{entryContinuation.title}</h2>
@@ -177,8 +186,8 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 <p className="mt-3 max-w-3xl text-xs leading-5 text-muted">{entryContinuation.privacy}</p>
               </section>
             )}
-            {!existingBuyerIssue && <ResumeJobAdProofContinuation entry={entry} />}
-            {!existingBuyerIssue && <ResumeBuilderDraftContinuation checkoutAvailable={canOfferCheckout} />}
+            {!requiresBuyerRecovery && !hasActiveEntitlement && <ResumeJobAdProofContinuation entry={entry} />}
+            {!requiresBuyerRecovery && !hasActiveEntitlement && <ResumeBuilderDraftContinuation checkoutAvailable={canOfferCheckout} />}
             <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
               <div className="max-w-3xl">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#806515]">Resume Pro</p>
@@ -197,7 +206,9 @@ export default async function ResumeProPage({ searchParams }: Props) {
               </aside>
             </div>
             <div className="mt-10 flex flex-wrap items-start gap-3">
-              {existingBuyerIssue ? (
+              {hasActiveEntitlement ? (
+                <Link href="/resume-pro/workspace#resume-pro-workspace" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">작업공간에서 계속하기</Link>
+              ) : requiresBuyerRecovery ? (
                 <Link href="/resume-pro/restore" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">구매 이용권 복구하기</Link>
               ) : canOfferCheckout ? (
                 <ResumeProCheckoutJumpLink className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">이번 공고 지원서 묶음 만들기 ↓</ResumeProCheckoutJumpLink>
@@ -209,15 +220,15 @@ export default async function ResumeProPage({ searchParams }: Props) {
                   <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface">무료 이력서 PDF 저장하기</Link>
                 </>
               )}
-              {!existingBuyerIssue && !canOfferCheckout && seller.email && (
+              {!hasActiveEntitlement && !existingBuyerIssue && !canOfferCheckout && seller.email && (
                 <ResumeProLaunchInterestLink email={seller.email} entry={entry} className="inline-flex min-h-12 items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy hover:bg-white">
                   판매 시작 시 1회 안내 요청
                 </ResumeProLaunchInterestLink>
               )}
-              {!existingBuyerIssue && !canOfferCheckout && seller.email && (
+              {!hasActiveEntitlement && !existingBuyerIssue && !canOfferCheckout && seller.email && (
                 <ResumeProLaunchInterestCopyButton email={seller.email} entry={entry} className="inline-flex min-h-12 items-center justify-center border border-navy/30 bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold" />
               )}
-              {(existingBuyerIssue || canOfferCheckout) && <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface">경력 초안이 없다면 무료로 시작</Link>}
+              {(requiresBuyerRecovery || canOfferCheckout) && <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface">경력 초안이 없다면 무료로 시작</Link>}
             </div>
             <section className="mt-8 border-y border-navy/20 bg-white" aria-labelledby="persistent-value-heading">
               <div className="px-4 py-5 sm:px-6">
@@ -273,7 +284,9 @@ export default async function ResumeProPage({ searchParams }: Props) {
             </section>
             {canOfferCheckout && <div id="resume-pro-checkout" className="scroll-mt-24 mt-5"><ResumeProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
             <p className="mt-4 text-xs leading-5 text-muted">
-              {existingBuyerIssue
+              {hasActiveEntitlement
+                ? "이 기기의 이용권이 확인됐습니다. 작업공간에서 저장한 지원서를 다시 열거나 새 지원서를 시작하세요."
+                : requiresBuyerRecovery
                 ? "이미 구매했다면 다시 결제하지 말고, 1회용 복구 코드나 고객지원 확인 순서를 이용해 주세요."
                 : testCheckoutAvailable
                 ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다. 테스트 이용권과 결제 처리 기술 기록만 생성됩니다."
@@ -281,7 +294,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                   ? "결제는 Stripe의 보안 결제 페이지에서 진행되며, 결제가 완료되면 Resume Pro 작업 공간을 바로 열 수 있어요."
                   : "현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다."}
             </p>
-            {!existingBuyerIssue && !canOfferCheckout && seller.email && (
+            {!hasActiveEntitlement && !existingBuyerIssue && !canOfferCheckout && seller.email && (
               <p className="mt-2 max-w-3xl text-xs leading-5 text-muted">안내 요청을 누르면 이메일 앱이 열립니다. 직접 보낸 주소로 판매 시작 시 한 번만 답하며 자동 마케팅 구독 명단에 추가하지 않습니다. 지원 직무, 마감일, 공개 채용 공고 링크와 무료 경력 초안 여부만 적고 이력서 원문이나 민감정보는 보내지 마세요.</p>
             )}
             {!canOfferCheckout && (
@@ -306,9 +319,15 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 </ol>
               </div>
               <aside className="border-l-2 border-gold pl-6">
-                <p className="text-sm font-semibold text-navy">세 가지가 모두 맞나요?</p>
-                <p className="mt-2 text-sm leading-6 text-muted">A$19.90 1회 결제로 이번 지원서 묶음을 준비할 수 있어요.</p>
-                {existingBuyerIssue ? (
+                <p className="text-sm font-semibold text-navy">{hasActiveEntitlement ? "이용권 확인 완료" : "세 가지가 모두 맞나요?"}</p>
+                <p className="mt-2 text-sm leading-6 text-muted">
+                  {hasActiveEntitlement
+                    ? "결제는 이미 완료됐습니다. 작업공간에서 저장한 회사별 지원서를 다시 열거나 새 지원서를 시작하세요."
+                    : "A$19.90 1회 결제로 이번 지원서 묶음을 준비할 수 있어요."}
+                </p>
+                {hasActiveEntitlement ? (
+                  <Link href="/resume-pro/workspace#resume-pro-workspace" className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">작업공간에서 계속하기</Link>
+                ) : requiresBuyerRecovery ? (
                   <Link href="/resume-pro/restore" className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">구매 이용권 복구하기</Link>
                 ) : canOfferCheckout ? (
                   <ResumeProCheckoutJumpLink className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">Resume Pro 시작하기 ↓</ResumeProCheckoutJumpLink>
@@ -322,8 +341,12 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 ) : (
                   <span className="mt-5 inline-flex min-h-12 items-center border border-border bg-white px-5 py-3 text-sm font-semibold text-muted">결제 기능 준비 중</span>
                 )}
-                <p className="mt-5 text-xs leading-5 text-muted">아직 지원할 공고가 없다면 결제하지 말고 무료 이력서부터 완성하세요.</p>
-                <Link href="/resume-builder" className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold underline-offset-4">무료 이력서 빌더로 가기</Link>
+                {!hasActiveEntitlement && (
+                  <>
+                    <p className="mt-5 text-xs leading-5 text-muted">아직 지원할 공고가 없다면 결제하지 말고 무료 이력서부터 완성하세요.</p>
+                    <Link href="/resume-builder" className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold underline-offset-4">무료 이력서 빌더로 가기</Link>
+                  </>
+                )}
               </aside>
             </div>
           </Container>

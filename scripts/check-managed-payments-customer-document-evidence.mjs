@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
+import {
+  containsSensitiveCustomerDocumentEvidence,
+  createCustomerDocumentEvidenceTemplate,
+  customerDocumentItems,
+  customerDocumentRowKeys,
+  evaluateCustomerDocumentEvidence,
+} from "./managed-payments-customer-document-evidence-contract.mjs";
+
 const evidence = await readFile(
   new URL("../docs/managed-payments-customer-document-evidence.md", import.meta.url),
   "utf8",
@@ -17,6 +25,11 @@ const taxAgentHandoff = await readFile(
   new URL("../docs/registered-tax-agent-first-sale-handoff.md", import.meta.url),
   "utf8",
 );
+const verifier = await readFile(
+  new URL("./verify-managed-payments-customer-document-evidence.mjs", import.meta.url),
+  "utf8",
+);
+const packageSource = await readFile(new URL("../package.json", import.meta.url), "utf8");
 const [purchaseInformation, terms, paymentHelp, paymentSupportHelper] = await Promise.all([
   readFile(new URL("../src/app/purchase-information/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/terms/page.tsx", import.meta.url), "utf8"),
@@ -51,6 +64,7 @@ for (const contract of [
   "all three rows for each positively unissued document type are `NOT_ISSUED`",
   "Never collapse both types into one `Receipt or Invoice` group",
   "an uninspected issued artifact or an unknown artifact set makes the result",
+  "`NOT_ISSUED` is allowed only for all three rows",
   "CUSTOMER_DOCUMENT_TRUST_GATE=GO|NO-GO",
 ]) {
   assert.ok(compactEvidence.includes(contract), `customer-document evidence contract is missing: ${contract}`);
@@ -118,5 +132,95 @@ assert.ok(
   !purchaseInformation.includes("Stripe 영수증 정보를 보내 주세요"),
   "public guidance must not invite an unbounded receipt, URL or full Stripe identifier into support",
 );
+
+function passingPacket({ receipt = "PRESENT", invoice = "NOT_ISSUED" } = {}) {
+  const packet = createCustomerDocumentEvidenceTemplate();
+  packet.observed_at = "2026-08-25T00:30:00.000Z";
+  packet.issued_document_set_verified = "PASS";
+  for (const item of customerDocumentItems) packet.rows[`checkout.${item}`] = "PRESENT";
+  for (const item of customerDocumentItems) packet.rows[`receipt.${item}`] = receipt;
+  for (const item of customerDocumentItems) packet.rows[`invoice.${item}`] = invoice;
+  return packet;
+}
+
+assert.equal(createCustomerDocumentEvidenceTemplate().schema_version, 1);
+assert.deepEqual(Object.keys(createCustomerDocumentEvidenceTemplate().rows), customerDocumentRowKeys);
+assert.equal(evaluateCustomerDocumentEvidence(createCustomerDocumentEvidenceTemplate()).decision, "NO-GO");
+assert.equal(evaluateCustomerDocumentEvidence(passingPacket()).decision, "GO");
+assert.equal(
+  evaluateCustomerDocumentEvidence(passingPacket({ receipt: "NOT_ISSUED", invoice: "PRESENT" })).decision,
+  "GO",
+);
+
+const unknownIssuedSet = passingPacket();
+unknownIssuedSet.issued_document_set_verified = "MISSING";
+assert.equal(evaluateCustomerDocumentEvidence(unknownIssuedSet).decision, "NO-GO");
+
+const noIssuedDocumentInspected = passingPacket({ receipt: "NOT_ISSUED", invoice: "NOT_ISSUED" });
+assert.equal(evaluateCustomerDocumentEvidence(noIssuedDocumentInspected).decision, "NO-GO");
+
+const mixedUnissuedGroup = passingPacket({ receipt: "NOT_ISSUED", invoice: "PRESENT" });
+mixedUnissuedGroup.rows["receipt.document_issuer"] = "UNVERIFIED";
+assert.equal(evaluateCustomerDocumentEvidence(mixedUnissuedGroup).decision, "NO-GO");
+
+const issuedDocumentMissingField = passingPacket();
+issuedDocumentMissingField.rows["receipt.transaction_support_route"] = "ABSENT";
+assert.equal(evaluateCustomerDocumentEvidence(issuedDocumentMissingField).decision, "NO-GO");
+
+const missingObservationTime = passingPacket();
+missingObservationTime.observed_at = null;
+assert.equal(evaluateCustomerDocumentEvidence(missingObservationTime).decision, "NO-GO");
+
+const nonCanonicalObservationTime = passingPacket();
+nonCanonicalObservationTime.observed_at = "2026-08-25T10:30:00+10:00";
+assert.ok(evaluateCustomerDocumentEvidence(nonCanonicalObservationTime).errors.includes("observed_at"));
+
+const checkoutNotIssued = passingPacket();
+checkoutNotIssued.rows["checkout.transaction_seller"] = "NOT_ISSUED";
+assert.ok(evaluateCustomerDocumentEvidence(checkoutNotIssued).errors.includes("checkout_not_issued"));
+
+const extraField = passingPacket();
+extraField.rows.customer_email = "UNVERIFIED";
+assert.ok(evaluateCustomerDocumentEvidence(extraField).errors.includes("rows_shape"));
+
+const testMode = passingPacket();
+testMode.environment = "test";
+assert.ok(evaluateCustomerDocumentEvidence(testMode).errors.includes("environment"));
+
+for (const unsafe of [
+  "buyer@example.com",
+  "https://pay.example.invalid/receipt?token=sensitive",
+  "pi_1234567890ABCDEF",
+  "in_1234567890ABCDEF",
+  "rk_live_1234567890ABCDEF",
+  "postgresql://operator:secret@example.invalid/database",
+]) assert.equal(containsSensitiveCustomerDocumentEvidence(unsafe), true);
+assert.equal(containsSensitiveCustomerDocumentEvidence(JSON.stringify(passingPacket())), false);
+
+for (const forbiddenBoundary of ["process.env", "fetch(", "node:child_process", "new Stripe(", "writeFile", "mkdir"]) {
+  assert.ok(!verifier.includes(forbiddenBoundary), `the customer-document classifier must stay local and read-only: ${forbiddenBoundary}`);
+}
+assert.ok(
+  packageSource.includes('"managed-payments:documents": "node scripts/verify-managed-payments-customer-document-evidence.mjs"'),
+  "package scripts must expose the private status classifier",
+);
+for (const outputBoundary of [
+  "CUSTOMER_DOCUMENT_TRUST_GATE=GO mode=live",
+  "CUSTOMER_DOCUMENT_TRUST_GATE=NO-GO mode=live",
+  "secrets_printed=no",
+]) {
+  assert.ok(verifier.includes(outputBoundary), `the classifier is missing a canonical output boundary: ${outputBoundary}`);
+}
+for (const executableBoundary of [
+  "npm.cmd run managed-payments:documents -- --template",
+  "npm.cmd run managed-payments:documents -- --file <private-json-path>",
+  "status-only JSON",
+  "does not query Stripe",
+  "CUSTOMER_DOCUMENT_TRUST_GATE=GO mode=live",
+  "at least one existing Receipt or Invoice",
+  "cannot replace the underlying artifact observation",
+]) {
+  assert.ok(compactEvidence.includes(executableBoundary), `customer-document executable gate is missing: ${executableBoundary}`);
+}
 
 console.log("Managed Payments customer-document evidence contract passed.");

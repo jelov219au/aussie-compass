@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [successPage, activationForm, purchaseSteps, workspacePage, workspaceGuide, accessTools] = await Promise.all([
+const [offerPage, successPage, activationForm, purchaseSteps, workspacePage, workspaceGuide, accessTools] = await Promise.all([
+  readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-pro/success/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeProActivationForm.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeProPostPurchaseSteps.tsx", import.meta.url), "utf8"),
@@ -9,6 +10,16 @@ const [successPage, activationForm, purchaseSteps, workspacePage, workspaceGuide
   readFile(new URL("../src/components/tools/ResumeProWorkspaceEntryGuide.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeProAccessTools.tsx", import.meta.url), "utf8"),
 ]);
+
+assert.ok(offerPage.includes('getActiveResumeProEntitlement()'), "the offer page must recognise an active device entitlement before offering checkout");
+assert.ok(offerPage.includes('const canOfferCheckout = checkoutAvailable && !requiresBuyerRecovery && !hasActiveEntitlement;'), "an active buyer must never satisfy the checkout guard");
+assert.ok(offerPage.includes('이 기기의 Resume Pro 이용권을 확인했습니다. 다시 결제하지 말고'), "an active buyer needs explicit repurchase prevention before the offer");
+assert.ok(offerPage.includes('결제는 이미 완료됐습니다. 작업공간에서 저장한 회사별 지원서를 다시 열거나 새 지원서를 시작하세요.'), "an active buyer must not be asked to evaluate the purchase again");
+assert.ok((offerPage.match(/href="\/resume-pro\/workspace#resume-pro-workspace"/g) ?? []).length >= 2, "active-buyer CTAs must return to the fixed first-task workspace destination");
+assert.ok(offerPage.indexOf("hasActiveEntitlement ? (") < offerPage.indexOf("<ResumeProCheckoutJumpLink"), "workspace continuation must take precedence over checkout");
+assert.ok(offerPage.includes('{canOfferCheckout && <div id="resume-pro-checkout"'), "the checkout form must remain behind the active-entitlement-aware guard");
+assert.ok(offerPage.includes('checkoutFailure && !hasActiveEntitlement'), "stale Checkout errors must not replace an active buyer's safe continuation");
+assert.doesNotMatch(offerPage, /href=\{[^}]*resume-pro\/workspace|redirect\([^)]*resume-pro\/workspace/, "active-buyer recovery must not accept or construct an arbitrary workspace URL");
 
 assert.ok(successPage.includes("결제가 확인됐습니다. 이제 작업공간을 여세요."), "the paid success state needs one clear outcome");
 assert.ok(successPage.includes("paymentConfirmed={paid}"), "the progress guide must receive the verified server-side payment state");
