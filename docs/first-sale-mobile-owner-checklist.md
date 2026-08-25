@@ -116,6 +116,40 @@ secrets_copied=no pii_opened=no changes_made=no payment_attempted=no refund_atte
   새 결제, 환불, 이메일·메시지 전송 또는 외부 문의로 증거를 즉석에서
   만들지 말고 해당 owner에게 인계한다.
 
+### One-screen first-sale operating order
+
+아래는 25 August 현재의 비민감 상태와 다음 순서다. 휴대폰에서는 상태와
+담당 인계만 확인하며, 키 생성·preflight·SMTP·rehearsal·승인·결제는 실행하지
+않는다. 전체 SHA와 key 값은 이 화면에 옮기지 않는다.
+
+| # | 현재 상태 | 담당 위치 | 다음 단계와 PASS 경계 |
+| --- | --- | --- | --- |
+| 0 | `DONE` | local evidence / owner | Production exact-SHA identity, payment-off Checkout HTTP 503/no URL, 전체 quality gate가 각각 PASS다. 이 세 결과는 아래 미완료 gate를 대신하지 않는다. |
+| 1 | `HOLD` | payment operator | Stripe 지원 회신을 확인한다. 회신은 키 생성 절차의 입력일 뿐 restricted-key PASS가 아니다. key·URL·계정값을 메일·채팅·이 표에 복사하지 않는다. |
+| 2 | `HOLD` | owner laptop | Account Read 전용 audit key와 Balance Transactions Read 전용 accounting key를 각각 만들고 runtime key와 서로 다른 세 `rk_live_` 역할임을 masked wrapper 안에서만 확인한다. 생성 사실만으로 PASS 처리하지 않는다. |
+| 3 | `HOLD` | owner laptop | payments off 상태에서 통합 Production preflight를 실행한다. 정확한 최종 `FIRST_SALE_PREFLIGHT=PASS` 한 줄만 PASS이며 중단·누락·FAIL은 `HOLD`다. |
+| 4 | `HOLD` | mailbox owner / owner laptop | no-send SMTP 인증 PASS 뒤 별도 승인된 labelled non-customer test의 실제 mailbox 수신까지 확인한다. 설정 존재나 send 결과만으로 수신 PASS를 만들지 않는다. |
+| 5 | `HOLD` | technical owner / owner laptop | payments off 상태에서 승인된 Production rehearsal을 수행하고 정확한 `PRODUCTION_PAYMENT_PATH_EVIDENCE=PASS`를 확인한다. Preview rehearsal이나 Production zero-row는 대체 증거가 아니다. |
+| 6 | `NO-GO` | business owner | 위 1~5와 기존 tax/customer-document/support gate를 모두 검토한 뒤 한 건의 첫 판매만 명시적으로 승인한다. 증거가 하나라도 `HOLD/STOP/MISSING/FAIL`이면 승인하지 않는다. |
+| 7 | `NOT_STARTED` | payment → technical → accounting owner | 첫 실제 고객 결제 후 15분에는 paid/webhook/`LOCKED`/entitlement/outbox/mailbox/access를, 24시간에는 gross·표시 GST·fee·refund·ending balance·문서를, 첫 payout에는 itemised payout·은행 입금·clearing 차이 ±A$0.01을 순서대로 대사한다. 환불은 원거래 보존·실제 조정·접근 revoke/review를 연결하고 자동 reopen하지 않으며, 접근 문제는 재결제 없이 entitlement/access/restore 경로로 인계한다. |
+
+현재 상태의 고정 요약은 다음과 같다. `DONE`을 아래 `HOLD`로 전파하지
+않고, 첫 고객 결제 전에는 `POST_SALE_EVIDENCE=NOT_STARTED`를 유지한다.
+
+```text
+DEPLOYMENT_IDENTITY=PASS
+CHECKOUT_OFF_BOUNDARY=PASS
+LOCAL_QUALITY_GATE=PASS
+STRIPE_SUPPORT_REPLY=HOLD
+RESTRICTED_KEY_SET=HOLD
+INTEGRATED_PREFLIGHT=HOLD
+SMTP_RECEIPT=HOLD
+PRODUCTION_REHEARSAL=HOLD
+FIRST_SALE_OWNER_DECISION=NO-GO
+POST_SALE_EVIDENCE=NOT_STARTED
+SECOND_SALE=HOLD
+```
+
 ## Status-only handoff
 
 최종 소유자 기록에는 아래 상태만 남긴다. 모바일 결과나 이 문서만으로

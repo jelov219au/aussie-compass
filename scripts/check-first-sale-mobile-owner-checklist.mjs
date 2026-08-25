@@ -17,6 +17,7 @@ for (const heading of [
   "### Mobile status-only summary",
   "## Agent — local, no-credential work",
   "## Owner laptop — protected operations",
+  "### One-screen first-sale operating order",
   "## Status-only handoff",
 ]) assert.ok(checklist.includes(heading), `mobile owner checklist is missing heading: ${heading}`);
 
@@ -39,7 +40,39 @@ for (const boundary of [
   "PAYMENTS_OFF=PASS|HOLD|STOP",
   "CUSTOMER_DOCUMENTS=GO|NO-GO|STOP",
   "FIRST_SALE_OWNER_DECISION=NO-GO",
+  "DEPLOYMENT_IDENTITY=PASS",
+  "CHECKOUT_OFF_BOUNDARY=PASS",
+  "LOCAL_QUALITY_GATE=PASS",
+  "STRIPE_SUPPORT_REPLY=HOLD",
+  "RESTRICTED_KEY_SET=HOLD",
+  "INTEGRATED_PREFLIGHT=HOLD",
+  "SMTP_RECEIPT=HOLD",
+  "PRODUCTION_REHEARSAL=HOLD",
+  "POST_SALE_EVIDENCE=NOT_STARTED",
+  "SECOND_SALE=HOLD",
 ]) assert.ok(compact.includes(boundary), `mobile owner checklist is missing boundary: ${boundary}`);
+
+const orderedOwnerSteps = [
+  "Stripe 지원 회신",
+  "Account Read 전용 audit key",
+  "FIRST_SALE_PREFLIGHT=PASS",
+  "no-send SMTP 인증",
+  "PRODUCTION_PAYMENT_PATH_EVIDENCE=PASS",
+  "한 건의 첫 판매만 명시적으로 승인",
+  "첫 실제 고객 결제 후 15분",
+  "24시간에는 gross",
+  "첫 payout에는 itemised payout",
+];
+const oneScreenSection = checklist.slice(
+  checklist.indexOf("### One-screen first-sale operating order"),
+  checklist.indexOf("## Status-only handoff"),
+);
+let previousStepIndex = -1;
+for (const step of orderedOwnerSteps) {
+  const stepIndex = oneScreenSection.indexOf(step);
+  assert.ok(stepIndex > previousStepIndex, `mobile owner sequence is missing or out of order: ${step}`);
+  previousStepIndex = stepIndex;
+}
 
 for (const gate of [
   "REGISTERED_TAX_AGENT_HANDOFF_GATE=PASS",
