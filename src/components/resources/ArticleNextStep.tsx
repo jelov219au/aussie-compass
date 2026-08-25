@@ -27,12 +27,14 @@ const nextSteps: Record<
   "australia-resume-template-submission-checklist": {
     heading: "무료 양식으로 먼저 완성하고, 실제 공고가 생기면 맞추세요",
     description:
-      "무료 Builder에서 실제 경력을 저장하고 PDF를 직접 확인하세요. 지원할 공고가 정해진 뒤 같은 사실을 이력서·커버레터·면접 메모에 일관되게 연결해야 할 때만 Resume Pro를 검토하면 돼요.",
+      "무료 Builder에서 실제 경력을 저장하고 PDF를 직접 확인하세요. 지원할 공고가 정해지면 무료 점검기로 저장한 이력서와 공고의 표현 차이를 먼저 확인하고, 검증한 근거를 회사별 이력서·커버레터·면접 메모에 반복해서 써야 할 때만 Resume Pro를 검토하면 돼요.",
     freeLabel: "무료 이력서 작성·PDF 저장하기",
-    proLabel: "이 공고용 지원서 묶음 준비하기",
+    proofEntry: "article-resume-template",
+    proofLabel: "저장한 이력서와 공고 무료 비교하기",
+    proLabel: "검증한 근거를 지원서 묶음으로 재사용하기",
     proHref: "/resume-pro?from=article-resume-template",
     context: resumeFunnelContexts.resumeTemplateGuide,
-    note: "무료 Builder는 현재 브라우저에 저장돼요. Resume Pro도 입력하지 않은 경력·자격·수치를 만들지 않으며, 면접이나 취업 결과를 보장하지 않아요.",
+    note: "Builder 작성본은 현재 브라우저에 저장되고, 무료 비교의 이력서·공고 원문은 서버로 보내거나 저장하지 않아요. Resume Pro도 입력하지 않은 경력·자격·수치를 만들지 않으며, 면접이나 취업 결과를 보장하지 않아요.",
   },
   "australia-job-search-plan": {
     heading: "지원할 공고가 생겼다면, 다음 단계로 이어가세요",
@@ -96,7 +98,7 @@ export function ArticleNextStep({ slug, toolHref, toolLabel }: ArticleNextStepPr
       </h2>
       <p className="mt-3 max-w-3xl text-sm leading-7 text-muted sm:text-base">{nextStep.description}</p>
       {nextStep.proofEntry && nextStep.proofLabel ? (
-        <ol className="mt-6 grid gap-3 lg:grid-cols-3" aria-label="커버레터 준비 다음 단계">
+        <ol className="mt-6 grid gap-3 lg:grid-cols-3" aria-label="저장·비교·재사용 다음 단계">
           <li>
             <TrackedLink
               href={toolHref}

@@ -48,10 +48,21 @@ for (const principle of ["현재 브라우저에 저장", "PDF로 내보내", "�
 }
 
 assert.ok(articleStep.includes('/resume-pro?from=article-resume-template'), "the article CTA is missing its fixed acquisition entry");
+assert.ok(articleStep.includes('proofEntry: "article-resume-template"'), "the saved resume must keep its allowlisted source into the free comparison step");
 assert.ok(attribution.includes('"article-resume-template"'), "checkout attribution must allow the resume-template entry");
 assert.ok(contract.includes('resume_template_guide') && contract.includes('/resume-pro?from=article-resume-template'), "analytics must use fixed resume-template values");
 assert.ok(report.includes('"article-resume-template"'), "the operator report must label the resume-template entry");
-assert.ok(articleStep.indexOf("무료 이력서 작성·PDF 저장하기") < articleStep.indexOf("이 공고용 지원서 묶음 준비하기"), "the free Builder CTA must remain first");
+for (const value of ["01 · 저장", "02 · 비교", "03 · 재사용", "저장한 이력서와 공고 무료 비교하기", "검증한 근거를 지원서 묶음으로 재사용하기"]) {
+  assert.ok(articleStep.includes(value), `the resume-template next step is missing: ${value}`);
+}
+const freeBuilder = articleStep.indexOf("무료 이력서 작성·PDF 저장하기");
+const freeProof = articleStep.indexOf("저장한 이력서와 공고 무료 비교하기");
+const proReuse = articleStep.indexOf("검증한 근거를 지원서 묶음으로 재사용하기");
+assert.ok(freeBuilder >= 0 && freeBuilder < freeProof && freeProof < proReuse, "the article must keep save, free comparison, and Pro reuse in that order");
+assert.ok(articleStep.includes("<ResumeProProofLink entry={nextStep.proofEntry}"), "the comparison must use the existing privacy-safe proof link");
+assert.ok(articleStep.includes('aria-label="저장·비교·재사용 다음 단계"'), "the three-step path needs an accurate accessible name");
+assert.match(articleStep, /<ol className="mt-6 grid gap-3 lg:grid-cols-3"/, "the three steps must stay stacked at 390px and move to columns only on large screens");
+assert.match(articleStep, /TrackedLink[\s\S]*min-h-32[\s\S]*ResumeProProofLink[\s\S]*min-h-32[\s\S]*ResumeProCtaLink[\s\S]*min-h-32/, "all three mobile actions need large touch targets");
 
 assert.ok(planner.includes(path) && campaignBuilder.includes(path) && performance.includes(path));
 console.log("Resume-template acquisition loop contract passed.");
