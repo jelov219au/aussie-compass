@@ -4,9 +4,9 @@ This is the short owner checklist for opening Resume Pro payments. Keep legal na
 
 ## 0. Production deployment identity
 
-- [ ] In Vercel, record the full Production Source SHA and require it to equal the full owner-approved deployment commit. The commit must be `2f886c2` or a reviewed descendant that preserves its first-sale recovery and operations hardening; verify ancestry locally with `git merge-base --is-ancestor 2f886c2 <production-source-sha>`. A successful Vercel status on a commit, branch name, deployment URL, alias or timestamp does not prove that deployment was promoted to Production.
-- [ ] After promotion, check the public Production Resume Pro and invalid restore-state pages without submitting a Checkout or restore request. They must render the reviewed candidate while Resume Pro still shows the launch-preparing/no-payment state. Public content is supporting evidence only; it cannot replace the exact Vercel Production Source SHA match.
-- [ ] Run `npm run deployment:verify-production -- --expected-sha <full-approved-sha>` and retain only its non-secret final PASS from `docs/production-deployment-evidence.md`. Preview `success`, different `data-dpl-id` values across the exact-SHA deployment and public origins, or any missing marker remains `NO-GO`.
+- [x] Vercel's full Production Source SHA was matched to the full owner-approved deployment commit, a reviewed descendant of `2f886c2` that preserves the first-sale recovery and operations hardening. The ancestry boundary remains `git merge-base --is-ancestor 2f886c2 <production-source-sha>`; a successful Vercel status on a commit alone is never sufficient.
+- [x] The exact-SHA Production origin and public Production pages matched the reviewed candidate while Resume Pro remained in the launch-preparing/payment-off state. The controlled Checkout check returned HTTP 503 `checkout_unavailable` without a Checkout URL.
+- [x] The non-secret verifier result was retained as the exact canonical `PRODUCTION_DEPLOYMENT_EVIDENCE=PASS source_sha=exact environment=production deployment=success origins=same-dpl-id public_markers=verified payments=off secrets_printed=no`. This completes deployment identity only; it does not satisfy the restricted-key preflight, SMTP receipt or Production functional rehearsal below.
 
 ## 1. Business identity
 

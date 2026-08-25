@@ -12,16 +12,29 @@ audit-login privilege matrices are ready, the live Stripe account can charge
 and pay out, and live Resume Pro has no existing open Checkout Session. The
 Production entitlement-link forward fix is now applied and its postflight and
 complete effective-privilege matrix pass. Stripe's public support email is now
-present. The latest reviewed branch commit has a successful Vercel status, but
-the public Production response does not yet contain that commit's restore-error
-accessibility marker, so Production promotion and exact Source SHA identity are
-not proven. Launch still requires a proven three-key least-privilege integrated
-preflight with the strict-audit Neon endpoint pin, real SMTP transport proof and
-a controlled Production functional rehearsal. The target-environment strict
-audit has not been rerun after the migration, so the first customer remains
-**NO-GO**.
+present. The owner-approved Production deployment now has the exact-SHA
+deployment identity PASS, and the payment-off Checkout check returned HTTP 503
+without a Checkout URL. These prove the reviewed Production identity and
+fail-closed payment-off boundary only. Launch still requires a proven three-key
+least-privilege integrated preflight with the strict-audit Neon endpoint pin,
+real SMTP receipt proof and a controlled Production functional rehearsal. The
+target-environment strict audit has not been rerun after the migration, so the
+first customer remains **NO-GO**. Do not copy the deployment PASS into the
+15-minute, 24-hour or first-payout integrated-preflight checks; those remain
+`MISSING` until the exact `FIRST_SALE_PREFLIGHT=PASS` is obtained.
 
 ## Read-only evidence
+
+- Post-audit update on 25 August: the exact canonical
+  `PRODUCTION_DEPLOYMENT_EVIDENCE=PASS source_sha=exact environment=production deployment=success origins=same-dpl-id public_markers=verified payments=off secrets_printed=no`
+  result was retained and proves the Production Source SHA equals the full
+  owner-approved commit. The payment-off Checkout check returned HTTP 503
+  `checkout_unavailable` and no Checkout URL. This does not prove either
+  transient restricted key, SMTP receipt or the Production payment-path
+  rehearsal.
+- The deployment observations immediately below are the superseded 24 August
+  point-in-time state; they remain as audit history and are not the current
+  deployment-identity decision.
 
 - GitHub reports branch `codex/resume-pro-production-readiness` at local/remote
   commit `2f886c2`, and that commit's Vercel status is `success`. This proves a
@@ -166,11 +179,10 @@ audit has not been rerun after the migration, so the first customer remains
 
 ## Remaining pre-customer blockers
 
-1. Promote the reviewed candidate to Production and prove Vercel's full
-   Production Source SHA equals the full owner-approved commit. It must be
-   `2f886c2` or a reviewed descendant; a successful commit status or Preview
-   deployment is not sufficient.
-2. Run `scripts/run-production-payment-preflight.ps1` with payments off, the
+Production exact-SHA identity and the Checkout HTTP 503/no-URL boundary are
+complete. They do not satisfy any blocker below.
+
+1. Run `scripts/run-production-payment-preflight.ps1` with payments off, the
    full owner-approved Production SHA and separately approved Neon endpoint. It
    must prove that exact SHA is the public Production deployment before asking
    for any transient credential, then prove three distinct `rk_live_` roles:
@@ -183,22 +195,22 @@ audit has not been rerun after the migration, so the first customer remains
    payment/database audit, and cleanup must finish before the exact final
    `FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no`
    result. Never deploy or persist either audit key or the audit DB credential.
-3. Run the protected no-send SMTP authentication check, then the separately
+2. Run the protected no-send SMTP authentication check, then the separately
    approved labelled test-message path, and confirm receipt in the monitored
    mailbox. Keep credentials out of shell history, chat and logs.
-4. With payments still off, run one approved controlled Production
+3. With payments still off, run one approved controlled Production
    post-migration rehearsal that proves reservation, attached Checkout expiry
    handling, payment/refund alert outbox delivery, activation same-nonce
    response-loss, different-nonce denial, permanent device release and one-time
    restore. The Preview rehearsal is supporting evidence, not a substitute.
-5. Record suffix-only and count-only Production evidence for the resulting
+4. Record suffix-only and count-only Production evidence for the resulting
    gate, outbox, entitlement and access-session rows. Zero current Production
    rows cannot prove these paths.
-6. Confirm the actual Managed Payments Checkout and every receipt/invoice
+5. Confirm the actual Managed Payments Checkout and every receipt/invoice
    actually issued for transaction seller, document issuer and transaction
    support using `docs/managed-payments-customer-document-evidence.md`; keep the
    completed evidence private and do not infer an unissued invoice.
-7. Complete ABN/GST and bookkeeping treatment review with the registered tax
+6. Complete ABN/GST and bookkeeping treatment review with the registered tax
    agent and preserve it outside the repository.
 
 After these pass, the owner may approve a single opt-in first-customer notice
