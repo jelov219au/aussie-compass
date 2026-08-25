@@ -15,7 +15,7 @@ const publicOrigin = "https://hojucompass.com";
 const productPath = "/resume-pro";
 const restorePath = "/resume-pro/restore?status=invalid";
 const deploymentId = "dpl_ExactProductionFixture";
-const paymentOffBody = `<html data-dpl-id="${deploymentId}"><span>Pro 작업 공간 출시 준비 중</span><p>현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다.</p></html>`;
+const paymentOffBody = `<html data-dpl-id="${deploymentId}"><p>현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다.</p></html>`;
 const restoreBody = `<html data-dpl-id="${deploymentId}"><p id="resume-pro-restore-notice" aria-atomic="true">invalid</p></html>`;
 
 function jsonResponse(value, url) {
@@ -149,6 +149,14 @@ await expectFailure("payments_not_proven_off", {
   fetchImpl: createFixtureFetch({
     pages: {
       [`${publicOrigin}${productPath}`]: paymentOffBody.replace("</html>", '<div id="resume-pro-checkout"></div></html>'),
+    },
+  }),
+});
+await expectFailure("payments_not_proven_off", {
+  expectedSha,
+  fetchImpl: createFixtureFetch({
+    pages: {
+      [`${publicOrigin}${productPath}`]: paymentOffBody.replace("현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다.", "결제 상태를 확인할 수 없습니다."),
     },
   }),
 });

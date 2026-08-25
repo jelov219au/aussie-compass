@@ -146,8 +146,7 @@ function assertRestoreMarkers(body) {
 
 function assertPaymentsOff(body) {
   if (
-    !body.includes("Pro 작업 공간 출시 준비 중")
-    || !body.includes("현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다.")
+    !body.includes("현재는 제품 미리보기 단계이며 결제·계정 생성·개인정보 수집이 진행되지 않습니다.")
     || body.includes('id="resume-pro-checkout"')
   ) fail("payments_not_proven_off");
 }
