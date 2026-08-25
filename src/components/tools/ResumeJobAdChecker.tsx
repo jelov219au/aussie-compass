@@ -225,9 +225,12 @@ export function ResumeJobAdChecker() {
         <div className="mt-6 flex flex-wrap gap-3"><button type="button" onClick={downloadEvidenceMemo} className="inline-flex min-h-12 items-center bg-navy px-4 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">근거 메모 TXT 저장</button><button type="button" onClick={copyEvidenceMemo} className="inline-flex min-h-11 items-center border-b-2 border-gold px-2 text-sm font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">근거 메모 복사</button><button type="button" onClick={shareChecker} className="inline-flex min-h-11 items-center border-b-2 border-border px-2 text-sm font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">점검기 링크 공유 ↗</button></div>
         <p className="mt-2 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{resultActionMessage}</p>
         <section className="mt-7 border border-navy/20 bg-white p-5 sm:p-6" aria-labelledby="job-ad-next-step-heading" aria-describedby="job-ad-next-step-description">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Resume Pro가 줄이는 반복</p>
-          <h3 id="job-ad-next-step-heading" className="mt-2 text-xl font-semibold text-navy">무료 메모 저장과 회사별 저장은 이렇게 달라요.</h3>
-          <p id="job-ad-next-step-description" className="mt-2 max-w-3xl text-sm leading-6 text-muted">무료 점검의 이력서·공고 원문은 저장되지 않고, 표현 후보와 확인 상태만 현재 탭에 최대 30분 남아요. 한 번 수정하면 충분한지, 회사별 지원 기록으로 다시 열어 비교할지에 따라 선택하세요.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Resume Pro가 줄이는 반복 · 현재 결과로 결정하기</p>
+          <h3 id="job-ad-next-step-heading" className="mt-2 text-xl font-semibold text-navy">이번 이력서만 고칠지, 이 회사 지원서를 저장할지 선택하세요.</h3>
+          <p id="job-ad-next-step-description" className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+            현재 결과는 문구 확인 {result.matchedCount}개 · 실제 근거 확인 {result.missingCount}개입니다. 이 개수는 합격 점수가 아니에요. 이번 한 번만 고치면 무료 TXT와 Builder로 끝내고, 같은 근거를 회사별 지원서로 다시 열어 비교해야 하면 Pro 저장 결과를 확인하세요.
+          </p>
+          <p className="mt-3 max-w-3xl text-xs leading-5 text-muted">무료 점검의 이력서·공고 원문은 저장되지 않고, 표현 후보와 확인 상태만 현재 탭에 최대 30분 남아요.</p>
           <ol className="mt-5 grid gap-px bg-border sm:grid-cols-3" aria-label="무료 점검과 Resume Pro 저장 가치 비교">
             <li className="bg-surface p-4"><span className="font-mono text-xs text-muted">01 · 무료 저장</span><strong className="mt-2 block text-navy">근거 메모 TXT 저장</strong><span className="mt-1 block text-xs leading-5 text-muted">원문 없이 표현 후보와 근거 질문을 저장해 다음 지원에서 파일로 다시 열어요.</span></li>
             <li className="bg-white p-4"><span className="font-mono text-xs text-muted">02 · 회사별</span><strong className="mt-2 block text-navy">경력 + 실제 공고 저장</strong><span className="mt-1 block text-xs leading-5 text-muted">저장된 Builder 경력과 공고를 공고별 이력서·커버레터·면접 메모로 묶어요.</span></li>

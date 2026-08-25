@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const checker = await readFile(new URL("../src/components/tools/ResumeJobAdChecker.tsx", import.meta.url), "utf8");
+const [checker, offerPage] = await Promise.all([
+  readFile(new URL("../src/components/tools/ResumeJobAdChecker.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8"),
+]);
 
 const decisionStart = checker.indexOf('<section className="mt-7 border border-navy/20');
 const decisionEnd = checker.indexOf("</section>", decisionStart);
@@ -13,6 +16,12 @@ for (const contract of [
   'aria-labelledby="job-ad-next-step-heading"',
   'aria-describedby="job-ad-next-step-description"',
   'aria-label="무료 점검과 Resume Pro 저장 가치 비교"',
+  "현재 결과로 결정하기",
+  "이번 이력서만 고칠지, 이 회사 지원서를 저장할지 선택하세요.",
+  "현재 결과는 문구 확인 {result.matchedCount}개 · 실제 근거 확인 {result.missingCount}개입니다.",
+  "이 개수는 합격 점수가 아니에요.",
+  "이번 한 번만 고치면 무료 TXT와 Builder로 끝내고",
+  "같은 근거를 회사별 지원서로 다시 열어 비교해야 하면 Pro 저장 결과를 확인하세요.",
   "무료 점검의 이력서·공고 원문은 저장되지 않고",
   "표현 후보와 확인 상태만 현재 탭에 최대 30분 남아요.",
   "근거 메모 TXT 저장",
@@ -47,5 +56,11 @@ const resultActions = checker.slice(resultActionsStart, resultActionsEnd);
 assert.ok(resultActions.indexOf("근거 메모 TXT 저장") < resultActions.indexOf("근거 메모 복사") && resultActions.indexOf("근거 메모 복사") < resultActions.indexOf("점검기 링크 공유"), "save, copy and share must follow the useful mobile and keyboard order");
 assert.equal((resultActions.match(/focus-visible:ring-2/g) ?? []).length, 3, "all free-result actions need explicit keyboard focus indicators");
 assert.doesNotMatch(checker.slice(checker.indexOf("function downloadEvidenceMemo"), checker.indexOf("async function copyEvidenceMemo")), /track\(|resumeText|jobAdText|sessionStorage|localStorage/, "TXT saving must stay local and exclude pasted raw inputs and analytics");
+
+for (const handoffCopy of [
+  "이번 이력서만 고칠지, 이 회사 지원서를 저장해 다시 열지 결정하세요.",
+  "무료로는 원문 없는 근거 메모를 내려받고 Builder에서 이번 이력서를 고칠 수 있어요.",
+  "회사별 이력서·커버레터·STAR 면접 메모·체크리스트로 저장해 다시 열고 비교하는 단계입니다.",
+]) assert.ok(offerPage.includes(handoffCopy), `the offer handoff is missing the same result-based decision: ${handoffCopy}`);
 
 console.log("Resume Job Ad Checker pre-purchase decision contract passed.");
