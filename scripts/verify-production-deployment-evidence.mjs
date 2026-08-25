@@ -13,6 +13,7 @@ function readExpectedSha(argumentsList) {
 try {
   const result = await auditProductionDeploymentEvidence({
     expectedSha: readExpectedSha(process.argv.slice(2)),
+    bypassSecret: process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.trim() || null,
   });
   console.log(formatProductionDeploymentPass());
   console.log(`PRODUCTION_DEPLOYMENT_URL=${result.deploymentUrl}`);

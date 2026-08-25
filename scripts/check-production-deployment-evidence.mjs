@@ -53,7 +53,7 @@ function statusFixture(overrides = {}) {
   };
 }
 
-function createFixtureFetch({ deployments = [deploymentFixture()], statuses = [statusFixture()], pages = {} } = {}) {
+function createFixtureFetch({ deployments = [deploymentFixture()], statuses = [statusFixture()], pages = {}, requests = [] } = {}) {
   const pageBodies = new Map([
     [`${deploymentOrigin}${productPath}`, paymentOffBody],
     [`${deploymentOrigin}${restorePath}`, restoreBody],
@@ -62,8 +62,9 @@ function createFixtureFetch({ deployments = [deploymentFixture()], statuses = [s
     ...Object.entries(pages),
   ]);
 
-  return async (input) => {
+  return async (input, init = {}) => {
     const url = input.toString();
+    requests.push({ url, headers: init.headers ?? {} });
     if (url === deploymentApiUrl) return jsonResponse(deployments, url);
     if (url === statusesUrl) return jsonResponse(statuses, url);
     if (pageBodies.has(url)) return textResponse(pageBodies.get(url), url);
@@ -82,6 +83,25 @@ const result = await auditProductionDeploymentEvidence({ expectedSha, fetchImpl:
 assert.equal(result.expectedSha, expectedSha);
 assert.equal(result.deploymentId, deploymentId);
 assert.equal(formatProductionDeploymentPass(), "PRODUCTION_DEPLOYMENT_EVIDENCE=PASS source_sha=exact environment=production deployment=success origins=same-dpl-id public_markers=verified payments=off secrets_printed=no");
+
+const bypassSecret = "vercel-bypass-contract-secret";
+const bypassRequests = [];
+await auditProductionDeploymentEvidence({
+  expectedSha,
+  bypassSecret,
+  fetchImpl: createFixtureFetch({ requests: bypassRequests }),
+});
+const deploymentRequests = bypassRequests.filter(({ url }) => url.startsWith(deploymentOrigin));
+const publicRequests = bypassRequests.filter(({ url }) => url.startsWith(publicOrigin));
+assert.equal(deploymentRequests.length, 2);
+assert.ok(deploymentRequests.every(({ headers }) => headers["x-vercel-protection-bypass"] === bypassSecret));
+assert.ok(publicRequests.every(({ headers }) => !("x-vercel-protection-bypass" in headers)));
+
+await expectFailure("invalid_protection_bypass_secret", {
+  expectedSha,
+  bypassSecret: "too-short",
+  fetchImpl: createFixtureFetch(),
+});
 
 await expectFailure("invalid_expected_sha", { expectedSha: expectedSha.slice(0, 7), fetchImpl: createFixtureFetch() });
 await expectFailure("production_deployment_missing", {
@@ -136,5 +156,6 @@ await expectFailure("payments_not_proven_off", {
 const failLine = formatProductionDeploymentFail("production_deployment_missing");
 assert.match(failLine, /^PRODUCTION_DEPLOYMENT_EVIDENCE=FAIL .* launch=NO-GO reason=production_deployment_missing$/);
 assert.doesNotMatch(failLine, /https?:|token|credential|secret=/i);
+assert.doesNotMatch(formatProductionDeploymentPass(), /vercel-bypass-contract-secret/);
 
 console.log("Production deployment evidence fails closed on Preview, SHA, status, alias and public-marker mismatches.");

@@ -120,6 +120,8 @@ for (const secureBoundary of [
   '[string]$ExpectedProductionSha',
   "invalid_expected_production_sha",
   'npm.cmd run deployment:verify-production -- --expected-sha $ExpectedProductionSha',
+  'VERCEL_AUTOMATION_BYPASS_SECRET',
+  'Remove-Item -LiteralPath "Env:VERCEL_AUTOMATION_BYPASS_SECRET"',
   "production_deployment_evidence_failed",
   'npm.cmd run payments:check -- --preflight --strict --verify-stripe --verify-database',
   'npm.cmd run accounting:preflight',
@@ -144,6 +146,7 @@ function runEarlyPowerShellFixture(endpointId, overrides = {}, expectedProductio
   Object.assign(fixtureEnv, {
     VERCEL_ENV: "production",
     PAYMENTS_ENABLED: "false",
+    VERCEL_AUTOMATION_BYPASS_SECRET: "vercel-bypass-contract-secret",
     STRIPE_SECRET_KEY: "rk" + "_live_contract_fixture_only",
     ENTITLEMENT_DB_URL: "postgresql://runtime:placeholder@ep-contract-primary-a1b2c3.ap-southeast-2.aws.neon.tech/neondb",
     ENTITLEMENT_DB_DATABASE_URL: "",

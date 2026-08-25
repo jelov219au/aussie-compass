@@ -98,7 +98,7 @@ async function readJson(fetchImpl, url, reason) {
   }
 }
 
-async function readPage(fetchImpl, origin, path, reason) {
+async function readPage(fetchImpl, origin, path, reason, extraHeaders = {}) {
   const requestedUrl = new URL(path, origin);
   let response;
   try {
@@ -107,6 +107,7 @@ async function readPage(fetchImpl, origin, path, reason) {
         Accept: "text/html",
         "Cache-Control": "no-cache",
         "User-Agent": "hoju-compass-production-evidence/1.0",
+        ...extraHeaders,
       },
       redirect: "follow",
       signal: AbortSignal.timeout(10_000),
@@ -156,8 +157,15 @@ export function validateExpectedProductionSha(value) {
   return value;
 }
 
-export async function auditProductionDeploymentEvidence({ expectedSha, fetchImpl = fetch }) {
+export async function auditProductionDeploymentEvidence({ expectedSha, bypassSecret = null, fetchImpl = fetch }) {
   validateExpectedProductionSha(expectedSha);
+  if (
+    bypassSecret !== null
+    && (typeof bypassSecret !== "string"
+      || bypassSecret.length < 16
+      || bypassSecret.length > 256
+      || /[\u0000-\u001f\u007f]/.test(bypassSecret))
+  ) fail("invalid_protection_bypass_secret");
 
   const deploymentsUrl = new URL(`/repos/${repository}/deployments`, githubApiOrigin);
   deploymentsUrl.searchParams.set("environment", "Production");
@@ -190,9 +198,12 @@ export async function auditProductionDeploymentEvidence({ expectedSha, fetchImpl
   ) fail("production_deployment_not_successful");
 
   const deploymentOrigin = assertDeploymentOrigin(status.environment_url);
+  const deploymentHeaders = bypassSecret
+    ? { "x-vercel-protection-bypass": bypassSecret }
+    : {};
   const [deploymentProduct, deploymentRestore, publicProduct, publicRestore] = await Promise.all([
-    readPage(fetchImpl, deploymentOrigin, productPath, "deployment_product_unavailable"),
-    readPage(fetchImpl, deploymentOrigin, restorePath, "deployment_restore_unavailable"),
+    readPage(fetchImpl, deploymentOrigin, productPath, "deployment_product_unavailable", deploymentHeaders),
+    readPage(fetchImpl, deploymentOrigin, restorePath, "deployment_restore_unavailable", deploymentHeaders),
     readPage(fetchImpl, productionOrigin, productPath, "public_product_unavailable"),
     readPage(fetchImpl, productionOrigin, restorePath, "public_restore_unavailable"),
   ]);

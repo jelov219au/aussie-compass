@@ -47,6 +47,14 @@ try {
     Write-KeyRoleFailure "runtime_live_restricted_key_required"
     throw "The loaded Production runtime must use a live restricted Stripe key."
   }
+  $failureReason = "automation_bypass_secret_required"
+  if (
+    [string]::IsNullOrWhiteSpace($env:VERCEL_AUTOMATION_BYPASS_SECRET) -or
+    $env:VERCEL_AUTOMATION_BYPASS_SECRET.Length -lt 16 -or
+    $env:VERCEL_AUTOMATION_BYPASS_SECRET.Length -gt 256
+  ) {
+    throw "Use the process-only Vercel Automation Bypass secret for the protected exact-deployment check."
+  }
   $failureReason = "audit_key_preloaded"
   if (Test-Path -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY") {
     Write-KeyRoleFailure "audit_key_preloaded"
@@ -99,6 +107,7 @@ try {
   $failureReason = "production_deployment_evidence_failed"
   & npm.cmd run deployment:verify-production -- --expected-sha $ExpectedProductionSha
   if ($LASTEXITCODE -ne 0) { throw "Production deployment evidence failed closed." }
+  Remove-Item -LiteralPath "Env:VERCEL_AUTOMATION_BYPASS_SECRET" -ErrorAction SilentlyContinue
 
   $failureReason = "masked_key_input_failed"
   $secureAuditKey = Read-Host "One-off Stripe Account-Read audit key" -AsSecureString
@@ -163,6 +172,7 @@ try {
   Remove-Item -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY" -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath "Env:PAYMENTS_AUDIT_DB_URL" -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath "Env:STRIPE_ACCOUNTING_KEY" -ErrorAction SilentlyContinue
+  Remove-Item -LiteralPath "Env:VERCEL_AUTOMATION_BYPASS_SECRET" -ErrorAction SilentlyContinue
   if ($setEndpointVariable) {
     Remove-Item -LiteralPath "Env:PAYMENTS_EXPECTED_NEON_ENDPOINT_ID" -ErrorAction SilentlyContinue
   }
