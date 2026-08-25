@@ -31,6 +31,11 @@ export function RentalApplicationPortfolio({
   onRemove,
   atLimit,
   canRemove,
+  firstCandidateSaved,
+  firstCandidateLabel,
+  firstCandidateMessage,
+  onFirstCandidateLabelChange,
+  onSaveFirstCandidate,
 }: {
   packs: RentalApplicationPackSummary[];
   activeId: string;
@@ -40,9 +45,31 @@ export function RentalApplicationPortfolio({
   onRemove: () => void;
   atLimit: boolean;
   canRemove: boolean;
+  firstCandidateSaved: boolean;
+  firstCandidateLabel: string;
+  firstCandidateMessage: string;
+  onFirstCandidateLabelChange: (label: string) => void;
+  onSaveFirstCandidate: () => void;
 }) {
   return (
     <section className="border-y border-navy/20 py-7" aria-labelledby="rental-portfolio-heading">
+      {!firstCandidateSaved ? (
+        <form className="mb-7 border-l-4 border-gold bg-gold/10 p-5 sm:p-6" onSubmit={(event) => { event.preventDefault(); onSaveFirstCandidate(); }} aria-labelledby="rental-first-candidate-heading">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">구매 후 첫 1분</p>
+          <h2 id="rental-first-candidate-heading" className="mt-2 text-xl font-semibold text-navy">첫 집 후보 하나를 먼저 저장하세요.</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">정확한 주소는 적지 말고 “Carlton 후보 1”처럼 나만 알아볼 별칭을 사용하세요. 저장하면 이 집의 8개 증빙 상태와 후속일을 따로 관리할 수 있어요.</p>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end">
+            <label className="flex-1 text-sm font-semibold text-navy">첫 집 후보 별칭<input autoComplete="off" maxLength={80} value={firstCandidateLabel} onChange={(event) => onFirstCandidateLabelChange(event.target.value)} className="mt-2 min-h-12 w-full border border-border bg-white px-3 text-sm font-normal text-navy outline-none focus:border-navy focus:ring-2 focus:ring-navy/15" /></label>
+            <button type="submit" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">첫 후보 저장</button>
+          </div>
+          <p className="mt-3 min-h-5 text-sm leading-5 text-red-800" role="status" aria-live="polite">{firstCandidateMessage}</p>
+        </form>
+      ) : (
+        <div className="mb-7 border-l-4 border-emerald-600 bg-emerald-50 p-5 sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-6" role="status" aria-live="polite">
+          <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-800">첫 후보 저장 완료</p><h2 className="mt-2 text-xl font-semibold text-navy">{firstCandidateMessage || "첫 집 후보가 이 브라우저에 저장되어 있어요."}</h2><p className="mt-2 text-sm leading-6 text-muted">무료 프로젝트의 전체 할 일과 달리, 이 후보에는 증빙 8종·개인정보 확인·후속일을 따로 기록하고 다음 집에는 공통 준비만 재사용할 수 있어요.</p></div>
+          <a href="#rental-document-readiness" className="mt-4 inline-flex min-h-12 shrink-0 items-center justify-center bg-navy px-5 text-sm font-semibold text-white sm:mt-0">8개 증빙 상태 시작</a>
+        </div>
+      )}
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Property application board</p>

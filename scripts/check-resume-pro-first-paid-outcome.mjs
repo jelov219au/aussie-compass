@@ -31,7 +31,7 @@ const saveStep = outcome.indexOf("03 · 남기기");
 assert.ok(openStep >= 0 && openStep < connectStep && connectStep < saveStep, "the pre-purchase preview must match the executable mobile and DOM order");
 
 assert.ok(successPage.includes("결제가 확인됐습니다. 이제 작업공간을 여세요."), "the offer must lead to the verified success outcome");
-assert.ok(purchaseSteps.includes("이 기기에 이용권 연결") && purchaseSteps.includes("작업공간에서 지원서 준비"), "the preview must match the post-purchase handoff");
+assert.ok(purchaseSteps.includes("이 기기에 이용권 연결") && purchaseSteps.includes("작업공간에서 첫 지원서 저장"), "the preview must match the post-purchase handoff");
 for (const workspaceContract of [
   'label: "무료 이력서 연결"',
   'label: "회사와 직무 입력"',

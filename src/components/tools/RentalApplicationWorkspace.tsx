@@ -44,6 +44,7 @@ type DocumentItem = {
 };
 
 const STORAGE_KEY = "hoju-compass-rental-application-pro-v1";
+const FIRST_SUCCESS_KEY = "hoju-compass-rental-application-pro-first-success-v1";
 const initialDraft: RentalDraft = {
   propertyLabel: "",
   moveDate: "",
@@ -143,6 +144,16 @@ function readStoredWorkspace(value: string): RentalWorkspaceState | null {
   }
 }
 
+function hasMeaningfulPackData(pack: RentalPack, index: number) {
+  return pack.propertyLabel.trim() !== `집 후보 ${index + 1}`
+    || Boolean(pack.moveDate || pack.employmentSummary || pack.rentalSummary || pack.strengths || pack.coverNote || pack.followUpDate)
+    || pack.petSummary !== "No pets"
+    || pack.leaseTerm !== "12 months"
+    || pack.householdSize !== "1"
+    || pack.contactStatus !== "not-contacted"
+    || Object.keys(pack.statuses).length > 0;
+}
+
 function safeFileName(value: string) {
   return value.trim().replace(/[^a-z0-9가-힣]+/gi, "-").replace(/^-|-$/g, "").slice(0, 50) || "rental-application";
 }
@@ -151,6 +162,8 @@ export function RentalApplicationWorkspace() {
   const [workspace, setWorkspace] = useState<RentalWorkspaceState>(initialWorkspace);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
+  const [firstCandidateSaved, setFirstCandidateSaved] = useState(false);
+  const [firstCandidateMessage, setFirstCandidateMessage] = useState("");
 
   const draft = workspace.packs.find((pack) => pack.id === workspace.activeId) ?? workspace.packs[0] ?? createBlankPack();
 
@@ -159,7 +172,14 @@ export function RentalApplicationWorkspace() {
       const saved = window.localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const storedWorkspace = readStoredWorkspace(saved);
-        if (storedWorkspace) setWorkspace(storedWorkspace);
+        if (storedWorkspace) {
+          setWorkspace(storedWorkspace);
+          const completedBefore = storedWorkspace.packs.length > 1
+            || storedWorkspace.packs.some(hasMeaningfulPackData);
+          setFirstCandidateSaved(
+            window.localStorage.getItem(FIRST_SUCCESS_KEY) === "saved" || completedBefore,
+          );
+        }
       }
     } catch {
       // The workspace remains usable when local storage is unavailable.
@@ -197,6 +217,28 @@ export function RentalApplicationWorkspace() {
   }));
   const setField = <K extends keyof RentalDraft>(field: K, value: RentalDraft[K]) => updateActivePack((current) => ({ ...current, [field]: value }));
   const setStatus = (id: string, status: DocumentStatus) => updateActivePack((current) => ({ ...current, statuses: { ...current.statuses, [id]: status } }));
+
+  const saveFirstCandidate = () => {
+    const label = draft.propertyLabel.trim();
+    if (!label) {
+      setFirstCandidateMessage("정확한 주소 대신 알아볼 수 있는 별칭을 입력해 주세요.");
+      return;
+    }
+    const nextWorkspace: RentalWorkspaceState = {
+      ...workspace,
+      packs: workspace.packs.map((pack) => pack.id === workspace.activeId ? { ...pack, propertyLabel: label } : pack),
+    };
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextWorkspace));
+      window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved");
+    } catch {
+      setFirstCandidateMessage("브라우저 저장소를 사용할 수 없어 첫 후보 저장을 확인하지 못했습니다. 저장 설정을 확인한 뒤 다시 시도해 주세요.");
+      return;
+    }
+    setWorkspace(nextWorkspace);
+    setFirstCandidateSaved(true);
+    setFirstCandidateMessage(`“${label}”을 첫 집 후보로 저장했습니다.`);
+  };
 
   const addPack = (reuseCurrent: boolean) => {
     if (workspace.packs.length >= MAX_PACKS) {
@@ -300,6 +342,11 @@ export function RentalApplicationWorkspace() {
       onRemove={removeActivePack}
       atLimit={workspace.packs.length >= MAX_PACKS}
       canRemove={workspace.packs.length > 1}
+      firstCandidateSaved={firstCandidateSaved}
+      firstCandidateLabel={draft.propertyLabel}
+      firstCandidateMessage={firstCandidateMessage}
+      onFirstCandidateLabelChange={(label) => setField("propertyLabel", label)}
+      onSaveFirstCandidate={saveFirstCandidate}
     />
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(34rem,1.1fr)]">
       <div className="space-y-8">
@@ -332,7 +379,7 @@ export function RentalApplicationWorkspace() {
       </div>
 
       <div className="space-y-8 xl:sticky xl:top-24">
-      <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="document-pack-heading"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Document readiness</p><h2 id="document-pack-heading" className="mt-2 text-xl font-semibold text-navy">서류 준비 현황</h2></div><div className="text-right"><p className="font-mono text-3xl text-navy">{progress}%</p><p className="text-xs text-muted">{readyCount} / {documents.length} 준비 완료</p></div></div><div className="mt-5 h-1.5 bg-surface"><div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} /></div>
+      <section id="rental-document-readiness" className="scroll-mt-24 border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="document-pack-heading"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Document readiness</p><h2 id="document-pack-heading" className="mt-2 text-xl font-semibold text-navy">서류 준비 현황</h2></div><div className="text-right"><p className="font-mono text-3xl text-navy">{progress}%</p><p className="text-xs text-muted">{readyCount} / {documents.length} 준비 완료</p></div></div><div className="mt-5 h-1.5 bg-surface"><div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} /></div>
         <ol className="mt-6 divide-y divide-border border-y border-navy/20">{documents.map((item, index) => { const status = draft.statuses[item.id] ?? "todo"; return <li key={item.id} className="py-5"><div className="grid gap-3 sm:grid-cols-[2rem_1fr_8rem] sm:items-start"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{item.group}</p><h3 className="mt-1 font-semibold text-navy">{item.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{item.detail}</p>{item.caution && status === "review" ? <p className="mt-2 border-l-2 border-gold pl-3 text-xs leading-5 text-[#755b20]">{item.caution}</p> : null}</div><label className="text-xs font-medium text-muted">상태<select className="mt-1 min-h-10 w-full border border-border bg-white px-2 text-sm text-navy" value={status} onChange={(event) => setStatus(item.id, event.target.value as DocumentStatus)}><option value="todo">준비 전</option><option value="review">확인 필요</option><option value="ready">준비 완료</option></select></label></div></li>; })}</ol>
       </section>
 

@@ -54,8 +54,8 @@ export function ResumeProPostPurchaseSteps({
     },
     {
       number: "03",
-      title: "작업공간에서 지원서 준비",
-      detail: "저장된 이력서를 확인하고 회사별 지원 자료를 만들어요.",
+      title: "작업공간에서 첫 지원서 저장",
+      detail: "첫 10분 빠른 시작에서 회사별 지원서를 저장하고 저장본을 다시 열어 확인해요.",
       state: workspaceState,
     },
   ];

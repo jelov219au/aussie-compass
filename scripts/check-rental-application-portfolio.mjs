@@ -32,6 +32,12 @@ for (const contract of [
   "window.confirm",
   "contactStatus",
   "followUpDate",
+  'const FIRST_SUCCESS_KEY = "hoju-compass-rental-application-pro-first-success-v1"',
+  "hasMeaningfulPackData",
+  "saveFirstCandidate",
+  "window.localStorage.setItem(FIRST_SUCCESS_KEY, \"saved\")",
+  "onSaveFirstCandidate={saveFirstCandidate}",
+  'id="rental-document-readiness"',
 ]) assert.ok(workspace.includes(contract), `the local rental portfolio contract is missing: ${contract}`);
 
 const reuseStart = workspace.indexOf("const nextPack = reuseCurrent");
@@ -54,7 +60,21 @@ for (const value of [
   "현재 준비사항 재사용",
   "현재 후보 삭제",
   "정확한 주소나 에이전트 연락처 없이",
+  "구매 후 첫 1분",
+  "첫 집 후보 하나를 먼저 저장하세요.",
+  "첫 후보 저장",
+  "첫 후보 저장 완료",
+  "무료 프로젝트의 전체 할 일과 달리",
+  'href="#rental-document-readiness"',
 ]) assert.ok(portfolio.includes(value), `the comparison board is missing: ${value}`);
+
+const firstSaveForm = portfolio.slice(portfolio.indexOf("<form"), portfolio.indexOf("</form>"));
+assert.ok(firstSaveForm.includes("event.preventDefault()") && firstSaveForm.includes("onSaveFirstCandidate()"), "the first candidate must save locally without navigation or a network form action");
+assert.ok(firstSaveForm.includes("min-h-12") && firstSaveForm.includes('maxLength={80}'), "the first-save path needs a 48px mobile action and bounded alias");
+const immediateWorkspaceSave = workspace.indexOf("window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextWorkspace))");
+const successMarkerSave = workspace.indexOf('window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved")');
+const successState = workspace.indexOf("setFirstCandidateSaved(true)");
+assert.ok(immediateWorkspaceSave >= 0 && immediateWorkspaceSave < successMarkerSave && successMarkerSave < successState, "the first-save success state must appear only after both local writes succeed");
 
 for (const contactState of ["not-contacted", "drafting", "sent", "follow-up", "closed"]) {
   assert.ok(portfolio.includes(contactState), `the structured follow-up state is missing: ${contactState}`);
@@ -63,6 +83,7 @@ for (const contactState of ["not-contacted", "drafting", "sent", "follow-up", "c
 assert.doesNotMatch(workspace, /\b(?:agentName|agentEmail|agentPhone|exactAddress|tfn|bankAccount|identityNumber)\s*:/i, "the portfolio must not add sensitive identity, finance or agent-contact fields");
 assert.doesNotMatch(workspace, /type="file"|FormData|fetch\(/, "the portfolio must not upload rental documents or send local drafts");
 assert.doesNotMatch(portfolio, /fetch\(|track\(|sendBeacon|localStorage|sessionStorage/, "the comparison UI must remain a presentation boundary");
+assert.doesNotMatch(firstSaveForm, /action=|method=|type="file"|FormData|fetch\(/, "the first candidate form must stay local and must not collect or transmit files");
 
 assert.ok(offerPage.includes("A$14.90"), "the existing Rental price display changed unexpectedly");
 assert.ok(offerPage.includes("paymentReadiness.ready || testCheckoutAvailable"), "the existing checkout switch changed unexpectedly");

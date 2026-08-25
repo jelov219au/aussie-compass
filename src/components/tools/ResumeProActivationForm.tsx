@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 
 import { ResumeProPostPurchaseSteps, type ResumeProPostPurchaseNotice } from "@/components/tools/ResumeProPostPurchaseSteps";
@@ -8,6 +9,8 @@ import { ResumeProPostPurchaseSteps, type ResumeProPostPurchaseNotice } from "@/
 const activationStorageKey = "hoju_compass_resume_pro_activation_v1";
 const postPurchaseNoticeStorageKey = "hoju_compass_resume_pro_notice_v1";
 const activationLifetimeMs = 24 * 60 * 60 * 1000;
+const activationWorkspaceDestination = "/resume-pro/workspace";
+const firstApplicationDestination = "/resume-pro/workspace#resume-pro-workspace";
 const sessionPattern = /^cs_(?:test|live)_[A-Za-z0-9]+$/;
 const noncePattern = /^[A-Za-z0-9_-]{40,128}$/;
 
@@ -17,7 +20,7 @@ type NoticeKind = ResumeProPostPurchaseNotice;
 const terminalNotices = new Set<NoticeKind>(["used", "released", "refunded", "review"]);
 
 const notices: Record<NoticeKind, string> = {
-  ready: "결제가 확인됐습니다. 다시 결제하지 마세요. 아래 버튼으로 이 기기에서 Resume Pro를 열 수 있어요.",
+  ready: "결제가 확인됐습니다. 다시 결제하지 마세요. 아래 버튼으로 이용권을 연결하면 첫 10분 빠른 시작으로 바로 이동해요.",
   pending: "결제 처리를 확인하고 있습니다. 다시 결제하지 마세요. 잠시 후 같은 버튼으로 다시 확인하거나 무료 이력서 빌더를 이용해 주세요.",
   unavailable: "이용 준비 상태를 확인할 수 없습니다. 다시 결제하지 마세요. 고객지원에서 결제 내역을 확인하거나 무료 이력서 빌더를 이용해 주세요.",
   used: "이 결제 완료 주소는 이미 다른 브라우저에서 사용됐습니다. 다시 결제하지 마세요. 기존 기기의 1회용 복구 코드로 이용권을 연결해 주세요.",
@@ -77,6 +80,7 @@ export function ResumeProActivationForm({
   hasExplicitNotice: boolean;
   paymentConfirmed: boolean;
 }) {
+  const router = useRouter();
   const [activation, setActivation] = useState<ActivationState | null>(null);
   const [notice, setNotice] = useState<NoticeKind>(initialNotice);
   const [submitting, setSubmitting] = useState(false);
@@ -146,9 +150,9 @@ export function ResumeProActivationForm({
       });
       const body = await response.json().catch(() => null) as { code?: string; destination?: string } | null;
 
-      if (response.ok && body?.code === "activation_ready" && body.destination === "/resume-pro/workspace") {
+      if (response.ok && body?.code === "activation_ready" && body.destination === activationWorkspaceDestination) {
         clearStoredActivation();
-        window.location.assign(body.destination);
+        router.push(firstApplicationDestination);
         return;
       }
 
@@ -185,12 +189,12 @@ export function ResumeProActivationForm({
       <section className="mt-6 border-l-2 border-gold bg-white p-5 sm:p-6" aria-labelledby="resume-pro-activation-heading">
         <h2 id="resume-pro-activation-heading" className="text-xl font-semibold text-navy">{heading}</h2>
         <p className="mt-3 text-sm leading-7 text-muted" role="status" aria-live="polite" aria-atomic="true">{notices[notice]}</p>
-        {notice === "ready" && <p className="mt-3 text-sm leading-6 text-navy">버튼을 누르면 이 브라우저에 이용권을 연결하고 Resume Pro 작업공간으로 바로 이동합니다. 복구 코드는 작업공간에 들어간 뒤 만들 수 있어요.</p>}
+        {notice === "ready" && <p className="mt-3 text-sm leading-6 text-navy">버튼을 누르면 이 브라우저에 이용권을 연결하고 첫 회사별 지원서 빠른 시작으로 바로 이동합니다. 복구 코드는 작업공간에 들어간 뒤 만들 수 있어요.</p>}
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         {canAttemptActivation && (
           <form action="/api/resume-pro/access/activate" method="post" onSubmit={activate} className="w-full sm:w-auto">
             <button type="submit" disabled={submitting} aria-busy={submitting} className="inline-flex min-h-12 w-full items-center justify-center bg-gold px-5 py-3 text-sm font-semibold text-navy disabled:cursor-wait disabled:opacity-60 sm:w-auto">
-              {submitting ? "이용권 확인 중…" : notice === "ready" ? "이용권 연결하고 작업공간 열기" : "다시 확인하고 작업공간 열기"}
+              {submitting ? "이용권 확인 중…" : notice === "ready" ? "이용권 연결하고 첫 지원서 시작" : "다시 확인하고 첫 지원서 시작"}
             </button>
           </form>
         )}
