@@ -1,12 +1,28 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [offerPage, freePage, freeProject, commerce] = await Promise.all([
+import {
+  createRentalReadyNowHandoff,
+  parseRentalReadyNowHandoff,
+  rentalReadyNowHandoffLifetimeMs,
+} from "../src/lib/rentalReadyNowHandoff.ts";
+
+const [offerPage, freePage, freeProject, freeTool, workspace, commerce] = await Promise.all([
   readFile(new URL("../src/app/rental-application-pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/property-inspection-checklist/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/LocalProjectChecklist.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/PropertyInspectionChecklist.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/RentalApplicationWorkspace.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/commerce.ts", import.meta.url), "utf8"),
 ]);
+
+const now = Date.parse("2026-08-25T00:00:00.000Z");
+const handoff = createRentalReadyNowHandoff({ propertyLabel: "  Carlton\n 후보 A  ", mode: "rent", reviewedCount: 18.9, concernCount: 30 }, now);
+assert.deepEqual(handoff, { version: 1, propertyLabel: "Carlton 후보 A", mode: "rent", reviewedCount: 18, concernCount: 18, createdAt: now });
+assert.equal(createRentalReadyNowHandoff({ propertyLabel: "Buy", mode: "buy", reviewedCount: 1, concernCount: 1 }, now), null, "purchase inspections must not enter a rental application");
+assert.deepEqual(parseRentalReadyNowHandoff(JSON.stringify(handoff), now + rentalReadyNowHandoffLifetimeMs), handoff);
+assert.equal(parseRentalReadyNowHandoff(JSON.stringify(handoff), now + rentalReadyNowHandoffLifetimeMs + 1), null, "handoffs must expire after 24 hours");
+assert.equal(parseRentalReadyNowHandoff("not-json", now), null);
 
 const closedStart = offerPage.indexOf(") : (", offerPage.indexOf("{checkoutAvailable ? ("));
 const closedEnd = offerPage.indexOf(")}", closedStart);
@@ -41,5 +57,12 @@ assert.ok(!offerPage.includes("후보 비교부터 지원·계약·입주까지 
 assert.ok(offerPage.includes("A$14.90"), "the displayed Rental price must remain unchanged");
 assert.ok(offerPage.includes("paymentReadiness.ready || testCheckoutAvailable"), "the Rental checkout readiness switch must remain unchanged");
 assert.ok(commerce.includes("RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED"), "the Rental checkout kill switch must remain fail-closed");
+assert.ok(freeTool.includes("rentalReadyNowHandoffStorageKey") && freeTool.includes("router.push(\"/rental-application-pro?from=property-inspection-checklist\")"), "free results must continue through the Rental introduction");
+assert.ok(freeTool.includes("방문 메모와 세부 체크 결과는 옮기지 않습니다"), "the handoff must explain its privacy boundary");
+assert.ok(workspace.includes("readRentalReadyNowHandoff") && workspace.includes("clearRentalReadyNowHandoff"), "the Pro workspace must consume the handoff once");
+assert.ok(workspace.includes("inspectionSummary") && workspace.includes("방문 메모와 세부 체크 결과는 가져오지 않았습니다"), "the workspace must retain only the aggregate inspection summary");
+assert.ok(workspace.indexOf("window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextWorkspace))") < workspace.indexOf("clearRentalReadyNowHandoff(window.localStorage)"), "the imported result must persist before its one-time handoff is cleared");
+assert.ok(!freeTool.includes("/api/checkout/rental-application-pro"), "the free result must never skip the product introduction");
+assert.ok(!freeTool.includes("resume_pro") && !workspace.includes("resume_pro"), "the Rental handoff must not touch Resume Pro state");
 
-console.log("Rental Pack ready-now free project path contract passed.");
+console.log("Rental Pack ready-now free project and privacy-minimised Pro handoff contracts passed.");

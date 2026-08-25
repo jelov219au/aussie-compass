@@ -8,8 +8,10 @@ import {
   type RentalApplicationPackSummary,
   type RentalContactStatus,
 } from "@/components/tools/RentalApplicationPortfolio";
+import { clearRentalReadyNowHandoff, readRentalReadyNowHandoff } from "@/lib/rentalReadyNowHandoff";
 
 type DocumentStatus = "todo" | "review" | "ready";
+type RentalInspectionSummary = { mode: "share" | "rent"; reviewedCount: number; concernCount: number };
 type RentalDraft = {
   propertyLabel: string;
   moveDate: string;
@@ -21,6 +23,7 @@ type RentalDraft = {
   strengths: string;
   statuses: Record<string, DocumentStatus>;
   coverNote: string;
+  inspectionSummary: RentalInspectionSummary | null;
 };
 
 type RentalPack = RentalDraft & {
@@ -56,6 +59,7 @@ const initialDraft: RentalDraft = {
   strengths: "",
   statuses: {},
   coverNote: "",
+  inspectionSummary: null,
 };
 
 const MAX_PACKS = 6;
@@ -109,6 +113,17 @@ function safeContactStatus(value: unknown): RentalContactStatus {
   return value === "drafting" || value === "sent" || value === "follow-up" || value === "closed" ? value : "not-contacted";
 }
 
+function safeInspectionSummary(value: unknown): RentalInspectionSummary | null {
+  const candidate = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  if ((candidate.mode !== "share" && candidate.mode !== "rent")
+    || typeof candidate.reviewedCount !== "number"
+    || typeof candidate.concernCount !== "number"
+    || !Number.isFinite(candidate.reviewedCount)
+    || !Number.isFinite(candidate.concernCount)) return null;
+  const reviewedCount = Math.max(0, Math.min(100, Math.trunc(candidate.reviewedCount)));
+  return { mode: candidate.mode, reviewedCount, concernCount: Math.min(reviewedCount, Math.max(0, Math.min(100, Math.trunc(candidate.concernCount)))) };
+}
+
 function normalizePack(value: unknown, index: number): RentalPack {
   const candidate = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
   return {
@@ -123,6 +138,7 @@ function normalizePack(value: unknown, index: number): RentalPack {
     strengths: safeText(candidate.strengths, "", 600),
     statuses: safeStatuses(candidate.statuses),
     coverNote: safeText(candidate.coverNote, "", 5000),
+    inspectionSummary: safeInspectionSummary(candidate.inspectionSummary),
     contactStatus: safeContactStatus(candidate.contactStatus),
     followUpDate: /^\d{4}-\d{2}-\d{2}$/.test(safeText(candidate.followUpDate)) ? safeText(candidate.followUpDate) : "",
   };
@@ -151,6 +167,7 @@ function hasMeaningfulPackData(pack: RentalPack, index: number) {
     || pack.leaseTerm !== "12 months"
     || pack.householdSize !== "1"
     || pack.contactStatus !== "not-contacted"
+    || Boolean(pack.inspectionSummary)
     || Object.keys(pack.statuses).length > 0;
 }
 
@@ -170,17 +187,41 @@ export function RentalApplicationWorkspace() {
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const storedWorkspace = readStoredWorkspace(saved);
-        if (storedWorkspace) {
-          setWorkspace(storedWorkspace);
-          const completedBefore = storedWorkspace.packs.length > 1
-            || storedWorkspace.packs.some(hasMeaningfulPackData);
-          setFirstCandidateSaved(
-            window.localStorage.getItem(FIRST_SUCCESS_KEY) === "saved" || completedBefore,
-          );
+      let nextWorkspace = saved ? readStoredWorkspace(saved) ?? initialWorkspace : initialWorkspace;
+      let importedHandoff = false;
+      const handoff = readRentalReadyNowHandoff(window.localStorage);
+      if (handoff) {
+        const inspectionSummary: RentalInspectionSummary = {
+          mode: handoff.mode,
+          reviewedCount: handoff.reviewedCount,
+          concernCount: handoff.concernCount,
+        };
+        const activeIndex = Math.max(0, nextWorkspace.packs.findIndex((pack) => pack.id === nextWorkspace.activeId));
+        const activePack = nextWorkspace.packs[activeIndex] ?? nextWorkspace.packs[0];
+        const propertyLabel = handoff.propertyLabel || `방문 점검 후보 ${nextWorkspace.packs.length}`;
+        if (activePack && !hasMeaningfulPackData(activePack, activeIndex)) {
+          nextWorkspace = {
+            ...nextWorkspace,
+            packs: nextWorkspace.packs.map((pack) => pack.id === activePack.id ? { ...pack, propertyLabel, inspectionSummary } : pack),
+          };
+          importedHandoff = true;
+        } else if (nextWorkspace.packs.length < MAX_PACKS) {
+          const importedPack = { ...createBlankPack(window.crypto.randomUUID(), propertyLabel), inspectionSummary };
+          nextWorkspace = { ...nextWorkspace, activeId: importedPack.id, packs: [...nextWorkspace.packs, importedPack] };
+          importedHandoff = true;
+        } else {
+          setMessage("집 후보가 6개라 무료 방문 결과를 아직 가져오지 않았습니다. 후보를 하나 정리한 뒤 다시 열어 주세요.");
         }
       }
+      if (importedHandoff) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextWorkspace));
+        window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved");
+        clearRentalReadyNowHandoff(window.localStorage);
+        setMessage("무료 집 방문 결과에서 집 구분명과 점검 집계만 가져왔습니다.");
+      }
+      setWorkspace(nextWorkspace);
+      const completedBefore = nextWorkspace.packs.length > 1 || nextWorkspace.packs.some(hasMeaningfulPackData);
+      setFirstCandidateSaved(window.localStorage.getItem(FIRST_SUCCESS_KEY) === "saved" || completedBefore);
     } catch {
       // The workspace remains usable when local storage is unavailable.
     }
@@ -352,6 +393,7 @@ export function RentalApplicationWorkspace() {
       <div className="space-y-8">
       <section className="border-t border-navy/20 pt-6" aria-labelledby="rental-profile-heading">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Application brief</p><h2 id="rental-profile-heading" className="mt-2 text-2xl font-semibold text-navy">집과 신청 조건</h2><p className="mt-3 text-sm leading-6 text-muted">정확한 주소 대신 내가 알아볼 수 있는 별칭만 적어도 됩니다. 이 정보는 현재 브라우저에만 자동 저장됩니다.</p>
+        {draft.inspectionSummary && <p className="mt-4 border-l-2 border-gold bg-gold/5 p-3 text-sm leading-6 text-navy"><strong>무료 방문 점검에서 이어짐:</strong> {draft.inspectionSummary.mode === "share" ? "쉐어" : "렌트"} · 확인 {draft.inspectionSummary.reviewedCount}개 · 다시 확인 {draft.inspectionSummary.concernCount}개. 방문 메모와 세부 체크 결과는 가져오지 않았습니다.</p>}
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className="text-sm font-medium text-navy sm:col-span-2">집 후보 별칭<input maxLength={80} className={inputClass} value={draft.propertyLabel} onChange={(event) => setField("propertyLabel", event.target.value)} placeholder="Carlton 후보 1" /></label>
           <label className="text-sm font-medium text-navy">희망 입주일<input type="date" className={inputClass} value={draft.moveDate} onChange={(event) => setField("moveDate", event.target.value)} /></label>
