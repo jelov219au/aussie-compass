@@ -439,10 +439,34 @@ SMTP 재시도나 동일 Message-ID의 중복 이메일은 회계 사건이 아�
 문서 URL, 은행정보와 금액 원문은 승인된 private 원본에만 두고, 상태 JSON에는
 고정 결과 코드와 `PASS/MISSING/FAIL`만 기록한다.
 
+Repo 도구 경계는 다음과 같다. 회계 exporter를 실행하는 첫 명령은 승인된
+private 환경에서만 Stripe를 읽으며 dry-run 명령이 아니다. 이 표를 검증할
+때는 `npm.cmd run test:accounting-contract`의 고정 CSV fixture를 사용하고 실제
+Stripe를 조회하지 않는다. exporter의 CSV 열은 정확히
+`environment,created_utc,available_on_utc,currency,reporting_category,gross_amount,fee_amount,net_amount,status,source_id,balance_transaction_id`다.
+`fee_details`는 exporter 열이 아니므로 Stripe의 승인된 private 원본에서 따로
+확인하고 status JSON에 복사하지 않는다.
+
+```powershell
+npm.cmd run accounting:export -- --from <YYYY-MM-DD> --to <YYYY-MM-DD>
+npm.cmd run first-sale:evidence -- --file <private-json-path> --phase 24h
+npm.cmd run first-sale:evidence -- --file <private-json-path> --phase payout
+```
+
+`--to` 날짜는 exporter 구현대로 exclusive이며 두 날짜 모두 실제 값은
+`YYYY-MM-DD` 형식이어야 한다.
+
+`first-sale:evidence`의 v4 JSON에는 네 outcome 필드와 check별
+`PASS/MISSING/FAIL`만 입력한다. 아래 `payout`의
+`pending/matched/source_verified_none/unresolved`는 private 회계 워크북의
+분류 코드이며 JSON 필드가 아니다. JSON에는 그 분류를 원본에서 확인한 결과만
+`payout_status_recorded=PASS/MISSING/FAIL`로 남긴다. 임의 `payout_state`를
+추가하면 판정기는 구조 오류 `STOP`으로 종료한다.
+
 | 순서 | 원본과 자동·기계 상태 | 운영자 수동 확인 | 상태-only 기록 | FAIL-CLOSED 처리 |
 | --- | --- | --- | --- | --- |
 | 1. 원거래 고정 | 앱의 signed webhook·first-sale 사건·outbox·entitlement 상태와 회계 exporter의 Balance Transaction 후보 | Stripe live Checkout → PaymentIntent → Charge가 서로 직접 연결되고 exact Resume Product → Price → signed `product_code=resume_pro` chain인지 확인 | `live_checkout_paid`, `support_ledger_original_transaction_chain_preserved` | amount·시각·이메일·alert suffix로 조인했거나 한 link라도 미열람이면 `MISSING/FAIL`과 **HOLD** |
-| 2. 원매출·수수료 | exporter의 원매출 Balance Transaction `amount/fee/net/status/source`와 fee detail 후보 | Charge의 원매출 Balance Transaction과 같은 source인지, gross·fee·net·ending balance가 private 원문과 일치하는지 확인; 다른 movement는 `UNALLOCATED` | `gross_captured`, `stripe_fee_captured`, `ending_balance_captured` 및 fee/tax 분류 checks | exporter 행만으로 상품이나 세금 분류를 추정하거나 별도 movement를 섞으면 **HOLD** |
+| 2. 원매출·수수료 | exporter의 원매출 Balance Transaction `gross_amount/fee_amount/net_amount/status/source_id` 후보; fee detail은 별도 private Stripe 원본 | Charge의 원매출 Balance Transaction과 같은 source인지, gross·fee·net·ending balance가 private 원문과 일치하는지 확인; 다른 movement는 `UNALLOCATED` | `gross_captured`, `stripe_fee_captured`, `ending_balance_captured`, `withheld_tax_classified`, `fee_net_of_withheld_tax_classified` | exporter 행만으로 상품·fee tax·withheld tax를 추정하거나 별도 movement를 섞으면 **HOLD** |
 | 3. 환불·지원·접근 | refund webhook·outbox와 entitlement revoke/review 상태 | 환불 **요청**은 `refund_request_pending`으로 두고, Refund 원본이 `succeeded`이며 같은 Charge·PaymentIntent와 별도 refund Balance Transaction에 연결된 경우에만 partial/full 완료를 선택 | 네 결과 코드와 `refund_dispute_outcome_matrix_consistent` | 요청·pending·failed를 완료로 기록, 원 gross 삭제, refund/dispute 중복 조정 또는 접근 상태 불일치는 **HOLD** |
 | 4. 고객 문서 | Checkout/Invoice의 발행 여부·상태와 Credit Note 존재 여부 후보 | 이미 존재하는 Checkout 결과와 실제 발급 Receipt·Invoice를 열어 9행 gate를 수행하고, Refund에 연결된 Credit Note는 발행/미발행·열람 상태만 확인; 생성·재전송·다운로드하지 않음 | `receipt_or_tax_document_retained`, `refund_credit_note_handled`, `document_issuer_verified`, `liability_party_verified` | 발행 집합 불명, 발행됐지만 미열람, seller/issuer/liability 불명 또는 다른 artifact에서 추정하면 **HOLD** |
 | 5. Payout·은행 | Stripe Payout 객체·itemised source membership 또는 닫힌 조회 창의 payout 부재 | itemised payout을 은행 입금과 맞춘 경우만 `matched`; 24시간에 payout이 없으면 `pending`으로 이월하고, `source_verified_none`은 닫힌 Stripe source window와 은행 증거가 함께 no-movement를 입증한 경우만 사용 | 24시간 `payout_status_recorded`; 이후 `itemised_payout_retained`, `bank_arrival_matched`, `stripe_clearing_reconciled` | payout 0건·빈 셀·순액 0 추정만으로 `nil`, `paid`, `matched` 또는 `source_verified_none`을 기록하면 **HOLD** |

@@ -348,6 +348,7 @@ assert.match(storeSource, /select \* from find_active_purchase_entitlement_by_ch
 assert.match(storeSource, /select \* from find_active_purchase_entitlement_by_id/);
 assert.match(storeSource, /select \* from find_active_purchase_entitlement_by_access_session/);
 assert.match(storeSource, /select release_purchase_access_session/);
+assert.match(storeSource, /const databaseUrl = getEntitlementDatabaseUrl\(\);[\s\S]*PAYMENTS_ENTITLEMENT_STORE === "neon"[\s\S]*Boolean\(databaseUrl\?\.match\(\/\^postgres\(\?:ql\)\?:\\\/\\\//, "a missing entitlement database URL must make the configured store unavailable before any access query");
 assert.doesNotMatch(storeSource, /from (?:public\.)?purchase_entitlements/, "the runtime adapter must use limited read wrappers rather than direct table SELECT");
 assert.match(activationMigration, /20260823_payment_operator_alert_outbox_v1[\s\S]*20260823_checkout_activation_nonce_v1/);
 assert.match(activationMigration, /revoke select, insert, update, delete on table public\.purchase_checkout_activations, public\.purchase_entitlements from public/);
@@ -499,6 +500,8 @@ assert.match(storeSource, /restore_outcome/);
 assert.match(storeSource, /The entitlement database returned an invalid restore result/);
 assert.match(storeSource, /select \* from consume_entitlement_restore_token\([\s\S]*\$\{input\.nonceHash\}/);
 assert.match(accessSource, /deriveResumeProRestoreSourceHash\(tokenHash, nonceHash\)/);
+assert.match(accessSource, /try \{[\s\S]*await store\.findActiveByAccessSession[\s\S]*\} catch \{[\s\S]*return null;/, "a missing runtime access migration must deny access without crashing the buyer route");
+assert.match(successPage, /try \{[\s\S]*store\?\.findActiveByCheckoutSession[\s\S]*\} catch \{[\s\S]*entitlementActive = false;/, "a missing checkout lookup migration must keep the success page on its no-repurchase recovery path");
 assert.match(tokenSource, /v: 2/);
 assert.match(tokenSource, /accessSessionId: string/);
 assert.match(accessSource, /findActiveByAccessSession/);

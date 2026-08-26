@@ -109,7 +109,27 @@ assert.ok(reportPage.includes('<option value="1">오늘 (UTC 기준)</option>') 
 assert.ok(report.includes("const DAY_IN_MS = 24 * 60 * 60 * 1000") && report.includes("currentSince = currentUntil - DAY_IN_MS") && report.includes("previousSince = currentSince - DAY_IN_MS"), "daily traffic comparison must use two adjacent, equal 24-hour UTC windows");
 assert.ok(report.includes("days === 1 ? loadVercelTrafficComparison(untilDate)") && report.includes("fetchVercelVisits({ token, projectId, teamId, ...windows.previous"), "the daily view must load its previous aggregate window through the same Production-only visit query");
 assert.ok(reportPage.includes("최근 24시간과 직전 24시간") && reportPage.includes("직전 24시간") && reportPage.includes("trafficChange(current, previous)"), "the mobile operator view must show current and previous 24-hour aggregates together");
+for (const boundary of [
+  "최근 구간",
+  "직전 구간",
+  "utcMoment(report.trafficComparison.current.since)",
+  "utcMoment(report.trafficComparison.previous.until)",
+  "같은 사람을 이어 붙인 여정이 아니라 같은 시간대의 경로별 익명 합계",
+  "새로고침한 시각이 최근 구간의 새 UTC 종료점",
+  'href="/resume-pro-performance?days=1"',
+  "24시간 합계 새로고침",
+  "Pro 상품 목록 도달 (/pro)",
+  "Resume Pro 상세 도달 (/resume-pro)",
+]) assert.ok(reportPage.includes(boundary), `the mobile 24-hour comparison is missing its UTC or denominator boundary: ${boundary}`);
 assert.ok(report.includes('status: "not_configured"') && report.includes('status: "error"') && report.includes('status: "collected"'), "Vercel aggregates must distinguish collected, not-configured and error states");
+for (const textState of [
+  'if (status === "collected") return "수집됨"',
+  'if (status === "error") return "오류"',
+  'return "미수집"',
+  'current === 0 ? "수집됨 · 활동 0 · "',
+]) assert.ok(reportPage.includes(textState), `the comparison must expose a non-colour text state: ${textState}`);
+assert.ok(reportPage.includes("<time dateTime={report.trafficComparison.current.since}") && reportPage.includes("<time dateTime={report.trafficComparison.previous.until}"), "UTC comparison bounds must use semantic time elements");
+assert.ok(reportPage.includes('className="inline-flex min-h-11') && reportPage.includes("24시간 합계 새로고침"), "the mobile refresh action needs an accessible minimum target size");
 assert.ok(reportPage.includes('current === 0 ? "수집됨 · 활동 0 · "') && reportPage.includes('"숫자로 판단하지 마세요"'), "the daily view must distinguish a collected zero from missing or failed collection");
 assert.ok(reportPage.includes("ratio(report.sitePageviews, report.siteVisitors)"), "pageviews per visitor must be a numeric ratio rather than a percentage");
 assert.ok(reportPage.includes("rate(report.proCatalogVisitors, report.siteVisitors)") && reportPage.includes("rate(report.resumeProVisitors, report.siteVisitors)"), "operator report must show visitor-to-Pro reach rates");

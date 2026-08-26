@@ -1,12 +1,21 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
+import { accountingLedgerHeader } from "./accounting-ledger-schema.mjs";
 import {
+  accountingOutcomes,
   containsSensitiveEvidence,
   createFirstSaleEvidenceTemplate,
+  entitlementOutcomes,
   evaluateFirstSaleEvidence,
   fifteenMinuteChecks,
+  financialEventOutcomes,
   firstPayoutChecks,
+  supportOutcomes,
   twentyFourHourChecks,
 } from "./first-sale-evidence-contract.mjs";
 
@@ -18,8 +27,12 @@ const [packageSource, runbookSource, accountingRunbookSource, cliSource] = await
 ]);
 const compactRunbookSource = runbookSource.replace(/\s+/g, " ");
 const compactAccountingRunbookSource = accountingRunbookSource.replace(/\s+/g, " ");
+const packageJson = JSON.parse(packageSource);
+const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 
 assert.ok(packageSource.includes('"first-sale:evidence": "node scripts/verify-first-sale-evidence.mjs"'));
+assert.equal(packageJson.scripts["accounting:export"], "node scripts/export-stripe-accounting.mjs");
+assert.equal(packageJson.scripts["first-sale:evidence"], "node scripts/verify-first-sale-evidence.mjs");
 assert.ok(packageSource.includes('"test:first-sale-evidence": "node scripts/check-first-sale-evidence.mjs"'));
 for (const command of ["--template", "--phase 15m", "--phase 24h", "--phase payout"]) {
   assert.ok(runbookSource.includes(command), `the runbook is missing ${command}`);
@@ -58,6 +71,86 @@ for (const phase of ["15m", "24h", "payout"]) {
   const result = evaluateFirstSaleEvidence(passingPacket(), phase);
   assert.equal(result.passed, true, `${phase} complete evidence must pass`);
   assert.equal(result.decision, "PASS");
+}
+
+for (const documentedCommand of [
+  "npm.cmd run accounting:export -- --from <YYYY-MM-DD> --to <YYYY-MM-DD>",
+  "npm.cmd run first-sale:evidence -- --file <private-json-path> --phase 24h",
+  "npm.cmd run first-sale:evidence -- --file <private-json-path> --phase payout",
+]) assert.ok(runbookSource.includes(documentedCommand), `the 24-hour run sheet is missing the real repo command: ${documentedCommand}`);
+assert.ok(runbookSource.includes("`--to` 날짜는 exporter 구현대로 exclusive"));
+
+for (const exporterField of accountingLedgerHeader) {
+  assert.ok(runbookSource.includes(exporterField), `the 24-hour run sheet is missing exporter field: ${exporterField}`);
+}
+for (const nonExporterBoundary of [
+  "`fee_details`는 exporter 열이 아니므로",
+  "`payout_status_recorded=PASS/MISSING/FAIL`",
+  "임의 `payout_state`를 추가하면 판정기는 구조 오류 `STOP`",
+]) assert.ok(compactRunbookSource.includes(nonExporterBoundary.replace(/\s+/g, " ")), `the 24-hour run sheet is missing tool boundary: ${nonExporterBoundary}`);
+
+for (const status of ["PASS", "MISSING", "FAIL"]) {
+  const packet = passingPacket();
+  packet.twenty_four_hour.checks.gross_captured = status;
+  const result = evaluateFirstSaleEvidence(packet, "24h");
+  assert.equal(result.errors.length, 0, `${status} must be accepted by the fixed check schema`);
+  assert.equal(result.decision, status === "PASS" ? "PASS" : "HOLD");
+}
+
+for (const allowedCode of [
+  ...financialEventOutcomes,
+  ...entitlementOutcomes,
+  ...accountingOutcomes,
+  ...supportOutcomes,
+]) assert.ok(runbookSource.includes(allowedCode), `the run sheet must document the accepted outcome code: ${allowedCode}`);
+
+for (const [field, allowedCodes] of Object.entries({
+  financial_event_outcome: financialEventOutcomes,
+  entitlement_outcome: entitlementOutcomes,
+  accounting_outcome: accountingOutcomes,
+  support_outcome: supportOutcomes,
+})) {
+  for (const allowedCode of allowedCodes) {
+    const packet = passingPacket();
+    packet.twenty_four_hour[field] = allowedCode;
+    assert.equal(
+      evaluateFirstSaleEvidence(packet, "24h").errors.length,
+      0,
+      `${field} must structurally accept documented code ${allowedCode}`,
+    );
+  }
+}
+
+const cliTemplate = spawnSync(process.execPath, ["scripts/verify-first-sale-evidence.mjs", "--template"], {
+  cwd: repoRoot,
+  encoding: "utf8",
+});
+assert.equal(cliTemplate.status, 0, cliTemplate.stderr);
+assert.deepEqual(JSON.parse(cliTemplate.stdout), createFirstSaleEvidenceTemplate(), "the actual CLI template must match the imported contract");
+
+const fixtureRoot = await mkdtemp(path.join(tmpdir(), "first-sale-evidence-"));
+try {
+  const fixturePath = path.join(fixtureRoot, "24h-status-only.json");
+  await writeFile(fixturePath, JSON.stringify(passingPacket()), "utf8");
+  const cliResult = spawnSync(process.execPath, ["scripts/verify-first-sale-evidence.mjs", "--file", fixturePath, "--phase", "24h"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  assert.equal(cliResult.status, 0, cliResult.stderr || cliResult.stdout);
+  assert.match(cliResult.stdout, /결과: PASS/);
+
+  const unexpectedPayoutField = passingPacket();
+  unexpectedPayoutField.twenty_four_hour.payout_state = "pending";
+  await writeFile(fixturePath, JSON.stringify(unexpectedPayoutField), "utf8");
+  const stoppedCli = spawnSync(process.execPath, ["scripts/verify-first-sale-evidence.mjs", "--file", fixturePath, "--phase", "24h"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+  });
+  assert.equal(stoppedCli.status, 2);
+  assert.match(stoppedCli.stderr, /STOP/);
+  assert.doesNotMatch(`${stoppedCli.stdout}\n${stoppedCli.stderr}`, /pending/, "the classifier must not echo an unsupported private workbook value");
+} finally {
+  await rm(fixtureRoot, { recursive: true, force: true });
 }
 
 const firstWindowMissing = passingPacket();

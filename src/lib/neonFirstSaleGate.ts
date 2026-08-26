@@ -21,6 +21,56 @@ function getConnectionString() {
   return value;
 }
 
+export async function isPaymentRuntimeSchemaReady() {
+  try {
+    const sql = neon(getConnectionString(), {
+      readOnly: true,
+      fetchOptions: { signal: AbortSignal.timeout(5_000) },
+    });
+    const rows = await sql`
+      with required_runtime_functions(signature) as (
+        values
+          ('public.claim_first_sale_reservation(text,text,timestamptz,text,text,integer)'),
+          ('public.attach_first_sale_checkout(text,bigint,text,text,timestamptz)'),
+          ('public.release_failed_first_sale_reservation(text,bigint,text,text)'),
+          ('public.release_verified_abandoned_first_sale(text,bigint,text)'),
+          ('public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)'),
+          ('public.apply_guarded_entitlement_event(text,text,boolean,timestamptz,text,text,text,text,text,text,text)'),
+          ('public.consume_entitlement_restore_token(text,text,text,text,text,timestamptz)'),
+          ('public.create_entitlement_restore_token(bigint,text,text,timestamptz)'),
+          ('public.enqueue_payment_operator_alert_failure(text,text,boolean,text,text,text)'),
+          ('public.claim_payment_operator_alert_intent(text,text,text)'),
+          ('public.mark_payment_operator_alert_sent(text,text,text)'),
+          ('public.release_payment_operator_alert_claim(text,text,text)'),
+          ('public.consume_checkout_activation(text,text,text,text,text,text,timestamptz)'),
+          ('public.release_purchase_access_session(bigint,text,text)'),
+          ('public.find_active_purchase_entitlement_by_access_session(bigint,text,text)'),
+          ('public.find_active_purchase_entitlement_by_checkout(text,text)'),
+          ('public.find_active_purchase_entitlement_by_id(bigint,text)')
+      )
+      select
+        coalesce((
+          select bool_and(
+            to_regprocedure(signature) is not null
+            and coalesce(has_function_privilege(current_user, to_regprocedure(signature), 'EXECUTE'), false)
+          )
+          from required_runtime_functions
+        ), false)
+        and to_regclass('public.payment_operator_alert_outbox') is not null
+        and to_regprocedure('public.payment_operator_alert_from_receipt()') is not null
+        and coalesce(position(
+          'on conflict on constraint stripe_payment_object_links_pkey do nothing'
+          in lower(pg_get_functiondef(to_regprocedure(
+            'public.apply_entitlement_event(text,text,boolean,timestamptz,text,text,text,text,text,text,text)'
+          )))
+        ) > 0, false) as ready
+    ` as { ready: boolean }[];
+    return rows[0]?.ready === true;
+  } catch {
+    return false;
+  }
+}
+
 async function claimReservation(
   input: Parameters<FirstSaleGateStore["claimReservation"]>[0],
 ): Promise<FirstSaleClaimResult> {
@@ -148,8 +198,10 @@ export const neonFirstSaleGate: FirstSaleGateStore = {
 };
 
 export function getConfiguredFirstSaleGate() {
+  const databaseUrl = getEntitlementDatabaseUrl();
   return process.env.FIRST_SALE_GATE_ENABLED === "true"
     && process.env.PAYMENTS_ENTITLEMENT_STORE === "neon"
+    && Boolean(databaseUrl?.match(/^postgres(?:ql)?:\/\//))
     ? neonFirstSaleGate
     : null;
 }

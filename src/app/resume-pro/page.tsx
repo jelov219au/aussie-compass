@@ -13,6 +13,7 @@ import { ResumeProLaunchInterestCopyButton, ResumeProLaunchInterestLink } from "
 import { Container } from "@/components/ui/Container";
 import { canCreateTestCheckout, getPaymentReadiness, resumeProProduct } from "@/lib/commerce";
 import { getPublicSellerDetails } from "@/lib/publicSeller";
+import { isPaymentRuntimeSchemaReady } from "@/lib/neonFirstSaleGate";
 import { getActiveResumeProEntitlement } from "@/lib/resumeProAccess";
 import { normalizeResumeProEntry, type ResumeProEntry } from "@/lib/resumeProAttribution";
 import { getResumeProCheckoutFailure } from "@/lib/resumeProCheckoutFailure";
@@ -119,7 +120,8 @@ export default async function ResumeProPage({ searchParams }: Props) {
   const activeEntitlement = await getActiveResumeProEntitlement();
   const paymentReadiness = getPaymentReadiness();
   const testCheckoutAvailable = canCreateTestCheckout();
-  const checkoutAvailable = paymentReadiness.ready || testCheckoutAvailable;
+  const configuredCheckoutAvailable = paymentReadiness.ready || testCheckoutAvailable;
+  const checkoutAvailable = configuredCheckoutAvailable && await isPaymentRuntimeSchemaReady();
   const liveCheckoutAvailable = process.env.VERCEL_ENV === "production" && paymentReadiness.ready;
   const hasActiveEntitlement = Boolean(activeEntitlement);
   const existingBuyerIssue = access === "required" || access === "released" || checkout === "checkout_support_required";

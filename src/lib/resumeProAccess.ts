@@ -74,11 +74,15 @@ export async function getActiveResumeProEntitlement() {
 
   const payload = await getResumeProAccessPayload();
   if (!payload) return null;
-  return store.findActiveByAccessSession({
-    entitlementId: payload.entitlementId,
-    productCode: "resume_pro",
-    accessSessionHash: hashResumeProAccessSessionId(payload.accessSessionId),
-  });
+  try {
+    return await store.findActiveByAccessSession({
+      entitlementId: payload.entitlementId,
+      productCode: "resume_pro",
+      accessSessionHash: hashResumeProAccessSessionId(payload.accessSessionId),
+    });
+  } catch {
+    return null;
+  }
 }
 
 export function createAccessSession(source: "activation" | "restore", sourceHash: string) {

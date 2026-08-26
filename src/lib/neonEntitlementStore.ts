@@ -245,7 +245,9 @@ export const neonEntitlementStore: EntitlementStore = {
 };
 
 export function getConfiguredEntitlementStore() {
+  const databaseUrl = getEntitlementDatabaseUrl();
   return process.env.PAYMENTS_ENTITLEMENT_STORE === "neon"
+    && Boolean(databaseUrl?.match(/^postgres(?:ql)?:\/\//))
     ? neonEntitlementStore
     : null;
 }

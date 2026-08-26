@@ -109,10 +109,12 @@ const expectedAdapterCalls = new Map([
 
 function extractSqlFunctionCalls(source) {
   const calls = new Map();
+  const auditedPostgresBuiltins = new Set(["bool_and", "coalesce"]);
   const starts = source.matchAll(/\bselect\s+(?:\*\s+from\s+)?([a-z_][a-z0-9_]*)\s*\(/gi);
 
   for (const match of starts) {
     const functionName = match[1];
+    if (auditedPostgresBuiltins.has(functionName)) continue;
     const openParen = match.index + match[0].lastIndexOf("(");
     let sqlDepth = 1;
     let interpolationDepth = 0;

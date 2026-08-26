@@ -10,7 +10,7 @@ import {
   type FirstSaleClaim,
   type FirstSaleGateStore,
 } from "@/lib/firstSaleGate";
-import { getConfiguredFirstSaleGate } from "@/lib/neonFirstSaleGate";
+import { getConfiguredFirstSaleGate, isPaymentRuntimeSchemaReady } from "@/lib/neonFirstSaleGate";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
 import { getActiveResumeProEntitlement } from "@/lib/resumeProAccess";
 import { normalizeResumeProEntry } from "@/lib/resumeProAttribution";
@@ -178,6 +178,10 @@ export async function POST(request: NextRequest) {
   const allowed = process.env.VERCEL_ENV === "production" ? readiness.ready : canCreateTestCheckout();
 
   if (!allowed) {
+    return checkoutFailureResponse(request, acquisitionSource, getResumeProCheckoutConfigurationFailure());
+  }
+
+  if (!await isPaymentRuntimeSchemaReady()) {
     return checkoutFailureResponse(request, acquisitionSource, getResumeProCheckoutConfigurationFailure());
   }
 

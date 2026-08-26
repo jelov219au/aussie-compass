@@ -235,6 +235,7 @@ assert.ok(webhook.includes("enqueueFulfillmentAttention"), "a failed paid transa
 assert.ok(webhook.includes("deliverDurablePaymentOperatorAlert"), "pending operator alerts must be delivered through the durable outbox");
 assert.ok(commerce.includes('process.env.FIRST_SALE_GATE_ENABLED === "true"'), "readiness must require the first-sale gate");
 assert.ok(commerce.includes("&& readiness.firstSaleGateConfigured"), "test Checkout must also fail closed");
+assert.ok(neonGate.includes("const databaseUrl = getEntitlementDatabaseUrl()") && neonGate.includes("Boolean(databaseUrl?.match(/^postgres(?:ql)?:\\/\\//))"), "a missing entitlement database URL must make the first-sale gate unavailable");
 
 const validPaymentIntent = {
   id: "pi_testVerified123",

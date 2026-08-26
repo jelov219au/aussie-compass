@@ -16,6 +16,8 @@ const privacyPage = await readFile(new URL("../src/app/privacy/page.tsx", import
 const paymentSupport = await readFile(new URL("../src/components/tools/PaymentSupportHelper.tsx", import.meta.url), "utf8");
 const jsonLd = await readFile(new URL("../src/components/seo/JsonLd.tsx", import.meta.url), "utf8");
 const jsonLdSerializer = await readFile(new URL("../src/lib/jsonLd.ts", import.meta.url), "utf8");
+const offerPage = await readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8");
+const firstSaleGate = await readFile(new URL("../src/lib/neonFirstSaleGate.ts", import.meta.url), "utf8");
 
 for (const contract of [
   "checkout.sessions.create",
@@ -48,6 +50,9 @@ for (const contract of [
 for (const contract of [
   "hasResumeProStripeProductConfig()",
   "stripeMode === expectedStripeMode && stripeProductContractConfigured",
+  'process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true"',
+  'process.env.PAYMENTS_ENTITLEMENT_STORE === "neon"',
+  "isEntitlementSessionConfigured()",
   "readiness.stripeConfigured",
   "supportConfigured",
   "operatorAlertsConfigured",
@@ -94,6 +99,29 @@ for (const entry of ["article-job-search-plan", "article-achievement-examples", 
 
 assert.ok(!checkout.includes("payment_method_types"), "Checkout must keep Stripe dynamic payment methods enabled");
 assert.ok(!checkout.includes("automatic_tax"), "The app must not add a separate automatic-tax setting on top of Managed Payments");
+assert.ok(
+  checkout.indexOf("if (!allowed)") < checkout.indexOf("assertSafeStripeEnvironment()")
+    && checkout.indexOf("if (!allowed)") < checkout.indexOf("stripe.prices.retrieve")
+    && checkout.indexOf("if (!allowed)") < checkout.indexOf("checkout.sessions.create"),
+  "incomplete readiness must stop a direct Checkout POST before every Stripe operation",
+);
+assert.ok(
+  checkout.indexOf("await isPaymentRuntimeSchemaReady()") < checkout.indexOf("assertSafeStripeEnvironment()")
+    && checkout.indexOf("await isPaymentRuntimeSchemaReady()") < checkout.indexOf("stripe.prices.retrieve")
+    && checkout.indexOf("await isPaymentRuntimeSchemaReady()") < checkout.indexOf("checkout.sessions.create"),
+  "an incomplete runtime migration contract must stop Checkout before every Stripe operation",
+);
+assert.ok(offerPage.includes("configuredCheckoutAvailable && await isPaymentRuntimeSchemaReady()"), "the public payment button must remain hidden until the runtime migration contract passes");
+for (const migrationBoundary of [
+  "required_runtime_functions(signature)",
+  "public.consume_checkout_activation(text,text,text,text,text,text,timestamptz)",
+  "public.consume_entitlement_restore_token(text,text,text,text,text,timestamptz)",
+  "public.payment_operator_alert_outbox",
+  "public.payment_operator_alert_from_receipt()",
+  "on conflict on constraint stripe_payment_object_links_pkey do nothing",
+  "readOnly: true",
+  "AbortSignal.timeout(5_000)",
+]) assert.ok(firstSaleGate.includes(migrationBoundary), `runtime migration readiness is missing: ${migrationBoundary}`);
 assert.ok(
   checkout.indexOf("getActiveResumeProEntitlement()") < checkout.indexOf("stripe.prices.retrieve")
     && checkout.indexOf("getActiveResumeProEntitlement()") < checkout.indexOf("checkout.sessions.create"),
