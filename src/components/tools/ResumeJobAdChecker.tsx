@@ -44,6 +44,7 @@ export function ResumeJobAdChecker() {
   const [result, setResult] = useState<ReturnType<typeof analyseResumeJobAd> | null>(null);
   const [message, setMessage] = useState("");
   const [resultActionMessage, setResultActionMessage] = useState("");
+  const [jobAdCopyMessage, setJobAdCopyMessage] = useState("");
   const revealResultRef = useRef(false);
   const priorityTerms = result
     ? (result.missingCount > 0
@@ -81,6 +82,7 @@ export function ResumeJobAdChecker() {
     setResult(next);
     setMessage("비교가 끝났어요. 일치 여부는 문구 확인일 뿐, 경력의 사실 여부나 채용 가능성을 판정하지 않습니다.");
     setResultActionMessage("");
+    setJobAdCopyMessage("");
     saveResumeJobAdProofSummary(next);
     trackResumeJobAdChecked();
   }
@@ -94,6 +96,7 @@ export function ResumeJobAdChecker() {
     setResult(next);
     setMessage("가상 예시 결과를 열었어요. 일치 문구와 실제 경험을 확인할 질문이 어떻게 나뉘는지 먼저 살펴보세요.");
     setResultActionMessage("");
+    setJobAdCopyMessage("");
     trackResumeJobAdSampleViewed();
   }
 
@@ -105,6 +108,7 @@ export function ResumeJobAdChecker() {
     revealResultRef.current = false;
     setMessage("입력 내용을 이 화면에서 지웠습니다.");
     setResultActionMessage("");
+    setJobAdCopyMessage("");
   }
 
   function buildEvidenceMemo() {
@@ -158,6 +162,18 @@ export function ResumeJobAdChecker() {
     }
   }
 
+  async function copyJobAdForPro() {
+    const jobAd = jobAdText.trim();
+    if (!jobAd) return;
+
+    try {
+      await navigator.clipboard.writeText(jobAd);
+      setJobAdCopyMessage("Job Ad 원문을 클립보드에 복사했습니다. Pro 작업공간의 ‘채용 공고’에 직접 붙여 넣으세요.");
+    } catch {
+      setJobAdCopyMessage("이 브라우저에서는 자동 복사가 어렵습니다. 위 Job Ad 입력란의 원문을 직접 선택해 복사해 주세요.");
+    }
+  }
+
   async function shareChecker() {
     const url = `${window.location.origin}/resume-job-ad-checker`;
     const shareData = {
@@ -192,7 +208,7 @@ export function ResumeJobAdChecker() {
         <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">붙여 넣은 원문은 서버로 보내거나 브라우저에 저장하지 않습니다. 점검을 마치면 표현 후보와 확인 상태만 현재 탭에 최대 30분 남겨 Pro에서 이어 쓸 수 있어요. 이름, 전화번호, 이메일, 주소, 추천인 연락처, 회사 기밀은 먼저 지워도 비교할 수 있습니다.</p>
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
           <label className="block"><span className="text-sm font-semibold text-navy">현재 이력서 영문 텍스트</span><textarea value={resumeText} onChange={(event) => { clearResumeJobAdProofSummary(); setResumeText(event.target.value.slice(0, MAX_LENGTH)); setResult(null); }} rows={13} spellCheck={false} placeholder="PDF나 DOCX에서 필요한 영문 부분만 복사해 붙여 넣으세요." className="mt-2 w-full resize-y border border-border bg-surface p-4 text-sm leading-6 text-navy outline-none focus:border-gold" /><span className="mt-1 block text-right font-mono text-xs text-muted">{resumeText.length.toLocaleString()} / {MAX_LENGTH.toLocaleString()}</span></label>
-          <label className="block"><span className="text-sm font-semibold text-navy">지원할 Job Ad 영문 텍스트</span><textarea value={jobAdText} onChange={(event) => { clearResumeJobAdProofSummary(); setJobAdText(event.target.value.slice(0, MAX_LENGTH)); setResult(null); }} rows={13} spellCheck={false} placeholder="업무, 필수·우대 조건이 포함된 공고 본문을 붙여 넣으세요." className="mt-2 w-full resize-y border border-border bg-surface p-4 text-sm leading-6 text-navy outline-none focus:border-gold" /><span className="mt-1 block text-right font-mono text-xs text-muted">{jobAdText.length.toLocaleString()} / {MAX_LENGTH.toLocaleString()}</span></label>
+          <label className="block"><span className="text-sm font-semibold text-navy">지원할 Job Ad 영문 텍스트</span><textarea value={jobAdText} onChange={(event) => { clearResumeJobAdProofSummary(); setJobAdText(event.target.value.slice(0, MAX_LENGTH)); setResult(null); setJobAdCopyMessage(""); }} rows={13} spellCheck={false} placeholder="업무, 필수·우대 조건이 포함된 공고 본문을 붙여 넣으세요." className="mt-2 w-full resize-y border border-border bg-surface p-4 text-sm leading-6 text-navy outline-none focus:border-gold" /><span className="mt-1 block text-right font-mono text-xs text-muted">{jobAdText.length.toLocaleString()} / {MAX_LENGTH.toLocaleString()}</span></label>
         </div>
         <div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={compare} className="min-h-12 bg-navy px-6 py-3 text-sm font-semibold text-white">공고 맞춤 근거 점검하기</button><button type="button" onClick={clear} className="min-h-12 border border-border px-5 py-3 text-sm font-semibold text-muted hover:text-red-700">입력 내용 지우기</button></div>
         <p className="mt-4 min-h-6 text-sm leading-6 text-muted" aria-live="polite">{message}</p>
@@ -236,6 +252,12 @@ export function ResumeJobAdChecker() {
             <li className="bg-white p-4"><span className="font-mono text-xs text-muted">02 · 회사별</span><strong className="mt-2 block text-navy">경력 + 실제 공고 저장</strong><span className="mt-1 block text-xs leading-5 text-muted">저장된 Builder 경력과 공고를 공고별 이력서·커버레터·면접 메모로 묶어요.</span></li>
             <li className="bg-white p-4"><span className="font-mono text-xs text-muted">03 · 다음 지원</span><strong className="mt-2 block text-navy">다시 열어 나란히 비교</strong><span className="mt-1 block text-xs leading-5 text-muted">회사별 버전의 마감일·지원 상태를 저장하고, 확인한 근거와 체크리스트를 다시 열어요.</span></li>
           </ol>
+          <div className="mt-4 border-l-2 border-gold bg-surface p-4">
+            <p className="text-sm font-semibold text-navy">결제 후 같은 공고를 다시 찾지 않도록 준비하세요.</p>
+            <p className="mt-1 text-xs leading-5 text-muted">원문은 저장·자동 전달되지 않습니다. 아래 버튼을 직접 누르면 현재 Job Ad만 클립보드에 복사되며, Pro 작업공간에서 사용자가 직접 붙여 넣습니다.</p>
+            <button type="button" onClick={copyJobAdForPro} className="mt-3 min-h-12 border border-navy bg-white px-4 text-sm font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">Job Ad 원문 복사</button>
+            <p className="mt-2 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{jobAdCopyMessage}</p>
+          </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <ResumeProCtaLink href="/resume-pro?from=job-ad-checker" surface={resumeFunnelSurfaces.jobAdCheckerResult} context={resumeFunnelContexts.jobAdChecker} className="flex min-h-12 flex-col items-center justify-center bg-navy px-5 py-3 text-center font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"><span>회사별 지원서 저장 방식 비교하기</span><span className="mt-1 text-xs font-medium text-white/75">표현 후보와 확인 상태가 이어져요</span></ResumeProCtaLink>
             <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy/30 px-5 py-3 text-center font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">이번 이력서만 무료로 수정하기</Link>

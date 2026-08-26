@@ -29,6 +29,11 @@ for (const contract of [
   "경력 + 실제 공고 저장",
   "다시 열어 나란히 비교",
   "회사별 버전의 마감일·지원 상태를 저장하고, 확인한 근거와 체크리스트를 다시 열어요.",
+  "결제 후 같은 공고를 다시 찾지 않도록 준비하세요.",
+  "원문은 저장·자동 전달되지 않습니다.",
+  "현재 Job Ad만 클립보드에 복사되며",
+  "Pro 작업공간에서 사용자가 직접 붙여 넣습니다.",
+  "Job Ad 원문 복사",
 ]) {
   assert.ok(decision.includes(contract), `the pre-purchase decision is missing: ${contract}`);
 }
@@ -41,9 +46,9 @@ assert.ok(decision.includes("표현 후보와 확인 상태가 이어져요"), "
 assert.ok(decision.includes("이번 이력서만 무료로 수정하기"), "the free one-off path must remain available as the secondary action");
 
 const focusRings = decision.match(/focus-visible:ring-2/g) ?? [];
-assert.equal(focusRings.length, 2, "both decision links need an explicit keyboard focus indicator");
+assert.equal(focusRings.length, 3, "the copy action and both decision links need an explicit keyboard focus indicator");
 const tapTargets = decision.match(/min-h-12/g) ?? [];
-assert.equal(tapTargets.length, 2, "both mobile decision actions need a 48px minimum target");
+assert.equal(tapTargets.length, 3, "the copy action and both mobile decision links need a 48px minimum target");
 
 assert.doesNotMatch(decision, /원문과 결과는 이 화면을 떠나면 남지 않아요/, "the decision must not hide the 30-minute evidence-only handoff");
 assert.doesNotMatch(decision, /track\(|sendBeacon|fetch\(|resumeText|jobAdText/, "the decision section must not create duplicate analytics or expose pasted inputs");
@@ -56,6 +61,10 @@ const resultActions = checker.slice(resultActionsStart, resultActionsEnd);
 assert.ok(resultActions.indexOf("근거 메모 TXT 저장") < resultActions.indexOf("근거 메모 복사") && resultActions.indexOf("근거 메모 복사") < resultActions.indexOf("점검기 링크 공유"), "save, copy and share must follow the useful mobile and keyboard order");
 assert.equal((resultActions.match(/focus-visible:ring-2/g) ?? []).length, 3, "all free-result actions need explicit keyboard focus indicators");
 assert.doesNotMatch(checker.slice(checker.indexOf("function downloadEvidenceMemo"), checker.indexOf("async function copyEvidenceMemo")), /track\(|resumeText|jobAdText|sessionStorage|localStorage/, "TXT saving must stay local and exclude pasted raw inputs and analytics");
+const jobAdCopy = checker.slice(checker.indexOf("async function copyJobAdForPro"), checker.indexOf("async function shareChecker"));
+assert.match(jobAdCopy, /navigator\.clipboard\.writeText\(jobAd\)/, "the explicit prep action must copy the current Job Ad locally");
+assert.doesNotMatch(jobAdCopy, /sessionStorage|localStorage|fetch\(|sendBeacon|track\(/, "the Job Ad copy action must not persist, transmit or analyse raw text");
+assert.match(decision, /aria-live="polite"/, "copy success or failure needs an accessible announcement next to the action");
 
 for (const handoffCopy of [
   "이번 이력서만 고칠지, 이 회사 지원서를 저장해 다시 열지 결정하세요.",

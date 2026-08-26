@@ -450,6 +450,8 @@ Stripe를 조회하지 않는다. exporter의 CSV 열은 정확히
 ```powershell
 npm.cmd run accounting:export -- --from <YYYY-MM-DD> --to <YYYY-MM-DD>
 npm.cmd run first-sale:evidence -- --file <private-json-path> --phase 24h
+npm.cmd run accounting:controlled-reconciliation -- --template
+npm.cmd run accounting:controlled-reconciliation -- --file <private-status-json-path>
 npm.cmd run first-sale:evidence -- --file <private-json-path> --phase payout
 ```
 
@@ -462,6 +464,21 @@ npm.cmd run first-sale:evidence -- --file <private-json-path> --phase payout
 분류 코드이며 JSON 필드가 아니다. JSON에는 그 분류를 원본에서 확인한 결과만
 `payout_status_recorded=PASS/MISSING/FAIL`로 남긴다. 임의 `payout_state`를
 추가하면 판정기는 구조 오류 `STOP`으로 종료한다.
+
+첫 retained sale의 24시간 close는 두 판정을 같은 원거래 chain에서 차례로
+실행하되 결과를 합치지 않는다. v4 `first-sale:evidence --phase 24h`의
+`payout_status_recorded=PASS`는 `pending` 같은 현재 상태를 원본에서 확인해
+기록했다는 뜻일 뿐 payout 완료, 은행 입금, 현금수령 또는 장부 마감을 뜻하지
+않는다. 이어서 schema v2 controlled-reconciliation 파일에는
+`refund_state=none_confirmed`, `payout_state=pending`을 기록하고, gross·fee·net과
+닫힌 refund/dispute 증거창의 `refund_state_source_window_verified=PASS`를 각각
+확인한다. payout/은행 원본이 아직 없으면
+`payout_bank_match_or_verified_none=MISSING`과
+`cash_difference_within_one_cent=MISSING`을 유지한다. 이때 정상 결과는
+`CONTROLLED_PAYMENT_RECONCILIATION=HOLD ... outcome=retained_sale ... payout=pending`이다.
+v4 24시간 PASS나 Stripe ending balance를 schema v2 payout·은행 PASS에 복사하지
+않는다. fixture의 PASS/MISSING은 계약 검사용이며 외부 증거를 생성하거나
+대체하지 않는다.
 
 관찰된 전액 환불 형태의 비민감 fixture는 **fee source observed,
 payout/bank reconciliation unresolved**로 다룬다. 원매출과 연결된 전액
@@ -486,7 +503,7 @@ ending balance를 은행 입금·payout 완료 또는 cash difference 0으로 �
 | 3. 환불·지원·접근 | refund webhook·outbox와 entitlement revoke/review 상태 | 환불 **요청**은 `refund_request_pending`으로 두고, Refund 원본이 `succeeded`이며 같은 Charge·PaymentIntent와 별도 refund Balance Transaction에 연결된 경우에만 partial/full 완료를 선택 | 네 결과 코드와 `refund_dispute_outcome_matrix_consistent` | 요청·pending·failed를 완료로 기록, 원 gross 삭제, refund/dispute 중복 조정 또는 접근 상태 불일치는 **HOLD** |
 | 4. 고객 문서 | Checkout/Invoice의 발행 여부·상태와 Credit Note 존재 여부 후보 | 이미 존재하는 Checkout 결과와 실제 발급 Receipt·Invoice를 열어 9행 gate를 수행하고, Refund에 연결된 Credit Note는 발행/미발행·열람 상태만 확인; 생성·재전송·다운로드하지 않음 | `receipt_or_tax_document_retained`, `refund_credit_note_handled`, `document_issuer_verified`, `liability_party_verified` | 발행 집합 불명, 발행됐지만 미열람, seller/issuer/liability 불명 또는 다른 artifact에서 추정하면 **HOLD** |
 | 5. Payout·은행 | Stripe Payout 객체·itemised source membership 또는 닫힌 조회 창의 payout 부재 | itemised payout을 은행 입금과 맞춘 경우만 `matched`; 24시간에 payout이 없으면 `pending`으로 이월하고, `source_verified_none`은 닫힌 Stripe source window와 은행 증거가 함께 no-movement를 입증한 경우만 사용 | 24시간 `payout_status_recorded`; 이후 `itemised_payout_retained`, `bank_arrival_matched`, `stripe_clearing_reconciled` | payout 0건·빈 셀·순액 0 추정만으로 `nil`, `paid`, `matched` 또는 `source_verified_none`을 기록하면 **HOLD** |
-| 6. 마감 | 위 단계의 상태-only private JSON | `--phase 24h`를 실행하고, payout 증거가 생긴 뒤 같은 사건으로 `--phase payout` 실행 | canonical `PASS/HOLD/STOP` 출력과 owner·다음 기한 | 24시간 PASS를 payout PASS나 판매 재개 승인으로 재사용하지 않음 |
+| 6. 마감 | 위 단계의 v4 first-sale JSON과 별도 schema v2 controlled-reconciliation JSON | `--phase 24h` 뒤 controlled classifier를 실행하고, payout 증거가 생긴 뒤 같은 사건으로 `--phase payout` 및 controlled classifier를 다시 실행 | 각각의 canonical `PASS/HOLD/STOP` 출력과 owner·다음 기한 | 24시간 PASS를 controlled reconciliation, payout·은행·현금수령 PASS나 판매 재개 승인으로 재사용하지 않음 |
 
 - 사건별 상태를 `확인 중 / owner 승인 대기 / 조치 승인 / 완료 / 판매 중단 후보` 중 하나로 남긴다.
 - 고객별 메모 대신 사건번호, 원본 시스템 reference, 다음 조치와 기한만 인계한다.

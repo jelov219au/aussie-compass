@@ -7,6 +7,11 @@ import { fileURLToPath } from "node:url";
 
 import { accountingLedgerHeader, normaliseAccountingRows } from "./accounting-ledger-schema.mjs";
 import {
+  controlledPaymentReconciliationChecks,
+  createControlledPaymentReconciliationTemplate,
+  evaluateControlledPaymentReconciliation,
+} from "./controlled-payment-reconciliation-contract.mjs";
+import {
   accountingOutcomes,
   containsSensitiveEvidence,
   createFirstSaleEvidenceTemplate,
@@ -74,6 +79,17 @@ function retainedFeeUnsettledPacket() {
   return packet;
 }
 
+function retainedSaleControlledReconciliationPacket() {
+  const packet = createControlledPaymentReconciliationTemplate();
+  packet.observed_at = "2026-08-25T00:05:00.000Z";
+  packet.refund_state = "none_confirmed";
+  packet.payout_state = "pending";
+  for (const check of controlledPaymentReconciliationChecks) packet.checks[check] = "PASS";
+  packet.checks.payout_bank_match_or_verified_none = "MISSING";
+  packet.checks.cash_difference_within_one_cent = "MISSING";
+  return packet;
+}
+
 assert.equal(createFirstSaleEvidenceTemplate().schema_version, 4, "the integrated preflight evidence chain requires schema v4");
 const legacyPacket = passingPacket();
 legacyPacket.schema_version = 3;
@@ -91,6 +107,7 @@ for (const phase of ["15m", "24h", "payout"]) {
 for (const documentedCommand of [
   "npm.cmd run accounting:export -- --from <YYYY-MM-DD> --to <YYYY-MM-DD>",
   "npm.cmd run first-sale:evidence -- --file <private-json-path> --phase 24h",
+  "npm.cmd run accounting:controlled-reconciliation -- --file <private-status-json-path>",
   "npm.cmd run first-sale:evidence -- --file <private-json-path> --phase payout",
 ]) assert.ok(runbookSource.includes(documentedCommand), `the 24-hour run sheet is missing the real repo command: ${documentedCommand}`);
 assert.ok(runbookSource.includes("`--to` 날짜는 exporter 구현대로 exclusive"));
@@ -127,6 +144,35 @@ assert.equal(retainedFeeAtPayout.decision, "HOLD");
 for (const check of ["itemised_payout_retained", "bank_arrival_matched", "stripe_clearing_reconciled", "cash_difference_within_one_cent"]) {
   assert.notEqual(retainedFeeAtPayout.rows.find((row) => row.check === check)?.status, "PASS", `${check} must not be completed from a retained fee`);
 }
+
+const retainedSaleAtTwentyFourHours = evaluateFirstSaleEvidence(passingPacket(), "24h");
+assert.equal(retainedSaleAtTwentyFourHours.decision, "PASS", "the 24-hour packet may record a verified pending payout state");
+const retainedSaleControlledReconciliation = evaluateControlledPaymentReconciliation(retainedSaleControlledReconciliationPacket());
+assert.equal(retainedSaleControlledReconciliation.outcome, "retained_sale");
+assert.equal(retainedSaleControlledReconciliation.decision, "HOLD", "pending payout and missing bank evidence must not become cash received");
+for (const check of [
+  "original_gross_sale_preserved_once",
+  "stripe_fee_recorded_separately",
+  "gross_fee_refund_net_reconciled",
+  "ending_balance_reconciled",
+  "refund_state_source_window_verified",
+]) {
+  assert.equal(
+    retainedSaleControlledReconciliation.rows.find((row) => row.check === check)?.status,
+    "PASS",
+    `${check} must stay separate from pending payout and bank evidence`,
+  );
+}
+for (const check of ["payout_state_resolved", "payout_bank_match_or_verified_none", "cash_difference_within_one_cent"]) {
+  assert.notEqual(
+    retainedSaleControlledReconciliation.rows.find((row) => row.check === check)?.status,
+    "PASS",
+    `${check} must remain unresolved before payout and bank evidence`,
+  );
+}
+const retainedSaleMissingNet = retainedSaleControlledReconciliationPacket();
+retainedSaleMissingNet.checks.gross_fee_refund_net_reconciled = "MISSING";
+assert.equal(evaluateControlledPaymentReconciliation(retainedSaleMissingNet).decision, "HOLD");
 
 for (const status of ["PASS", "MISSING", "FAIL"]) {
   const packet = passingPacket();
@@ -340,6 +386,14 @@ for (const boundary of [
   "실제 발급 Receipt·Invoice",
   "Credit Note는 발행/미발행·열람 상태만 확인",
   "24시간에 payout이 없으면 `pending`으로 이월",
+  "`payout_status_recorded=PASS`는 `pending` 같은 현재 상태를 원본에서 확인해 기록했다는 뜻일 뿐",
+  "schema v2 controlled-reconciliation",
+  "refund_state=none_confirmed",
+  "refund_state_source_window_verified=PASS",
+  "payout_bank_match_or_verified_none=MISSING",
+  "cash_difference_within_one_cent=MISSING",
+  "outcome=retained_sale ... payout=pending",
+  "외부 증거를 생성하거나 대체하지 않는다",
   "`source_verified_none`은 닫힌 Stripe source window와 은행 증거가 함께 no-movement를 입증한 경우만 사용",
   "환불 요청은 성공한 refund가 아니며",
 ]) assert.ok(compactRunbookSource.includes(boundary), `the 24-hour runbook is missing financial-event handoff evidence: ${boundary}`);
