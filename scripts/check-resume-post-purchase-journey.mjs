@@ -17,7 +17,7 @@ assert.ok(offerPage.includes('이 기기의 Resume Pro 이용권을 확인했습
 assert.ok(offerPage.includes('결제는 이미 완료됐습니다. 작업공간에서 저장한 회사별 지원서를 다시 열거나 새 지원서를 시작하세요.'), "an active buyer must not be asked to evaluate the purchase again");
 assert.ok((offerPage.match(/href="\/resume-pro\/workspace#resume-pro-workspace"/g) ?? []).length >= 2, "active-buyer CTAs must return to the fixed first-task workspace destination");
 assert.ok(offerPage.indexOf("hasActiveEntitlement ? (") < offerPage.indexOf("<ResumeProCheckoutJumpLink"), "workspace continuation must take precedence over checkout");
-assert.ok(offerPage.includes('{canOfferCheckout && <div id="resume-pro-checkout"'), "the checkout form must remain behind the active-entitlement-aware guard");
+assert.match(offerPage, /\{canOfferCheckout && \(\s*<div id="resume-pro-checkout"/, "the checkout form must remain behind the active-entitlement-aware guard");
 assert.ok(offerPage.includes('checkoutFailure && !hasActiveEntitlement'), "stale Checkout errors must not replace an active buyer's safe continuation");
 assert.match(offerPage, /hasActiveEntitlement \? \([\s\S]*추가 결제 없이 계속 이용[\s\S]*\) : \([\s\S]*A\$19\.90/, "the active-buyer price card must become a paid-access continuation state");
 assert.match(offerPage, /\{!hasActiveEntitlement && \(\s*<ResumeProProofLink[\s\S]*결제 전에 내 공고로 차이 확인하기/, "the in-hero pre-purchase proof CTA must be hidden from active buyers");
