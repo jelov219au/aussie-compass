@@ -3,8 +3,10 @@ import { readFile } from "node:fs/promises";
 
 const [
   globalStyles,
+  homePage,
   hero,
   australianSky,
+  homeStart,
   homeSearch,
   tools,
   returnVisit,
@@ -21,8 +23,10 @@ const [
   siteSearch,
 ] = await Promise.all([
   readFile(new URL("../src/app/globals.css", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/Hero.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/brand/AustralianSky.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/sections/HomeStartSection.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/HomeSearch.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/ToolsSection.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/ReturnVisitSection.tsx", import.meta.url), "utf8"),
@@ -85,6 +89,7 @@ for (const focusContract of [
 for (const [source, marker] of [
   [hero, 'text-[#874b32]'],
   [australianSky, 'text-[#874b32]">START HERE, STAY READY'],
+  [homeStart, 'text-gold-ink">상황별 빠른 시작'],
   [homeSearch, 'text-gold-ink">바로 찾아보기'],
   [tools, 'text-gold-ink">바로 써볼 수 있어요'],
   [returnVisit, "bg-surface text-sm text-gold-ink"],
@@ -105,6 +110,25 @@ for (const [source, marker] of [
 
 assert.ok(proFinder.includes('text-gold">지금 필요한 결과물'), "dark Pro finder panel must keep the brighter gold token");
 assert.ok(tools.includes('text-gold">지금 바로 한 문장'), "dark homepage feature panel must keep the brighter gold token");
+
+for (const contract of [
+  'id="home-start"',
+  'aria-labelledby="home-start-heading"',
+  "grid-cols-1 gap-3 min-[430px]:grid-cols-2 lg:grid-cols-5",
+  "last:min-[430px]:col-span-2 lg:last:col-span-1",
+  "min-h-36 overflow-hidden rounded-2xl",
+  "min-h-11 items-center text-white hover:text-gold",
+]) {
+  assert.ok(homeStart.includes(contract), `the friendly mobile start path is missing: ${contract}`);
+}
+for (const surface of ["#fff4ee", "#eef6f3", "#eef3f8", "#fff8e7", "#f4f0f7"]) {
+  assert.ok(homeStart.includes(surface), `a friendly situation-card surface is missing: ${surface}`);
+}
+const homeOrder = ["<Hero />", "<HomeStartSection />", "<HomeSearch />", "<ToolsSection />", "<PremiumToolsSection />"]
+  .map((marker) => homePage.indexOf(marker));
+assert.ok(homeOrder.every((index) => index >= 0), "the homepage must render every primary start and conversion section");
+assert.deepEqual(homeOrder, [...homeOrder].sort((left, right) => left - right), "situation-first navigation must lead to free tools before the Resume Pro decision section");
+assert.ok(hero.includes('href="#home-start"') && hero.includes('destination: "home_start"'), "the friendly hero CTA must open the immediate situation-first path");
 
 for (const source of [resumeBuilder, resumeProWorkspace]) {
   assert.doesNotMatch(source, /<h1[^>]*>\{resume\.name \|\| "Your Name"\}<\/h1>/, "an embedded resume preview must not create another page-level h1");

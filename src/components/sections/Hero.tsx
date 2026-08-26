@@ -40,7 +40,7 @@ export function Hero() {
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Button href="#route-finder" eventName="Home Navigation" properties={{ section: "hero", destination: "route_finder" }}>
+              <Button href="#home-start" eventName="Home Navigation" properties={{ section: "hero", destination: "home_start" }}>
                 {content.hero.primaryCta}
               </Button>
               <Button href="/tools" variant="secondary" eventName="Home Navigation" properties={{ section: "hero", destination: "tools" }}>
