@@ -463,6 +463,22 @@ npm.cmd run first-sale:evidence -- --file <private-json-path> --phase payout
 `payout_status_recorded=PASS/MISSING/FAIL`로 남긴다. 임의 `payout_state`를
 추가하면 판정기는 구조 오류 `STOP`으로 종료한다.
 
+관찰된 전액 환불 형태의 비민감 fixture는 **fee source observed,
+payout/bank reconciliation unresolved**로 다룬다. 원매출과 연결된 전액
+환불이 확인돼도 Stripe fee가 남고 Credit Note 열람 여부가 확인되지 않았다면
+`financial_event_outcome=full_refund_succeeded`,
+`entitlement_outcome=revoked`,
+`accounting_outcome=full_refund_adjustment`,
+`support_outcome=full_refund_confirmed`를 서로 맞추되
+`refund_credit_note_handled=MISSING`으로 기록해 24시간 결과를 `HOLD`로 둔다.
+이 fixture처럼 payout 자체가 미확인이면 `payout_status_recorded=MISSING`이다.
+닫힌 source window로 payout 부재를 확인해 `payout_status_recorded=PASS`로
+기록하더라도 그것은 payout 대사 PASS가 아니다. 첫 payout 판정의 `itemised_payout_retained`,
+`bank_arrival_matched`, `stripe_clearing_reconciled`와 cash difference는 실제
+증거 전까지 `MISSING`/`null`이며 payout 결과도 `HOLD`다. 잔존 fee나 Stripe
+ending balance를 은행 입금·payout 완료 또는 cash difference 0으로 추정하지
+않는다.
+
 | 순서 | 원본과 자동·기계 상태 | 운영자 수동 확인 | 상태-only 기록 | FAIL-CLOSED 처리 |
 | --- | --- | --- | --- | --- |
 | 1. 원거래 고정 | 앱의 signed webhook·first-sale 사건·outbox·entitlement 상태와 회계 exporter의 Balance Transaction 후보 | Stripe live Checkout → PaymentIntent → Charge가 서로 직접 연결되고 exact Resume Product → Price → signed `product_code=resume_pro` chain인지 확인 | `live_checkout_paid`, `support_ledger_original_transaction_chain_preserved` | amount·시각·이메일·alert suffix로 조인했거나 한 link라도 미열람이면 `MISSING/FAIL`과 **HOLD** |

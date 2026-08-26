@@ -212,10 +212,30 @@ assert.ok(productionAudit.includes("`required_migrations_present=false`"), "the 
 assert.ok(compactProductionAudit.includes("found no `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID` result"), "the Production audit must preserve the observed missing endpoint-pin state");
 for (const deploymentIdentityBoundary of [
   "## 0. Production deployment identity",
-  "full Production Source SHA",
+  "full candidate SHA",
+  "git rev-parse HEAD",
+  "-ExpectedProductionSha <full-owner-approved-sha>",
   "git merge-base --is-ancestor 2f886c2 <production-source-sha>",
   "successful Vercel status on a commit",
 ]) assert.ok(checklist.includes(deploymentIdentityBoundary), `the launch checklist is missing deployment identity boundary: ${deploymentIdentityBoundary}`);
+for (const currentReleaseBoundary of [
+  "- [ ] Immediately before the release audit",
+  "Any later commit creates a new candidate",
+  "Historical evidence for an earlier Production SHA does not satisfy this release",
+  "keep `PAYMENTS_ENABLED=false` and `STRIPE_MANAGED_PAYMENTS_ENABLED=false`",
+  "restore every required Production environment value while payments are off",
+  "verify or apply the required database migrations in the documented order while payments are off",
+  "promote the exact approved candidate while payments are off",
+  "canonical outer preflight pinned to that full SHA",
+  "do not drop or reverse the additive payment evidence migrations",
+]) assert.ok(checklist.includes(currentReleaseBoundary), `the launch checklist is missing the current release/rollback boundary: ${currentReleaseBoundary}`);
+const deploymentIdentitySection = checklist.match(/## 0\. Production deployment identity([\s\S]*?)## 1\. Business identity/)?.[1] ?? "";
+assert.doesNotMatch(deploymentIdentitySection, /\b[0-9a-f]{40}\b/, "the deployment checklist must not hardcode a candidate or Production SHA that becomes stale after the next commit");
+assert.doesNotMatch(
+  checklist,
+  /- \[x\][^\r\n]*(?:full Production Source SHA|exact-SHA Production origin|PRODUCTION_DEPLOYMENT_EVIDENCE=PASS)/,
+  "deployment identity must remain unchecked until the fixed candidate is the exact payment-off Production deployment",
+);
 for (const observedDeploymentBoundary of [
   "commit `2f886c2`",
   "does not prove Production promotion",
@@ -356,6 +376,25 @@ const wrongModeStripeAuditKey = runEndpointBoundary({
   PAYMENTS_STRIPE_AUDIT_KEY: "rk_test_audit_placeholder_for_contract_test_only",
 });
 assert.match(wrongModeStripeAuditKey.stdout, /WAIT  Stripe 감사 키 분리/, "the operator audit must reject a key from the wrong Stripe mode");
+
+function runPaymentsOffBoundary(overrides) {
+  return spawnSync(process.execPath, [fileURLToPath(new URL("./check-payment-launch.mjs", import.meta.url)), "--preflight", "--strict"], {
+    encoding: "utf8",
+    env: { ...apparentlyReadyEnv, PAYMENTS_ENABLED: "false", ...overrides },
+  });
+}
+
+for (const [label, overrides, expectedWait] of [
+  ["Managed Payments switch", { STRIPE_MANAGED_PAYMENTS_ENABLED: "" }, /WAIT  Managed Payments — 활성화/],
+  ["entitlement session secret", { ENTITLEMENT_SESSION_SECRET: "" }, /WAIT  접근 세션 서명 — 32자 이상/],
+  ["runtime entitlement database", { ENTITLEMENT_DB_URL: "", ENTITLEMENT_DB_DATABASE_URL: "" }, /WAIT  이용권 DB — Postgres 연결/],
+]) {
+  const fixture = runPaymentsOffBoundary(overrides);
+  assert.equal(fixture.status, 1, `${label} must remain a strict launch blocker`);
+  assert.match(fixture.stdout, /PASS  결제 스위치 — PAYMENTS_ENABLED=false/, `${label} must be audited only while Checkout remains off`);
+  assert.match(fixture.stdout, expectedWait, `${label} must be reported as WAIT`);
+  assert.doesNotMatch(fixture.stdout, /결과: 20\/20 통과, 0개 대기/, `${label} must not produce a locally ready launch result`);
+}
 
 const guardedRemoteAttempt = spawnSync(process.execPath, [fileURLToPath(new URL("./check-payment-launch.mjs", import.meta.url)), "--preflight", "--strict", "--verify-stripe", "--verify-database"], {
   encoding: "utf8",

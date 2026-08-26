@@ -31,10 +31,12 @@ import {
   type ResumeProStoredApplication,
 } from "@/lib/resumeProApplicationStorage";
 import {
+  getResumeProApplicationPrioritySummary,
   normaliseResumeProApplicationDeadline,
   normaliseResumeProApplicationStatus,
   resumeProApplicationStatuses,
   resumeProApplicationStatusLabels,
+  type ResumeProApplicationPriorityItem,
   type ResumeProApplicationStatus,
 } from "@/lib/resumeProApplicationTracking";
 
@@ -194,6 +196,21 @@ function sentence(value?: string) {
 
 function safeFileName(value: string) {
   return value.trim().replace(/[^a-z0-9가-힣]+/gi, "-").replace(/^-|-$/g, "").slice(0, 60) || "resume-application";
+}
+
+function localCalendarDate(date = new Date()) {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function applicationPriorityReason(item: ResumeProApplicationPriorityItem) {
+  if (item.reason === "overdue") return `마감 ${Math.abs(item.daysFromToday ?? 0)}일 지남`;
+  if (item.reason === "today") return "오늘 마감";
+  if (item.reason === "upcoming") return `마감 D-${item.daysFromToday}`;
+  if (item.reason === "follow_up") return "후속 확인 먼저";
+  if (item.reason === "submitted") return "제출 완료 기록";
+  return "마감일 입력 필요";
 }
 
 function listValues(value?: string, separator = /,|\n/) {
@@ -383,6 +400,7 @@ export function ResumeProWorkspace() {
   const selectedStarStory = useMemo(() => starStories.find((story) => story.id === draft.starStoryId) ?? null, [draft.starStoryId, starStories]);
   const starAnswer = useMemo(() => composeStarAnswer(starStoryDraft), [starStoryDraft]);
   const activeApplication = useMemo(() => applications.find((application) => application.id === activeApplicationId) ?? null, [activeApplicationId, applications]);
+  const applicationPrioritySummary = useMemo(() => getResumeProApplicationPrioritySummary(applications, localCalendarDate()), [applications]);
   const currentApplicationSaved = Boolean(activeApplication?.updatedAt && JSON.stringify(activeApplication.draft) === JSON.stringify(draft));
   const currentApplicationReopened = currentApplicationSaved && reopenedApplicationId === activeApplicationId;
   const quickStartSteps = [
@@ -728,7 +746,40 @@ export function ResumeProWorkspace() {
         <div className={`mt-5 border-l-2 p-4 text-sm leading-6 ${hasResume ? "border-[#3f6d5c] bg-[#3f6d5c]/8 text-navy" : "border-gold bg-gold/8 text-muted"}`}>
           {hasResume ? <><strong className="block text-navy">{savedResume.name || "저장된 이력서"}의 내용을 연결했습니다.</strong>무료 이력서 빌더의 Summary, 경력과 Skills를 초안에 사용합니다.</> : <><strong className="block text-navy">저장된 이력서를 찾지 못했습니다.</strong>입력 없이도 사용할 수 있지만 무료 빌더를 먼저 작성하면 더 구체적인 초안이 만들어집니다.</>}
         </div>
-        <section className="mt-5 border border-border bg-white p-4" aria-labelledby="saved-applications-heading"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">현재 브라우저에 최대 30개까지 저장됩니다. 저장 뒤 저장본을 다시 열어 확인하고, 내용을 바꾸면 다시 저장해 주세요.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button id="resume-pro-save-application" type="button" onClick={saveApplication} className="min-h-10 bg-navy px-3 text-xs font-semibold text-white">{currentApplicationSaved ? "현재 지원서 저장됨" : "현재 지원서 저장"}</button>{currentApplicationSaved && activeApplicationId && !currentApplicationReopened && <button id="resume-pro-reopen-application" type="button" onClick={() => reopenApplication(activeApplicationId)} className="min-h-11 border border-navy px-3 text-xs font-semibold text-navy">저장본 다시 열어 확인</button>}</div></div>{applications.length > 0 ? <ul className="mt-4 divide-y divide-border border-y border-border">{applications.map((application) => <li key={application.id} className="flex flex-wrap items-center gap-3 py-3"><button type="button" onClick={() => reopenApplication(application.id)} className="min-h-10 flex-1 text-left"><strong className="block text-sm text-navy">{application.company}</strong><span className="mt-1 block text-xs text-muted">{application.role} · {resumeProApplicationStatusLabels[application.draft.applicationStatus]}{application.draft.applicationDeadline ? ` · 마감 ${application.draft.applicationDeadline}` : ""} · {application.updatedAt ? new Date(application.updatedAt).toLocaleDateString("en-AU") : "저장 시간 확인 필요"}{activeApplicationId === application.id ? currentApplicationReopened ? " · 다시 열기 확인됨" : currentApplicationSaved ? " · 저장됨" : " · 변경사항 있음" : ""}</span></button><button type="button" onClick={() => deleteApplication(application)} className="min-h-10 px-2 text-xs text-muted hover:text-red-700">삭제</button></li>)}</ul> : <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted">저장한 지원서가 아직 없습니다. 회사명을 입력하고 현재 지원서 저장을 눌러 주세요.</p>}</section>
+        <section className="mt-5 border border-border bg-white p-4" aria-labelledby="saved-applications-heading">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">현재 브라우저에 최대 30개까지 저장됩니다. 저장 뒤 저장본을 다시 열어 확인하고, 내용을 바꾸면 다시 저장해 주세요.</p></div>
+            <div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button id="resume-pro-save-application" type="button" onClick={saveApplication} className="min-h-10 bg-navy px-3 text-xs font-semibold text-white">{currentApplicationSaved ? "현재 지원서 저장됨" : "현재 지원서 저장"}</button>{currentApplicationSaved && activeApplicationId && !currentApplicationReopened && <button id="resume-pro-reopen-application" type="button" onClick={() => reopenApplication(activeApplicationId)} className="min-h-11 border border-navy px-3 text-xs font-semibold text-navy">저장본 다시 열어 확인</button>}</div>
+          </div>
+          {applications.length > 0 ? (
+            <>
+              <section className="mt-4 border-l-2 border-gold bg-surface p-4" aria-labelledby="application-priority-heading">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Local application priority</p>
+                <h4 id="application-priority-heading" className="mt-1 text-lg font-semibold text-navy">지금 다시 열 지원서</h4>
+                <p className="mt-2 text-xs leading-5 text-muted">
+                  {applicationPrioritySummary.nearestDeadline
+                    ? <>가장 가까운 마감은 <strong className="text-navy">{applicationPrioritySummary.nearestDeadline.application.company} · {applicationPrioritySummary.nearestDeadline.deadline}</strong>입니다.</>
+                    : "준비 중·제출 준비 지원서에 마감일이 아직 없습니다."}
+                </p>
+                <dl className="mt-3 grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
+                  {resumeProApplicationStatuses.map((status) => <div key={status} className="bg-white p-3"><dt className="text-xs text-muted">{resumeProApplicationStatusLabels[status]}</dt><dd className="mt-1 text-xl font-semibold text-navy">{applicationPrioritySummary.statusCounts[status]}</dd></div>)}
+                </dl>
+                <ol className="mt-3 space-y-2" aria-label="다시 열기 우선순위">
+                  {applicationPrioritySummary.priorityItems.map((item, index) => (
+                    <li key={item.application.id}>
+                      <button type="button" onClick={() => reopenApplication(item.application.id)} className="flex min-h-12 w-full items-center justify-between gap-3 border border-border bg-white px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+                        <span><strong className="block text-sm text-navy">{index + 1}. {item.application.company}</strong><span className="mt-0.5 block text-xs text-muted">{item.application.role} · {resumeProApplicationStatusLabels[item.status]}</span></span>
+                        <span className="shrink-0 text-xs font-semibold text-[#806515]">{applicationPriorityReason(item)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+                <p className="mt-3 text-xs leading-5 text-muted">이 요약은 현재 브라우저의 저장본만 계산하며, 버튼을 누르면 기존 로컬 재열기 검사를 그대로 실행합니다.</p>
+              </section>
+              <ul className="mt-4 divide-y divide-border border-y border-border">{applications.map((application) => <li key={application.id} className="flex flex-wrap items-center gap-3 py-3"><button type="button" onClick={() => reopenApplication(application.id)} className="min-h-10 flex-1 text-left"><strong className="block text-sm text-navy">{application.company}</strong><span className="mt-1 block text-xs text-muted">{application.role} · {resumeProApplicationStatusLabels[application.draft.applicationStatus]}{application.draft.applicationDeadline ? ` · 마감 ${application.draft.applicationDeadline}` : ""} · {application.updatedAt ? new Date(application.updatedAt).toLocaleDateString("en-AU") : "저장 시간 확인 필요"}{activeApplicationId === application.id ? currentApplicationReopened ? " · 다시 열기 확인됨" : currentApplicationSaved ? " · 저장됨" : " · 변경사항 있음" : ""}</span></button><button type="button" onClick={() => deleteApplication(application)} className="min-h-10 px-2 text-xs text-muted hover:text-red-700">삭제</button></li>)}</ul>
+            </>
+          ) : <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted">저장한 지원서가 아직 없습니다. 회사명을 입력하고 현재 지원서 저장을 눌러 주세요.</p>}
+        </section>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className={labelClass}>회사명<input id="resume-pro-company" className={inputClass} value={draft.company} onChange={(event) => setField("company", event.target.value)} placeholder="Compass Cafe" /></label>
           <label className={labelClass}>지원 직무<input className={inputClass} value={draft.role} onChange={(event) => setField("role", event.target.value)} placeholder="Barista" /></label>

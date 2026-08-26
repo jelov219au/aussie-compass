@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { accountingLedgerHeader } from "./accounting-ledger-schema.mjs";
+import { accountingLedgerHeader, normaliseAccountingRows } from "./accounting-ledger-schema.mjs";
 import {
   accountingOutcomes,
   containsSensitiveEvidence,
@@ -59,6 +59,21 @@ function passingPacket() {
   return packet;
 }
 
+function retainedFeeUnsettledPacket() {
+  const packet = passingPacket();
+  packet.twenty_four_hour.financial_event_outcome = "full_refund_succeeded";
+  packet.twenty_four_hour.entitlement_outcome = "revoked";
+  packet.twenty_four_hour.accounting_outcome = "full_refund_adjustment";
+  packet.twenty_four_hour.support_outcome = "full_refund_confirmed";
+  packet.twenty_four_hour.checks.refund_credit_note_handled = "MISSING";
+  packet.twenty_four_hour.checks.payout_status_recorded = "MISSING";
+  packet.first_payout.cash_difference_cents = null;
+  packet.first_payout.checks.itemised_payout_retained = "MISSING";
+  packet.first_payout.checks.bank_arrival_matched = "MISSING";
+  packet.first_payout.checks.stripe_clearing_reconciled = "MISSING";
+  return packet;
+}
+
 assert.equal(createFirstSaleEvidenceTemplate().schema_version, 4, "the integrated preflight evidence chain requires schema v4");
 const legacyPacket = passingPacket();
 legacyPacket.schema_version = 3;
@@ -88,6 +103,30 @@ for (const nonExporterBoundary of [
   "`payout_status_recorded=PASS/MISSING/FAIL`",
   "임의 `payout_state`를 추가하면 판정기는 구조 오류 `STOP`",
 ]) assert.ok(compactRunbookSource.includes(nonExporterBoundary.replace(/\s+/g, " ")), `the 24-hour run sheet is missing tool boundary: ${nonExporterBoundary}`);
+
+const exporterFixtureRows = normaliseAccountingRows(
+  "stripe-balance-live-2026-08-24-to-2026-08-26-exclusive.csv",
+  [
+    accountingLedgerHeader,
+    ["live", "2026-08-24T00:00:00.000Z", "2026-08-25T00:00:00.000Z", "AUD", "charge", "100.00", "3.00", "97.00", "available", "charge_fixture", "sale_fixture"],
+    ["live", "2026-08-24T01:00:00.000Z", "2026-08-25T01:00:00.000Z", "AUD", "refund", "-100.00", "0.00", "-100.00", "available", "refund_fixture", "refund_balance_fixture"],
+  ],
+);
+const grossIndex = accountingLedgerHeader.indexOf("gross_amount");
+const feeIndex = accountingLedgerHeader.indexOf("fee_amount");
+const netIndex = accountingLedgerHeader.indexOf("net_amount");
+assert.equal(exporterFixtureRows.reduce((sum, row) => sum + Number(row[grossIndex]), 0), 0, "the synthetic sale and full refund must offset gross");
+assert.ok(exporterFixtureRows.reduce((sum, row) => sum + Number(row[feeIndex]), 0) > 0, "the synthetic full refund must retain a fee source");
+assert.ok(exporterFixtureRows.reduce((sum, row) => sum + Number(row[netIndex]), 0) < 0, "the retained fee must remain visible in net activity");
+
+const retainedFeeAtTwentyFourHours = evaluateFirstSaleEvidence(retainedFeeUnsettledPacket(), "24h");
+assert.equal(retainedFeeAtTwentyFourHours.decision, "HOLD");
+assert.equal(retainedFeeAtTwentyFourHours.rows.find(({ check }) => check === "refund_credit_note_handled")?.status, "MISSING");
+const retainedFeeAtPayout = evaluateFirstSaleEvidence(retainedFeeUnsettledPacket(), "payout");
+assert.equal(retainedFeeAtPayout.decision, "HOLD");
+for (const check of ["itemised_payout_retained", "bank_arrival_matched", "stripe_clearing_reconciled", "cash_difference_within_one_cent"]) {
+  assert.notEqual(retainedFeeAtPayout.rows.find((row) => row.check === check)?.status, "PASS", `${check} must not be completed from a retained fee`);
+}
 
 for (const status of ["PASS", "MISSING", "FAIL"]) {
   const packet = passingPacket();
@@ -149,6 +188,21 @@ try {
   assert.equal(stoppedCli.status, 2);
   assert.match(stoppedCli.stderr, /STOP/);
   assert.doesNotMatch(`${stoppedCli.stdout}\n${stoppedCli.stderr}`, /pending/, "the classifier must not echo an unsupported private workbook value");
+
+  await writeFile(fixturePath, JSON.stringify(retainedFeeUnsettledPacket()), "utf8");
+  for (const [phase, requiredMissingCheck] of [["24h", "refund_credit_note_handled"], ["payout", "bank_arrival_matched"]]) {
+    const heldCli = spawnSync(process.execPath, ["scripts/verify-first-sale-evidence.mjs", "--file", fixturePath, "--phase", phase], {
+      cwd: repoRoot,
+      encoding: "utf8",
+    });
+    assert.equal(heldCli.status, 1, heldCli.stderr || heldCli.stdout);
+    assert.match(heldCli.stdout, /결과: HOLD/);
+    assert.match(heldCli.stdout, new RegExp(`MISSING\\s+${requiredMissingCheck}`));
+    assert.doesNotMatch(heldCli.stdout, /결과: PASS/);
+    for (const forbiddenFixtureDetail of ["100.00", "3.00", "charge_fixture", "refund_fixture"]) {
+      assert.ok(!heldCli.stdout.includes(forbiddenFixtureDetail), "the status-only CLI must not print exporter fixture details");
+    }
+  }
 } finally {
   await rm(fixtureRoot, { recursive: true, force: true });
 }
