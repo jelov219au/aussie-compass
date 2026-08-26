@@ -17,6 +17,8 @@ const paymentSupport = await readFile(new URL("../src/components/tools/PaymentSu
 const jsonLd = await readFile(new URL("../src/components/seo/JsonLd.tsx", import.meta.url), "utf8");
 const jsonLdSerializer = await readFile(new URL("../src/lib/jsonLd.ts", import.meta.url), "utf8");
 const offerPage = await readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8");
+const purchaseInformation = await readFile(new URL("../src/app/purchase-information/page.tsx", import.meta.url), "utf8");
+const termsPage = await readFile(new URL("../src/app/terms/page.tsx", import.meta.url), "utf8");
 const firstSaleGate = await readFile(new URL("../src/lib/neonFirstSaleGate.ts", import.meta.url), "utf8");
 
 for (const contract of [
@@ -132,6 +134,30 @@ assert.ok(entitlementStore.includes("(?:test|live)_"), "Entitlement lookup must 
 for (const notice of ["/terms", "/purchase-information", "/privacy"]) {
   assert.ok(checkoutForm.includes(notice), `Checkout form must link the customer notice: ${notice}`);
 }
+
+for (const publicRoleSurface of [offerPage, purchaseInformation, termsPage]) {
+  for (const roleBoundary of [
+    "디지털 제품 제공과 이용권·접근·기능 지원",
+    "Managed Payments Checkout에서는 Stripe의 Link가 거래상 판매자(Merchant of Record)로 표시되고 거래 단위 지원을 제공합니다",
+    "Stripe는 Managed Payments를 운영하며 지원되는 국가의 간접세 계산·징수·신고·납부를 처리합니다",
+    "실제 거래의 판매자 명칭, 문서 발행자와 거래 지원 경로는 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만",
+    "명확하지 않으면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요",
+    "https://docs.stripe.com/payments/managed-payments/set-up#testing",
+    "https://docs.stripe.com/payments/managed-payments/how-it-works",
+  ]) {
+    assert.ok(publicRoleSurface.includes(roleBoundary), `public Managed Payments role guidance is missing: ${roleBoundary}`);
+  }
+}
+assert.ok(
+  offerPage.includes('aria-labelledby="resume-pro-payment-roles-heading"')
+    && offerPage.includes('id="resume-pro-payment-roles-heading"'),
+  "the pre-Checkout role notice must have an accessible heading",
+);
+assert.match(
+  offerPage,
+  /Stripe 공식 Checkout 역할 안내[^<]*↗<\/a>[\s\S]*Managed Payments 처리 범위[^<]*↗<\/a>/,
+  "official role links must remain in a mobile-safe reading order",
+);
 
 for (const contract of [
   "webhooks.constructEvent",

@@ -61,7 +61,14 @@ export default function PurchaseInformationPage() {
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
               <div><p className="font-mono text-xs text-gold">01 / ROLES</p><h2 className="mt-2 text-xl font-semibold text-navy">제품 제공자와 거래 지원</h2></div>
               <div className="max-w-3xl text-sm leading-7 text-muted">
-                <p className="mb-4">Hoju Compass는 Resume Pro 디지털 제품을 제공하고 접근·기능 문제를 지원합니다. Stripe Managed Payments 결제의 거래상 판매자(Merchant of Record)·문서 발행자·거래 지원 경로는 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만 그 문서를 기준으로 확인하세요. 명확하지 않으면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요.</p>
+                <div className="mb-4 space-y-3">
+                  <p>Hoju Compass는 Pro 디지털 제품 제공과 이용권·접근·기능 지원을 담당합니다. Stripe 공식 안내 기준으로, Managed Payments Checkout에서는 Stripe의 Link가 거래상 판매자(Merchant of Record)로 표시되고 거래 단위 지원을 제공합니다. Stripe는 Managed Payments를 운영하며 지원되는 국가의 간접세 계산·징수·신고·납부를 처리합니다.</p>
+                  <p>실제 거래의 판매자 명칭, 문서 발행자와 거래 지원 경로는 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만 그 문서를 기준으로 확인하세요. 명확하지 않으면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요.</p>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-5">
+                    <a href="https://docs.stripe.com/payments/managed-payments/set-up#testing" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Stripe 공식 Checkout 역할 안내 ↗</a>
+                    <a href="https://docs.stripe.com/payments/managed-payments/how-it-works" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Managed Payments 처리 범위 ↗</a>
+                  </div>
+                </div>
                 <dl className="grid gap-x-5 gap-y-2 sm:grid-cols-[7rem_1fr]">
                   <dt className="font-semibold text-navy">제품 사업명</dt><dd>{seller.tradingName ?? "Hoju Compass"}</dd>
                   <dt className="font-semibold text-navy">제품 제공 사업자</dt><dd>{seller.legalName ?? "라이브 결제 전에 공개"}</dd>

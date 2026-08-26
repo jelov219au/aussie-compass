@@ -297,7 +297,20 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 <p className="max-w-2xl text-xs leading-5 text-muted">어떤 AI나 글쓰기 도구를 쓰더라도 없는 경력·성과·자격을 만들지 않습니다.</p>
               </div>
             </section>
-            {canOfferCheckout && <div id="resume-pro-checkout" className="scroll-mt-24 mt-5"><ResumeProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
+            {canOfferCheckout && (
+              <div id="resume-pro-checkout" className="mt-5 scroll-mt-24">
+                <aside className="mb-4 max-w-xl border-l-2 border-gold bg-white p-4 text-sm leading-6 text-muted" aria-labelledby="resume-pro-payment-roles-heading">
+                  <h2 id="resume-pro-payment-roles-heading" className="font-semibold text-navy">결제 전에 역할을 확인하세요.</h2>
+                  <p className="mt-2">Hoju Compass는 Resume Pro 디지털 제품 제공과 이용권·접근·기능 지원을 담당합니다. Stripe 공식 안내 기준으로, Managed Payments Checkout에서는 Stripe의 Link가 거래상 판매자(Merchant of Record)로 표시되고 거래 단위 지원을 제공합니다. Stripe는 Managed Payments를 운영하며 지원되는 국가의 간접세 계산·징수·신고·납부를 처리합니다.</p>
+                  <p className="mt-2 text-xs leading-5">실제 거래의 판매자 명칭, 문서 발행자와 거래 지원 경로는 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만 그 문서를 기준으로 확인하세요. 명확하지 않으면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요.</p>
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-5">
+                    <a href="https://docs.stripe.com/payments/managed-payments/set-up#testing" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Stripe 공식 Checkout 역할 안내 ↗</a>
+                    <a href="https://docs.stripe.com/payments/managed-payments/how-it-works" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Managed Payments 처리 범위 ↗</a>
+                  </div>
+                </aside>
+                <ResumeProCheckoutForm testMode={testCheckoutAvailable} entry={entry} />
+              </div>
+            )}
             <p className="mt-4 text-xs leading-5 text-muted">
               {hasActiveEntitlement
                 ? "이 기기의 이용권이 확인됐습니다. 작업공간에서 저장한 지원서를 다시 열거나 새 지원서를 시작하세요."

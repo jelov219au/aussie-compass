@@ -81,7 +81,12 @@ export default function TermsPage() {
               <div><p className="font-mono text-xs text-gold">03 / PAYMENT</p><h2 className="mt-2 text-xl font-semibold text-navy">결제와 제공 방식</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>Resume Pro는 {price} AUD, Rental Application Pack Pro는 {rentalPrice} AUD의 1회 결제 상품입니다. 제품별 결제가 열린 경우에만 Stripe 화면으로 이동하며, 결제 전에 최종 금액·결제수단·인보이스 정보를 확인할 수 있습니다. Hoju Compass는 전체 카드번호나 CVC를 직접 받지 않습니다.</p>
-                <p>Stripe Managed Payments 결제의 거래상 판매자(Merchant of Record)·문서 발행자·거래 지원 경로는 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만 그 문서를 기준으로 확인합니다. 명확하지 않으면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요. Hoju Compass는 Pro 제품 제공과 접근·기능 지원을 담당합니다.</p>
+                <p>Hoju Compass는 Pro 디지털 제품 제공과 이용권·접근·기능 지원을 담당합니다. Stripe 공식 안내 기준으로, Managed Payments Checkout에서는 Stripe의 Link가 거래상 판매자(Merchant of Record)로 표시되고 거래 단위 지원을 제공합니다. Stripe는 Managed Payments를 운영하며 지원되는 국가의 간접세 계산·징수·신고·납부를 처리합니다.</p>
+                <p>실제 거래의 판매자 명칭, 문서 발행자와 거래 지원 경로는 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만 그 문서를 기준으로 확인합니다. 명확하지 않으면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요.</p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-5">
+                  <a href="https://docs.stripe.com/payments/managed-payments/set-up#testing" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Stripe 공식 Checkout 역할 안내 ↗</a>
+                  <a href="https://docs.stripe.com/payments/managed-payments/how-it-works" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Managed Payments 처리 범위 ↗</a>
+                </div>
                 <p>결제가 확인되면 현재 기기에 30일짜리 접근 세션을 발급합니다. 30일은 구매 이용권의 소멸일이 아니라 이 기기의 이용 확인 기간이며, 활성 이용권은 복구 절차를 통해 다시 연결할 수 있습니다.</p>
                 <p>새 기기로 옮길 때 사용하는 복구 코드는 발급 후 30일 안에 한 번만 사용할 수 있습니다. 새 코드를 만들면 이전에 사용하지 않은 코드는 무효화됩니다.</p>
                 <Link href="/purchase-information" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">가격·제공·환불 안내 자세히 보기 →</Link>
@@ -120,7 +125,10 @@ export default function TermsPage() {
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
               <div><p className="font-mono text-xs text-gold">07 / ROLES</p><h2 className="mt-2 text-xl font-semibold text-navy">제품 제공자와 거래 지원</h2></div>
               <div className="max-w-3xl text-sm leading-7 text-muted">
-                <p className="mb-4">아래 정보는 Resume Pro 제품을 제공하고 접근·기능 문제를 지원하는 Hoju Compass의 사업자 정보입니다. Managed Payments 거래상 판매자·문서 발행자·거래 지원 경로가 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만 그 문서를 기준으로 확인하고, 불명확하면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요.</p>
+                <div className="mb-4 space-y-3">
+                  <p>아래 정보는 Pro 디지털 제품 제공과 이용권·접근·기능 지원을 담당하는 Hoju Compass의 사업자 정보입니다. Stripe 공식 안내 기준으로, Managed Payments Checkout에서는 Stripe의 Link가 거래상 판매자(Merchant of Record)로 표시되고 거래 단위 지원을 제공합니다. Stripe는 Managed Payments를 운영하며 지원되는 국가의 간접세 계산·징수·신고·납부를 처리합니다.</p>
+                  <p>실제 거래의 판매자 명칭, 문서 발행자와 거래 지원 경로는 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만 그 문서를 기준으로 확인하세요. 명확하지 않으면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요.</p>
+                </div>
                 <dl className="grid gap-x-5 gap-y-2 sm:grid-cols-[7rem_1fr]">
                   <dt className="font-semibold text-navy">제품 사업명</dt><dd>{seller.tradingName ?? "Hoju Compass"}</dd>
                   <dt className="font-semibold text-navy">제품 제공 사업자</dt><dd>{seller.legalName ?? "라이브 결제 전에 공개"}</dd>
