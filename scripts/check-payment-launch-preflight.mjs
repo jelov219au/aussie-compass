@@ -137,7 +137,9 @@ function runEarlyPowerShellFixture(endpointId, overrides = {}, expectedProductio
   const fixtureEnv = { ...process.env };
   for (const name of ["PAYMENTS_STRIPE_AUDIT_KEY", "STRIPE_ACCOUNTING_KEY", "PAYMENTS_AUDIT_DB_URL", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID"]) delete fixtureEnv[name];
   Object.assign(fixtureEnv, overrides);
-  const powershell = `${process.env.SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`;
+  const powershell = process.platform === "win32"
+    ? `${process.env.SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`
+    : "pwsh";
   return spawnSync(powershell, [
     "-NoProfile",
     "-NonInteractive",
