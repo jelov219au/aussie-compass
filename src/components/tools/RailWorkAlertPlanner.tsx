@@ -13,20 +13,25 @@ type WatchArea = {
   checks: Record<CheckId, boolean>;
 };
 
-type CheckId = "official" | "dates" | "alternative" | "accessibility";
+type CheckId = "official" | "roadwork" | "dates" | "alternative" | "accessibility";
 
 const STORAGE_KEY = "aussie-compass-rail-work-watch-areas-v1";
 const MAX_AREAS = 5;
-const EMPTY_CHECKS: Record<CheckId, boolean> = { official: false, dates: false, alternative: false, accessibility: false };
+const EMPTY_CHECKS: Record<CheckId, boolean> = { official: false, roadwork: false, dates: false, alternative: false, accessibility: false };
 
-const OFFICIAL_SOURCES: Record<SupportedState, { label: string; href: string }> = {
-  NSW: { label: "Transport for NSW Travel alerts", href: "https://transportnsw.info/alerts" },
+const OFFICIAL_SOURCES: Record<SupportedState, { label: string; href: string; roadworkMap?: { label: string; href: string } }> = {
+  NSW: {
+    label: "Transport for NSW Travel alerts",
+    href: "https://transportnsw.info/alerts",
+    roadworkMap: { label: "Live Traffic NSW 공사 지도", href: "https://www.livetraffic.com/" },
+  },
   VIC: { label: "Victoria's Big Build disruptions map", href: "https://bigbuild.vic.gov.au/disruptions/disruptions-map" },
   QLD: { label: "Translink service updates", href: "https://translink.com.au/service-updates" },
 };
 
-const CHECKS: Array<{ id: CheckId; label: string }> = [
-  { id: "official", label: "공식 공지 원문 열기" },
+const CHECKS: Array<{ id: CheckId; label: string; states?: SupportedState[] }> = [
+  { id: "official", label: "철도 공식 공지 원문 확인" },
+  { id: "roadwork", label: "NSW 도로 공사·통제 지도 확인", states: ["NSW"] },
   { id: "dates", label: "시작·종료 날짜 다시 확인" },
   { id: "alternative", label: "대체 버스·우회 경로 확인" },
   { id: "accessibility", label: "접근성·막차 영향 확인" },
@@ -45,8 +50,18 @@ function normalizeArea(item: WatchArea): WatchArea {
     ...item,
     label: item.label.slice(0, 40),
     place: item.place.slice(0, 80),
-    checks: { ...EMPTY_CHECKS, ...item.checks },
+    checks: {
+      official: item.checks.official === true,
+      roadwork: item.checks.roadwork === true,
+      dates: item.checks.dates === true,
+      alternative: item.checks.alternative === true,
+      accessibility: item.checks.accessibility === true,
+    },
   };
+}
+
+function checksForState(state: SupportedState) {
+  return CHECKS.filter((check) => !check.states || check.states.includes(state));
 }
 
 export function RailWorkAlertPlanner() {
@@ -77,7 +92,11 @@ export function RailWorkAlertPlanner() {
   }, [areas, loaded]);
 
   const completedChecks = useMemo(
-    () => areas.reduce((total, area) => total + Object.values(area.checks).filter(Boolean).length, 0),
+    () => areas.reduce((total, area) => total + checksForState(area.state).filter((check) => area.checks[check.id]).length, 0),
+    [areas],
+  );
+  const availableChecks = useMemo(
+    () => areas.reduce((total, area) => total + checksForState(area.state).length, 0),
     [areas],
   );
 
@@ -104,7 +123,7 @@ export function RailWorkAlertPlanner() {
   return <section className="border border-border bg-white p-5 shadow-sm sm:p-8" aria-labelledby="rail-watch-heading">
     <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
       <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Local watch areas</p><h2 id="rail-watch-heading" className="mt-2 text-2xl font-semibold text-navy">철도 작업 확인 지역을 저장하세요.</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-muted">정확한 집 주소 대신 동네·역 이름만 저장하세요. Hoju Compass가 실시간 작업 정보를 자동 수집하지는 않으며, 지도와 공식 출처는 버튼을 누를 때만 새 탭에서 열립니다.</p></div>
-      <p className="font-mono text-xs text-muted" aria-live="polite">관심 지역 {areas.length}/{MAX_AREAS} · 확인 {completedChecks}/{areas.length * CHECKS.length}</p>
+      <p className="font-mono text-xs text-muted" aria-live="polite">관심 지역 {areas.length}/{MAX_AREAS} · 확인 {completedChecks}/{availableChecks}</p>
     </div>
 
     <form onSubmit={addArea} className="mt-6 grid gap-4 bg-surface p-4 sm:grid-cols-2 lg:grid-cols-[0.8fr_1.2fr_0.6fr_auto] lg:items-end">
@@ -120,8 +139,9 @@ export function RailWorkAlertPlanner() {
         const mapHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${area.place} railway station`)}`;
         return <li key={area.id} className="border border-border p-5">
           <div className="flex items-start justify-between gap-4"><div><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")} · {area.state}</span><h3 className="mt-1 text-lg font-semibold text-navy">{area.label}</h3><p className="mt-1 text-sm text-muted">{area.place}</p></div><button type="button" onClick={() => setAreas((current) => current.filter((item) => item.id !== area.id))} className="min-h-11 px-2 text-xs font-semibold text-muted">삭제</button></div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2"><a href={mapHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center border border-navy px-3 text-center text-sm font-semibold text-navy">지도에서 위치 확인 ↗</a><a href={source.href} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center bg-gold px-3 text-center text-sm font-semibold text-navy">{source.label} ↗</a></div>
-          <fieldset className="mt-5"><legend className="text-sm font-semibold text-navy">출발 전 확인</legend><div className="mt-2 grid gap-2">{CHECKS.map((check) => <label key={check.id} className="flex min-h-11 items-center gap-3 border-b border-border py-2 text-sm text-navy"><input type="checkbox" checked={area.checks[check.id]} onChange={(event) => updateArea(area.id, (current) => ({ ...current, checks: { ...current.checks, [check.id]: event.target.checked } }))} className="h-5 w-5" /><span>{check.label}</span></label>)}</div></fieldset>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2"><a href={mapHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center border border-navy px-3 text-center text-sm font-semibold text-navy">지도에서 위치 확인 ↗</a><a href={source.href} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center bg-gold px-3 text-center text-sm font-semibold text-navy">{source.label} ↗</a>{source.roadworkMap ? <a href={source.roadworkMap.href} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center border border-gold bg-amber-50 px-3 text-center text-sm font-semibold text-navy sm:col-span-2">{source.roadworkMap.label} ↗</a> : null}</div>
+          {source.roadworkMap ? <p className="mt-2 text-xs leading-5 text-muted">저장한 지역명은 Live Traffic NSW에 자동 전달되지 않습니다. 공식 지도에서 지역을 다시 검색하고 공사·통제 범위를 확인하세요.</p> : null}
+          <fieldset className="mt-5"><legend className="text-sm font-semibold text-navy">출발 전 확인</legend><div className="mt-2 grid gap-2">{checksForState(area.state).map((check) => <label key={check.id} className="flex min-h-11 items-center gap-3 border-b border-border py-2 text-sm text-navy"><input type="checkbox" checked={area.checks[check.id]} onChange={(event) => updateArea(area.id, (current) => ({ ...current, checks: { ...current.checks, [check.id]: event.target.checked } }))} className="h-5 w-5" /><span>{check.label}</span></label>)}</div></fieldset>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-muted">마지막 확인: {area.lastCheckedAt || "아직 확인하지 않음"}</p><button type="button" onClick={() => updateArea(area.id, (current) => ({ ...current, lastCheckedAt: new Date().toLocaleDateString("en-CA") }))} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">오늘 공식 공지 확인 완료</button></div>
         </li>;
       })}

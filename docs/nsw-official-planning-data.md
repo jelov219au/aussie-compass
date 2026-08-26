@@ -17,6 +17,7 @@ TfNSW requires an API key in the server-side `Authorization: apikey …` header 
 4. Next server fetch caching is explicit: 30 seconds for rail alerts and 60 seconds for roadworks. A per-instance single-flight and one-second minimum live-read interval add a local throttle. This is defence in depth, not a distributed quota guarantee; Production monitoring must still watch TfNSW 401/403 and quota responses.
 5. The public Route Handler itself is dynamic and `private, no-store`; only validated upstream fetches use the Next server cache. Demo and unavailable responses are never cached as official data.
 6. `status`, `officialRealtime`, `X-Hoju-Data-Mode` and the Korean notice must remain visible to any future UI. Only `status=live` may be described as official data, and even then users must be sent to the official source before travel.
+7. The current public rail workspace remains link-only. Its NSW cards separate Transport for NSW rail alerts from the official Live Traffic NSW roadwork map, do not send the saved place to Live Traffic, and require the user to search and verify the affected area on the official map. It does not consume `/api/nsw-planning-snapshot`.
 
 ## Data trust fields
 
