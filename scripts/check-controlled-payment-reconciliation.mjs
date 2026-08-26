@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { mkdtemp, readFile, rmdir, unlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   containsSensitiveControlledPaymentReconciliation,
@@ -16,20 +20,47 @@ const [verifier, accountingRunbook, customerDocumentVerifier, packageSource] = a
 ]);
 const compactAccountingRunbook = accountingRunbook.replace(/\s+/g, " ");
 
-function passingPacket({ payoutState = "matched" } = {}) {
+function passingPacket({ payoutState = "matched", refundState = "full_refund_succeeded" } = {}) {
   const packet = createControlledPaymentReconciliationTemplate();
   packet.observed_at = "2026-08-25T01:00:00.000Z";
-  packet.refund_state = "full_refund_succeeded";
+  packet.refund_state = refundState;
   packet.payout_state = payoutState;
   for (const check of controlledPaymentReconciliationChecks) packet.checks[check] = "PASS";
   return packet;
 }
 
-assert.equal(createControlledPaymentReconciliationTemplate().schema_version, 1);
+assert.equal(createControlledPaymentReconciliationTemplate().schema_version, 2);
 assert.deepEqual(Object.keys(createControlledPaymentReconciliationTemplate().checks), controlledPaymentReconciliationChecks);
 assert.equal(evaluateControlledPaymentReconciliation(createControlledPaymentReconciliationTemplate()).decision, "HOLD");
-assert.equal(evaluateControlledPaymentReconciliation(passingPacket()).decision, "PASS");
+const fullRefund = evaluateControlledPaymentReconciliation(passingPacket());
+assert.equal(fullRefund.decision, "PASS");
+assert.equal(fullRefund.outcome, "full_refund");
+
+const retainedSale = evaluateControlledPaymentReconciliation(passingPacket({ refundState: "none_confirmed" }));
+assert.equal(retainedSale.decision, "PASS");
+assert.equal(retainedSale.outcome, "retained_sale");
+assert.notEqual(retainedSale.outcome, fullRefund.outcome);
 assert.equal(evaluateControlledPaymentReconciliation(passingPacket({ payoutState: "source_verified_none" })).decision, "PASS");
+
+const fixtureDirectory = await mkdtemp(join(tmpdir(), "hoju-controlled-reconciliation-"));
+const verifierPath = fileURLToPath(new URL("./verify-controlled-payment-reconciliation.mjs", import.meta.url));
+const fixturePaths = [join(fixtureDirectory, "retained.json"), join(fixtureDirectory, "full-refund.json")];
+try {
+  await Promise.all([
+    writeFile(fixturePaths[0], JSON.stringify(passingPacket({ refundState: "none_confirmed" })), "utf8"),
+    writeFile(fixturePaths[1], JSON.stringify(passingPacket()), "utf8"),
+  ]);
+  const retainedRun = spawnSync(process.execPath, [verifierPath, "--file", fixturePaths[0]], { encoding: "utf8" });
+  const fullRefundRun = spawnSync(process.execPath, [verifierPath, "--file", fixturePaths[1]], { encoding: "utf8" });
+  assert.equal(retainedRun.status, 0, retainedRun.stderr);
+  assert.equal(fullRefundRun.status, 0, fullRefundRun.stderr);
+  assert.match(retainedRun.stdout, /outcome=retained_sale refund=none_confirmed/);
+  assert.match(fullRefundRun.stdout, /outcome=full_refund refund=full_refund_succeeded/);
+  assert.doesNotMatch(`${retainedRun.stdout}\n${fullRefundRun.stdout}`, /(?:@|https?:\/\/|\b(?:pi|ch|re|txn)_)/i);
+} finally {
+  await Promise.all(fixturePaths.map((fixturePath) => unlink(fixturePath).catch(() => undefined)));
+  await rmdir(fixtureDirectory).catch(() => undefined);
+}
 
 const pendingPayout = passingPacket({ payoutState: "pending" });
 assert.equal(evaluateControlledPaymentReconciliation(pendingPayout).decision, "HOLD");
@@ -38,13 +69,17 @@ const missingFee = passingPacket();
 missingFee.checks.stripe_fee_recorded_separately = "MISSING";
 assert.equal(evaluateControlledPaymentReconciliation(missingFee).decision, "HOLD");
 
-const failedRefundLink = passingPacket();
-failedRefundLink.checks.full_refund_original_charge_link_verified = "FAIL";
-assert.equal(evaluateControlledPaymentReconciliation(failedRefundLink).decision, "HOLD");
+const failedRefundStateSource = passingPacket();
+failedRefundStateSource.checks.refund_state_source_window_verified = "FAIL";
+assert.equal(evaluateControlledPaymentReconciliation(failedRefundStateSource).decision, "HOLD");
 
 const missingRefundFeeAdjustment = passingPacket();
-missingRefundFeeAdjustment.checks.refund_fee_adjustment_source_recorded = "MISSING";
+missingRefundFeeAdjustment.checks.refund_fee_adjustment_state_recorded = "MISSING";
 assert.equal(evaluateControlledPaymentReconciliation(missingRefundFeeAdjustment).decision, "HOLD");
+
+const assumedNoRefund = passingPacket({ refundState: "none_confirmed" });
+assumedNoRefund.checks.refund_state_source_window_verified = "MISSING";
+assert.equal(evaluateControlledPaymentReconciliation(assumedNoRefund).decision, "HOLD");
 
 const unresolvedRefund = passingPacket();
 unresolvedRefund.refund_state = "unresolved";
@@ -87,6 +122,7 @@ for (const forbiddenBoundary of ["process.env", "fetch(", "node:child_process", 
 for (const outputBoundary of [
   "CONTROLLED_PAYMENT_RECONCILIATION=PASS mode=live",
   "CONTROLLED_PAYMENT_RECONCILIATION=HOLD mode=live",
+  "outcome=${result.outcome} refund=${packet.refund_state}",
   "amounts_printed=no identifiers_printed=no",
 ]) assert.ok(verifier.includes(outputBoundary), `the verifier is missing canonical output: ${outputBoundary}`);
 
@@ -102,6 +138,9 @@ for (const boundary of [
   "Status-only controlled-payment reconciliation gate",
   "npm.cmd run accounting:controlled-reconciliation -- --template",
   "CONTROLLED_PAYMENT_RECONCILIATION=PASS mode=live",
+  "outcome=retained_sale refund=none_confirmed",
+  "outcome=full_refund refund=full_refund_succeeded",
+  "refund_state_source_window_verified",
   "does not replace `CUSTOMER_DOCUMENT_TRUST_GATE=GO`",
   "source_verified_none",
   "pending` and `unresolved` remain `HOLD",

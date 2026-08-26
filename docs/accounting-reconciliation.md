@@ -24,13 +24,13 @@ private `overall_tax_handoff=PASS` criteria are satisfied, record
 
 ## Private workbook
 
-The generated workbook starts with the controlled live Resume Pro purchase and full refund recorded on 20 August 2026. Its fee source has been observed, while payout and bank reconciliation remain unresolved until private Stripe source and bank evidence close them. Do not add customer names, email addresses, card details, ABNs or secret keys to the workbook.
+The generated workbook starts with the controlled live Resume Pro purchase and full refund recorded on 20 August 2026. Its fee source has been observed, while payout and bank reconciliation remain unresolved until private Stripe source and bank evidence close them. Record the first retained customer sale as a separate source chain; do not copy the controlled refund state into it or net the two cases together. Do not add customer names, email addresses, card details, ABNs or secret keys to the workbook.
 
 ### Status-only controlled-payment reconciliation gate
 
-After reconciling the 20 August owner-controlled live Resume Pro purchase and
-full refund in the approved private workbook, record a separate status-only JSON
-and run the local classifier. The JSON must not contain amounts, cash
+After reconciling either the 20 August owner-controlled full-refund case or the
+first retained live Resume Pro sale in the approved private workbook, record a
+separate status-only JSON and run the same local classifier. The JSON must not contain amounts, cash
 differences, customer or bank information, full Stripe identifiers, source
 document text, URLs, notes or credentials. Those remain only in the private
 source reports, workbook and bank evidence.
@@ -40,14 +40,24 @@ npm.cmd run accounting:controlled-reconciliation -- --template
 npm.cmd run accounting:controlled-reconciliation -- --file <private-json-path>
 ```
 
+Schema version 2 uses the neutral scope `resume_pro_sale_reconciliation`. Set
+`refund_state=none_confirmed` only when a dated, closed private Stripe source
+window positively shows no refund or dispute for that original sale chain. An
+empty cell, absent export or unexamined dashboard does not count. Set
+`refund_state=full_refund_succeeded` only when the succeeded refund and its
+original Charge and balance movement are linked in private evidence. Any other
+or mixed state stays `unresolved` and produces `HOLD`.
+Both resolved outcomes require `refund_state_source_window_verified=PASS`;
+`none_confirmed` never means that refund evidence was skipped.
+
 The classifier reads one local file only. It does not query Stripe, read
 environment variables, write a file, alter the ledger or contact a bank. It
 requires the fixed live Resume scope and verifies status for the original
 Checkout → PaymentIntent → Charge → Balance Transaction chain, preserved gross
-sale, separately recorded Stripe fee, fee-tax boundary, full-refund original
-chain, refund Balance movement and any refund-related fee adjustment, ending
-balance, payout disposition, live/test isolation, private source retention and
-the private workbook's cash-difference result.
+sale, separately recorded Stripe fee, fee-tax boundary, refund source-window
+state, any refund Balance movement and fee adjustment state, ending balance,
+payout disposition, live/test isolation, private source retention and the
+private workbook's cash-difference result.
 Unknown values must remain `MISSING`; the JSON records only whether the private
 source proves the difference is within ±A$0.01 and never records the difference
 or any component amount.
@@ -58,6 +68,16 @@ source window and bank evidence positively establish that this controlled
 sale/refund chain created no payout movement requiring a bank match. The absence
 of a downloaded report, a blank workbook cell or an assumed net-zero result does
 not count. `pending` and `unresolved` remain `HOLD`.
+
+The same executable emits distinct canonical outcomes without exposing amounts
+or identifiers:
+
+- retained sale: `outcome=retained_sale refund=none_confirmed`
+- full refund: `outcome=full_refund refund=full_refund_succeeded`
+
+Never copy either outcome into the other case. Schema version 1 full-refund
+packets fail closed and must be recreated from the current template rather than
+edited into a retained sale.
 
 Only the exact final result beginning
 `CONTROLLED_PAYMENT_RECONCILIATION=PASS mode=live` satisfies this one accounting

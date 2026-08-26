@@ -24,12 +24,17 @@ else process.env.NODE_ENV = originalNodeEnv;
 if (originalVercelEnv === undefined) delete process.env.VERCEL_ENV;
 else process.env.VERCEL_ENV = originalVercelEnv;
 
-const [requestSecurity, cspDecision, jsonLdComponent, dashboard, jobTracker] = await Promise.all([
+const [requestSecurity, cspDecision, jsonLdComponent, dashboard, jobTracker, serviceWorker, serviceWorkerRegistration, nswProvider, nswRoute, railPlanner] = await Promise.all([
   projectFile("src/lib/requestSecurity.ts"),
   projectFile("docs/csp-hardening.md"),
   projectFile("src/components/seo/JsonLd.tsx"),
   projectFile("src/components/dashboard/MyCompassDashboard.tsx"),
   projectFile("src/components/tools/JobApplicationTracker.tsx"),
+  projectFile("public/sw.js"),
+  projectFile("src/components/pwa/ServiceWorkerRegistration.tsx"),
+  projectFile("src/lib/nswPlanningDataProvider.ts"),
+  projectFile("src/app/api/nsw-planning-snapshot/route.ts"),
+  projectFile("src/components/tools/RailWorkAlertPlanner.tsx"),
 ]);
 
 function headerValue(rules, source, key) {
@@ -68,6 +73,7 @@ assert.deepEqual(productionCsp.get("script-src"), ["'self'"], "production script
 assert.deepEqual(developmentCsp.get("script-src"), ["'self'", "'unsafe-eval'"], "unsafe-eval must be limited to the documented development requirement");
 assert.deepEqual(productionCsp.get("script-src-elem"), ["'self'", "'unsafe-inline'"], "the audited Next.js inline bootstrap exception must stay isolated to script elements");
 assert.deepEqual(productionCsp.get("script-src-attr"), ["'none'"], "inline event-handler attributes must remain blocked");
+assert.deepEqual(productionCsp.get("connect-src"), ["'self'"], "browser code must not connect directly to TfNSW, Google Maps or another external data API");
 
 for (const directive of ["default-src", "object-src", "base-uri", "form-action", "frame-ancestors"]) {
   assert.ok(productionCsp.has(directive), `Production CSP directive is missing: ${directive}`);
@@ -81,6 +87,30 @@ for (const header of [
 ]) {
   assert.ok(headerValue(productionHeaderRules, "/(.*)", header), `Security header is missing: ${header}`);
 }
+assert.equal(
+  headerValue(productionHeaderRules, "/(.*)", "Permissions-Policy"),
+  "camera=(), microphone=(), geolocation=(), usb=()",
+  "the installed app must not gain browser geolocation or device permissions",
+);
+
+for (const boundary of [
+  'const OFFLINE_URL = "/offline"',
+  "cache.add(OFFLINE_URL)",
+  'event.request.mode !== "navigate"',
+  "fetch(event.request).catch(() => caches.match(OFFLINE_URL))",
+]) assert.ok(serviceWorker.includes(boundary), `service worker offline boundary is missing: ${boundary}`);
+assert.equal((serviceWorker.match(/cache\.add\(/g) ?? []).length, 1, "only the static offline fallback may be added to the PWA cache");
+assert.doesNotMatch(serviceWorker, /cache\.(?:put|addAll|matchAll)|caches\.open\([^)]*\)[\s\S]*fetch\([^)]*\)[\s\S]*(?:put|add)/, "network, API and error responses must never be written to Cache Storage");
+assert.doesNotMatch(serviceWorker, /nsw-planning-snapshot|api\.transport\.nsw\.gov\.au|NSW_TRANSPORT_API_KEY|Authorization/, "the service worker must not know about official-data endpoints or credentials");
+assert.ok(serviceWorkerRegistration.includes('process.env.NODE_ENV !== "production"'), "service worker registration must remain Production-only");
+assert.ok(serviceWorkerRegistration.includes('navigator.serviceWorker.register("/sw.js")'), "the app must register only its same-origin service worker");
+
+assert.ok(nswProvider.startsWith('import "server-only"'), "the TfNSW provider and API key must remain server-only");
+assert.ok(nswProvider.includes("process.env.NSW_TRANSPORT_API_KEY"), "the server provider must read the TfNSW key only from server environment state");
+assert.doesNotMatch(nswProvider, /console\.|[?&](?:key|token)=/i, "the provider must not log credentials or place them in URLs");
+assert.doesNotMatch(nswRoute, /NSW_TRANSPORT_API_KEY|Authorization|process\.env|console\./, "the public route must not serialize, read or log the TfNSW credential");
+assert.doesNotMatch(railPlanner, /\/api\/nsw-planning-snapshot|NSW_TRANSPORT_API_KEY|fetch\(|geolocation/, "the current public rail UI must remain local/link-only and must not consume live or fixture API data");
+assert.ok(railPlanner.includes("https://www.google.com/maps/search/?api=1") && railPlanner.includes('target="_blank"') && railPlanner.includes('rel="noreferrer"'), "Google Maps must remain an explicit external top-level navigation without referrer data");
 
 for (const evidence of [
   "Next.js 16.3.1",

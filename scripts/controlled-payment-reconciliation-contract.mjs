@@ -4,9 +4,9 @@ export const controlledPaymentReconciliationChecks = [
   "original_gross_sale_preserved_once",
   "stripe_fee_recorded_separately",
   "stripe_fee_tax_not_relabelled_as_customer_tax",
-  "full_refund_original_charge_link_verified",
-  "refund_balance_transaction_recorded_once",
-  "refund_fee_adjustment_source_recorded",
+  "refund_state_source_window_verified",
+  "refund_balance_movement_classified_once",
+  "refund_fee_adjustment_state_recorded",
   "refund_credit_document_status_recorded",
   "ending_balance_reconciled",
   "payout_source_status_verified",
@@ -18,7 +18,7 @@ export const controlledPaymentReconciliationChecks = [
   "source_evidence_retained_private",
 ];
 
-export const controlledPaymentRefundStates = ["full_refund_succeeded", "unresolved"];
+export const controlledPaymentRefundStates = ["none_confirmed", "full_refund_succeeded", "unresolved"];
 export const controlledPaymentPayoutStates = [
   "matched",
   "source_verified_none",
@@ -61,10 +61,10 @@ function missingChecks() {
 
 export function createControlledPaymentReconciliationTemplate() {
   return {
-    schema_version: 1,
+    schema_version: 2,
     environment: "live",
     product_code: "resume_pro",
-    observation_scope: "owner_controlled_2026_08_20_full_refund",
+    observation_scope: "resume_pro_sale_reconciliation",
     observed_at: null,
     refund_state: "unresolved",
     payout_state: "unresolved",
@@ -89,10 +89,10 @@ function structuralErrors(packet) {
   const errors = [];
   if (!hasExactKeys(packet, rootKeys)) errors.push("packet_shape");
   if (!isPlainObject(packet)) return errors;
-  if (packet.schema_version !== 1) errors.push("schema_version");
+  if (packet.schema_version !== 2) errors.push("schema_version");
   if (packet.environment !== "live") errors.push("environment");
   if (packet.product_code !== "resume_pro") errors.push("product_code");
-  if (packet.observation_scope !== "owner_controlled_2026_08_20_full_refund") {
+  if (packet.observation_scope !== "resume_pro_sale_reconciliation") {
     errors.push("observation_scope");
   }
   if (packet.observed_at !== null && !isCanonicalUtc(packet.observed_at)) errors.push("observed_at");
@@ -108,7 +108,7 @@ function structuralErrors(packet) {
 
 export function evaluateControlledPaymentReconciliation(packet) {
   const errors = structuralErrors(packet);
-  if (errors.length > 0) return { passed: false, decision: "STOP", errors, rows: [], unresolved: null };
+  if (errors.length > 0) return { passed: false, decision: "STOP", outcome: null, errors, rows: [], unresolved: null };
 
   const rows = controlledPaymentReconciliationChecks.map((check) => ({
     check,
@@ -116,7 +116,10 @@ export function evaluateControlledPaymentReconciliation(packet) {
   }));
   const stateChecks = [
     { check: "observation_time_recorded", status: isCanonicalUtc(packet.observed_at) ? "PASS" : "MISSING" },
-    { check: "full_refund_state_resolved", status: packet.refund_state === "full_refund_succeeded" ? "PASS" : "MISSING" },
+    {
+      check: "refund_state_resolved",
+      status: ["none_confirmed", "full_refund_succeeded"].includes(packet.refund_state) ? "PASS" : "MISSING",
+    },
     {
       check: "payout_state_resolved",
       status: ["matched", "source_verified_none"].includes(packet.payout_state) ? "PASS" : "MISSING",
@@ -124,10 +127,16 @@ export function evaluateControlledPaymentReconciliation(packet) {
   ];
   rows.push(...stateChecks);
   const unresolved = rows.filter((row) => row.status !== "PASS").length;
+  const outcome = packet.refund_state === "none_confirmed"
+    ? "retained_sale"
+    : packet.refund_state === "full_refund_succeeded"
+      ? "full_refund"
+      : "unresolved";
 
   return {
     passed: unresolved === 0,
     decision: unresolved === 0 ? "PASS" : "HOLD",
+    outcome,
     errors: [],
     rows,
     unresolved,

@@ -61,11 +61,11 @@ console.log("금액, 고객정보, 전체 식별자, 은행정보, 원문 문서
 for (const row of result.rows) console.log(`${row.status.padEnd(7)} ${row.check}`);
 
 if (!result.passed) {
-  console.log(`CONTROLLED_PAYMENT_RECONCILIATION=HOLD mode=live product=resume_pro refund=${packet.refund_state} payout=${packet.payout_state} unresolved=${result.unresolved} amounts_printed=no identifiers_printed=no`);
+  console.log(`CONTROLLED_PAYMENT_RECONCILIATION=HOLD mode=live product=resume_pro outcome=${result.outcome} refund=${packet.refund_state} payout=${packet.payout_state} unresolved=${result.unresolved} amounts_printed=no identifiers_printed=no`);
   console.log(`결과: HOLD — PASS ${counts.PASS}, MISSING ${counts.MISSING}, FAIL ${counts.FAIL}`);
   console.log("첫 고객 결제를 열지 말고 private 원본에서 누락된 sale, fee, refund 또는 payout 대사를 완료하세요.");
   process.exit(1);
 }
 
-console.log(`CONTROLLED_PAYMENT_RECONCILIATION=PASS mode=live product=resume_pro refund=full_refund_succeeded payout=${packet.payout_state} unresolved=0 amounts_printed=no identifiers_printed=no`);
+console.log(`CONTROLLED_PAYMENT_RECONCILIATION=PASS mode=live product=resume_pro outcome=${result.outcome} refund=${packet.refund_state} payout=${packet.payout_state} unresolved=0 amounts_printed=no identifiers_printed=no`);
 console.log("이 판정은 읽기 전용이며 결제, 환불, 고객 연락, 장부 입력, 세무 판단, payout 또는 설정 변경을 승인하지 않습니다.");
