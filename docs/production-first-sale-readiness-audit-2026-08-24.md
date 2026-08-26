@@ -184,18 +184,19 @@ complete. They do not satisfy any blocker below.
 
 1. From a fresh PowerShell process, run
    `scripts/run-vercel-production-payment-preflight.ps1 -ExpectedNeonEndpointId <approved-primary-endpoint> -ExpectedProductionSha <full-owner-approved-sha>`.
-   The clean outer wrapper must load Vercel Production without a dotenv file,
-   and only its `env run` child may request the Automation Bypass through a
-   masked prompt. The existing inner wrapper must then prove the exact SHA is
-   the public Production deployment before requesting any Stripe or database
-   credential, and prove three distinct `rk_live_` roles:
+   The clean outer wrapper must prove the exact SHA is the public Production
+   deployment without loading Vercel Production into the local process. Its
+   authenticated `vercel curl --deployment` runtime check must use that exact
+   protected deployment origin without downloading Sensitive env or requesting
+   an Automation Bypass. The inner wrapper must then prove three distinct
+   `rk_live_` roles without sending any raw key to the deployment:
    the runtime key with only Prices Read,
    Products Read, Checkout Sessions create/retrieve and PaymentIntents Read; an
    Account-Read-only audit key; and a Balance-Transactions-Read accounting key.
    Pass the separately approved non-secret Neon endpoint ID and prove both the
    runtime and `hoju_payment_auditor` connections resolve to it. The same masked
-   accounting key must pass the integrated accounting preflight after the strict
-   payment/database audit, and cleanup must finish before the exact final
+   accounting key must pass the integrated accounting preflight after the
+   runtime and local operator audits, and cleanup must finish before the exact final
    `FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no`
    result. Retain it only with the outer `VERCEL_PRODUCTION_PREFLIGHT=PASS` from
    the same uninterrupted run. Never deploy or persist the bypass, either audit

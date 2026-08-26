@@ -156,7 +156,7 @@ export function validateExpectedProductionSha(value) {
   return value;
 }
 
-export async function auditProductionDeploymentEvidence({ expectedSha, bypassSecret = null, fetchImpl = fetch }) {
+export async function auditProductionDeploymentEvidence({ expectedSha, bypassSecret = null, fetchImpl = fetch, readProtectedPage = null }) {
   validateExpectedProductionSha(expectedSha);
   if (
     bypassSecret !== null
@@ -200,9 +200,23 @@ export async function auditProductionDeploymentEvidence({ expectedSha, bypassSec
   const deploymentHeaders = bypassSecret
     ? { "x-vercel-protection-bypass": bypassSecret }
     : {};
+  const readDeploymentPage = async (path, reason) => {
+    if (!readProtectedPage) return readPage(fetchImpl, deploymentOrigin, path, reason, deploymentHeaders);
+    try {
+      const result = await readProtectedPage(deploymentOrigin, path);
+      if (
+        !result
+        || typeof result.body !== "string"
+        || !deploymentIdPattern.test(result.deploymentId ?? "")
+      ) fail(reason);
+      return result;
+    } catch {
+      fail(reason);
+    }
+  };
   const [deploymentProduct, deploymentRestore, publicProduct, publicRestore] = await Promise.all([
-    readPage(fetchImpl, deploymentOrigin, productPath, "deployment_product_unavailable", deploymentHeaders),
-    readPage(fetchImpl, deploymentOrigin, restorePath, "deployment_restore_unavailable", deploymentHeaders),
+    readDeploymentPage(productPath, "deployment_product_unavailable"),
+    readDeploymentPage(restorePath, "deployment_restore_unavailable"),
     readPage(fetchImpl, productionOrigin, productPath, "public_product_unavailable"),
     readPage(fetchImpl, productionOrigin, restorePath, "public_restore_unavailable"),
   ]);

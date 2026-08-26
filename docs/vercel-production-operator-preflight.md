@@ -14,7 +14,7 @@ Confirm the OAuth device request's location, time and account in the browser. Th
 
 ## Integrated read-only run
 
-Start a fresh PowerShell process with no payment, Stripe, database, audit or Vercel bypass values preloaded. Keep only `.env.example`; the wrapper refuses real dotenv files because Vercel CLI would allow them to override downloaded Production values.
+Start a fresh PowerShell process with no payment, Stripe, database, audit, token or Vercel bypass values preloaded. Keep only `.env.example`; the wrapper refuses real dotenv files and stale process values.
 
 ```powershell
 .\scripts\run-vercel-production-payment-preflight.ps1 `
@@ -22,8 +22,8 @@ Start a fresh PowerShell process with no payment, Stripe, database, audit or Ver
   -ExpectedProductionSha 0123456789abcdef0123456789abcdef01234567
 ```
 
-The wrapper fixes the project to `aussie-compass` and invokes `vercel env run -e production`, so Production environment values remain in process memory rather than a file. It derives the clean-process denylist from every variable name in `.env.example`, plus Vercel's managed database alias and operator-only variables, because local process values would otherwise override the downloaded Production environment.
+Vercel Sensitive values are non-readable after creation and are available only to the deployed runtime. The wrapper therefore never uses `vercel env run`, `vercel env pull`, a dotenv file, a token argument or a manually managed Deployment Protection bypass secret. It first proves the exact successful Production deployment and obtains its protected `vercel.app` origin. The protected runtime check is then sent with pinned `vercel curl --deployment`; the fixed response verifies Production, exact SHA, both payment switches, the remaining payment configuration, Resume Pro Product and zero open Checkout Sessions, the runtime database role/schema/endpoint, and SMTP transport without sending mail.
 
-The Vercel CLI and its `npx` parent never receive the Automation Bypass secret. Only the PowerShell child started by `env run` requests that value through a masked prompt, rejects a bypass value deployed in Vercel, and process-scopes it to a separate invocation of the existing `run-production-payment-preflight.ps1`. That existing wrapper remains solely responsible for masked Account-audit key, accounting key and audit-database input, exact deployment evidence and the final payments-off result. Both layers remove their temporary process values and zero unmanaged plaintext buffers before exit.
+The inner wrapper requests the Account-read audit key and Balance Transactions-read accounting key only through masked prompts. It creates a one-time random challenge and sends only the challenge and each key's HMAC to the protected runtime. The runtime computes the same HMAC with its non-readable `STRIPE_SECRET_KEY`; it passes only if all three roles are distinct. Raw Stripe keys never enter the request body, command arguments or logs. After runtime PASS, the wrapper requests the `hoju_payment_auditor` URL, runs the standalone read-only Account/business-profile and audit-database check, then runs the accounting permission preflight. It removes process-scoped inputs and zeroes unmanaged plaintext buffers before the final result.
 
 Only `VERCEL_PRODUCTION_PREFLIGHT=PASS ... payments=off ... secrets_printed=no` together with the inner canonical `FIRST_SALE_PREFLIGHT=PASS` is usable evidence. Any missing line, interruption or `FAIL` remains `NO-GO` and does not authorize enabling payments.

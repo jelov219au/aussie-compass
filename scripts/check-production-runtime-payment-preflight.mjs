@@ -5,6 +5,11 @@ import { fileURLToPath } from "node:url";
 
 import { runProductionRuntimePaymentPreflight } from "../src/lib/productionRuntimePaymentPreflight.ts";
 import {
+  productionOperatorAuditFail,
+  productionOperatorAuditPass,
+  runProductionPaymentOperatorAudit,
+} from "./production-payment-operator-audit.mjs";
+import {
   buildVercelCurlArguments,
   runtimePreflightFail,
   runtimePreflightPass,
@@ -16,6 +21,7 @@ const routeSource = readFileSync(new URL("../src/app/api/operator/payment-runtim
 const helperSource = readFileSync(new URL("../src/lib/productionRuntimePaymentPreflight.ts", import.meta.url), "utf8");
 const databaseSource = readFileSync(new URL("../src/lib/productionRuntimeDatabasePreflight.ts", import.meta.url), "utf8");
 const verifierSource = readFileSync(new URL("./vercel-production-runtime-preflight.mjs", import.meta.url), "utf8");
+const operatorAuditSource = readFileSync(new URL("./production-payment-operator-audit.mjs", import.meta.url), "utf8");
 const packageSource = readFileSync(new URL("../package.json", import.meta.url), "utf8");
 
 for (const contract of [
@@ -33,6 +39,11 @@ for (const contract of [
   'process.env.VERCEL_GIT_COMMIT_SHA',
   'keys.has("expectedSha")',
   'keys.has("expectedEndpointId")',
+  'keys.has("challenge")',
+  'keys.has("auditKeyHmac")',
+  'keys.has("accountingKeyHmac")',
+  'createHmac("sha256", runtimeKey)',
+  "timingSafeEqual",
   "getPaymentReadiness()",
   "stripe.prices.retrieve",
   'stripe.checkout.sessions.list({ status: "open", limit: 100 })',
@@ -45,7 +56,8 @@ for (const contract of [
 ]) assert.ok(routeSource.includes(contract), `runtime route is missing: ${contract}`);
 
 assert.doesNotMatch(routeSource, /sendTest:\s*true|sendMail\(|checkout\.sessions\.create|console\.(?:log|warn|error)/, "runtime preflight must not send mail, create Checkout or log details");
-assert.doesNotMatch(routeSource, /STRIPE_SECRET_KEY|ENTITLEMENT_DB_URL|ZOHO_SMTP_APP_PASSWORD|price\.id|product\.id|session\.id/, "runtime route must not read or expose raw secret and identifier fields");
+assert.doesNotMatch(routeSource, /ENTITLEMENT_DB_URL|ZOHO_SMTP_APP_PASSWORD|price\.id|product\.id|session\.id/, "runtime route must not expose raw secret and identifier fields");
+assert.doesNotMatch(routeSource, /(?:canonicalPass|canonicalFail)[^\n]*(?:runtimeKey|auditKeyHmac|accountingKeyHmac|challenge)/, "fixed evidence must not expose raw or derived key material");
 assert.equal((routeSource.match(/PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS/g) ?? []).length, 1);
 assert.equal((routeSource.match(/PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=FAIL/g) ?? []).length, 1);
 
@@ -54,6 +66,7 @@ for (const contract of [
   'input.paymentsEnabled === "false"',
   'input.managedPaymentsEnabled === "true"',
   "input.deploymentSha === input.expectedSha",
+  "input.runtimeKeyRolesDistinct",
   "readiness.enabled === false",
   "readiness.ready === false",
   "readiness.stripeConfigured",
@@ -99,7 +112,30 @@ for (const contract of [
 
 assert.doesNotMatch(verifierSource, /env run|env pull|--token|--protection-bypass|hojucompass\.com/, "verifier must not download secrets, accept token arguments, manage bypass values or call the public origin");
 assert.ok(packageSource.includes('"payments:verify-production-runtime"'));
+assert.ok(packageSource.includes('"payments:operator-audit"'));
 assert.ok(packageSource.includes('"test:production-runtime-preflight"'));
+
+for (const contract of [
+  "accounts.retrieveCurrent()",
+  "account.charges_enabled === true",
+  "account.payouts_enabled === true",
+  "account.details_submitted === true",
+  "requirements?.currently_due?.length",
+  "requirements?.past_due?.length",
+  "profile?.support_email?.trim().toLowerCase() === supportEmail",
+  "statement_descriptor",
+  "current_database() = 'neondb'",
+  "current_user = 'hoju_payment_auditor'",
+  "audit_role_has_safe_attributes",
+  "audit_does_not_inherit_elevated_roles",
+  "audit_has_read_only_protected_table_access",
+  "required_migrations_present",
+  "named_entitlement_link_constraint_active",
+  "no_reservation_in_flight",
+  productionOperatorAuditPass,
+  productionOperatorAuditFail,
+]) assert.ok(operatorAuditSource.includes(contract), `operator audit is missing: ${contract}`);
+assert.doesNotMatch(operatorAuditSource, /console\.(?:warn|error)|checkout\.sessions\.create|sendMail\(|writeFile|appendFile/, "operator audit must remain read-only and fixed-output");
 
 const readiness = {
   enabled: false,
@@ -117,14 +153,20 @@ const readiness = {
 };
 const expectedSha = "a".repeat(40);
 const expectedEndpointId = "ep-contract-primary-a1b2c3";
+const challenge = "1".repeat(64);
+const auditKeyHmac = "2".repeat(64);
+const accountingKeyHmac = "3".repeat(64);
 const cliArguments = buildVercelCurlArguments({
   deploymentOrigin: "https://candidate-a.vercel.app",
   expectedSha,
   expectedEndpointId,
+  challenge,
+  auditKeyHmac,
+  accountingKeyHmac,
 });
 assert.ok(cliArguments.includes("curl") && cliArguments.includes("--deployment") && cliArguments.includes("POST"));
 assert.ok(cliArguments.includes("https://candidate-a.vercel.app"));
-assert.ok(cliArguments.includes(JSON.stringify({ expectedSha, expectedEndpointId })));
+assert.ok(cliArguments.includes(JSON.stringify({ expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac })));
 assert.equal(cliArguments.some((argument) => /--token|--protection-bypass|rk_live_|postgres(?:ql)?:\/\//.test(argument)), false);
 const validInput = {
   environment: "production",
@@ -132,6 +174,7 @@ const validInput = {
   managedPaymentsEnabled: "true",
   deploymentSha: expectedSha,
   expectedSha,
+  runtimeKeyRolesDistinct: true,
   readiness,
 };
 
@@ -146,6 +189,27 @@ function dependencies(overrides = {}) {
 }
 
 assert.equal(await runProductionRuntimePaymentPreflight(validInput, dependencies()), true);
+
+const operatorEnvironment = {
+  PAYMENTS_STRIPE_AUDIT_KEY: "rk_live_contractauditonly",
+  PAYMENTS_AUDIT_DB_URL: "postgresql://audit:contract@ep-contract-primary-a1b2c3-pooler.ap-southeast-2.aws.neon.tech/neondb",
+  PAYMENTS_EXPECTED_NEON_ENDPOINT_ID: expectedEndpointId,
+};
+let operatorRemoteCalls = 0;
+const operatorDependencies = {
+  verifyStripeAccount: async () => { operatorRemoteCalls += 1; return true; },
+  verifyAuditDatabase: async () => { operatorRemoteCalls += 1; return true; },
+};
+assert.equal(await runProductionPaymentOperatorAudit(operatorEnvironment, operatorDependencies), true);
+assert.equal(operatorRemoteCalls, 2);
+operatorRemoteCalls = 0;
+assert.equal(await runProductionPaymentOperatorAudit({ ...operatorEnvironment, PAYMENTS_STRIPE_AUDIT_KEY: "" }, operatorDependencies), false);
+assert.equal(await runProductionPaymentOperatorAudit({ ...operatorEnvironment, PAYMENTS_AUDIT_DB_URL: "postgresql://audit:contract@wrong.neon.tech/neondb" }, operatorDependencies), false);
+assert.equal(operatorRemoteCalls, 0, "invalid operator inputs must stop before Stripe or Neon reads");
+assert.equal(await runProductionPaymentOperatorAudit(operatorEnvironment, {
+  verifyStripeAccount: async () => false,
+  verifyAuditDatabase: async () => true,
+}), false);
 for (const invalidInput of [
   { ...validInput, environment: "preview" },
   { ...validInput, paymentsEnabled: "" },
@@ -153,6 +217,7 @@ for (const invalidInput of [
   { ...validInput, managedPaymentsEnabled: "false" },
   { ...validInput, deploymentSha: "b".repeat(40) },
   { ...validInput, expectedSha: "invalid" },
+  { ...validInput, runtimeKeyRolesDistinct: false },
   { ...validInput, readiness: { ...readiness, webhookConfigured: false } },
   { ...validInput, readiness: { ...readiness, ready: true } },
 ]) {
@@ -195,19 +260,25 @@ assert.equal(await verifyVercelProductionRuntimePreflight({
   deploymentOrigin: "https://candidate-a.vercel.app",
   expectedSha,
   expectedEndpointId,
+  challenge,
+  auditKeyHmac,
+  accountingKeyHmac,
   fetchImpl: protectedFetch,
   runVercelCurl: async (input) => {
     invokedRuntime = input;
     return { status: 0, stdout: `${runtimePreflightPass}\n` };
   },
 }), true);
-assert.deepEqual(invokedRuntime, { deploymentOrigin: "https://candidate-a.vercel.app", expectedSha, expectedEndpointId });
+assert.deepEqual(invokedRuntime, { deploymentOrigin: "https://candidate-a.vercel.app", expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac });
 
 let unprotectedRuntimeCalls = 0;
 assert.equal(await verifyVercelProductionRuntimePreflight({
   deploymentOrigin: "https://candidate-a.vercel.app",
   expectedSha,
   expectedEndpointId,
+  challenge,
+  auditKeyHmac,
+  accountingKeyHmac,
   fetchImpl: async () => ({ status: 405, headers: new Headers() }),
   runVercelCurl: async () => { unprotectedRuntimeCalls += 1; return { status: 0, stdout: runtimePreflightPass }; },
 }), false);
@@ -223,6 +294,9 @@ for (const fixture of [
     deploymentOrigin: "https://candidate-a.vercel.app",
     expectedSha,
     expectedEndpointId,
+    challenge,
+    auditKeyHmac,
+    accountingKeyHmac,
     fetchImpl: protectedFetch,
     runVercelCurl: async () => fixture,
   }), false);
@@ -238,6 +312,9 @@ for (const deploymentOrigin of [
     deploymentOrigin,
     expectedSha,
     expectedEndpointId,
+    challenge,
+    auditKeyHmac,
+    accountingKeyHmac,
     fetchImpl: async () => { throw new Error("must not fetch"); },
     runVercelCurl: async () => { throw new Error("must not run"); },
   }), false);

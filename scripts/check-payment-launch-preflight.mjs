@@ -81,7 +81,7 @@ assert.match(source, /const auditStripe = new Stripe\(stripeAuditKey,[\s\S]*audi
 assert.ok(packageJson.includes('"test:payment-launch-preflight"'), "the preflight contract test must be exposed through package scripts");
 assert.ok(packageJson.includes("npm run test:payment-launch-preflight"), "the full quality gate must include the preflight contract");
 
-const command = "npm run payments:check -- --preflight --strict --verify-stripe --verify-database";
+const command = "npm run payments:operator-audit";
 const accountingCommand = "npm run accounting:preflight";
 const integratedPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no";
 assert.ok(readiness.includes(command), "payment readiness must document the fail-closed preflight command");
@@ -98,6 +98,7 @@ assert.ok(checklist.includes("this single integrated result satisfies the Balanc
 assert.ok(checklist.includes("is not a second launch prerequisite in the same approval window"), "the standalone accounting wrapper must be classified only as later independent revalidation");
 assert.doesNotMatch(checklist, /- \[ \][^\n]*run-accounting-preflight\.ps1[^\n]*(?:Record PASS only|remains launch `NO-GO`)/, "the checklist must not require a duplicate standalone accounting launch gate");
 for (const secureBoundary of [
+  '[string]$DeploymentOrigin',
   'Read-Host "One-off Stripe Account-Read audit key" -AsSecureString',
   'Read-Host "Dedicated Stripe Balance-Transactions-Read accounting key" -AsSecureString',
   'Read-Host "One-off hoju_payment_auditor database URL" -AsSecureString',
@@ -106,52 +107,36 @@ for (const secureBoundary of [
   'SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY", $plainAuditKey, "Process")',
   'SetEnvironmentVariable("PAYMENTS_AUDIT_DB_URL", $plainAuditDatabaseUrl, "Process")',
   'SetEnvironmentVariable("STRIPE_ACCOUNTING_KEY", $plainAccountingKey, "Process")',
-  'Remove-Item -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY"',
-  'Remove-Item -LiteralPath "Env:PAYMENTS_AUDIT_DB_URL"',
-  'Remove-Item -LiteralPath "Env:STRIPE_ACCOUNTING_KEY"',
-  'Test-Path -LiteralPath "Env:STRIPE_ACCOUNTING_KEY"',
-  '$plainAccountingKey -ceq $env:STRIPE_SECRET_KEY',
-  '$plainAccountingKey -ceq $plainAuditKey',
+  'foreach ($variableName in @("PAYMENTS_STRIPE_AUDIT_KEY", "STRIPE_ACCOUNTING_KEY", "PAYMENTS_AUDIT_DB_URL", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID"))',
+  '$plainAuditKey -ceq $plainAccountingKey',
   'Write-KeyRoleFailure "role_reuse" "no"',
+  'Get-HmacHex $plainAuditKey $challenge',
+  'Get-HmacHex $plainAccountingKey $challenge',
+  '--audit-key-hmac $auditKeyHmac --accounting-key-hmac $accountingKeyHmac',
   'STRIPE_KEY_ROLES=PASS mode=live distinct=yes permissions=separate-preflights-required secrets_printed=no',
   "ZeroFreeBSTR",
-  '$env:PAYMENTS_ENABLED -cne "false"',
-  '$env:VERCEL_ENV -cne "production"',
   '[string]$ExpectedProductionSha',
   "invalid_expected_production_sha",
-  'npm.cmd run deployment:verify-production -- --expected-sha $ExpectedProductionSha',
-  'VERCEL_AUTOMATION_BYPASS_SECRET',
-  'Remove-Item -LiteralPath "Env:VERCEL_AUTOMATION_BYPASS_SECRET"',
-  "production_deployment_evidence_failed",
-  'npm.cmd run payments:check -- --preflight --strict --verify-stripe --verify-database',
+  'npm.cmd run payments:verify-production-runtime',
+  'npm.cmd run payments:operator-audit',
   'npm.cmd run accounting:preflight',
   'FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no',
   'FIRST_SALE_PREFLIGHT=FAIL mode=live payments_off=required keys=unverified required_operations=unverified database=unverified secrets_printed=no launch=NO-GO',
 ]) assert.ok(secureRunner.includes(secureBoundary), `secure Production preflight is missing: ${secureBoundary}`);
 assert.equal((secureRunner.match(/ZeroFreeBSTR\(/g) ?? []).length, 3, "all three masked plaintext buffers must be zeroed");
 assert.doesNotMatch(secureRunner, /Write-Host[^\n]*(?:plainAuditKey|plainAccountingKey|STRIPE_SECRET_KEY)/, "the role-separation result must not print a Stripe key");
-assert.ok(secureRunner.indexOf('SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY"') < secureRunner.indexOf("npm.cmd run payments:check"), "temporary audit credentials must be process-scoped before the strict audit starts");
-assert.ok(secureRunner.indexOf("npm.cmd run deployment:verify-production") < secureRunner.indexOf('Read-Host "One-off Stripe Account-Read audit key"'), "the exact Production deployment must pass before any masked credential is requested");
-assert.ok(secureRunner.indexOf("npm.cmd run deployment:verify-production") < secureRunner.indexOf("npm.cmd run payments:check"), "the exact Production deployment must pass before remote Stripe or Neon audits");
-assert.ok(secureRunner.indexOf("npm.cmd run payments:check") < secureRunner.indexOf('Remove-Item -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY"'), "temporary audit credentials must be cleared after the strict audit attempt");
+assert.doesNotMatch(secureRunner, /\$env:(?:VERCEL_ENV|PAYMENTS_ENABLED|STRIPE_SECRET_KEY|ENTITLEMENT_DB_URL)/, "the local inner preflight must not depend on unreadable Vercel Sensitive values");
+assert.ok(secureRunner.indexOf("npm.cmd run payments:verify-production-runtime") < secureRunner.indexOf('Read-Host "One-off hoju_payment_auditor database URL"'), "runtime evidence must pass before the audit DB prompt");
+assert.ok(secureRunner.indexOf('SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY"') < secureRunner.indexOf("npm.cmd run payments:operator-audit"), "temporary audit credentials must be process-scoped before the local operator audit");
 assert.ok(secureRunner.indexOf('SetEnvironmentVariable("STRIPE_ACCOUNTING_KEY"') < secureRunner.indexOf("npm.cmd run accounting:preflight"), "the exact accounting key checked for role separation must be permission-tested in the same process");
-assert.ok(secureRunner.indexOf("npm.cmd run payments:check") < secureRunner.indexOf("npm.cmd run accounting:preflight"), "accounting permission verification must not run before the strict payment and database audit passes");
-assert.ok(secureRunner.indexOf('Remove-Item -LiteralPath "Env:STRIPE_ACCOUNTING_KEY"') < secureRunner.indexOf("FIRST_SALE_PREFLIGHT=PASS"), "the final first-sale PASS must be emitted only after the accounting key is removed from the process environment");
+assert.ok(secureRunner.indexOf("npm.cmd run payments:operator-audit") < secureRunner.indexOf("npm.cmd run accounting:preflight"), "accounting permission verification must follow the Account and audit-DB checks");
 assert.ok(secureRunner.indexOf("ZeroFreeBSTR") < secureRunner.lastIndexOf("FIRST_SALE_PREFLIGHT=PASS"), "the final first-sale PASS must follow unmanaged secret-buffer cleanup");
 assert.equal((secureRunner.match(/STRIPE_KEY_ROLES=PASS/g) ?? []).length, 1, "key-role PASS must be emitted once, after every required permission preflight");
 
 function runEarlyPowerShellFixture(endpointId, overrides = {}, expectedProductionSha = "a".repeat(40)) {
   const fixtureEnv = { ...process.env };
   for (const name of ["PAYMENTS_STRIPE_AUDIT_KEY", "STRIPE_ACCOUNTING_KEY", "PAYMENTS_AUDIT_DB_URL", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID"]) delete fixtureEnv[name];
-  Object.assign(fixtureEnv, {
-    VERCEL_ENV: "production",
-    PAYMENTS_ENABLED: "false",
-    VERCEL_AUTOMATION_BYPASS_SECRET: "vercel-bypass-contract-secret",
-    STRIPE_SECRET_KEY: "rk" + "_live_contract_fixture_only",
-    ENTITLEMENT_DB_URL: "postgresql://runtime:placeholder@ep-contract-primary-a1b2c3.ap-southeast-2.aws.neon.tech/neondb",
-    ENTITLEMENT_DB_DATABASE_URL: "",
-    ...overrides,
-  });
+  Object.assign(fixtureEnv, overrides);
   const powershell = `${process.env.SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`;
   return spawnSync(powershell, [
     "-NoProfile",
@@ -160,13 +145,14 @@ function runEarlyPowerShellFixture(endpointId, overrides = {}, expectedProductio
     "-File", fileURLToPath(new URL("./run-production-payment-preflight.ps1", import.meta.url)),
     "-ExpectedNeonEndpointId", endpointId,
     "-ExpectedProductionSha", expectedProductionSha,
+    "-DeploymentOrigin", "https://candidate-a.vercel.app/",
   ], { encoding: "utf8", env: fixtureEnv, timeout: 10_000 });
 }
 
 for (const [label, fixture, reason] of [
   ["invalid endpoint", runEarlyPowerShellFixture("not-an-endpoint"), "invalid_expected_endpoint"],
   ["invalid Production SHA", runEarlyPowerShellFixture("ep-contract-primary-a1b2c3", {}, "not-a-full-sha"), "invalid_expected_production_sha"],
-  ["payments enabled", runEarlyPowerShellFixture("ep-contract-primary-a1b2c3", { PAYMENTS_ENABLED: "true" }), "payments_must_be_off"],
+  ["preloaded audit key", runEarlyPowerShellFixture("ep-contract-primary-a1b2c3", { PAYMENTS_STRIPE_AUDIT_KEY: "rk_live_preloaded" }), "operator_secret_preloaded"],
 ]) {
   assert.equal(fixture.status, 1, `${label} must exit 1 before any prompt or remote access`);
   assert.equal((fixture.stdout.match(/FIRST_SALE_PREFLIGHT=FAIL/g) ?? []).length, 1, `${label} must emit one canonical FAIL`);
@@ -247,7 +233,7 @@ for (const observedDeploymentBoundary of [
 ]) assert.ok(productionAudit.includes(observedDeploymentBoundary), `the Production audit is missing the current fail-closed deployment evidence: ${observedDeploymentBoundary}`);
 assert.ok(compactProductionAudit.includes("same masked accounting key must pass the integrated accounting preflight"), "the Production audit must use the same integrated three-key preflight as the canonical runbook");
 assert.ok(productionAudit.includes("scripts/run-vercel-production-payment-preflight.ps1 -ExpectedNeonEndpointId <approved-primary-endpoint> -ExpectedProductionSha <full-owner-approved-sha>"), "the authoritative Production audit must route operators through the clean Vercel wrapper with both pins");
-assert.ok(productionAudit.includes("only its `env run` child may request the Automation Bypass through a") && productionAudit.includes("outer `VERCEL_PRODUCTION_PREFLIGHT=PASS`"), "the Production audit must preserve the child-only bypass boundary and require both canonical PASS lines");
+assert.ok(productionAudit.includes("without downloading Sensitive env or requesting") && productionAudit.includes("outer `VERCEL_PRODUCTION_PREFLIGHT=PASS`"), "the Production audit must preserve the non-readable Sensitive-env boundary and require both canonical PASS lines");
 assert.doesNotMatch(productionAudit, /^1\. Run `scripts\/run-production-payment-preflight\.ps1`/m, "the authoritative Production audit must not route operators directly to the inner masked wrapper");
 assert.doesNotMatch(productionAudit, /^8\. Run the protected live accounting preflight/m, "the Production audit must not retain a duplicate standalone accounting launch blocker");
 assert.ok(envExample.includes("PAYMENTS_EXPECTED_NEON_ENDPOINT_ID="), "the environment example must expose the required non-secret endpoint pin by name");

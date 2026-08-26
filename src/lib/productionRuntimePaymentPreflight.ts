@@ -19,6 +19,7 @@ export type ProductionRuntimePaymentPreflightInput = {
   managedPaymentsEnabled: string | undefined;
   deploymentSha: string | undefined;
   expectedSha: string;
+  runtimeKeyRolesDistinct: boolean;
   readiness: RuntimePaymentReadiness;
 };
 
@@ -39,6 +40,7 @@ function configurationReady(input: ProductionRuntimePaymentPreflightInput) {
     && input.managedPaymentsEnabled === "true"
     && exactShaPattern.test(input.expectedSha)
     && input.deploymentSha === input.expectedSha
+    && input.runtimeKeyRolesDistinct
     && readiness.enabled === false
     && readiness.ready === false
     && readiness.stripeConfigured

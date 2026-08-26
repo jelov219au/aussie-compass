@@ -2,13 +2,14 @@ param(
   [Parameter(Mandatory = $true)]
   [string]$ExpectedNeonEndpointId,
   [Parameter(Mandatory = $true)]
-  [string]$ExpectedProductionSha
+  [string]$ExpectedProductionSha,
+  [Parameter(Mandatory = $true)]
+  [string]$DeploymentOrigin
 )
 
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $locationPushed = $false
-$setEndpointVariable = $false
 $auditKeyPointer = [IntPtr]::Zero
 $accountingKeyPointer = [IntPtr]::Zero
 $auditDatabasePointer = [IntPtr]::Zero
@@ -18,6 +19,9 @@ $plainAuditDatabaseUrl = $null
 $secureAuditKey = $null
 $secureAccountingKey = $null
 $secureAuditDatabaseUrl = $null
+$challenge = $null
+$auditKeyHmac = $null
+$accountingKeyHmac = $null
 $exitCode = 1
 $failureReason = "input_or_runtime_error"
 
@@ -25,113 +29,85 @@ function Write-KeyRoleFailure([string]$Reason, [string]$Distinct = "unverified")
   Write-Host "STRIPE_KEY_ROLES=FAIL mode=live distinct=$Distinct permissions=unverified secrets_printed=no launch=NO-GO reason=$Reason"
 }
 
+function Get-HmacHex([string]$Secret, [string]$Message) {
+  $hmac = New-Object System.Security.Cryptography.HMACSHA256
+  try {
+    $hmac.Key = [Text.Encoding]::UTF8.GetBytes($Secret)
+    $hash = $hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($Message))
+    return ([BitConverter]::ToString($hash)).Replace("-", "").ToLowerInvariant()
+  } finally {
+    $hmac.Dispose()
+  }
+}
+
 try {
   $failureReason = "invalid_expected_endpoint"
-  if ($ExpectedNeonEndpointId -cnotmatch '^ep-[a-z0-9-]+$') {
-    throw "Use the separately approved lowercase Neon endpoint ID beginning with ep-."
-  }
+  if ($ExpectedNeonEndpointId -cnotmatch '^ep-[a-z0-9-]+$') { throw "Use the separately approved Neon endpoint ID." }
   $failureReason = "invalid_expected_production_sha"
-  if ($ExpectedProductionSha -cnotmatch '^[a-f0-9]{40}$') {
-    throw "Use the full lowercase owner-approved Production commit SHA."
-  }
-  $failureReason = "production_environment_required"
-  if ($env:VERCEL_ENV -cne "production") {
-    throw "Run only from an intentionally loaded Vercel Production operator environment."
-  }
-  $failureReason = "payments_must_be_off"
-  if ($env:PAYMENTS_ENABLED -cne "false") {
-    throw "Production PAYMENTS_ENABLED must be explicitly false before this read-only preflight."
-  }
-  $failureReason = "runtime_live_restricted_key_required"
-  if ($env:STRIPE_SECRET_KEY -cnotmatch '^rk_live_[A-Za-z0-9]+$') {
-    Write-KeyRoleFailure "runtime_live_restricted_key_required"
-    throw "The loaded Production runtime must use a live restricted Stripe key."
-  }
-  $failureReason = "automation_bypass_secret_required"
-  if (
-    [string]::IsNullOrWhiteSpace($env:VERCEL_AUTOMATION_BYPASS_SECRET) -or
-    $env:VERCEL_AUTOMATION_BYPASS_SECRET.Length -lt 16 -or
-    $env:VERCEL_AUTOMATION_BYPASS_SECRET.Length -gt 256
-  ) {
-    throw "Use the process-only Vercel Automation Bypass secret for the protected exact-deployment check."
-  }
-  $failureReason = "audit_key_preloaded"
-  if (Test-Path -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY") {
-    Write-KeyRoleFailure "audit_key_preloaded"
-    throw "PAYMENTS_STRIPE_AUDIT_KEY must not be preloaded or persisted. Remove it and use the masked prompt."
-  }
-  $failureReason = "accounting_key_preloaded"
-  if (Test-Path -LiteralPath "Env:STRIPE_ACCOUNTING_KEY") {
-    Write-KeyRoleFailure "accounting_key_preloaded"
-    throw "STRIPE_ACCOUNTING_KEY must not be preloaded or persisted for the strict Production audit. Remove it and use the masked prompt."
-  }
-  $failureReason = "audit_database_preloaded"
-  if (Test-Path -LiteralPath "Env:PAYMENTS_AUDIT_DB_URL") {
-    throw "PAYMENTS_AUDIT_DB_URL must not be preloaded or persisted. Remove it and use the masked prompt."
-  }
-
-  $runtimeDatabaseUrl = if ($env:ENTITLEMENT_DB_URL) {
-    $env:ENTITLEMENT_DB_URL
-  } else {
-    $env:ENTITLEMENT_DB_DATABASE_URL
-  }
-
-  $failureReason = "runtime_database_target_mismatch"
+  if ($ExpectedProductionSha -cnotmatch '^[a-f0-9]{40}$') { throw "Use the full owner-approved Production SHA." }
+  $failureReason = "invalid_deployment_origin"
   try {
-    $runtimeDatabaseUri = [Uri]$runtimeDatabaseUrl
-    $runtimeHost = $runtimeDatabaseUri.DnsSafeHost.ToLowerInvariant()
-    $runtimeEndpointLabel = $runtimeHost.Split('.')[0]
-    if ($runtimeEndpointLabel.EndsWith("-pooler")) {
-      $runtimeEndpointLabel = $runtimeEndpointLabel.Substring(0, $runtimeEndpointLabel.Length - 7)
-    }
-    if (@("postgres", "postgresql") -notcontains $runtimeDatabaseUri.Scheme -or -not $runtimeHost.EndsWith(".neon.tech") -or $runtimeEndpointLabel -cne $ExpectedNeonEndpointId -or $runtimeDatabaseUri.AbsolutePath.TrimEnd('/') -cne "/neondb") {
-      throw "The loaded Production runtime database does not match the approved Neon endpoint."
-    }
+    $deploymentUri = [Uri]$DeploymentOrigin
+    if (
+      $deploymentUri.Scheme -cne "https" -or
+      -not $deploymentUri.DnsSafeHost.ToLowerInvariant().EndsWith(".vercel.app") -or
+      $deploymentUri.DnsSafeHost.ToLowerInvariant() -ceq "vercel.app" -or
+      -not $deploymentUri.IsDefaultPort -or
+      $deploymentUri.AbsolutePath -cne "/" -or
+      $deploymentUri.Query -or
+      $deploymentUri.Fragment -or
+      $deploymentUri.UserInfo
+    ) { throw "invalid deployment origin" }
+    $DeploymentOrigin = $deploymentUri.GetLeftPart([UriPartial]::Authority)
   } catch {
-    throw "The loaded Production runtime database does not match the approved Neon endpoint."
+    throw "Use the exact protected Vercel deployment origin from the outer evidence check."
   }
 
-  $failureReason = "endpoint_pin_mismatch"
-  $existingEndpointId = $env:PAYMENTS_EXPECTED_NEON_ENDPOINT_ID
-  if ($existingEndpointId) {
-    if ($existingEndpointId.Trim().ToLowerInvariant() -cne $ExpectedNeonEndpointId) {
-      throw "The existing endpoint pin does not match the separately approved Neon endpoint."
+  foreach ($variableName in @("PAYMENTS_STRIPE_AUDIT_KEY", "STRIPE_ACCOUNTING_KEY", "PAYMENTS_AUDIT_DB_URL", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID")) {
+    $failureReason = "operator_secret_preloaded"
+    if (Test-Path -LiteralPath ("Env:" + $variableName)) {
+      Write-KeyRoleFailure "operator_secret_preloaded"
+      throw "Operator audit values must be entered only at masked prompts."
     }
-  } else {
-    [Environment]::SetEnvironmentVariable("PAYMENTS_EXPECTED_NEON_ENDPOINT_ID", $ExpectedNeonEndpointId, "Process")
-    $setEndpointVariable = $true
   }
-
-  Push-Location -LiteralPath $projectRoot
-  $locationPushed = $true
-  $failureReason = "production_deployment_evidence_failed"
-  & npm.cmd run deployment:verify-production -- --expected-sha $ExpectedProductionSha
-  if ($LASTEXITCODE -ne 0) { throw "Production deployment evidence failed closed." }
-  Remove-Item -LiteralPath "Env:VERCEL_AUTOMATION_BYPASS_SECRET" -ErrorAction SilentlyContinue
 
   $failureReason = "masked_key_input_failed"
   $secureAuditKey = Read-Host "One-off Stripe Account-Read audit key" -AsSecureString
   $auditKeyPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureAuditKey)
   $plainAuditKey = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($auditKeyPointer)
-
   $secureAccountingKey = Read-Host "Dedicated Stripe Balance-Transactions-Read accounting key" -AsSecureString
   $accountingKeyPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureAccountingKey)
   $plainAccountingKey = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($accountingKeyPointer)
 
-  $failureReason = "three_live_restricted_keys_required"
+  $failureReason = "two_local_live_restricted_keys_required"
   if ($plainAuditKey -cnotmatch '^rk_live_[A-Za-z0-9]+$' -or $plainAccountingKey -cnotmatch '^rk_live_[A-Za-z0-9]+$') {
-    Write-KeyRoleFailure "three_live_restricted_keys_required"
-    throw "Use three separate rk_live_ restricted keys for runtime, Account audit and accounting."
+    Write-KeyRoleFailure "two_local_live_restricted_keys_required"
+    throw "Use separate live restricted Account-audit and accounting keys."
   }
-  if (
-    ($plainAuditKey -ceq $env:STRIPE_SECRET_KEY) -or
-    ($plainAccountingKey -ceq $env:STRIPE_SECRET_KEY) -or
-    ($plainAccountingKey -ceq $plainAuditKey)
-  ) {
+  if ($plainAuditKey -ceq $plainAccountingKey) {
     $failureReason = "role_reuse"
     Write-KeyRoleFailure "role_reuse" "no"
-    throw "Runtime, Account-audit and accounting Stripe keys must be different."
+    throw "Account-audit and accounting keys must be different."
   }
+
+  $challengeBytes = New-Object byte[] 32
+  $random = [Security.Cryptography.RandomNumberGenerator]::Create()
+  try {
+    $random.GetBytes($challengeBytes)
+    $challenge = ([BitConverter]::ToString($challengeBytes)).Replace("-", "").ToLowerInvariant()
+  } finally {
+    $random.Dispose()
+    [Array]::Clear($challengeBytes, 0, $challengeBytes.Length)
+  }
+  $auditKeyHmac = Get-HmacHex $plainAuditKey $challenge
+  $accountingKeyHmac = Get-HmacHex $plainAccountingKey $challenge
+
+  Push-Location -LiteralPath $projectRoot
+  $locationPushed = $true
+  $failureReason = "production_runtime_preflight_failed"
+  & npm.cmd run payments:verify-production-runtime -- --deployment $DeploymentOrigin --expected-sha $ExpectedProductionSha --expected-endpoint $ExpectedNeonEndpointId --challenge $challenge --audit-key-hmac $auditKeyHmac --accounting-key-hmac $accountingKeyHmac
+  if ($LASTEXITCODE -ne 0) { throw "Protected Production runtime preflight failed closed." }
+
   $secureAuditDatabaseUrl = Read-Host "One-off hoju_payment_auditor database URL" -AsSecureString
   $auditDatabasePointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureAuditDatabaseUrl)
   $plainAuditDatabaseUrl = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($auditDatabasePointer)
@@ -140,22 +116,20 @@ try {
     $auditDatabaseUri = [Uri]$plainAuditDatabaseUrl
     $auditHost = $auditDatabaseUri.DnsSafeHost.ToLowerInvariant()
     $auditEndpointLabel = $auditHost.Split('.')[0]
-    if ($auditEndpointLabel.EndsWith("-pooler")) {
-      $auditEndpointLabel = $auditEndpointLabel.Substring(0, $auditEndpointLabel.Length - 7)
-    }
+    if ($auditEndpointLabel.EndsWith("-pooler")) { $auditEndpointLabel = $auditEndpointLabel.Substring(0, $auditEndpointLabel.Length - 7) }
     if (@("postgres", "postgresql") -notcontains $auditDatabaseUri.Scheme -or -not $auditHost.EndsWith(".neon.tech") -or $auditEndpointLabel -cne $ExpectedNeonEndpointId -or $auditDatabaseUri.AbsolutePath.TrimEnd('/') -cne "/neondb") {
       throw "invalid audit database target"
     }
   } catch {
-    throw "The audit database URL must target hoju_payment_auditor on the approved Neon endpoint and neondb."
+    throw "The audit database URL must target the approved Neon endpoint and neondb."
   }
 
   [Environment]::SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY", $plainAuditKey, "Process")
   [Environment]::SetEnvironmentVariable("PAYMENTS_AUDIT_DB_URL", $plainAuditDatabaseUrl, "Process")
-
-  $failureReason = "strict_payment_preflight_failed"
-  & npm.cmd run payments:check -- --preflight --strict --verify-stripe --verify-database
-  if ($LASTEXITCODE -ne 0) { throw "Production payment preflight failed closed." }
+  [Environment]::SetEnvironmentVariable("PAYMENTS_EXPECTED_NEON_ENDPOINT_ID", $ExpectedNeonEndpointId, "Process")
+  $failureReason = "operator_audit_failed"
+  & npm.cmd run payments:operator-audit
+  if ($LASTEXITCODE -ne 0) { throw "Production Account and audit-database checks failed closed." }
 
   $failureReason = "accounting_permission_preflight_failed"
   [Environment]::SetEnvironmentVariable("STRIPE_ACCOUNTING_KEY", $plainAccountingKey, "Process")
@@ -164,33 +138,24 @@ try {
 
   $exitCode = 0
 } catch {
-  # Only the fixed stage reason is emitted; exception text can include third-party details.
+  # Only the fixed stage reason is emitted; exception text can contain third-party details.
 } finally {
-  if ($locationPushed) {
-    Pop-Location
+  if ($locationPushed) { Pop-Location }
+  foreach ($variableName in @("PAYMENTS_STRIPE_AUDIT_KEY", "PAYMENTS_AUDIT_DB_URL", "STRIPE_ACCOUNTING_KEY", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID")) {
+    Remove-Item -LiteralPath ("Env:" + $variableName) -ErrorAction SilentlyContinue
   }
-  Remove-Item -LiteralPath "Env:PAYMENTS_STRIPE_AUDIT_KEY" -ErrorAction SilentlyContinue
-  Remove-Item -LiteralPath "Env:PAYMENTS_AUDIT_DB_URL" -ErrorAction SilentlyContinue
-  Remove-Item -LiteralPath "Env:STRIPE_ACCOUNTING_KEY" -ErrorAction SilentlyContinue
-  Remove-Item -LiteralPath "Env:VERCEL_AUTOMATION_BYPASS_SECRET" -ErrorAction SilentlyContinue
-  if ($setEndpointVariable) {
-    Remove-Item -LiteralPath "Env:PAYMENTS_EXPECTED_NEON_ENDPOINT_ID" -ErrorAction SilentlyContinue
-  }
-  if ($auditKeyPointer -ne [IntPtr]::Zero) {
-    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($auditKeyPointer)
-  }
-  if ($accountingKeyPointer -ne [IntPtr]::Zero) {
-    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($accountingKeyPointer)
-  }
-  if ($auditDatabasePointer -ne [IntPtr]::Zero) {
-    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($auditDatabasePointer)
-  }
+  if ($auditKeyPointer -ne [IntPtr]::Zero) { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($auditKeyPointer) }
+  if ($accountingKeyPointer -ne [IntPtr]::Zero) { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($accountingKeyPointer) }
+  if ($auditDatabasePointer -ne [IntPtr]::Zero) { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($auditDatabasePointer) }
   $plainAuditKey = $null
   $plainAccountingKey = $null
   $plainAuditDatabaseUrl = $null
   $secureAuditKey = $null
   $secureAccountingKey = $null
   $secureAuditDatabaseUrl = $null
+  $challenge = $null
+  $auditKeyHmac = $null
+  $accountingKeyHmac = $null
 }
 
 if ($exitCode -eq 0) {

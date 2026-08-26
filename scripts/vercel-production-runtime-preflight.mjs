@@ -59,8 +59,8 @@ function cleanCliEnvironment() {
   return childEnvironment;
 }
 
-export function buildVercelCurlArguments({ deploymentOrigin, expectedSha, expectedEndpointId }) {
-  const requestBody = JSON.stringify({ expectedSha, expectedEndpointId });
+export function buildVercelCurlArguments({ deploymentOrigin, expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac }) {
+  const requestBody = JSON.stringify({ expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac });
   return [
     "--yes",
     `--package=${vercelPackage}`,
@@ -107,6 +107,9 @@ export async function verifyVercelProductionRuntimePreflight({
   deploymentOrigin: rawDeploymentOrigin,
   expectedSha,
   expectedEndpointId,
+  challenge,
+  auditKeyHmac,
+  accountingKeyHmac,
   fetchImpl = fetch,
   runVercelCurl = defaultRunVercelCurl,
 }) {
@@ -115,6 +118,9 @@ export async function verifyVercelProductionRuntimePreflight({
     !deploymentOrigin
     || !exactShaPattern.test(expectedSha ?? "")
     || !/^ep-[a-z0-9-]+$/.test(expectedEndpointId ?? "")
+    || !/^[a-f0-9]{64}$/.test(challenge ?? "")
+    || !/^[a-f0-9]{64}$/.test(auditKeyHmac ?? "")
+    || !/^[a-f0-9]{64}$/.test(accountingKeyHmac ?? "")
   ) return false;
 
   let unauthenticatedResponse;
@@ -136,7 +142,7 @@ export async function verifyVercelProductionRuntimePreflight({
 
   let result;
   try {
-    result = await runVercelCurl({ deploymentOrigin, expectedSha, expectedEndpointId });
+    result = await runVercelCurl({ deploymentOrigin, expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac });
   } catch {
     return false;
   }
@@ -148,16 +154,22 @@ export async function verifyVercelProductionRuntimePreflight({
 
 function parseArguments(argumentsList) {
   if (
-    argumentsList.length !== 6
+    argumentsList.length !== 12
     || argumentsList[0] !== "--deployment"
     || argumentsList[2] !== "--expected-sha"
     || argumentsList[4] !== "--expected-endpoint"
+    || argumentsList[6] !== "--challenge"
+    || argumentsList[8] !== "--audit-key-hmac"
+    || argumentsList[10] !== "--accounting-key-hmac"
   ) return null;
 
   return {
     deploymentOrigin: argumentsList[1],
     expectedSha: argumentsList[3],
     expectedEndpointId: argumentsList[5],
+    challenge: argumentsList[7],
+    auditKeyHmac: argumentsList[9],
+    accountingKeyHmac: argumentsList[11],
   };
 }
 

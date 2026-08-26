@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { getPaymentReadiness } from "@/lib/commerce";
 import { isPaymentRuntimeSchemaReady } from "@/lib/neonFirstSaleGate";
@@ -13,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 const requestContract = "read-only-v1";
 const requestHeader = "x-hoju-runtime-preflight";
-const maximumBodyBytes = 256;
+const maximumBodyBytes = 512;
 const exactShaPattern = /^[a-f0-9]{40}$/;
 const canonicalPass = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS environment=production source_sha=exact payments=off managed_payments=configured config=verified stripe=read-only-pass open_sessions=zero database=runtime-schema-pass smtp=verify-pass email_sent=no secrets_printed=no";
 const canonicalFail = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=FAIL environment=unverified source_sha=unverified payments=unverified managed_payments=unverified config=unverified stripe=unverified open_sessions=unverified database=unverified smtp=unverified email_sent=no secrets_printed=no launch=NO-GO";
@@ -55,19 +56,52 @@ async function readExpectedPins(request: NextRequest) {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
     const entries = Object.entries(parsed);
     const keys = new Set(entries.map(([key]) => key));
-    if (entries.length !== 2 || !keys.has("expectedSha") || !keys.has("expectedEndpointId")) return null;
+    if (
+      entries.length !== 5
+      || !keys.has("expectedSha")
+      || !keys.has("expectedEndpointId")
+      || !keys.has("challenge")
+      || !keys.has("auditKeyHmac")
+      || !keys.has("accountingKeyHmac")
+    ) return null;
     const expectedSha = Reflect.get(parsed, "expectedSha") as unknown;
     const expectedEndpointId = Reflect.get(parsed, "expectedEndpointId") as unknown;
+    const challenge = Reflect.get(parsed, "challenge") as unknown;
+    const auditKeyHmac = Reflect.get(parsed, "auditKeyHmac") as unknown;
+    const accountingKeyHmac = Reflect.get(parsed, "accountingKeyHmac") as unknown;
     if (
       typeof expectedSha !== "string"
       || !exactShaPattern.test(expectedSha)
       || typeof expectedEndpointId !== "string"
       || !/^ep-[a-z0-9-]+$/.test(expectedEndpointId)
+      || typeof challenge !== "string"
+      || !/^[a-f0-9]{64}$/.test(challenge)
+      || typeof auditKeyHmac !== "string"
+      || !/^[a-f0-9]{64}$/.test(auditKeyHmac)
+      || typeof accountingKeyHmac !== "string"
+      || !/^[a-f0-9]{64}$/.test(accountingKeyHmac)
     ) return null;
-    return { expectedSha, expectedEndpointId };
+    return { expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac };
   } catch {
     return null;
   }
+}
+
+function hmacBuffer(value: string) {
+  return Buffer.from(value, "hex");
+}
+
+function runtimeKeyRolesAreDistinct(pins: Awaited<ReturnType<typeof readExpectedPins>>) {
+  if (!pins) return false;
+  const runtimeKey = process.env.STRIPE_SECRET_KEY?.trim() ?? "";
+  if (!/^rk_live_[A-Za-z0-9]+$/.test(runtimeKey)) return false;
+
+  const runtimeKeyHmac = createHmac("sha256", runtimeKey).update(pins.challenge, "utf8").digest();
+  const auditKeyHmac = hmacBuffer(pins.auditKeyHmac);
+  const accountingKeyHmac = hmacBuffer(pins.accountingKeyHmac);
+  return !timingSafeEqual(runtimeKeyHmac, auditKeyHmac)
+    && !timingSafeEqual(runtimeKeyHmac, accountingKeyHmac)
+    && !timingSafeEqual(auditKeyHmac, accountingKeyHmac);
 }
 
 async function verifyStripeProductAndZeroOpenSessions() {
@@ -99,6 +133,7 @@ export async function POST(request: NextRequest) {
       managedPaymentsEnabled: process.env.STRIPE_MANAGED_PAYMENTS_ENABLED,
       deploymentSha: process.env.VERCEL_GIT_COMMIT_SHA,
       expectedSha: pins.expectedSha,
+      runtimeKeyRolesDistinct: runtimeKeyRolesAreDistinct(pins),
       readiness: getPaymentReadiness(),
     }, {
       verifyStripeProductAndZeroOpenSessions,
