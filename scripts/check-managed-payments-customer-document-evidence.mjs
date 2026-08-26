@@ -133,7 +133,7 @@ for (const minimumSupportBoundary of [
   );
 }
 assert.ok(
-  paymentSupportHelper.includes("[있다면 마지막 8자만 입력]")
+  paymentSupportHelper.includes("[있다면 각 참조의 마지막 8자만 입력]")
     && paymentSupportHelper.includes("영수증 전체")
     && paymentSupportHelper.includes("판매자가 명확하지 않으면 그 점 기록"),
   "the support helper must preserve the same suffix-only customer handoff boundary",

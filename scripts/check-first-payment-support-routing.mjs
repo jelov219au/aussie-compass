@@ -73,9 +73,27 @@ for (const accountingContract of [
 ]) assert.ok(compactAccounting.includes(accountingContract), `accounting runbook is missing: ${accountingContract}`);
 
 assert.ok(paymentHelp.includes("같은 제품을 다시 결제하기 전에"));
-assert.ok(paymentHelp.includes("민감한 정보를 보내지 않도록"));
+assert.ok(paymentHelp.includes("최소 정보로 제품 지원을 준비하세요"));
+for (const mobileScenario of [
+  "결제 완료 여부를 확인하고 싶음",
+  "중복 결제가 의심됨",
+  "영수증·인보이스 또는 거래 지원 문의",
+  "결제했는데 이용권이 열리지 않음",
+  "환불 또는 제품 문제 해결 요청",
+]) assert.ok(paymentSupportHelper.includes(mobileScenario), `mobile support helper is missing scenario: ${mobileScenario}`);
 assert.ok(paymentSupportHelper.includes("같은 결제를 다시 하지 않기"));
-assert.ok(paymentSupportHelper.includes("환불 또는 제품 문제 해결 요청"));
-assert.ok(paymentSupportHelper.includes("마지막 8자만 입력"));
+assert.ok(paymentSupportHelper.includes("각 결제 참조는 전체 값 대신 마지막 8자만 기록"));
+assert.ok(paymentSupportHelper.includes("판매자·문서 발행자·거래 지원 경로가 명확한 경우만 확인하고, 불명확하면 추정하지 않기"));
+assert.ok(paymentSupportHelper.includes("환불 요청은 환불 완료가 아님을 확인"));
+assert.ok(paymentSupportHelper.includes("[있다면 각 참조의 마지막 8자만 입력]"));
+assert.ok(
+  paymentSupportHelper.includes('aria-live="polite"')
+    && paymentSupportHelper.includes('aria-atomic="true"')
+    && paymentSupportHelper.includes('aria-label={`${selected.label} 확인 순서`}'),
+  "mobile scenario changes must be announced with an accessible name",
+);
+for (const forbiddenCollection of ["카드번호 전체·일부", "CVC", "영수증 전체", "신분증 사본"]) {
+  assert.ok(paymentSupportHelper.includes(forbiddenCollection), `support helper must keep its denylist: ${forbiddenCollection}`);
+}
 
 console.log("First-payment refund, access and support routing contract passed.");

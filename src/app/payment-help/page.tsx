@@ -10,7 +10,7 @@ import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
   title: "결제·접근 문제 해결 | Hoju Compass",
-  description: "Hoju Compass Pro 결제 확인 지연, 접근 만료, 복구 코드 분실과 환불 요청을 안전하게 준비하세요.",
+  description: "Hoju Compass Pro 결제 확인, 중복 결제 의심, 영수증·인보이스, 이용권 미활성화와 환불 요청을 안전하게 구분하세요.",
   path: "/payment-help",
 });
 
@@ -32,7 +32,7 @@ export default function PaymentHelpPage() {
         <Container className="max-w-5xl">
           <Link href="/purchase-information" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 구매·환불 안내로 돌아가기</Link>
           <div className="mt-8 grid gap-8 border-b border-navy/20 pb-10 lg:grid-cols-[1fr_18rem] lg:items-end">
-            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">결제 문제가 생겼다면</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">무엇이 문제인지부터 차근차근 확인해요.</h1><p className="mt-5 max-w-3xl leading-7 text-muted">중복으로 결제하거나 민감한 정보를 보내지 않도록, Pro 제품 이용 문제와 환불 문의 순서를 상황별로 정리했어요.</p></div>
+            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">결제 문제가 생겼다면</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">무엇이 문제인지부터 차근차근 확인해요.</h1><p className="mt-5 max-w-3xl leading-7 text-muted">결제 완료 확인, 중복 결제 의심, 영수증·인보이스 문의, 이용권 미활성화와 환불 요청을 먼저 구분해 최소 정보로 제품 지원을 준비하세요.</p></div>
             <p className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted"><strong className="block text-navy">서버 제출 없음</strong>아래 선택과 문의 문구는 현재 브라우저에서만 만들어집니다.</p>
           </div>
           <section className="mt-9 bg-navy p-5 text-white sm:p-7" aria-labelledby="safety-first-heading">

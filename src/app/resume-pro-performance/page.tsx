@@ -28,6 +28,18 @@ function money(cents: number) {
   return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(cents / 100);
 }
 
+function collectionLabel(status: "collected" | "not_configured" | "error" | undefined) {
+  if (status === "collected") return "수집됨";
+  if (status === "error") return "오류";
+  return "미수집";
+}
+
+function trafficChange(current: number, previous: number) {
+  const change = current - previous;
+  if (change === 0) return "변화 없음";
+  return `${change > 0 ? "+" : ""}${change.toLocaleString()}`;
+}
+
 function nextAction(row: ResumeProPerformanceRow, connected: { vercel: boolean; stripe: boolean }) {
   if (!connected.vercel || !connected.stripe) return "두 데이터 연결을 마친 뒤 판단하세요.";
   if (row.paidCheckouts > 0 && row.retainedPayments === 0) return "전액 환불된 live 거래만 있어요. 통제 결제인지 실제 고객 환불인지 운영 사건과 대조하고 구매 성과로 세지 마세요.";
@@ -89,9 +101,9 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
           </header>
 
           <section className="mt-8 grid gap-4 lg:grid-cols-2" aria-label="데이터 연결 상태">
-            <div className={`border-l-2 p-5 ${report.vercel.connected ? "border-emerald-600 bg-emerald-50" : "border-gold bg-white"}`}>
+            <div className={`border-l-2 p-5 ${report.vercel.status === "collected" ? "border-emerald-600 bg-emerald-50" : report.vercel.status === "error" ? "border-red-600 bg-red-50" : "border-gold bg-white"}`}>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">익명 퍼널 합계</p>
-              <h2 className="mt-2 text-lg font-semibold text-navy">Vercel Analytics {report.vercel.connected ? "연결됨" : "연결 필요"}</h2>
+              <h2 className="mt-2 text-lg font-semibold text-navy">Vercel Analytics {collectionLabel(report.vercel.status)}</h2>
               <p className="mt-2 text-sm leading-6 text-muted">{report.vercel.message}</p>
             </div>
             <div className={`border-l-2 p-5 ${report.stripe.connected ? "border-emerald-600 bg-emerald-50" : "border-gold bg-white"}`}>
@@ -120,6 +132,36 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
                 </label>
                 <button type="submit" className="min-h-11 bg-navy px-5 py-2 text-sm font-semibold text-white lg:col-span-2 lg:w-fit">이 컴퓨터에 연결하기</button>
               </form>
+            </section>
+          )}
+
+          {days === 1 && report.trafficComparison && (
+            <section className="mt-8" aria-labelledby="daily-traffic-comparison-heading">
+              <div className="border-b border-navy/20 pb-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Daily pulse · UTC</p>
+                <h2 id="daily-traffic-comparison-heading" className="mt-2 text-2xl font-semibold text-navy">최근 24시간과 직전 24시간</h2>
+                <p className="mt-2 text-sm leading-6 text-muted">{report.trafficComparison.message}</p>
+              </div>
+              <dl className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-4">
+                {([
+                  ["사이트 방문자", "siteVisitors"],
+                  ["페이지뷰", "sitePageviews"],
+                  ["Pro 비교 페이지", "proCatalogVisitors"],
+                  ["Resume Pro 상세 도달", "resumeProVisitors"],
+                ] as const).map(([label, key]) => {
+                  const current = report.trafficComparison!.current[key];
+                  const previous = report.trafficComparison!.previous[key];
+                  const collected = report.trafficComparison!.status === "collected";
+                  return (
+                    <div key={key} className="bg-white p-5">
+                      <dt className="text-xs text-muted">{label}</dt>
+                      <dd className="mt-2 text-3xl font-semibold text-navy">{collected ? current.toLocaleString() : collectionLabel(report.trafficComparison!.status)}</dd>
+                      <p className="mt-2 text-xs leading-5 text-muted">직전 24시간 {collected ? previous.toLocaleString() : "—"}</p>
+                      <p className="text-xs leading-5 text-muted">{collected ? `${current === 0 ? "수집됨 · 활동 0 · " : ""}변화 ${trafficChange(current, previous)}` : "숫자로 판단하지 마세요"}</p>
+                    </div>
+                  );
+                })}
+              </dl>
             </section>
           )}
 

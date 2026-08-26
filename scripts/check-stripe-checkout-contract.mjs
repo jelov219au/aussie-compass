@@ -73,7 +73,7 @@ for (const paymentPrompt of [
 ]) assert.ok(contactPage.includes(paymentPrompt), `the contact mail draft is missing its payment-resolution prompt: ${paymentPrompt}`);
 assert.ok(contactPage.includes("emailHref(seller.email, item)"), "each contact action must build its mail draft from the selected contact type");
 assert.ok(contactPage.includes("...contactType.prompts.flatMap"), "the contact mail draft must render only the selected type's fixed prompts");
-assert.ok(paymentSupport.includes("[있다면 마지막 8자만 입력]"), "support template must limit the payment reference to eight characters");
+assert.ok(paymentSupport.includes("[있다면 각 참조의 마지막 8자만 입력]"), "support template must limit every payment reference to eight characters");
 for (const prohibitedDetail of ["카드번호 전체·일부", "CVC", "영수증 전체", "이력서 원문"]) {
   assert.ok(
     contactPage.includes(prohibitedDetail) || privacyPage.includes(prohibitedDetail) || paymentSupport.includes(prohibitedDetail),

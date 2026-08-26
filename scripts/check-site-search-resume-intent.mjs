@@ -12,6 +12,8 @@ const fixtures = [
   { href: "/resume-job-ad-checker", type: "도구", title: "이력서·Job Ad 공고 맞춤 점검기", description: "공고 표현과 실제 경력 근거를 로컬에서 비교", keywords: ["이력서", "공고 맞춤", "ATS", "ATS 이력서", "job ad", "job ad checker"] },
   { href: "/resources/australia-cover-letter-job-ad-checklist", type: "자료", title: "호주 커버레터 작성법", description: "공고별 제출 전 점검", keywords: ["커버레터", "cover letter", "호주 커버레터"] },
   { href: "/resume-builder", type: "도구", title: "무료 영문 이력서 빌더", description: "브라우저 저장과 PDF", keywords: ["이력서", "resume", "CV", "STAR 예시", "STAR examples", "selection criteria", "cover letter", "호주 취업 이력서"] },
+  { href: "/property-inspection-checklist", type: "도구", title: "렌트 신청 전 무료 집 방문 체크리스트", description: "집 상태와 계약 점검", keywords: ["렌트 신청", "rental application"] },
+  { href: "/rental-application-pro", type: "도구", title: "Rental Pack Pro — 집별 렌트 신청 준비", description: "집별 증빙 상태와 영문 소개문 저장", keywords: ["렌트 신청", "rental application", "rental pack"] },
 ];
 
 const discoveryOrder = [
@@ -52,6 +54,13 @@ for (const query of ["지원 마감일", "지원 상태", "지원 현황", "지�
 }
 assert.equal(getSiteSearchIntent("급여 이력"), "default", "partial words must not enter the resume allowlist");
 assert.equal(rankSiteSearchItems(fixtures, "급여 이력").length, 0, "unrelated compound searches must keep the ordinary filter behavior");
+for (const query of ["렌트 신청", "rental application"]) {
+  assert.deepEqual(
+    rankSiteSearchItems(fixtures, query).slice(0, 2).map((item) => item.href),
+    ["/property-inspection-checklist", "/rental-application-pro"],
+    `${query} must lead with the free inspection checklist before the paid Rental Pack`,
+  );
+}
 
 const searchComponent = readFileSync(resolve("src/components/search/SiteSearch.tsx"), "utf8");
 const searchPage = readFileSync(resolve("src/app/search/page.tsx"), "utf8");
@@ -67,6 +76,14 @@ for (const query of ["STAR 예시", "STAR examples", "selection criteria", "cove
 }
 for (const query of ["지원 마감일", "지원 상태", "지원 현황", "지원서 관리"]) {
   assert.ok(searchPage.includes(`"${query}"`), `the live Resume Pro search item is missing ${query}`);
+}
+for (const fragment of [
+  'href:"/rental-application-pro"',
+  '"렌트 신청"',
+  '"rental application"',
+  "최대 6개 집의 증빙 상태와 후속 날짜를 비교하고 영문 소개문·TXT 준비 묶음 저장",
+]) {
+  assert.ok(searchPage.includes(fragment), `the live Rental free-to-Pro search path is missing ${fragment}`);
 }
 assert.match(searchComponent, /rankSiteSearchItems\(items, query\)/);
 assert.match(searchComponent, /이력서 준비 추천 순서/);

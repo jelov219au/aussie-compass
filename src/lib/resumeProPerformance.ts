@@ -31,6 +31,25 @@ type ConnectionState = {
   connected: boolean;
   message: string;
   mode?: "live" | "test";
+  status?: ResumeProCollectionStatus;
+};
+
+export type ResumeProCollectionStatus = "collected" | "not_configured" | "error";
+
+export type ResumeProTrafficWindow = {
+  since: string;
+  until: string;
+  siteVisitors: number;
+  sitePageviews: number;
+  proCatalogVisitors: number;
+  resumeProVisitors: number;
+};
+
+export type ResumeProTrafficComparison = {
+  status: ResumeProCollectionStatus;
+  message: string;
+  current: ResumeProTrafficWindow;
+  previous: ResumeProTrafficWindow;
 };
 
 export type ResumeProPerformance = {
@@ -48,6 +67,7 @@ export type ResumeProPerformance = {
   until: string;
   vercel: ConnectionState;
   stripe: ConnectionState;
+  trafficComparison: ResumeProTrafficComparison | null;
 };
 
 const entries: Array<{ entry: ResumeProEntry; label: string }> = [
@@ -73,6 +93,19 @@ type VercelVisitCountResponse = {
 
 function dateText(date: Date) {
   return date.toISOString().slice(0, 10);
+}
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+export function getUtcRolling24HourWindows(now: Date) {
+  const currentUntil = now.getTime();
+  const currentSince = currentUntil - DAY_IN_MS;
+  const previousSince = currentSince - DAY_IN_MS;
+
+  return {
+    current: { since: String(currentSince), until: String(currentUntil) },
+    previous: { since: String(previousSince), until: String(currentSince) },
+  };
 }
 
 function safeCount(value: unknown) {
@@ -162,7 +195,7 @@ async function loadVercelTotals(since: string, until: string) {
 
   if (!token || !projectId) {
     return {
-      state: { connected: false, message: "VERCEL_TOKEN과 VERCEL_PROJECT_ID를 연결하면 Builder 시작부터 결제 시작까지 익명 합계를 자동으로 불러옵니다." },
+      state: { connected: false, status: "not_configured" as const, message: "VERCEL_TOKEN과 VERCEL_PROJECT_ID를 연결하면 Builder 시작부터 결제 시작까지 익명 합계를 자동으로 불러옵니다." },
       siteVisitors: 0,
       sitePageviews: 0,
       proCatalogVisitors: 0,
@@ -198,7 +231,7 @@ async function loadVercelTotals(since: string, until: string) {
     const proCatalog = visitTotals(proCatalogTraffic);
     const resumePro = visitTotals(resumeProTraffic);
     return {
-      state: { connected: true, message: "Vercel의 익명 방문자·페이지뷰와 Resume Pro 퍼널 합계가 연결됐습니다." },
+      state: { connected: true, status: "collected" as const, message: "Vercel의 익명 방문자·페이지뷰와 Resume Pro 퍼널 합계가 연결됐습니다." },
       siteVisitors: site.visitors,
       sitePageviews: site.pageviews,
       proCatalogVisitors: proCatalog.visitors,
@@ -215,7 +248,7 @@ async function loadVercelTotals(since: string, until: string) {
     };
   } catch {
     return {
-      state: { connected: false, message: "Vercel 연결을 확인해 주세요. 토큰 권한과 프로젝트·팀 ID가 맞아야 합니다." },
+      state: { connected: false, status: "error" as const, message: "Vercel 연결 오류입니다. 토큰 권한과 프로젝트·팀 ID를 확인한 뒤 다시 불러오세요." },
       siteVisitors: 0,
       sitePageviews: 0,
       proCatalogVisitors: 0,
@@ -229,6 +262,80 @@ async function loadVercelTotals(since: string, until: string) {
       jobAdSampleViews: 0,
       jobAdChecks: 0,
       proCtaClicks: 0,
+    };
+  }
+}
+
+function emptyTrafficWindow(since: string, until: string): ResumeProTrafficWindow {
+  return {
+    since,
+    until,
+    siteVisitors: 0,
+    sitePageviews: 0,
+    proCatalogVisitors: 0,
+    resumeProVisitors: 0,
+  };
+}
+
+async function loadVercelTrafficComparison(now: Date): Promise<ResumeProTrafficComparison> {
+  const windows = getUtcRolling24HourWindows(now);
+  const [token, projectId, teamId] = await Promise.all([
+    getLocalOperatorConnectionValue("VERCEL_TOKEN"),
+    getLocalOperatorConnectionValue("VERCEL_PROJECT_ID"),
+    getLocalOperatorConnectionValue("VERCEL_TEAM_ID"),
+  ]);
+  const emptyCurrent = emptyTrafficWindow(new Date(Number(windows.current.since)).toISOString(), new Date(Number(windows.current.until)).toISOString());
+  const emptyPrevious = emptyTrafficWindow(new Date(Number(windows.previous.since)).toISOString(), new Date(Number(windows.previous.until)).toISOString());
+
+  if (!token || !projectId) {
+    return {
+      status: "not_configured",
+      message: "미수집: 이 컴퓨터에 Vercel 읽기 연결이 없어 24시간 비교를 불러오지 않았습니다.",
+      current: emptyCurrent,
+      previous: emptyPrevious,
+    };
+  }
+
+  try {
+    const [currentSite, currentPro, currentResumePro, previousSite, previousPro, previousResumePro] = await Promise.all([
+      fetchVercelVisits({ token, projectId, teamId, ...windows.current }),
+      fetchVercelVisits({ token, projectId, teamId, ...windows.current, requestPath: "/pro" }),
+      fetchVercelVisits({ token, projectId, teamId, ...windows.current, requestPath: "/resume-pro" }),
+      fetchVercelVisits({ token, projectId, teamId, ...windows.previous }),
+      fetchVercelVisits({ token, projectId, teamId, ...windows.previous, requestPath: "/pro" }),
+      fetchVercelVisits({ token, projectId, teamId, ...windows.previous, requestPath: "/resume-pro" }),
+    ]);
+    const currentSiteTotals = visitTotals(currentSite);
+    const currentProTotals = visitTotals(currentPro);
+    const currentResumeProTotals = visitTotals(currentResumePro);
+    const previousSiteTotals = visitTotals(previousSite);
+    const previousProTotals = visitTotals(previousPro);
+    const previousResumeProTotals = visitTotals(previousResumePro);
+
+    return {
+      status: "collected",
+      message: "수집됨: Production 익명 합계의 최근 24시간과 그 직전 24시간을 같은 길이로 비교합니다.",
+      current: {
+        ...emptyCurrent,
+        siteVisitors: currentSiteTotals.visitors,
+        sitePageviews: currentSiteTotals.pageviews,
+        proCatalogVisitors: currentProTotals.visitors,
+        resumeProVisitors: currentResumeProTotals.visitors,
+      },
+      previous: {
+        ...emptyPrevious,
+        siteVisitors: previousSiteTotals.visitors,
+        sitePageviews: previousSiteTotals.pageviews,
+        proCatalogVisitors: previousProTotals.visitors,
+        resumeProVisitors: previousResumeProTotals.visitors,
+      },
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "오류: Vercel 24시간 합계를 불러오지 못했습니다. 0으로 판단하지 말고 연결을 확인한 뒤 다시 시도하세요.",
+      current: emptyCurrent,
+      previous: emptyPrevious,
     };
   }
 }
@@ -302,9 +409,10 @@ export async function getResumeProPerformance(days: 1 | 7 | 30 | 90): Promise<Re
   const since = dateText(sinceDate);
   const until = dateText(untilDate);
 
-  const [vercel, stripe] = await Promise.all([
+  const [vercel, stripe, trafficComparison] = await Promise.all([
     loadVercelTotals(since, until),
     loadStripeTotals(sinceDate),
+    days === 1 ? loadVercelTrafficComparison(untilDate) : Promise.resolve(null),
   ]);
 
   return {
@@ -312,6 +420,7 @@ export async function getResumeProPerformance(days: 1 | 7 | 30 | 90): Promise<Re
     until,
     vercel: vercel.state,
     stripe: stripe.state,
+    trafficComparison,
     siteVisitors: vercel.siteVisitors,
     sitePageviews: vercel.sitePageviews,
     proCatalogVisitors: vercel.proCatalogVisitors,
