@@ -35,6 +35,7 @@ const coreItems:SearchItem[]=[
   {href:"/salary-calculator",type:"도구",title:"통합 급여 계산기",description:"세전·세후 급여, 세금, Super와 전체 패키지",keywords:["시급","연봉","주급","실수령액","pay","tax","워홀세금","resident"]},
   {href:"/cost-of-living-calculator",type:"도구",title:"생활비 계산기",description:"주거비와 지출을 주·월·연 단위로 비교",keywords:["예산","렌트","주세","식비","공과금","budget"]},
   {href:"/public-transport-guide",type:"도구",title:"대중교통·통학 생활권 비교",description:"주거비, 통학시간, Google Maps와 학생 교통정보",keywords:["기차","버스","트램","통근","대학교","교환학생","교통카드","myki","opal"]},
+  {href:"/rail-work-alerts",type:"도구",title:"철도 작업 확인 지역 저장",description:"동네·역을 브라우저에 저장하고 지도 위치, 공식 작업 공지와 날짜·대체교통 체크리스트 반복 확인",keywords:["철도 작업","선로 작업","trackwork","공사","교통 장애","대체 버스","우회 경로","공식 공지","통근역"]},
   {href:"/property-inspection-checklist",type:"도구",title:"렌트 신청 전 무료 집 방문 체크리스트",description:"집 상태, 비용, 계약, 안전과 생활환경 점검",keywords:["flatmates","페이스북","렌트","렌트 신청","rental application","방","보증금","bond","인스펙션"]},
   {href:"/rental-application-pro",type:"도구",title:"Rental Pack Pro — 집별 렌트 신청 준비",description:"최대 6개 집의 증빙 상태와 후속 날짜를 비교하고 영문 소개문·TXT 준비 묶음 저장",keywords:["렌트 신청","rental application","rental application pack","rental pack","임차 지원","집별 증빙","영문 소개문","유료","pro"]},
   {href:"/moving-checklist",type:"도구",title:"이사 체크리스트",description:"퇴거 통지, 공과금, 주소 변경과 보증금",keywords:["이삿날","condition report","전기","가스","인터넷","주소"]},

@@ -34,6 +34,7 @@ const routes = [
   "/service-quote-comparator",
   "/property-inspection-checklist",
   "/public-transport-guide",
+  "/rail-work-alerts",
   "/overseas-driver-licence-guide",
   "/used-car-comparison",
   "/moving-checklist",

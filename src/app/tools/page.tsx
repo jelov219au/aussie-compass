@@ -50,6 +50,15 @@ const availableTools: DirectoryTool[] = [
     categories: ["arrival", "home", "money"],
   },
   {
+    href: "/rail-work-alerts",
+    eyebrow: "출발 전 다시 확인",
+    title: "철도 작업 확인 지역 저장",
+    description: "자주 쓰는 동네·역을 이 브라우저에 저장하고 지도 위치, 공식 작업 공지와 출발 전 체크리스트를 반복해서 확인해요.",
+    features: ["최대 5곳 로컬 저장", "NSW·VIC·QLD 공식 링크", "날짜·대체교통 체크"],
+    cta: "확인 지역 저장하기",
+    categories: ["arrival", "home"],
+  },
+  {
     href: "/overseas-driver-licence-guide",
     eyebrow: "한국 면허로 운전하기",
     title: "주별 해외면허·면허 전환 가이드",
