@@ -41,6 +41,30 @@ type MailConfig = {
 
 const paymentAlertTestAck = "SEND_ONE_MONITORED_SUPPORT_TEST";
 
+export function getPaymentAlertConfigurationStatus() {
+  const password = process.env.ZOHO_SMTP_APP_PASSWORD?.trim();
+  const user = process.env.ZOHO_SMTP_USER?.trim();
+  const host = process.env.ZOHO_SMTP_HOST?.trim().toLowerCase() || productionSmtpHost;
+  const port = Number(process.env.ZOHO_SMTP_PORT?.trim() || 465);
+  const from = process.env.PAYMENT_ALERT_FROM_EMAIL?.trim() || defaultAlertEmail;
+  const to = process.env.PAYMENT_ALERT_TO_EMAIL?.trim() || defaultAlertEmail;
+  const publicSupportEmail = normalizeEmail(process.env.NEXT_PUBLIC_SUPPORT_EMAIL) || defaultAlertEmail;
+
+  return {
+    alertsEnabled: process.env.PAYMENT_ALERTS_ENABLED?.trim().toLowerCase() === "true",
+    smtpPasswordPresent: Boolean(password),
+    smtpUserEmailValid: Boolean(user && emailPattern.test(user)),
+    smtpUserPinned: normalizeEmail(user) === productionSmtpUser,
+    smtpHostPinned: host === productionSmtpHost,
+    smtpPortPinned: port === 465,
+    fromEmailValid: emailPattern.test(from),
+    toEmailValid: emailPattern.test(to),
+    publicSupportEmailValid: emailPattern.test(publicSupportEmail),
+    fromMatchesSupport: normalizeEmail(from) === publicSupportEmail,
+    toMatchesSupport: normalizeEmail(to) === publicSupportEmail,
+  };
+}
+
 function expandableId(value: string | { id: string } | null | undefined) {
   if (!value) return undefined;
   return typeof value === "string" ? value : value.id;

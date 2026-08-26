@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 import { supportedProductCodes } from "../src/lib/entitlements.ts";
-import { buildStripeOperatorAlert, paymentAlertsConfigured } from "../src/lib/paymentAlerts.ts";
+import {
+  buildStripeOperatorAlert,
+  getPaymentAlertConfigurationStatus,
+  paymentAlertsConfigured,
+} from "../src/lib/paymentAlerts.ts";
 import {
   deliverDurablePaymentOperatorAlert,
   getPaymentOperatorAlertKind,
@@ -42,6 +46,9 @@ try {
     ZOHO_SMTP_APP_PASSWORD: "test-app-password",
   });
   assert.equal(paymentAlertsConfigured(), true, "the monitored support mailbox configuration must be accepted");
+  const validConfigurationStatus = getPaymentAlertConfigurationStatus();
+  assert.ok(Object.values(validConfigurationStatus).every((value) => value === true), "every redacted payment-alert configuration check must pass");
+  assert.doesNotMatch(JSON.stringify(validConfigurationStatus), /owner@|support@|test-app-password|smtppro/i, "redacted payment-alert status must never contain endpoint or credential values");
 
   for (const [name, value] of [
     ["PAYMENT_ALERTS_ENABLED", "false"],
@@ -58,6 +65,9 @@ try {
     const previous = process.env[name];
     process.env[name] = value;
     assert.equal(paymentAlertsConfigured(), false, `invalid ${name} must keep Checkout closed`);
+    const invalidConfigurationStatus = getPaymentAlertConfigurationStatus();
+    assert.ok(Object.values(invalidConfigurationStatus).some((status) => status === false), `invalid ${name} must fail at least one redacted configuration check`);
+    assert.doesNotMatch(JSON.stringify(invalidConfigurationStatus), /owner@|support@|test-app-password|smtppro/i, "redacted payment-alert status must never contain endpoint or credential values");
     process.env[name] = previous;
   }
 } finally {

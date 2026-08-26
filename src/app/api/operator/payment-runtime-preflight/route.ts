@@ -3,7 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { getPaymentReadiness } from "@/lib/commerce";
 import { isPaymentRuntimeSchemaReady } from "@/lib/neonFirstSaleGate";
-import { runPaymentAlertTransportCheck } from "@/lib/paymentAlerts";
+import { getPaymentAlertConfigurationStatus, runPaymentAlertTransportCheck } from "@/lib/paymentAlerts";
 import { verifyProductionRuntimeDatabase } from "@/lib/productionRuntimeDatabasePreflight";
 import { runProductionRuntimePaymentPreflight } from "@/lib/productionRuntimePaymentPreflight";
 import { assertResumeProStripeProduct, getResumeProStripeProductConfig } from "@/lib/resumeProStripeProduct";
@@ -191,6 +191,7 @@ export async function POST(request: NextRequest) {
         managedPayments: process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true",
         sourceShaExact: process.env.VERCEL_GIT_COMMIT_SHA === pins.expectedSha,
         runtimeKeyRolesDistinct,
+        paymentAlertConfiguration: getPaymentAlertConfigurationStatus(),
         readiness: {
           paymentsDisabled: readiness.enabled === false,
           launchDisabled: readiness.ready === false,
