@@ -38,7 +38,8 @@ for (const boundary of [
   "masked prompt",
   "정확한 최종 `FIRST_SALE_PREFLIGHT=PASS` 상태만 인정한다",
   "PAYMENTS_OFF=PASS|HOLD|STOP",
-  "CUSTOMER_DOCUMENTS=GO|NO-GO|STOP",
+  "POST_SALE_TAX_AGENT_HANDOFF=PASS|HOLD|STOP",
+  "POST_SALE_CUSTOMER_DOCUMENTS=GO|NO-GO|STOP",
   "FIRST_SALE_OWNER_DECISION=NO-GO",
   "DEPLOYMENT_IDENTITY=PASS",
   "CHECKOUT_OFF_BOUNDARY=PASS",
@@ -50,6 +51,7 @@ for (const boundary of [
   "PRODUCTION_REHEARSAL=HOLD",
   "POST_SALE_EVIDENCE=NOT_STARTED",
   "SECOND_SALE=HOLD",
+  "둘은 첫 결제 전 차단이 아니지만 미완료면 두 번째 판매는 `HOLD`",
 ]) assert.ok(compact.includes(boundary), `mobile owner checklist is missing boundary: ${boundary}`);
 
 const orderedOwnerSteps = [

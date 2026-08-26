@@ -42,9 +42,9 @@ function missingRows() {
 
 export function createCustomerDocumentEvidenceTemplate() {
   return {
-    schema_version: 1,
+    schema_version: 2,
     environment: "live",
-    observation_scope: "owner_controlled_2026_08_20",
+    observation_scope: "first_customer_resume_pro_sale",
     observed_at: null,
     issued_document_set_verified: "MISSING",
     rows: missingRows(),
@@ -67,9 +67,9 @@ function structuralErrors(packet) {
   const errors = [];
   if (!hasExactKeys(packet, rootKeys)) errors.push("packet_shape");
   if (!isPlainObject(packet)) return errors;
-  if (packet.schema_version !== 1) errors.push("schema_version");
+  if (packet.schema_version !== 2) errors.push("schema_version");
   if (packet.environment !== "live") errors.push("environment");
-  if (packet.observation_scope !== "owner_controlled_2026_08_20") errors.push("observation_scope");
+  if (packet.observation_scope !== "first_customer_resume_pro_sale") errors.push("observation_scope");
   if (packet.observed_at !== null && !isCanonicalUtc(packet.observed_at)) errors.push("observed_at");
   if (!verificationStatuses.has(packet.issued_document_set_verified)) {
     errors.push("issued_document_set_verified");

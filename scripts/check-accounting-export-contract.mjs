@@ -207,17 +207,18 @@ for (const boundary of [
   "overall_tax_handoff",
   "PASS",
   "UNRESOLVED",
-  "Production payments off",
+  "second sale at `HOLD`",
 ]) assert.ok(taxAgentHandoff.includes(boundary), `Registered tax-agent handoff is missing: ${boundary}`);
 for (const forbidden of [
   /\b\d{11}\b/,
   /\b(?:acct|ch|pi|cs|txn|re)_[A-Za-z0-9]{8,}\b/,
   /\b(?:rk|sk)_(?:live|test)_[A-Za-z0-9]+\b/,
 ]) assert.doesNotMatch(taxAgentHandoff, forbidden, `Blank tax-agent handoff contains forbidden live evidence: ${forbidden}`);
-assert.ok(accountingRunbook.includes("docs/registered-tax-agent-first-sale-handoff.md"), "The accounting runbook must route pre-sale tax advice through the handoff.");
-assert.ok(firstPaymentOperationsPacket.includes("docs/registered-tax-agent-first-sale-handoff.md"), "The 24-hour packet must not bypass the pre-sale tax-agent gate.");
+assert.ok(accountingRunbook.includes("docs/registered-tax-agent-first-sale-handoff.md"), "The accounting runbook must route post-first-sale professional advice through the handoff.");
+assert.ok(firstPaymentOperationsPacket.includes("docs/registered-tax-agent-first-sale-handoff.md"), "The 24-hour packet must preserve the post-first-sale tax-agent gate.");
 assert.ok(accountingRunbook.includes("overall_tax_handoff=PASS") && accountingRunbook.includes("UNRESOLVED"), "The accounting runbook must fail closed until tax-agent advice is complete.");
 assert.ok(firstPaymentOperationsPacket.includes("overall_tax_handoff=PASS") && firstPaymentOperationsPacket.includes("UNRESOLVED"), "The first-payment packet must fail closed when later evidence contradicts tax advice.");
+assert.ok(accountingRunbook.includes("not a Stripe setup prerequisite") && accountingRunbook.includes("second sale at `HOLD`"), "The accounting runbook must not over-block the single first sale on optional professional advice.");
 
 assert.ok(!accountingLedgerHeader.includes("product_code"), "The immutable Balance Transaction ledger must not pretend to contain Stripe product attribution.");
 for (const boundary of [

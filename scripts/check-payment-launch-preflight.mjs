@@ -256,6 +256,21 @@ assert.ok(envExample.includes("STRIPE_MANAGED_PAYMENTS_ENABLED=false") && !envEx
 assert.ok(!readiness.includes("Production payments were opened after"), "payment readiness must not present the historical controlled test as current availability");
 assert.ok(readiness.includes("historical test does not prove current launch readiness") && readiness.includes("authoritative 24 August Production audit is `NO-GO`"), "payment readiness must identify the current source of truth and safe defaults");
 assert.ok(checklist.includes("then disabled again") && checklist.includes("Production remains OFF for the first customer"), "the live checklist must distinguish the historical controlled test from current launch approval");
+for (const managedPaymentsPrerequisite of [
+  "terms of service are accepted",
+  "eligible digital product",
+  "2025-03-31.basil",
+]) {
+  assert.ok(checklist.includes(managedPaymentsPrerequisite), `the live checklist is missing a Stripe-documented Managed Payments prerequisite: ${managedPaymentsPrerequisite}`);
+}
+for (const officialManagedPaymentsUrl of [
+  "https://docs.stripe.com/payments/managed-payments/how-it-works",
+  "https://docs.stripe.com/payments/managed-payments/set-up",
+  "https://docs.stripe.com/payments/managed-payments/tax-compliance",
+]) {
+  assert.ok(readiness.includes(officialManagedPaymentsUrl), `payment readiness is missing official Stripe basis: ${officialManagedPaymentsUrl}`);
+}
+assert.ok(checklist.includes("not first-sale prerequisites") && checklist.includes("second Resume Pro sale remains `NO-GO`"), "post-payment tax/document observations must not over-block the single first sale");
 for (const auditOnlyVariable of ["PAYMENTS_AUDIT_DB_URL", "PAYMENTS_STRIPE_AUDIT_KEY", "PAYMENTS_EXPECTED_NEON_ENDPOINT_ID"]) {
   assert.ok(releaseManifest.includes(`- \`${auditOnlyVariable}\``), `the protected Preview exclusion list must include audit-only variable: ${auditOnlyVariable}`);
 }

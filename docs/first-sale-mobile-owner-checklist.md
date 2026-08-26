@@ -108,9 +108,7 @@ secrets_copied=no pii_opened=no changes_made=no payment_attempted=no refund_atte
 - [ ] 승인된 private accounting 위치에서만 아래 독립 결과를 확인한다.
   값, 원본 문서, 고객정보, 금액, 은행정보와 전체 식별자는 이 체크리스트에
   옮기지 않는다.
-  - `REGISTERED_TAX_AGENT_HANDOFF_GATE=PASS`
   - `CONTROLLED_PAYMENT_RECONCILIATION=PASS`
-  - `CUSTOMER_DOCUMENT_TRUST_GATE=GO`
   - `PAYMENT_REFUND_SUPPORT_ALERT_GATE=PASS`
 - [ ] 위 결과 중 하나라도 없거나 HOLD/STOP/NO-GO이면 첫 결제는 `NO-GO`다.
   새 결제, 환불, 이메일·메시지 전송 또는 외부 문의로 증거를 즉석에서
@@ -130,8 +128,8 @@ secrets_copied=no pii_opened=no changes_made=no payment_attempted=no refund_atte
 | 3 | `HOLD` | owner laptop | payments off 상태에서 통합 Production preflight를 실행한다. 정확한 최종 `FIRST_SALE_PREFLIGHT=PASS` 한 줄만 PASS이며 중단·누락·FAIL은 `HOLD`다. |
 | 4 | `HOLD` | mailbox owner / owner laptop | no-send SMTP 인증 PASS 뒤 별도 승인된 labelled non-customer test의 실제 mailbox 수신까지 확인한다. 설정 존재나 send 결과만으로 수신 PASS를 만들지 않는다. |
 | 5 | `HOLD` | technical owner / owner laptop | payments off 상태에서 승인된 Production rehearsal을 수행하고 정확한 `PRODUCTION_PAYMENT_PATH_EVIDENCE=PASS`를 확인한다. Preview rehearsal이나 Production zero-row는 대체 증거가 아니다. |
-| 6 | `NO-GO` | business owner | 위 1~5와 기존 tax/customer-document/support gate를 모두 검토한 뒤 한 건의 첫 판매만 명시적으로 승인한다. 증거가 하나라도 `HOLD/STOP/MISSING/FAIL`이면 승인하지 않는다. |
-| 7 | `NOT_STARTED` | payment → technical → accounting owner | 첫 실제 고객 결제 후 15분에는 paid/webhook/`LOCKED`/entitlement/outbox/mailbox/access를, 24시간에는 gross·표시 GST·fee·refund·ending balance·문서를, 첫 payout에는 itemised payout·은행 입금·clearing 차이 ±A$0.01을 순서대로 대사한다. 환불은 원거래 보존·실제 조정·접근 revoke/review를 연결하고 자동 reopen하지 않으며, 접근 문제는 재결제 없이 entitlement/access/restore 경로로 인계한다. |
+| 6 | `NO-GO` | business owner | 위 1~5와 pre-payment support gate를 검토한 뒤 한 건의 첫 판매만 명시적으로 승인한다. 증거가 하나라도 `HOLD/STOP/MISSING/FAIL`이면 승인하지 않는다. |
+| 7 | `NOT_STARTED` | payment → technical → accounting owner | 첫 실제 고객 결제 후 15분에는 paid/webhook/`LOCKED`/entitlement/outbox/mailbox/access를, 24시간에는 gross·표시 GST·fee·refund·ending balance·문서를 순서대로 대사하고 schema v2 `CUSTOMER_DOCUMENT_TRUST_GATE=GO`와 `REGISTERED_TAX_AGENT_HANDOFF_GATE=PASS`를 완료한다. 둘은 첫 결제 전 차단이 아니지만 미완료면 두 번째 판매는 `HOLD`다. 첫 payout에는 itemised payout·은행 입금·clearing 차이 ±A$0.01을 대사한다. 환불은 원거래 보존·실제 조정·접근 revoke/review를 연결하고 자동 reopen하지 않으며, 접근 문제는 재결제 없이 entitlement/access/restore 경로로 인계한다. |
 
 현재 상태의 고정 요약은 다음과 같다. `DONE`을 아래 `HOLD`로 전파하지
 않고, 첫 고객 결제 전에는 `POST_SALE_EVIDENCE=NOT_STARTED`를 유지한다.
@@ -159,9 +157,9 @@ SECOND_SALE=HOLD
 MOBILE_OWNER_READINESS=READY_FOR_LAPTOP|HOLD|STOP
 LAPTOP_PREFLIGHT=PASS|HOLD|STOP
 PAYMENTS_OFF=PASS|HOLD|STOP
-TAX_AGENT_HANDOFF=PASS|HOLD|STOP
+POST_SALE_TAX_AGENT_HANDOFF=PASS|HOLD|STOP
 CONTROLLED_RECONCILIATION=PASS|HOLD|STOP
-CUSTOMER_DOCUMENTS=GO|NO-GO|STOP
+POST_SALE_CUSTOMER_DOCUMENTS=GO|NO-GO|STOP
 SUPPORT_ALERTS=PASS|HOLD|STOP
 FIRST_SALE_OWNER_DECISION=NO-GO
 ```

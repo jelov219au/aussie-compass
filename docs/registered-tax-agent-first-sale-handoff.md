@@ -12,10 +12,14 @@ private location. The repository copy must remain blank.
 
 ## Purpose and decision boundary
 
-The registered tax agent must resolve the entity, GST and bookkeeping treatment
-before the first customer payment. The owner must not infer an answer from the
-website, Checkout wording, a Balance Transaction, a payout or this template.
-The handoff result is exactly one of:
+This professional-advice handoff is recommended for Australian income-tax,
+record-keeping and bookkeeping questions, but retaining a registered tax agent
+is not a Stripe Managed Payments prerequisite or an absolute blocker for the
+single first customer payment. Complete it after the first customer artifacts
+exist and before a second sale, BAS/income-tax filing or a final bookkeeping
+classification. The owner must not infer an answer from the website, Checkout
+wording, a Balance Transaction, a payout or this template. The handoff result is
+exactly one of:
 
 - `PASS`: every mandatory fact and question below has a dated conclusion from a
   registered tax agent, the source evidence used is identified privately, no
@@ -28,7 +32,8 @@ The handoff result is exactly one of:
 
 `PASS` means only that the tax-agent handoff is complete. It does not authorise
 payments, a BAS lodgment, a refund, customer contact or a production change.
-`UNRESOLVED` keeps Production payments off and the first customer at `NO-GO`.
+`UNRESOLVED` keeps the second sale at `HOLD`; it does not retrospectively turn
+the single first sale into an unauthorised transaction.
 
 ## Private consultation record
 
@@ -36,7 +41,7 @@ Complete these fields only in the private working copy:
 
 | Field | Required private entry |
 | --- | --- |
-| `handoff_version` | Repository commit or immutable document version used |
+| `handoff_version` | Repository commit or immutable document version used; schema v2 uses `registered_tax_agent_post_first_sale` |
 | `consultation_date` | Date and timezone |
 | `registered_tax_agent` | Name, practice and privately verified registration reference |
 | `advice_record_ref` | Private reference to dated written advice or retained consultation record |
@@ -59,7 +64,7 @@ agent's dated note.
 | `F2` | Exact ABN status, entity type and effective dates relevant to the activity | Current ABN Lookup/ATO evidence; full ABN stays private |
 | `F3` | Exact GST registration status, effective date, reporting frequency and accounting basis | Current ATO/accounting records, not a website footer or Checkout |
 | `F4` | Resume Pro supply description, intended customer jurisdictions and the rule for collecting any customer-location evidence the agent requires | Product terms plus intended supply scope; no actual customer is assumed before sale |
-| `F5` | Contractual Managed Payments role, customer-visible transaction seller and tax-document issuer | Applicable Stripe agreement/product documentation, the private `CUSTOMER_DOCUMENT_TRUST_GATE=GO` observation reference and privately retained live artifacts; a partial or `NO-GO` document observation is `UNRESOLVED` |
+| `F5` | Contractual Managed Payments role, customer-visible transaction seller and tax-document issuer | Stripe Managed Payments documentation plus the first customer's private `CUSTOMER_DOCUMENT_TRUST_GATE=GO` observation reference and retained live artifacts; a partial or `NO-GO` document observation is `UNRESOLVED` and blocks the second sale |
 | `F6` | Actual money flow and available source fields for sale, customer tax, withheld amounts, Stripe fees, refunds, disputes, balance and payout | Private source-document index, Balance/transaction report and itemised payout evidence |
 
 For `F5` and `F6`, preserve the original privately. A redacted consultation copy
@@ -126,7 +131,7 @@ open follow-ups. Otherwise record `overall_tax_handoff=UNRESOLVED`.
 
 ## Status-only registered-tax-agent handoff gate
 
-After the registered tax agent has completed the private handoff, create a
+After the first sale and after the registered tax agent has completed the private handoff, create a
 separate private status JSON from the repository template. Enter only the fixed
 states; do not copy the adviser's name, practice, registration reference, ABN,
 contact details, amounts, bank information, Stripe or document identifiers,
@@ -156,7 +161,9 @@ produces `STOP`.
 
 Only the exact result beginning
 `REGISTERED_TAX_AGENT_HANDOFF_GATE=PASS mode=production` satisfies this tax-agent
-handoff gate. It does not replace `CONTROLLED_PAYMENT_RECONCILIATION=PASS`, which
+handoff gate for a second sale and later accounting decisions. It is not a
+precondition for the single first sale. It does not replace
+`CONTROLLED_PAYMENT_RECONCILIATION=PASS`, which
 classifies the controlled transaction's gross, fee, refund and payout evidence.
 It does not replace `CUSTOMER_DOCUMENT_TRUST_GATE=GO`, which classifies the
 actual customer-visible documents. It does not replace
@@ -166,3 +173,5 @@ Keep the completed status file and every source record private and uncommitted.
 The result is not tax or legal advice and does not authorise a payment, refund,
 customer contact, filing, ledger entry, configuration change or sale-gate
 reopen.
+
+Stripe basis for this timing: [How Managed Payments works](https://docs.stripe.com/payments/managed-payments/how-it-works), [Managed Payments setup](https://docs.stripe.com/payments/managed-payments/set-up), and [tax compliance](https://docs.stripe.com/payments/managed-payments/tax-compliance). Stripe describes Link as customer-visible merchant of record, handles covered sales tax/VAT/GST and transaction documents, and lists TOS acceptance, eligibility/tax code, activation and API version as setup prerequisites. Those statements do not settle Hoju Compass income-tax or record-retention treatment.

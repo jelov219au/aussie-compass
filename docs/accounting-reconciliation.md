@@ -14,13 +14,14 @@ For every reporting period, preserve these as separate amounts rather than recor
 - payouts received in the business bank account
 - the remaining Stripe ending balance
 
-The bookkeeping classification of Managed Payments sales and GST must be confirmed with the registered tax agent. Do not infer the BAS treatment from the checkout screen alone.
+Professional advice is recommended for the bookkeeping classification of Managed Payments sales, Australian income tax and record keeping. A registered tax-agent handoff is not a Stripe setup prerequisite or an absolute blocker for the single first customer sale. Do not infer BAS or income-tax treatment from the checkout screen alone.
 
-Use `docs/registered-tax-agent-first-sale-handoff.md` for the pre-sale
-consultation. The repository file is a blank field contract only; complete it
-and retain all evidence in the approved private accounting location. Until its
-private `overall_tax_handoff=PASS` criteria are satisfied, record
-`UNRESOLVED`, keep Production payments off and do not invite the first customer.
+Use `docs/registered-tax-agent-first-sale-handoff.md` after the first sale when
+the actual customer document, Balance and payout facts are available. The
+repository file is a blank field contract only; complete it and retain all
+evidence in the approved private accounting location. Until its private
+`overall_tax_handoff=PASS` criteria are satisfied, record `UNRESOLVED`, keep the
+second sale at `HOLD`, and do not finalise tax or bookkeeping conclusions.
 
 ## Private workbook
 

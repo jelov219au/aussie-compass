@@ -67,6 +67,10 @@ for (const contract of [
   "an uninspected issued artifact or an unknown artifact set makes the result",
   "`NOT_ISSUED` is allowed only for all three rows",
   "CUSTOMER_DOCUMENT_TRUST_GATE=GO|NO-GO",
+  "It is not a pre-payment blocker",
+  "keeps the second sale at `HOLD`",
+  "https://docs.stripe.com/payments/managed-payments/how-it-works",
+  "https://docs.stripe.com/payments/managed-payments/set-up",
 ]) {
   assert.ok(compactEvidence.includes(contract), `customer-document evidence contract is missing: ${contract}`);
 }
@@ -94,6 +98,11 @@ assert.ok(
   liveChecklist.includes("docs/managed-payments-customer-document-evidence.md")
     && liveChecklist.includes("every receipt/invoice actually issued"),
   "the live checklist must require the nine-row runbook for every issued customer document",
+);
+assert.ok(
+  liveChecklist.includes("not first-sale prerequisites")
+    && liveChecklist.includes("CUSTOMER_DOCUMENT_TRUST_GATE=GO"),
+  "the live checklist must classify actual customer documents as a post-first-sale second-sale gate",
 );
 assert.ok(
   taxAgentHandoff.includes("private `CUSTOMER_DOCUMENT_TRUST_GATE=GO` observation reference")
@@ -159,7 +168,7 @@ function passingPacket({ receipt = "PRESENT", invoice = "NOT_ISSUED" } = {}) {
   return packet;
 }
 
-assert.equal(createCustomerDocumentEvidenceTemplate().schema_version, 1);
+assert.equal(createCustomerDocumentEvidenceTemplate().schema_version, 2);
 assert.deepEqual(Object.keys(createCustomerDocumentEvidenceTemplate().rows), customerDocumentRowKeys);
 assert.equal(evaluateCustomerDocumentEvidence(createCustomerDocumentEvidenceTemplate()).decision, "NO-GO");
 assert.equal(evaluateCustomerDocumentEvidence(passingPacket()).decision, "GO");
@@ -167,6 +176,12 @@ assert.equal(
   evaluateCustomerDocumentEvidence(passingPacket({ receipt: "NOT_ISSUED", invoice: "PRESENT" })).decision,
   "GO",
 );
+
+const legacyPreSaleScope = passingPacket();
+legacyPreSaleScope.schema_version = 1;
+legacyPreSaleScope.observation_scope = "owner_controlled_2026_08_20";
+assert.ok(evaluateCustomerDocumentEvidence(legacyPreSaleScope).errors.includes("schema_version"));
+assert.ok(evaluateCustomerDocumentEvidence(legacyPreSaleScope).errors.includes("observation_scope"));
 
 const unknownIssuedSet = passingPacket();
 unknownIssuedSet.issued_document_set_verified = "MISSING";

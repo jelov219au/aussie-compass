@@ -1,6 +1,6 @@
 # Managed Payments customer-document evidence
 
-This runbook closes one narrow launch question: do the real customer-facing
+This runbook closes one narrow post-payment question: do the real customer-facing
 Managed Payments Checkout and every customer payment document actually issued
 for it explicitly identify the transaction seller, document issuer and
 transaction support route?
@@ -11,8 +11,11 @@ refund, document or customer-data change.
 
 ## Scope and prerequisites
 
-- Use the signed-in Stripe live Dashboard session and the owner-controlled
-  purchase/full-refund transaction from 20 August 2026.
+- Run this after the single first customer payment. It is not a pre-payment
+  blocker because the actual receipt or invoice does not exist before payment;
+  an incomplete result keeps the second sale at `HOLD`.
+- Use the signed-in Stripe live Dashboard session and that first customer
+  Resume Pro transaction without copying customer data or full identifiers.
 - Open only the already existing Checkout result and every receipt or invoice
   actually issued for that controlled transaction. Do not require an invoice
   when Stripe did not issue one, but do not silently omit an issued artifact.
@@ -130,7 +133,7 @@ copy.
 | `invoice.document_issuer` | Invoice | Document issuer | UNVERIFIED | — | — | Not yet observed |
 | `invoice.transaction_support_route` | Invoice | Transaction support route | UNVERIFIED | — | — | Not yet observed |
 
-Audit context: `live / owner-controlled 20 August 2026 purchase and full refund`
+Audit context: `live / first customer Resume Pro sale`
 
 Observer record: use an internal role or approval reference only; do not use a
 person's name or email.
@@ -155,7 +158,7 @@ npm.cmd run managed-payments:documents -- --file <private-json-path>
 
 The classifier reads one local file and does not query Stripe, open a browser,
 write a file, create or resend a document, or inspect environment variables. It
-accepts only `environment=live`, the fixed owner-controlled observation scope,
+accepts only `environment=live`, the fixed first-customer observation scope,
 one canonical UTC observation time, `PASS/MISSING/FAIL` for verification of the
 issued-document set, and the exact nine row keys with fixed
 `PRESENT/ABSENT/UNVERIFIED/NOT_ISSUED` values. Any extra field, changed key,
@@ -172,7 +175,7 @@ every positively unissued group to be entirely `NOT_ISSUED`, at least one
 existing Receipt or Invoice to have been inspected, and a canonical observation
 time. `CUSTOMER_DOCUMENT_TRUST_GATE=NO-GO` or `STOP`, missing final output, a
 manually written `GO`, and a result from another environment or observation do
-not satisfy the launch gate. The classifier cannot replace the underlying
+not satisfy the second-sale gate. The classifier cannot replace the underlying
 artifact observation or authorise a payment, refund, customer contact, document
 action, accounting entry or tax conclusion.
 
@@ -190,7 +193,9 @@ Record only one final line in the private observation note:
 
 `CUSTOMER_DOCUMENT_TRUST_GATE=GO|NO-GO`
 
-`NO-GO` means no further sale may be approved from this evidence. It does not
+`NO-GO` means no second sale may be approved from this evidence. It does not
 authorise a Stripe setting change or state what the missing wording should be.
 Escalate the observation to the owner for a separate product, compliance and
 commercial decision.
+
+Stripe's official [Managed Payments flow](https://docs.stripe.com/payments/managed-payments/how-it-works) says customers see Link as merchant of record and that Stripe sends receipts, invoices and refund or credit-note notifications after payment. The [setup guide](https://docs.stripe.com/payments/managed-payments/set-up) lists the actual pre-payment requirements. This nine-row observation validates the real post-payment presentation; it does not duplicate those setup prerequisites.

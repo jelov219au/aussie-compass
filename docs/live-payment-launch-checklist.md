@@ -13,8 +13,7 @@ Keep this order fail-closed: keep `PAYMENTS_ENABLED=false` and `STRIPE_MANAGED_P
 ## 1. Business identity
 
 - [x] Register the business name `Hoju Compass` and save the ASIC Record of Registration.
-- [ ] Confirm that ABN Lookup shows the expected sole-trader entity, registered business name and current GST status.
-- [ ] Confirm the sole trader's legal/registered product-provider name and how Managed Payments sales, GST documents, fees and payouts should be recorded with a registered tax agent. Do not treat that name as the transaction seller unless the actual Checkout and receipt show it.
+- The owner remains responsible for accurate Australian business identity, income-tax and record keeping. Current ABN/GST status and professional bookkeeping advice are post-first-sale evidence inputs, not Stripe setup prerequisites or absolute blockers for the single first sale; they remain required before a second sale or final tax/bookkeeping treatment under section 5.
 - [x] Use a monitored support email that customers can reply to (`support@hojucompass.com`).
 
 ## 2. Vercel product-provider settings
@@ -43,6 +42,7 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 - [x] Add `support@hojucompass.com` as the Stripe live business-profile support email. Saved in the authenticated Stripe Dashboard and verified in the visible Public details on 24 August 2026; no other public business field was changed.
 - [x] Create a separate `rk_live_` operator-audit key with Account Read only. It exists as a distinct live restricted key and remains operator-only; inject it only at the strict preflight masked prompt and never assign it to a deployed app environment.
 - [ ] Rerun the fail-closed preflight after that change. It must report PASS for both `Stripe 계정 운영 상태` and `Stripe 구매자 지원 프로필`; the latter requires the Stripe support email to match `NEXT_PUBLIC_SUPPORT_EMAIL` without printing either value.
+- [ ] In the Managed Payments Dashboard, confirm the current terms of service are accepted, Managed Payments is activated, Resume Pro is an eligible digital product with the approved eligible tax code, and the integration uses API version `2025-03-31.basil` or later. These are Stripe's documented pre-payment prerequisites; retain status only and no account values.
 - [x] Create an active one-time AUD 19.90 Resume Pro Price.
 - [x] Create a least-privilege Production Runtime `rk_live_` key. Its 25 August read-only Dashboard review confirmed Prices Read, Products Read, Checkout Sessions Write and Payment Intents Read, with the remaining inspected resources left at None.
 - [x] Create the live `/api/stripe/webhook` endpoint and subscribe to the same 11 Checkout, refund and dispute events verified in test mode.
@@ -53,7 +53,7 @@ The app's `sellerDetailsConfigured` check confirms that the public product-provi
 ## 4. Final controlled test
 
 - [x] Confirm the purchase page shows the Hoju Compass product business name, legal/registered product-provider name, ABN, product support contact, price, digital-delivery method and ACL-compatible refund process.
-- [ ] Confirm the controlled live Checkout and issued receipt/invoice separately identify the customer-visible transaction seller, document issuer and transaction-support route; do not infer these from `BUSINESS_*`. The 20 August retrospective evidence leaves these fields unconfirmed.
+- The actual first-customer receipt/invoice inspection is performed after payment under section 5. Do not infer seller, issuer or transaction-support wording from `BUSINESS_*` before the artifact exists.
 - [x] Confirm Checkout links the versioned service terms, purchase information and privacy notice before payment.
 - [x] Confirm Production still fails closed before the deliberate launch switch is enabled.
 - [x] Temporarily enable Production payments only for the completed 20 August controlled test, then restore `PAYMENTS_ENABLED=false`. Production remains OFF for the first customer until every unchecked pre-payment item passes and the owner records a new single-sale approval.
@@ -90,13 +90,15 @@ The operational evidence pack is controlled outside this release branch. Do not 
 - Evidence owner: accounting operations records source evidence and reconciliation without customer details.
 - Technical owner: the development team resolves webhook, entitlement, access or alert failures.
 - Approval owner: the business owner alone records the second-sale decision; this reference does not authorise a payment, refund, customer contact or BAS lodgment.
+- [ ] After the first customer payment, inspect its actual Checkout and every issued receipt/invoice with schema v2 `docs/managed-payments-customer-document-evidence.md`. `NO-GO` keeps the second sale at `HOLD`; it does not invalidate the completed first payment.
+- [ ] After first-sale artifacts exist, complete the schema v2 registered tax-agent handoff if professional advice is used. Until it is `PASS`, keep Australian income-tax/bookkeeping conclusions unresolved and the second sale at `HOLD`; the handoff is not a Stripe activation prerequisite.
 
 Evidence timing and sales gate:
 
 1. Within 15 minutes, link privacy-safe FP-/WH-/ENT- incident numbers to the live paid Resume Pro charge, signed webhook result, active entitlement, signed access, customer document title/issuer/seller display and operator alert.
 2. Within 24 hours, retain the tax and Balance/Ending evidence, record `withheld_tax`, `fee_net_of_withheld_tax`, refund/credit note and closing balance exactly as reported, and keep unknown values as `MISSING` rather than zero.
 3. At the first payout, match the itemised payout and bank arrival and complete the Stripe clearing reconciliation.
-4. The first customer payment may proceed only after all pre-payment items in sections 1–4 pass. After that payment, a second Resume Pro sale remains `NO-GO` until required evidence has zero `MISSING`/`FAIL`, the cash difference is within ±A$0.01, access and operator alerts are confirmed, any refund is linked to credit-document and revocation evidence, the first payout is matched, and the business owner records `APPROVED`.
+4. The first customer payment may proceed only after all checkbox items explicitly identified as pre-payment in sections 1–4 pass. A registered tax-agent handoff and the actual nine-row receipt/invoice observation are not first-sale prerequisites. After that payment, a second Resume Pro sale remains `NO-GO` until `REGISTERED_TAX_AGENT_HANDOFF_GATE=PASS`, `CUSTOMER_DOCUMENT_TRUST_GATE=GO`, required evidence has zero `MISSING`/`FAIL`, the cash difference is within ±A$0.01, access and operator alerts are confirmed, any refund is linked to credit-document and revocation evidence, the first payout is matched, and the business owner records `APPROVED`.
 
 The implementation acceptance contract for this control is `OPEN → RESERVED → SOLD → LOCKED` in `docs/first-payment-24-hour-operations-packet.md`. A pre-Checkout atomic reservation must admit one request only; a verified paid event must lock later Checkouts; abandoned reservations require confirmed expiry and no payment; refunds never reopen sales; and only complete 15-minute, 24-hour and first-payout evidence plus an explicit owner approval may move `LOCKED → OPEN`. Operator alerts and a later manual `PAYMENTS_ENABLED=false` deployment are defence-in-depth, not the first-sale concurrency control.
 
@@ -107,7 +109,7 @@ Before enabling the gate, verify in the matching Stripe mode that Resume Pro has
 - `rk_live_` is the least-privilege launch requirement. For the first customer sale, a failing `npm run payments:check -- --preflight --strict --verify-stripe --verify-database` result is a deployment blocker; the earlier owner-controlled transaction does not waive this gate.
 - Runtime acceptance of `sk_live_` prevents an environment-mode mismatch and preserves an incident-recovery path. It is compatibility behaviour, not launch approval and not a reason to mark the restricted-key item complete.
 - Rotating keys, adding key IP restrictions and periodically reviewing Workbench request logs are ongoing security improvements after the least-privilege launch gate passes. They do not replace the pre-sale `rk_live_` requirement.
-- The 15-minute / 24-hour / first-payout evidence sequence is not a blocker before the first customer payment because its evidence does not yet exist. It is an operational blocker for the second sale if the sequence is incomplete.
+- The 15-minute / 24-hour / first-payout evidence sequence, registered tax-agent handoff and actual nine-row customer-document observation are not blockers before the first customer payment because their controlling first-customer evidence does not yet exist. They are operational blockers for the second sale if incomplete.
 - The runtime key must include Prices Read, Products Read, Checkout Sessions create/retrieve and PaymentIntents Read. A 403, timeout, missing `latest_charge`, or PaymentIntent contract mismatch is intentionally fail-closed: HTTP 503, no gate lock, no grant and an operator investigation path.
 - The one-off `PAYMENTS_STRIPE_AUDIT_KEY` must be a different same-mode `rk_` key with Account Read only. The strict audit rejects a missing, full-access, cross-mode or reused runtime key before Account/profile verification.
 

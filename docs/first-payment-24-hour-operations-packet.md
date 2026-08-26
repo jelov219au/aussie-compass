@@ -2,15 +2,18 @@
 
 이 문서는 첫 실제 고객 결제 후 24시간의 내부 처리 기준이다. **응답 문구는 초안일 뿐이며 고객 연락, 환불, Stripe 변경, 접근권한 수동 변경 또는 세무 분류를 승인하지 않는다.** 모든 외부 실행은 owner 승인을 받은 뒤 한다.
 
-이 패킷은 결제 전 등록 세무사 gate를 대신하지 않는다.
-`docs/registered-tax-agent-first-sale-handoff.md`의 완성본과 증거는 승인된
-private 회계 위치에만 보관하며, `overall_tax_handoff=PASS`가 아니면
-`UNRESOLVED`로 판정하고 첫 고객 결제를 시작하지 않는다. 결제 뒤 발견한
-새 사실이 기존 세무 결론과 충돌하면 다시 `UNRESOLVED`로 내리고 두 번째
-판매를 열지 않는다.
+등록 세무사 상담은 첫 고객 결제의 Stripe 활성화 전제나 절대 차단이 아니다.
+첫 결제 후 실제 문서·Balance·payout 사실을 갖고
+`docs/registered-tax-agent-first-sale-handoff.md`를 완료하며, 증거는 승인된
+private 회계 위치에만 보관한다. `overall_tax_handoff=PASS`가 아니면
+`UNRESOLVED`로 판정하고 두 번째 판매, 최종 장부 분류와 신고 결정을
+진행하지 않는다. Hoju Compass의 호주 소득세·기록보관 의무와 고객 제품
+지원 의무는 이 timing 변경으로 사라지지 않는다.
 
 ### 고객 문서 gate 재사용 경계
 
+실제 receipt/invoice는 결제 뒤 생기므로 9행 gate는 첫 결제 전 차단이 아니라
+24시간 `HOLD`와 두 번째 판매 gate다.
 지원·환불·회계 판단에서 Checkout, receipt 또는 invoice의 판매자·발행자·
 거래 지원 경로를 사용하기 전에
 `docs/managed-payments-customer-document-evidence.md`의 고정 9행 private

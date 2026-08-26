@@ -54,10 +54,10 @@ function missingChecks() {
 
 export function createRegisteredTaxAgentHandoffTemplate() {
   return {
-    schema_version: 1,
+    schema_version: 2,
     environment: "production",
     product_code: "resume_pro",
-    handoff_scope: "registered_tax_agent_first_sale",
+    handoff_scope: "registered_tax_agent_post_first_sale",
     observed_at: null,
     adviser_registration_verified: "UNRESOLVED",
     overall_tax_handoff: "UNRESOLVED",
@@ -84,10 +84,10 @@ function structuralErrors(packet) {
   const errors = [];
   if (!hasExactKeys(packet, rootKeys)) errors.push("packet_shape");
   if (!isPlainObject(packet)) return errors;
-  if (packet.schema_version !== 1) errors.push("schema_version");
+  if (packet.schema_version !== 2) errors.push("schema_version");
   if (packet.environment !== "production") errors.push("environment");
   if (packet.product_code !== "resume_pro") errors.push("product_code");
-  if (packet.handoff_scope !== "registered_tax_agent_first_sale") errors.push("handoff_scope");
+  if (packet.handoff_scope !== "registered_tax_agent_post_first_sale") errors.push("handoff_scope");
   if (packet.observed_at !== null && !isCanonicalUtc(packet.observed_at)) errors.push("observed_at");
   if (!allowedRegistrationStates.has(packet.adviser_registration_verified)) {
     errors.push("adviser_registration_verified");

@@ -27,10 +27,16 @@ function passingPacket() {
   return packet;
 }
 
-assert.equal(createRegisteredTaxAgentHandoffTemplate().schema_version, 1);
+assert.equal(createRegisteredTaxAgentHandoffTemplate().schema_version, 2);
 assert.deepEqual(Object.keys(createRegisteredTaxAgentHandoffTemplate().checks), registeredTaxAgentHandoffChecks);
 assert.equal(evaluateRegisteredTaxAgentHandoff(createRegisteredTaxAgentHandoffTemplate()).decision, "HOLD");
 assert.equal(evaluateRegisteredTaxAgentHandoff(passingPacket()).decision, "PASS");
+
+const legacyPreSaleScope = passingPacket();
+legacyPreSaleScope.schema_version = 1;
+legacyPreSaleScope.handoff_scope = "registered_tax_agent_first_sale";
+assert.ok(evaluateRegisteredTaxAgentHandoff(legacyPreSaleScope).errors.includes("schema_version"));
+assert.ok(evaluateRegisteredTaxAgentHandoff(legacyPreSaleScope).errors.includes("handoff_scope"));
 
 const claimedOverallOnly = createRegisteredTaxAgentHandoffTemplate();
 claimedOverallOnly.observed_at = "2026-08-25T03:00:00.000Z";
@@ -117,6 +123,12 @@ for (const boundary of [
   "does not replace `CONTROLLED_PAYMENT_RECONCILIATION=PASS`",
   "does not replace `CUSTOMER_DOCUMENT_TRUST_GATE=GO`",
   "does not replace `PAYMENT_REFUND_SUPPORT_ALERT_GATE=PASS`",
+  "not a Stripe Managed Payments prerequisite",
+  "before a second sale",
+  "registered_tax_agent_post_first_sale",
+  "https://docs.stripe.com/payments/managed-payments/how-it-works",
+  "https://docs.stripe.com/payments/managed-payments/set-up",
+  "https://docs.stripe.com/payments/managed-payments/tax-compliance",
 ]) assert.ok(compactHandoff.includes(boundary), `tax-agent handoff is missing: ${boundary}`);
 
 assert.ok(packageSource.includes('"accounting:tax-agent-handoff": "node scripts/verify-registered-tax-agent-handoff.mjs"'));
