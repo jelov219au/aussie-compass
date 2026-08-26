@@ -38,6 +38,17 @@ for (const contract of [
   "window.localStorage.setItem(FIRST_SUCCESS_KEY, \"saved\")",
   "onSaveFirstCandidate={saveFirstCandidate}",
   'id="rental-document-readiness"',
+  "첫 임차 지원 준비 패키지를 저장하고 다시 열어보세요.",
+  'aria-label="Rental Pack Pro 첫 지원 준비 패키지 완료 순서"',
+  'label: "집 후보 저장"',
+  'label: "영문 소개문 완성"',
+  'label: "저장본 다시 열기"',
+  'label: "준비 패키지 TXT 내보내기"',
+  "saveAndReopenActivePack",
+  "setReopenedPackFingerprint(JSON.stringify(reopenedPack))",
+  "setExportedPackFingerprint(currentPackFingerprint)",
+  'id="rental-cover-note-action"',
+  'id="rental-package-download-action"',
 ]) assert.ok(workspace.includes(contract), `the local rental portfolio contract is missing: ${contract}`);
 
 const reuseStart = workspace.indexOf("const nextPack = reuseCurrent");
@@ -75,6 +86,12 @@ const immediateWorkspaceSave = workspace.indexOf("window.localStorage.setItem(ST
 const successMarkerSave = workspace.indexOf('window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved")');
 const successState = workspace.indexOf("setFirstCandidateSaved(true)");
 assert.ok(immediateWorkspaceSave >= 0 && immediateWorkspaceSave < successMarkerSave && successMarkerSave < successState, "the first-save success state must appear only after both local writes succeed");
+const verifiedReopen = workspace.slice(workspace.indexOf("const saveAndReopenActivePack"), workspace.indexOf("const addPack"));
+assert.ok(verifiedReopen.indexOf("window.localStorage.setItem(STORAGE_KEY, serialized)") < verifiedReopen.indexOf("window.localStorage.getItem(STORAGE_KEY)"), "the first outcome must persist before reading the saved candidate back");
+assert.ok(verifiedReopen.includes("readStoredWorkspace") && verifiedReopen.includes("reopenedWorkspace?.packs.find"), "reopen completion must come from the normalized browser store, not only React state");
+assert.ok(verifiedReopen.includes("setWorkspace(reopenedWorkspace)") && verifiedReopen.includes("setReopenedPackFingerprint"), "a verified browser read must restore the candidate before marking reopen complete");
+assert.ok(workspace.indexOf('label: "저장본 다시 열기"') < workspace.indexOf('label: "준비 패키지 TXT 내보내기"'), "mobile first-outcome order must verify reopen before export");
+assert.ok(portfolio.includes('id="rental-first-candidate-label"'), "the first-outcome action must focus the bounded candidate alias input");
 
 for (const contactState of ["not-contacted", "drafting", "sent", "follow-up", "closed"]) {
   assert.ok(portfolio.includes(contactState), `the structured follow-up state is missing: ${contactState}`);

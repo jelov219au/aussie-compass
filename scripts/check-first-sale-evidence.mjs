@@ -186,7 +186,21 @@ for (const boundary of [
   "Rental accounting product-isolation PASS로 재사용할 수 없다",
   "schema_version=4",
   "기존 v1/v2/v3 파일에 PASS를 복사하거나 필드를 손으로 덧붙이지 않는다",
+  "24시간 마감 단일 실행표 (읽기 전용)",
+  "자동·기계 상태는 후보와 원본 위치를 제공할 뿐 수동 확인을 대신하지 않는다",
+  "Checkout → PaymentIntent → Charge",
+  "Refund 원본이 `succeeded`",
+  "실제 발급 Receipt·Invoice",
+  "Credit Note는 발행/미발행·열람 상태만 확인",
+  "24시간에 payout이 없으면 `pending`으로 이월",
+  "`source_verified_none`은 닫힌 Stripe source window와 은행 증거가 함께 no-movement를 입증한 경우만 사용",
+  "환불 요청은 성공한 refund가 아니며",
 ]) assert.ok(compactRunbookSource.includes(boundary), `the 24-hour runbook is missing financial-event handoff evidence: ${boundary}`);
+assert.doesNotMatch(
+  compactRunbookSource,
+  /refund `nil\/발생`|payout `nil\/pending\/paid`/,
+  "the 24-hour handoff must not collapse refund requests or unverified payouts into ambiguous states",
+);
 for (const boundary of [
   "First-payment support handoff link",
   "same live Checkout → PaymentIntent → Charge → Balance Transaction source chain",

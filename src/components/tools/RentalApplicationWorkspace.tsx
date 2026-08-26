@@ -196,6 +196,8 @@ export function RentalApplicationWorkspace() {
   const [message, setMessage] = useState("");
   const [firstCandidateSaved, setFirstCandidateSaved] = useState(false);
   const [firstCandidateMessage, setFirstCandidateMessage] = useState("");
+  const [reopenedPackFingerprint, setReopenedPackFingerprint] = useState("");
+  const [exportedPackFingerprint, setExportedPackFingerprint] = useState("");
 
   const draft = workspace.packs.find((pack) => pack.id === workspace.activeId) ?? workspace.packs[0] ?? createBlankPack();
 
@@ -256,6 +258,14 @@ export function RentalApplicationWorkspace() {
   const readyCount = useMemo(() => documents.filter((item) => draft.statuses[item.id] === "ready").length, [draft.statuses]);
   const reviewItems = useMemo(() => documents.filter((item) => draft.statuses[item.id] === "review"), [draft.statuses]);
   const progress = Math.round((readyCount / documents.length) * 100);
+  const currentPackFingerprint = JSON.stringify(draft);
+  const firstOutcomeSteps = [
+    { id: "candidate", label: "집 후보 저장", done: firstCandidateSaved && Boolean(draft.propertyLabel.trim()) },
+    { id: "note", label: "영문 소개문 완성", done: Boolean(draft.coverNote.trim()) },
+    { id: "reopen", label: "저장본 다시 열기", done: reopenedPackFingerprint === currentPackFingerprint },
+    { id: "export", label: "준비 패키지 TXT 내보내기", done: exportedPackFingerprint === currentPackFingerprint },
+  ];
+  const firstOutcomeCompleted = firstOutcomeSteps.filter((step) => step.done).length;
 
   const packSummaries = useMemo<RentalApplicationPackSummary[]>(() => workspace.packs.map((pack, index) => {
     const packReadyCount = documents.filter((item) => pack.statuses[item.id] === "ready").length;
@@ -296,6 +306,22 @@ export function RentalApplicationWorkspace() {
     setWorkspace(nextWorkspace);
     setFirstCandidateSaved(true);
     setFirstCandidateMessage(`“${label}”을 첫 집 후보로 저장했습니다.`);
+  };
+
+  const saveAndReopenActivePack = () => {
+    try {
+      const serialized = JSON.stringify(workspace);
+      window.localStorage.setItem(STORAGE_KEY, serialized);
+      const storedWorkspace = window.localStorage.getItem(STORAGE_KEY);
+      const reopenedWorkspace = storedWorkspace ? readStoredWorkspace(storedWorkspace) : null;
+      const reopenedPack = reopenedWorkspace?.packs.find((pack) => pack.id === workspace.activeId);
+      if (!reopenedWorkspace || !reopenedPack) throw new Error("saved pack unavailable");
+      setWorkspace(reopenedWorkspace);
+      setReopenedPackFingerprint(JSON.stringify(reopenedPack));
+      setMessage(`“${reopenedPack.propertyLabel || "현재 집 후보"}” 저장본을 이 브라우저에서 다시 열었습니다.`);
+    } catch {
+      setMessage("현재 집 후보를 저장하고 다시 열지 못했습니다. 브라우저 저장 설정을 확인한 뒤 다시 시도해 주세요.");
+    }
   };
 
   const addPack = (reuseCurrent: boolean) => {
@@ -387,8 +413,33 @@ export function RentalApplicationWorkspace() {
     anchor.download = `${safeFileName(draft.propertyLabel)}-application-pack.txt`;
     anchor.click();
     URL.revokeObjectURL(url);
+    setExportedPackFingerprint(currentPackFingerprint);
     setMessage("준비 현황과 소개문을 텍스트 파일로 저장했습니다.");
   };
+
+  const focusFirstOutcomeTarget = (id: string) => {
+    const target = document.getElementById(id);
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => target?.focus(), 350);
+  };
+
+  const continueFirstOutcome = () => {
+    if (!firstOutcomeSteps[0].done) return focusFirstOutcomeTarget("rental-first-candidate-label");
+    if (!firstOutcomeSteps[1].done) return focusFirstOutcomeTarget("rental-cover-note-action");
+    if (!firstOutcomeSteps[2].done) return saveAndReopenActivePack();
+    if (!firstOutcomeSteps[3].done) return downloadSummary();
+    focusFirstOutcomeTarget("rental-document-readiness");
+  };
+
+  const firstOutcomeAction = !firstOutcomeSteps[0].done
+    ? "첫 집 후보 별칭 입력하기"
+    : !firstOutcomeSteps[1].done
+      ? "영문 소개문 만들러 가기"
+      : !firstOutcomeSteps[2].done
+        ? "현재 후보 저장하고 다시 열기"
+        : !firstOutcomeSteps[3].done
+          ? "준비 패키지 TXT 저장"
+          : "8개 증빙 상태 계속 확인";
 
   return <div className="space-y-8">
     <RentalApplicationPortfolio
@@ -406,6 +457,14 @@ export function RentalApplicationWorkspace() {
       onFirstCandidateLabelChange={(label) => setField("propertyLabel", label)}
       onSaveFirstCandidate={saveFirstCandidate}
     />
+    <section className="border border-navy/15 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="rental-first-outcome-heading">
+      <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">구매 후 첫 10분</p><h2 id="rental-first-outcome-heading" className="mt-2 text-2xl font-semibold text-navy">첫 임차 지원 준비 패키지를 저장하고 다시 열어보세요.</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-muted">실제 서류 제출은 나중에 해도 괜찮아요. 집 별칭과 사실에 맞는 소개문을 먼저 저장한 뒤, 브라우저 저장본을 다시 열고 원본 서류 없는 TXT를 내려받으면 첫 결과가 남습니다.</p></div>
+        <p className="font-mono text-sm text-muted">{firstOutcomeCompleted} / {firstOutcomeSteps.length} 완료</p>
+      </div>
+      <ol className="mt-5 grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-4" aria-label="Rental Pack Pro 첫 지원 준비 패키지 완료 순서">{firstOutcomeSteps.map((step, index) => <li key={step.id} className="flex min-h-20 items-center gap-3 bg-surface px-4 py-3"><span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${step.done ? "bg-emerald-700 text-white" : "border border-navy/25 bg-white text-navy"}`}>{step.done ? "✓" : index + 1}</span><span className={`text-sm ${step.done ? "font-medium text-navy" : "text-muted"}`}>{step.label}</span></li>)}</ol>
+      <div className="mt-5 flex flex-wrap items-center gap-4"><button type="button" onClick={continueFirstOutcome} className="min-h-12 bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">{firstOutcomeAction}</button><p className="text-xs leading-5 text-muted">저장·재열기는 현재 브라우저에서 확인하고, TXT에는 원본 서류를 포함하지 않습니다.</p></div>
+    </section>
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(34rem,1.1fr)]">
       <div className="space-y-8">
       <section className="border-t border-navy/20 pt-6" aria-labelledby="rental-profile-heading">
@@ -421,7 +480,7 @@ export function RentalApplicationWorkspace() {
           <label className="text-sm font-medium text-navy sm:col-span-2">임대 이력 또는 대체 설명<input className={inputClass} value={draft.rentalSummary} onChange={(event) => setField("rentalSummary", event.target.value)} placeholder="Two years of rental history with references available" /></label>
           <label className="text-sm font-medium text-navy sm:col-span-2">집을 잘 관리할 근거 <span className="font-normal text-muted">(선택)</span><textarea className={`${inputClass} min-h-24 resize-y`} value={draft.strengths} onChange={(event) => setField("strengths", event.target.value)} placeholder="Quiet, non-smoking household with a consistent record of on-time rent" /></label>
         </div>
-        <button type="button" onClick={createCoverNote} className="mt-6 min-h-12 bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">영문 소개문 만들기</button>
+        <button id="rental-cover-note-action" type="button" onClick={createCoverNote} className="mt-6 min-h-12 bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">영문 소개문 만들기</button>
       </section>
 
       <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="rental-follow-up-heading">
@@ -442,7 +501,7 @@ export function RentalApplicationWorkspace() {
         <ol className="mt-6 divide-y divide-border border-y border-navy/20">{documents.map((item, index) => { const status = draft.statuses[item.id] ?? "todo"; return <li key={item.id} className="py-5"><div className="grid gap-3 sm:grid-cols-[2rem_1fr_8rem] sm:items-start"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{item.group}</p><h3 className="mt-1 font-semibold text-navy">{item.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{item.detail}</p>{item.caution && status === "review" ? <p className="mt-2 border-l-2 border-gold pl-3 text-xs leading-5 text-[#755b20]">{item.caution}</p> : null}</div><label className="text-xs font-medium text-muted">상태<select className="mt-1 min-h-10 w-full border border-border bg-white px-2 text-sm text-navy" value={status} onChange={(event) => setStatus(item.id, event.target.value as DocumentStatus)}><option value="todo">준비 전</option><option value="review">확인 필요</option><option value="ready">준비 완료</option></select></label></div></li>; })}</ol>
       </section>
 
-      <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="rental-note-heading"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Application note</p><h2 id="rental-note-heading" className="mt-2 text-xl font-semibold text-navy">영문 소개문 초안</h2></div><button type="button" onClick={copyCoverNote} disabled={!draft.coverNote} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-35">텍스트 복사</button></div><label className="sr-only" htmlFor="rental-cover-note">영문 소개문 초안</label><textarea id="rental-cover-note" className={`${inputClass} mt-5 min-h-80 resize-y font-serif leading-7`} value={draft.coverNote} onChange={(event) => setField("coverNote", event.target.value)} placeholder="왼쪽에서 조건을 입력한 뒤 영문 소개문을 만드세요." /><div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={downloadSummary} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">준비 패키지 저장</button><span className="self-center text-xs leading-5 text-muted">TXT 파일 · 원본 서류 미포함</span></div><p className="mt-4 min-h-6 text-sm leading-6 text-muted" aria-live="polite">{message}</p></section>
+      <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="rental-note-heading"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Application note</p><h2 id="rental-note-heading" className="mt-2 text-xl font-semibold text-navy">영문 소개문 초안</h2></div><button type="button" onClick={copyCoverNote} disabled={!draft.coverNote} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-35">텍스트 복사</button></div><label className="sr-only" htmlFor="rental-cover-note">영문 소개문 초안</label><textarea id="rental-cover-note" className={`${inputClass} mt-5 min-h-80 resize-y font-serif leading-7`} value={draft.coverNote} onChange={(event) => setField("coverNote", event.target.value)} placeholder="왼쪽에서 조건을 입력한 뒤 영문 소개문을 만드세요." /><div className="mt-5 flex flex-wrap gap-3"><button id="rental-package-download-action" type="button" onClick={downloadSummary} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">준비 패키지 저장</button><span className="self-center text-xs leading-5 text-muted">TXT 파일 · 원본 서류 미포함</span></div><p className="mt-4 min-h-6 text-sm leading-6 text-muted" aria-live="polite">{message}</p></section>
       </div>
     </div>
   </div>;

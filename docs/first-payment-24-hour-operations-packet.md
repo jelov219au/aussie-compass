@@ -432,10 +432,26 @@ SMTP 재시도나 동일 Message-ID의 중복 이메일은 회계 사건이 아�
 
 ## 5. 24시간 마감 인계
 
+### 24시간 마감 단일 실행표 (읽기 전용)
+
+아래 표를 위에서 아래로 한 번만 수행한다. 자동·기계 상태는 후보와 원본
+위치를 제공할 뿐 수동 확인을 대신하지 않는다. 전체 Stripe ID, 고객정보,
+문서 URL, 은행정보와 금액 원문은 승인된 private 원본에만 두고, 상태 JSON에는
+고정 결과 코드와 `PASS/MISSING/FAIL`만 기록한다.
+
+| 순서 | 원본과 자동·기계 상태 | 운영자 수동 확인 | 상태-only 기록 | FAIL-CLOSED 처리 |
+| --- | --- | --- | --- | --- |
+| 1. 원거래 고정 | 앱의 signed webhook·first-sale 사건·outbox·entitlement 상태와 회계 exporter의 Balance Transaction 후보 | Stripe live Checkout → PaymentIntent → Charge가 서로 직접 연결되고 exact Resume Product → Price → signed `product_code=resume_pro` chain인지 확인 | `live_checkout_paid`, `support_ledger_original_transaction_chain_preserved` | amount·시각·이메일·alert suffix로 조인했거나 한 link라도 미열람이면 `MISSING/FAIL`과 **HOLD** |
+| 2. 원매출·수수료 | exporter의 원매출 Balance Transaction `amount/fee/net/status/source`와 fee detail 후보 | Charge의 원매출 Balance Transaction과 같은 source인지, gross·fee·net·ending balance가 private 원문과 일치하는지 확인; 다른 movement는 `UNALLOCATED` | `gross_captured`, `stripe_fee_captured`, `ending_balance_captured` 및 fee/tax 분류 checks | exporter 행만으로 상품이나 세금 분류를 추정하거나 별도 movement를 섞으면 **HOLD** |
+| 3. 환불·지원·접근 | refund webhook·outbox와 entitlement revoke/review 상태 | 환불 **요청**은 `refund_request_pending`으로 두고, Refund 원본이 `succeeded`이며 같은 Charge·PaymentIntent와 별도 refund Balance Transaction에 연결된 경우에만 partial/full 완료를 선택 | 네 결과 코드와 `refund_dispute_outcome_matrix_consistent` | 요청·pending·failed를 완료로 기록, 원 gross 삭제, refund/dispute 중복 조정 또는 접근 상태 불일치는 **HOLD** |
+| 4. 고객 문서 | Checkout/Invoice의 발행 여부·상태와 Credit Note 존재 여부 후보 | 이미 존재하는 Checkout 결과와 실제 발급 Receipt·Invoice를 열어 9행 gate를 수행하고, Refund에 연결된 Credit Note는 발행/미발행·열람 상태만 확인; 생성·재전송·다운로드하지 않음 | `receipt_or_tax_document_retained`, `refund_credit_note_handled`, `document_issuer_verified`, `liability_party_verified` | 발행 집합 불명, 발행됐지만 미열람, seller/issuer/liability 불명 또는 다른 artifact에서 추정하면 **HOLD** |
+| 5. Payout·은행 | Stripe Payout 객체·itemised source membership 또는 닫힌 조회 창의 payout 부재 | itemised payout을 은행 입금과 맞춘 경우만 `matched`; 24시간에 payout이 없으면 `pending`으로 이월하고, `source_verified_none`은 닫힌 Stripe source window와 은행 증거가 함께 no-movement를 입증한 경우만 사용 | 24시간 `payout_status_recorded`; 이후 `itemised_payout_retained`, `bank_arrival_matched`, `stripe_clearing_reconciled` | payout 0건·빈 셀·순액 0 추정만으로 `nil`, `paid`, `matched` 또는 `source_verified_none`을 기록하면 **HOLD** |
+| 6. 마감 | 위 단계의 상태-only private JSON | `--phase 24h`를 실행하고, payout 증거가 생긴 뒤 같은 사건으로 `--phase payout` 실행 | canonical `PASS/HOLD/STOP` 출력과 owner·다음 기한 | 24시간 PASS를 payout PASS나 판매 재개 승인으로 재사용하지 않음 |
+
 - 사건별 상태를 `확인 중 / owner 승인 대기 / 조치 승인 / 완료 / 판매 중단 후보` 중 하나로 남긴다.
 - 고객별 메모 대신 사건번호, 원본 시스템 reference, 다음 조치와 기한만 인계한다.
 - first-sale gate의 현재 `OPEN/RESERVED/SOLD/LOCKED`, 마지막 gate event ID, 예약 만료 시각, 증거 gate 결과와 owner 승인 상태를 함께 인계한다. 고객 식별정보나 전체 Stripe ID는 복사하지 않는다.
-- `environment=live` 필터를 고정한 뒤 첫 결제의 gross, 표시 GST 검토 상태, fee, refund `nil/발생`, payout `nil/pending/paid`, Stripe ending balance를 회계 워크북에 분리한다. `test` 행이나 환경이 비어 있는 행은 첫 고객 증거로 사용하지 않고, payout 대기 잔액은 다음 대사로 이월한다.
+- `environment=live` 필터를 고정한 뒤 첫 결제의 gross, 표시 GST 검토 상태, fee, refund `none_confirmed/refund_request_pending/partial_refund_succeeded/full_refund_succeeded/unresolved`, payout `pending/matched/source_verified_none/unresolved`, Stripe ending balance를 회계 워크북에 분리한다. 환불 요청은 성공한 refund가 아니며, payout `matched/source_verified_none`은 위 표의 Stripe·은행 증거가 모두 있을 때만 허용한다. `test` 행이나 환경이 비어 있는 행은 첫 고객 증거로 사용하지 않고, payout 대기 잔액은 다음 대사로 이월한다.
 - 미결 항목 하나라도 owner·기한 없이 남거나 NO-GO 조건이 해소되지 않으면 다음 판매를 열지 않는다.
 
 관련 기준: 현재 Production 판정은 `docs/production-first-sale-readiness-audit-2026-08-24.md`, 출시 순서는 `docs/live-payment-launch-checklist.md`, 합성 기능 증거는 `docs/first-sale-isolated-rehearsal.md`, 알림 운영은 `docs/payment-alerts.md`, 회계 분류는 `docs/accounting-reconciliation.md`를 따른다. 공개 고객 안내는 `/purchase-information`, `/payment-help`, `/privacy`에서 확인한다.
