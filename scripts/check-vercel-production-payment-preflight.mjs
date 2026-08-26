@@ -80,7 +80,9 @@ assert.ok(packageJson.includes('"test:vercel-production-preflight"'));
 assert.ok(packageJson.includes("npm run test:vercel-production-preflight"));
 assert.ok(packageJson.includes('"test:production-runtime-preflight"'));
 
-const powershell = `${process.env.SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`;
+const powershell = process.platform === "win32"
+  ? `${process.env.SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`
+  : "pwsh";
 function runEarlyFixture(endpoint, sha, extraEnvironment = {}) {
   const environment = { ...process.env };
   for (const name of [

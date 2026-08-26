@@ -120,7 +120,9 @@ function runWrapperEarlyFailure(args = [], overrides = {}, input = "") {
   delete fixtureEnv.ZOHO_SMTP_APP_PASSWORD;
   delete fixtureEnv.PAYMENT_ALERT_TEST_ACK;
   Object.assign(fixtureEnv, overrides);
-  const powershell = `${process.env.SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`;
+  const powershell = process.platform === "win32"
+    ? `${process.env.SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`
+    : "pwsh";
   return spawnSync(powershell, [
     "-NoProfile",
     "-NonInteractive",
