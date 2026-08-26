@@ -14,12 +14,16 @@ const projectRoot = resolve(scriptsDirectory, "..");
 const deploymentIdPattern = /^dpl_[A-Za-z0-9]+$/;
 
 function readProtectedPageWithVercelCurl(deploymentOrigin, path) {
-  const executable = process.platform === "win32" ? "npx.cmd" : "npx";
+  const executable = process.platform === "win32" ? process.execPath : "npx";
+  const npxArguments = process.platform === "win32"
+    ? [resolve(dirname(process.execPath), "node_modules", "npm", "bin", "npx-cli.js")]
+    : [];
   const childEnvironment = { ...process.env };
   delete childEnvironment.VERCEL_AUTOMATION_BYPASS_SECRET;
   delete childEnvironment.VERCEL_TOKEN;
   delete childEnvironment.NODE_OPTIONS;
   const result = spawnSync(executable, [
+    ...npxArguments,
     "--yes",
     "--package=vercel@59.5.0",
     "--",
@@ -29,7 +33,6 @@ function readProtectedPageWithVercelCurl(deploymentOrigin, path) {
     path,
     "--deployment",
     deploymentOrigin,
-    "--no-color",
     "--",
     "--silent",
     "--show-error",

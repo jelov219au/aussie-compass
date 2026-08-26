@@ -71,7 +71,6 @@ export function buildVercelCurlArguments({ deploymentOrigin, expectedSha, expect
     runtimePreflightPath,
     "--deployment",
     deploymentOrigin,
-    "--no-color",
     "--",
     "--request",
     "POST",
@@ -88,8 +87,11 @@ export function buildVercelCurlArguments({ deploymentOrigin, expectedSha, expect
 }
 
 function defaultRunVercelCurl(input) {
-  const executable = process.platform === "win32" ? "npx.cmd" : "npx";
-  const result = spawnSync(executable, buildVercelCurlArguments(input), {
+  const executable = process.platform === "win32" ? process.execPath : "npx";
+  const npxArguments = process.platform === "win32"
+    ? [resolve(dirname(process.execPath), "node_modules", "npm", "bin", "npx-cli.js")]
+    : [];
+  const result = spawnSync(executable, [...npxArguments, ...buildVercelCurlArguments(input)], {
     cwd: projectRoot,
     encoding: "utf8",
     env: cleanCliEnvironment(),
