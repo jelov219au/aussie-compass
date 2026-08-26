@@ -39,6 +39,7 @@ const [purchaseInformation, terms, paymentHelp, paymentSupportHelper, paymentRea
 ]);
 const compactEvidence = evidence.replace(/\s+/g, " ");
 const compactFirstPaymentPacket = firstPaymentPacket.replace(/\s+/g, " ");
+const normalizedEvidence = evidence.replace(/\r\n/g, "\n");
 
 for (const status of ["PRESENT", "ABSENT", "UNVERIFIED", "NOT_ISSUED"]) {
   assert.ok(evidence.includes(`\`${status}\``), `missing evidence status: ${status}`);
@@ -76,11 +77,11 @@ for (const contract of [
 }
 
 assert.ok(
-  evidence.includes("all three fixed rows for\nevery issued document are `PRESENT`") || evidence.includes("all three fixed rows for every issued document are `PRESENT`"),
+  normalizedEvidence.includes("all three fixed rows for\nevery issued document are `PRESENT`") || normalizedEvidence.includes("all three fixed rows for every issued document are `PRESENT`"),
   "GO must require every actually issued payment document to pass",
 );
-assert.ok(evidence.includes("does not authorise any Stripe setting, payment,\nrefund, document or customer-data change"), "the procedure must remain read-only");
-assert.ok(evidence.includes("does not decide legal, tax or\naccounting treatment"), "the procedure must not make legal, tax or accounting conclusions");
+assert.ok(normalizedEvidence.includes("does not authorise any Stripe setting, payment,\nrefund, document or customer-data change"), "the procedure must remain read-only");
+assert.ok(normalizedEvidence.includes("does not decide legal, tax or\naccounting treatment"), "the procedure must not make legal, tax or accounting conclusions");
 assert.doesNotMatch(evidence, /\b(?:cs|pi|ch|re|in)_(?:test|live)?_[A-Za-z0-9]{8,}\b/, "the blank runbook must not contain a real-looking Stripe object ID");
 assert.doesNotMatch(evidence, /https:\/\/[^\s]*(?:receipt|invoice)[^\s]*/i, "the runbook must not contain a hosted receipt or invoice URL");
 
