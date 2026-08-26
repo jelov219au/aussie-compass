@@ -40,7 +40,8 @@ for (const boundary of [
   '[Environment]::SetEnvironmentVariable("ZOHO_SMTP_APP_PASSWORD", $plainPassword, "Process")',
   '$env:PAYMENTS_ENABLED = "false"',
   '$env:PAYMENT_ALERT_TEST_ACK = "SEND_ONE_MONITORED_SUPPORT_TEST"',
-  '$SmtpHost -cne "smtppro.zoho.com"',
+  '$SmtpHost -cne "smtppro.zoho.com.au"',
+  '$SmtpUser -cne "owner@hojucompass.com"',
   "$SmtpPort -ne 465",
   'Test-Path -LiteralPath "Env:ZOHO_SMTP_APP_PASSWORD"',
   'Test-Path -LiteralPath "Env:PAYMENT_ALERT_TEST_ACK"',
@@ -57,7 +58,7 @@ for (const boundary of [
 ]) assert.ok(wrapper.includes(boundary), `secure alert wrapper is missing: ${boundary}`);
 assert.ok(wrapper.indexOf('SetEnvironmentVariable("ZOHO_SMTP_APP_PASSWORD"') < wrapper.indexOf("npm.cmd run payments:alerts:verify"), "the masked app password must be process-scoped before transport verification starts");
 assert.ok(wrapper.indexOf("npm.cmd run payments:alerts:verify") < wrapper.indexOf('Remove-Item -LiteralPath "Env:ZOHO_SMTP_APP_PASSWORD"'), "the app password must be removed after the transport verification attempt");
-assert.ok(wrapper.indexOf("try {") < wrapper.indexOf('$SmtpHost -cne "smtppro.zoho.com"'), "endpoint and preloaded-secret failures must be inside the canonical fail-closed lifecycle");
+assert.ok(wrapper.indexOf("try {") < wrapper.indexOf('$SmtpHost -cne "smtppro.zoho.com.au"'), "endpoint and preloaded-secret failures must be inside the canonical fail-closed lifecycle");
 assert.ok(wrapper.indexOf('Remove-Item -LiteralPath "Env:ZOHO_SMTP_APP_PASSWORD"') < wrapper.indexOf('Write-Output "PAYMENT_ALERT_TRANSPORT=NO-GO'), "the canonical NO-GO must be emitted only after process-credential cleanup");
 assert.ok(wrapper.indexOf("ZeroFreeBSTR") < wrapper.indexOf('Write-Output "PAYMENT_ALERT_TRANSPORT=PASS'), "the canonical PASS must be emitted only after unmanaged credential cleanup");
 assert.doesNotMatch(wrapper, /\$env:ZOHO_SMTP_APP_PASSWORD\s*=\s*["']/, "the wrapper must not assign a plaintext SMTP password literal");
@@ -103,16 +104,16 @@ const unacknowledgedSend = spawnSync(process.execPath, [
     PAYMENT_ALERT_TO_EMAIL: "support@hojucompass.com",
     PAYMENT_ALERT_FROM_EMAIL: "support@hojucompass.com",
     NEXT_PUBLIC_SUPPORT_EMAIL: "support@hojucompass.com",
-    ZOHO_SMTP_HOST: "smtp.invalid",
+    ZOHO_SMTP_HOST: "smtppro.zoho.com.au",
     ZOHO_SMTP_PORT: "465",
-    ZOHO_SMTP_USER: "support@hojucompass.com",
+    ZOHO_SMTP_USER: "owner@hojucompass.com",
     ZOHO_SMTP_APP_PASSWORD: "unused-test-password",
     PAYMENT_ALERT_TEST_ACK: "",
   },
 });
 assert.equal(unacknowledgedSend.status, 1, "--send-test without the exact acknowledgement must fail before SMTP access");
 assert.match(unacknowledgedSend.stderr, /WAIT  결제 알림 전달 검증/);
-assert.doesNotMatch(`${unacknowledgedSend.stdout}\n${unacknowledgedSend.stderr}`, /smtp\.invalid|support@|unused-test-password/i);
+assert.doesNotMatch(`${unacknowledgedSend.stdout}\n${unacknowledgedSend.stderr}`, /owner@|support@|unused-test-password/i);
 
 function runWrapperEarlyFailure(args = [], overrides = {}, input = "") {
   const fixtureEnv = { ...process.env };
@@ -131,6 +132,7 @@ function runWrapperEarlyFailure(args = [], overrides = {}, input = "") {
 
 for (const [label, fixture, reason] of [
   ["invalid endpoint pin", runWrapperEarlyFailure(["-SmtpHost", "smtp.invalid"]), "endpoint_pin_invalid"],
+  ["invalid SMTP user pin", runWrapperEarlyFailure(["-SmtpUser", "support@hojucompass.com"]), "endpoint_pin_invalid"],
   ["preloaded credential", runWrapperEarlyFailure([], { ZOHO_SMTP_APP_PASSWORD: "fixture-secret-must-not-print" }), "preloaded_credential"],
   ["preloaded acknowledgement", runWrapperEarlyFailure([], { PAYMENT_ALERT_TEST_ACK: "fixture-ack-must-not-print" }), "preloaded_acknowledgement"],
   ["cancelled credential prompt", runWrapperEarlyFailure([], {}, "\r\n"), "credential_cancelled"],

@@ -117,7 +117,7 @@ for (const secureBoundary of [
   "ZeroFreeBSTR",
   '[string]$ExpectedProductionSha',
   "invalid_expected_production_sha",
-  'npm.cmd run payments:verify-production-runtime',
+  'npm.cmd --silent run payments:verify-production-runtime',
   'npm.cmd run payments:operator-audit',
   'npm.cmd run accounting:preflight',
   'FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no',
@@ -126,7 +126,7 @@ for (const secureBoundary of [
 assert.equal((secureRunner.match(/ZeroFreeBSTR\(/g) ?? []).length, 3, "all three masked plaintext buffers must be zeroed");
 assert.doesNotMatch(secureRunner, /Write-Host[^\n]*(?:plainAuditKey|plainAccountingKey|STRIPE_SECRET_KEY)/, "the role-separation result must not print a Stripe key");
 assert.doesNotMatch(secureRunner, /\$env:(?:VERCEL_ENV|PAYMENTS_ENABLED|STRIPE_SECRET_KEY|ENTITLEMENT_DB_URL)/, "the local inner preflight must not depend on unreadable Vercel Sensitive values");
-assert.ok(secureRunner.indexOf("npm.cmd run payments:verify-production-runtime") < secureRunner.indexOf('Read-Host "One-off hoju_payment_auditor database URL"'), "runtime evidence must pass before the audit DB prompt");
+assert.ok(secureRunner.indexOf("npm.cmd --silent run payments:verify-production-runtime") < secureRunner.indexOf('Read-Host "One-off hoju_payment_auditor database URL"'), "runtime evidence must pass before the audit DB prompt");
 assert.ok(secureRunner.indexOf('SetEnvironmentVariable("PAYMENTS_STRIPE_AUDIT_KEY"') < secureRunner.indexOf("npm.cmd run payments:operator-audit"), "temporary audit credentials must be process-scoped before the local operator audit");
 assert.ok(secureRunner.indexOf('SetEnvironmentVariable("STRIPE_ACCOUNTING_KEY"') < secureRunner.indexOf("npm.cmd run accounting:preflight"), "the exact accounting key checked for role separation must be permission-tested in the same process");
 assert.ok(secureRunner.indexOf("npm.cmd run payments:operator-audit") < secureRunner.indexOf("npm.cmd run accounting:preflight"), "accounting permission verification must follow the Account and audit-DB checks");
@@ -311,13 +311,13 @@ const apparentlyReadyEnv = {
   ENTITLEMENT_SESSION_SECRET: "contract-test-placeholder-32-chars-minimum",
   BUSINESS_LEGAL_NAME: "Contract Test Seller",
   BUSINESS_ABN: "12345678901",
-  NEXT_PUBLIC_SUPPORT_EMAIL: "support@example.invalid",
+  NEXT_PUBLIC_SUPPORT_EMAIL: "support@hojucompass.com",
   PAYMENT_ALERTS_ENABLED: "true",
-  PAYMENT_ALERT_TO_EMAIL: "support@example.invalid",
-  PAYMENT_ALERT_FROM_EMAIL: "support@example.invalid",
-  ZOHO_SMTP_HOST: "smtp.example.invalid",
+  PAYMENT_ALERT_TO_EMAIL: "support@hojucompass.com",
+  PAYMENT_ALERT_FROM_EMAIL: "support@hojucompass.com",
+  ZOHO_SMTP_HOST: "smtppro.zoho.com.au",
   ZOHO_SMTP_PORT: "465",
-  ZOHO_SMTP_USER: "support@example.invalid",
+  ZOHO_SMTP_USER: "owner@hojucompass.com",
   ZOHO_SMTP_APP_PASSWORD: "contract-test-placeholder",
 };
 const strictWithoutEvidence = spawnSync(process.execPath, [fileURLToPath(new URL("./check-payment-launch.mjs", import.meta.url)), "--strict"], {

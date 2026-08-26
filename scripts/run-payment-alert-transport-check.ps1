@@ -1,6 +1,7 @@
 param(
   [switch]$SendTest,
-  [string]$SmtpHost = "smtppro.zoho.com",
+  [string]$SmtpHost = "smtppro.zoho.com.au",
+  [string]$SmtpUser = "owner@hojucompass.com",
   [int]$SmtpPort = 465
 )
 
@@ -33,7 +34,7 @@ try {
   }
 
   $failureReason = "endpoint_pin_invalid"
-  if ($SmtpHost -cne "smtppro.zoho.com" -or $SmtpPort -ne 465) {
+  if ($SmtpHost -cne "smtppro.zoho.com.au" -or $SmtpUser -cne "owner@hojucompass.com" -or $SmtpPort -ne 465) {
     throw "Pinned SMTP endpoint mismatch."
   }
 
@@ -63,7 +64,7 @@ try {
   $env:NEXT_PUBLIC_SUPPORT_EMAIL = "support@hojucompass.com"
   $env:ZOHO_SMTP_HOST = $SmtpHost
   $env:ZOHO_SMTP_PORT = $SmtpPort.ToString()
-  $env:ZOHO_SMTP_USER = "support@hojucompass.com"
+  $env:ZOHO_SMTP_USER = $SmtpUser
   [Environment]::SetEnvironmentVariable("ZOHO_SMTP_APP_PASSWORD", $plainPassword, "Process")
 
   Push-Location -LiteralPath $projectRoot

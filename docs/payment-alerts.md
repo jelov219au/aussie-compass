@@ -24,21 +24,25 @@ The outbox stores only a one-way event lookup key, reference suffixes and fixed 
 
 ## Production configuration
 
-1. In the `support@hojucompass.com` Zoho account, create a dedicated application-specific password named `Hoju Compass Vercel payment alerts`.
+1. In the `owner@hojucompass.com` Zoho account, create a dedicated application-specific password named `Hoju Compass Vercel payment alerts`. `support@hojucompass.com` is the monitored send/receive alias, not the SMTP login.
 2. Store the following only as Vercel Production secrets/settings:
    - `PAYMENT_ALERTS_ENABLED=true`
    - `PAYMENT_ALERT_TO_EMAIL=support@hojucompass.com`
    - `PAYMENT_ALERT_FROM_EMAIL=support@hojucompass.com`
-   - `ZOHO_SMTP_HOST` using the exact SMTP host shown by the mailbox
+   - `ZOHO_SMTP_HOST=smtppro.zoho.com.au`
    - `ZOHO_SMTP_PORT=465`
-   - `ZOHO_SMTP_USER=support@hojucompass.com`
+   - `ZOHO_SMTP_USER=owner@hojucompass.com`
    - `ZOHO_SMTP_APP_PASSWORD` with the dedicated app password
 
 `paymentAlertsConfigured()` and the fail-closed `payments:check` preflight
-require the SMTP user and From address to match, and the To address to match
-`NEXT_PUBLIC_SUPPORT_EMAIL` case-insensitively. A disabled alert switch, invalid
-email, invalid port or missing app password keeps live Checkout closed. This
+require the Australian tenant host, port `465`, the real `owner@hojucompass.com`
+SMTP login and the verified `support@hojucompass.com` alias for From, To and
+`NEXT_PUBLIC_SUPPORT_EMAIL`. A disabled alert switch, invalid tuple or missing app password keeps live Checkout closed. This
 configuration proof does not replace the controlled real-email delivery test.
+
+Payment SMTP credentials do not activate the public research survey email path.
+Keep `RESEARCH_SURVEY_EMAIL_ENABLED=false` until that path has separately approved
+abuse controls and delivery operations.
 
 With `PAYMENTS_ENABLED=false`, verify SMTP authentication without placing the
 app password in shell history:
@@ -47,7 +51,7 @@ app password in shell history:
 .\scripts\run-payment-alert-transport-check.ps1
 ```
 
-This command is pinned to `smtppro.zoho.com:465`, refuses a preloaded app
+This command is pinned to the Australian tenant endpoint `smtppro.zoho.com.au:465`, refuses a preloaded app
 password or send acknowledgement, and prompts for the dedicated Zoho app
 password using masked secure input. It authenticates but sends no message. After
 restoring the previous non-secret process environment, removing the process-only
@@ -127,7 +131,7 @@ authorise a payment, refund, customer contact, message send, credential use,
 Production change or sale-gate reopen.
 
 Zoho's [official SMTP guide](https://www.zoho.com/mail/help/zoho-smtp.html)
-lists `smtppro.zoho.com:465` with SSL for paid organisations using a custom
+lists the tenant-specific SMTP endpoint with port `465` and SSL for paid organisations using a custom
 domain and says the exact account/data-centre target must be confirmed in the
 mailbox's Server Configuration Details. This wrapper currently pins that
 documented target so an operator cannot redirect the app password with a

@@ -59,8 +59,11 @@ function cleanCliEnvironment() {
   return childEnvironment;
 }
 
-export function buildVercelCurlArguments({ deploymentOrigin, expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac }) {
-  const requestBody = JSON.stringify({ expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac });
+export function buildRuntimePreflightRequestBody({ expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac }) {
+  return JSON.stringify({ expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac });
+}
+
+export function buildVercelCurlArguments({ deploymentOrigin }) {
   return [
     "--yes",
     `--package=${vercelPackage}`,
@@ -78,8 +81,8 @@ export function buildVercelCurlArguments({ deploymentOrigin, expectedSha, expect
     "Content-Type: application/json",
     "--header",
     "x-hoju-runtime-preflight: read-only-v1",
-    "--data-raw",
-    requestBody,
+    "--data-binary",
+    "@-",
     "--silent",
     "--show-error",
     "--fail-with-body",
@@ -91,10 +94,13 @@ function defaultRunVercelCurl(input) {
   const npxArguments = process.platform === "win32"
     ? [resolve(dirname(process.execPath), "node_modules", "npm", "bin", "npx-cli.js")]
     : [];
-  const result = spawnSync(executable, [...npxArguments, ...buildVercelCurlArguments(input)], {
+  const result = spawnSync(executable, [...npxArguments, ...buildVercelCurlArguments({
+    deploymentOrigin: input.deploymentOrigin,
+  })], {
     cwd: projectRoot,
     encoding: "utf8",
     env: cleanCliEnvironment(),
+    input: buildRuntimePreflightRequestBody(input),
     timeout: 60_000,
     windowsHide: true,
   });

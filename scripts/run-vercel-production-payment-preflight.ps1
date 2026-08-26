@@ -54,8 +54,21 @@ try {
   }
 
   $failureReason = "vercel_cli_auth_required"
-  & npx.cmd --yes --package=$vercelPackage -- node $launcherPath whoami --no-color *> $null
-  if ($LASTEXITCODE -ne 0) { throw "Authenticate separately with the pinned launcher." }
+  $vercelWhoAmIExitCode = 1
+  $npxCommand = Get-Command npx.cmd -CommandType Application -ErrorAction Stop
+  $previousErrorActionPreference = $ErrorActionPreference
+  try {
+    # Windows PowerShell 5.1 converts a native process' stderr into an error
+    # record. Vercel writes its normal version banner there, so temporarily
+    # keep that informational output from tripping the fail-closed wrapper.
+    $ErrorActionPreference = "Continue"
+    $LASTEXITCODE = 1
+    & $npxCommand.Source --yes --package=$vercelPackage -- node $launcherPath whoami --no-color *> $null
+    $vercelWhoAmIExitCode = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+  }
+  if ($vercelWhoAmIExitCode -ne 0) { throw "Authenticate separately with the pinned launcher." }
 
   Push-Location -LiteralPath $projectRoot
   try {
@@ -68,8 +81,13 @@ try {
     $DeploymentOrigin = ([regex]::Match($deploymentUrls[0], '^PRODUCTION_DEPLOYMENT_URL=(https://[a-z0-9-]+\.vercel\.app)$')).Groups[1].Value
 
     $failureReason = "integrated_preflight_failed"
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $maskedPreflightPath -ExpectedNeonEndpointId $ExpectedNeonEndpointId -ExpectedProductionSha $ExpectedProductionSha -DeploymentOrigin $DeploymentOrigin
-    if ($LASTEXITCODE -ne 0) { throw "The integrated Production preflight failed closed." }
+    $LASTEXITCODE = 1
+    $innerPreflightOutput = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $maskedPreflightPath -ExpectedNeonEndpointId $ExpectedNeonEndpointId -ExpectedProductionSha $ExpectedProductionSha -DeploymentOrigin $DeploymentOrigin 2>$null)
+    $innerPreflightExitCode = $LASTEXITCODE
+    foreach ($line in $innerPreflightOutput) { Write-Host $line }
+    $innerPreflightRecords = @($innerPreflightOutput | Where-Object { $_ -cmatch '^FIRST_SALE_PREFLIGHT=' })
+    $innerPreflightPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no"
+    if ($innerPreflightExitCode -ne 0 -or $innerPreflightRecords.Count -ne 1 -or $innerPreflightRecords[0] -cne $innerPreflightPass) { throw "The integrated Production preflight failed closed." }
   } finally {
     Pop-Location
   }

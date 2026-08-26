@@ -181,12 +181,13 @@ Assign none of the following variables to the Stage 1 Preview scope:
 - `PAYMENTS_STRIPE_AUDIT_KEY`
 - `PAYMENTS_EXPECTED_NEON_ENDPOINT_ID`
 - `ZOHO_SMTP_APP_PASSWORD`
+- `RESEARCH_SURVEY_EMAIL_ENABLED`
 - `STRIPE_ACCOUNTING_KEY`
 - `STRIPE_PERFORMANCE_KEY`
 
 No value may be copied into this manifest, build log, smoke report or chat. These names are the complete Stage 1 assignment exclusion list; inherited team/project values count as assigned and must be removed from the Preview scope before deployment.
 
-`PAYMENTS_ENABLED=false` is the Checkout/readiness switch, not a global network kill switch. It makes a valid Resume Pro Checkout request fail closed before Stripe Session creation, but it does not independently disable the signed webhook route, purchase restore/access routes, Job Move survey email or a future Web Push runtime. Those paths are controlled by their own signing secret, store/database, session, SMTP and push settings. Stage 1 therefore requires both the explicit false switches and the complete Preview variable non-assignment above.
+`PAYMENTS_ENABLED=false` is the Checkout/readiness switch, not a global network kill switch. It makes a valid Resume Pro Checkout request fail closed before Stripe Session creation, but it does not independently disable the signed webhook route, purchase restore/access routes, Job Move survey email or a future Web Push runtime. Those paths are controlled by their own signing secret, store/database, session, dedicated `RESEARCH_SURVEY_EMAIL_ENABLED` switch, SMTP and push settings. Stage 1 therefore requires both the explicit false switches and the complete Preview variable non-assignment above.
 
 This mode supports layout, mobile, content, CSP and free Builder testing without intentionally invoking Stripe, Neon, SMTP or Web Push. The guarantee comes from environment isolation plus GET-only smoke coverage, not from `PAYMENTS_ENABLED` alone.
 
@@ -313,7 +314,7 @@ The following are code-level environment-isolation expectations, not Stage 1 smo
 | Valid same-origin Checkout POST, accepted terms and JSON response requested while `PAYMENTS_ENABLED=false` | HTTP 503, `Cache-Control: no-store`, public `checkout_unavailable`, `retryable=false` | no Stripe Price lookup, first-sale DB claim or Checkout Session creation |
 | Webhook POST while `STRIPE_WEBHOOK_SECRET` is unassigned | HTTP 503 with `Cache-Control: no-store` before signature processing | no Stripe client, entitlement/first-sale DB or SMTP/outbox delivery |
 | Restore POST while `PAYMENTS_ENTITLEMENT_STORE` and database variables are unassigned | HTTP 503 `restore_unavailable` with `Cache-Control: no-store` | no Neon query, access-session issuance or cookie grant |
-| Otherwise valid Job Move survey POST while `ZOHO_SMTP_APP_PASSWORD` is unassigned | HTTP 503 survey-unavailable response | no SMTP connection or survey email delivery |
+| Otherwise valid Job Move survey POST while `RESEARCH_SURVEY_EMAIL_ENABLED` is not exactly `true` | HTTP 503 survey-unavailable response | no SMTP connection or survey email delivery |
 
 Stage 1 records these as static/runtime contract expectations only and sends none of the POST requests.
 

@@ -21,10 +21,14 @@ const alertEnvironmentNames = [
   "ZOHO_SMTP_PORT",
   "ZOHO_SMTP_USER",
   "ZOHO_SMTP_APP_PASSWORD",
+  "RESEARCH_SURVEY_EMAIL_ENABLED",
 ];
 const originalAlertEnvironment = Object.fromEntries(
   alertEnvironmentNames.map((name) => [name, process.env[name]]),
 );
+const researchSurveyEmailSource = fs.readFileSync(new URL("../src/lib/researchSurveyEmail.ts", import.meta.url), "utf8");
+assert.ok(researchSurveyEmailSource.includes('process.env.RESEARCH_SURVEY_EMAIL_ENABLED?.trim().toLowerCase() !== "true"'), "public research survey email must keep its own default-false switch");
+assert.ok(researchSurveyEmailSource.includes('const productionSmtpHost = "smtppro.zoho.com.au"'), "research survey delivery must use the same pinned Australian SMTP tenant");
 
 try {
   Object.assign(process.env, {
@@ -32,9 +36,9 @@ try {
     PAYMENT_ALERT_TO_EMAIL: "support@hojucompass.com",
     PAYMENT_ALERT_FROM_EMAIL: "support@hojucompass.com",
     NEXT_PUBLIC_SUPPORT_EMAIL: "support@hojucompass.com",
-    ZOHO_SMTP_HOST: "smtppro.zoho.com",
+    ZOHO_SMTP_HOST: "smtppro.zoho.com.au",
     ZOHO_SMTP_PORT: "465",
-    ZOHO_SMTP_USER: "support@hojucompass.com",
+    ZOHO_SMTP_USER: "owner@hojucompass.com",
     ZOHO_SMTP_APP_PASSWORD: "test-app-password",
   });
   assert.equal(paymentAlertsConfigured(), true, "the monitored support mailbox configuration must be accepted");
@@ -44,7 +48,10 @@ try {
     ["PAYMENT_ALERT_TO_EMAIL", "unmonitored@example.com"],
     ["PAYMENT_ALERT_FROM_EMAIL", "alias@example.com"],
     ["NEXT_PUBLIC_SUPPORT_EMAIL", "other-support@example.com"],
+    ["ZOHO_SMTP_HOST", "smtppro.zoho.com"],
+    ["ZOHO_SMTP_USER", "support@hojucompass.com"],
     ["ZOHO_SMTP_USER", "not-an-email"],
+    ["ZOHO_SMTP_PORT", "587"],
     ["ZOHO_SMTP_PORT", "70000"],
     ["ZOHO_SMTP_APP_PASSWORD", ""],
   ]) {

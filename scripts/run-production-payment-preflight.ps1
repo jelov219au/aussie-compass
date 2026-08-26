@@ -105,7 +105,7 @@ try {
   Push-Location -LiteralPath $projectRoot
   $locationPushed = $true
   $failureReason = "production_runtime_preflight_failed"
-  & npm.cmd run payments:verify-production-runtime -- --deployment $DeploymentOrigin --expected-sha $ExpectedProductionSha --expected-endpoint $ExpectedNeonEndpointId --challenge $challenge --audit-key-hmac $auditKeyHmac --accounting-key-hmac $accountingKeyHmac
+  & npm.cmd --silent run payments:verify-production-runtime -- --deployment $DeploymentOrigin --expected-sha $ExpectedProductionSha --expected-endpoint $ExpectedNeonEndpointId --challenge $challenge --audit-key-hmac $auditKeyHmac --accounting-key-hmac $accountingKeyHmac
   if ($LASTEXITCODE -ne 0) { throw "Protected Production runtime preflight failed closed." }
 
   $secureAuditDatabaseUrl = Read-Host "One-off hoju_payment_auditor database URL" -AsSecureString

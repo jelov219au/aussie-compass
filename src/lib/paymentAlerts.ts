@@ -4,6 +4,8 @@ import type Stripe from "stripe";
 import type { PaymentOperatorAlertKind } from "./paymentAlertOutbox";
 
 const defaultAlertEmail = "support@hojucompass.com";
+const productionSmtpHost = "smtppro.zoho.com.au";
+const productionSmtpUser = "owner@hojucompass.com";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function normalizeEmail(value: string | undefined) {
@@ -200,23 +202,23 @@ function getMailConfig(): MailConfig | null {
   if (process.env.PAYMENT_ALERTS_ENABLED?.trim().toLowerCase() !== "true") return null;
 
   const password = process.env.ZOHO_SMTP_APP_PASSWORD?.trim();
-  const user = process.env.ZOHO_SMTP_USER?.trim() || defaultAlertEmail;
-  const host = process.env.ZOHO_SMTP_HOST?.trim() || "smtppro.zoho.com";
+  const user = process.env.ZOHO_SMTP_USER?.trim();
+  const host = process.env.ZOHO_SMTP_HOST?.trim().toLowerCase() || productionSmtpHost;
   const port = Number(process.env.ZOHO_SMTP_PORT?.trim() || 465);
-  const from = process.env.PAYMENT_ALERT_FROM_EMAIL?.trim() || user;
+  const from = process.env.PAYMENT_ALERT_FROM_EMAIL?.trim() || defaultAlertEmail;
   const to = process.env.PAYMENT_ALERT_TO_EMAIL?.trim() || defaultAlertEmail;
   const publicSupportEmail = normalizeEmail(process.env.NEXT_PUBLIC_SUPPORT_EMAIL) || defaultAlertEmail;
 
   if (
     !password
-    || !host
-    || !Number.isInteger(port)
-    || port < 1
-    || port > 65535
+    || !user
+    || host !== productionSmtpHost
+    || port !== 465
     || !emailPattern.test(user)
+    || normalizeEmail(user) !== productionSmtpUser
     || !emailPattern.test(from)
     || !emailPattern.test(to)
-    || normalizeEmail(from) !== normalizeEmail(user)
+    || normalizeEmail(from) !== publicSupportEmail
     || normalizeEmail(to) !== publicSupportEmail
   ) return null;
 

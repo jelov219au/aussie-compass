@@ -10,6 +10,7 @@ import {
   runProductionPaymentOperatorAudit,
 } from "./production-payment-operator-audit.mjs";
 import {
+  buildRuntimePreflightRequestBody,
   buildVercelCurlArguments,
   runtimePreflightFail,
   runtimePreflightPass,
@@ -156,17 +157,22 @@ const expectedEndpointId = "ep-contract-primary-a1b2c3";
 const challenge = "1".repeat(64);
 const auditKeyHmac = "2".repeat(64);
 const accountingKeyHmac = "3".repeat(64);
-const cliArguments = buildVercelCurlArguments({
-  deploymentOrigin: "https://candidate-a.vercel.app",
+const requestBody = buildRuntimePreflightRequestBody({
   expectedSha,
   expectedEndpointId,
   challenge,
   auditKeyHmac,
   accountingKeyHmac,
 });
+const cliArguments = buildVercelCurlArguments({
+  deploymentOrigin: "https://candidate-a.vercel.app",
+});
 assert.ok(cliArguments.includes("curl") && cliArguments.includes("--deployment") && cliArguments.includes("POST"));
 assert.ok(cliArguments.includes("https://candidate-a.vercel.app"));
-assert.ok(cliArguments.includes(JSON.stringify({ expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac })));
+assert.equal(requestBody, JSON.stringify({ expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac }));
+assert.ok(cliArguments.includes("--data-binary"));
+assert.ok(cliArguments.includes("@-"));
+assert.equal(cliArguments.some((argument) => [challenge, auditKeyHmac, accountingKeyHmac].some((value) => argument.includes(value))), false);
 assert.equal(cliArguments.some((argument) => /--token|--protection-bypass|rk_live_|postgres(?:ql)?:\/\//.test(argument)), false);
 const validInput = {
   environment: "production",
