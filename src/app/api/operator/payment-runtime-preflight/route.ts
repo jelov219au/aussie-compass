@@ -18,6 +18,9 @@ const maximumBodyBytes = 512;
 const exactShaPattern = /^[a-f0-9]{40}$/;
 const canonicalPass = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS environment=production source_sha=exact payments=off managed_payments=configured config=verified stripe=read-only-pass open_sessions=zero database=runtime-schema-pass smtp=verify-pass email_sent=no secrets_printed=no";
 const canonicalFail = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=FAIL environment=unverified source_sha=unverified payments=unverified managed_payments=unverified config=unverified stripe=unverified open_sessions=unverified database=unverified smtp=unverified email_sent=no secrets_printed=no launch=NO-GO";
+type RuntimeDependency = "stripe" | "schema" | "database" | "smtp";
+type RuntimeDependencyOutcome = "not-run" | "pass" | "fail" | "error";
+type RuntimeDependencyOutcomes = Record<RuntimeDependency, RuntimeDependencyOutcome>;
 
 function fixedResponse(body: string, status: number) {
   return new Response(`${body}\n`, {
@@ -120,6 +123,21 @@ async function verifyPaymentAlertTransportWithoutSending() {
   return result.transportVerified === true && result.testSent === false;
 }
 
+async function observeRuntimeDependency(
+  outcomes: RuntimeDependencyOutcomes,
+  dependency: RuntimeDependency,
+  verify: () => Promise<boolean>,
+) {
+  try {
+    const passed = await verify();
+    outcomes[dependency] = passed ? "pass" : "fail";
+    return passed;
+  } catch {
+    outcomes[dependency] = "error";
+    return false;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!isExactProtectedDeploymentRequest(request)) return failClosed();
@@ -127,20 +145,72 @@ export async function POST(request: NextRequest) {
     const pins = await readExpectedPins(request);
     if (!pins) return failClosed(400);
 
+    const dependencyOutcomes: RuntimeDependencyOutcomes = {
+      stripe: "not-run",
+      schema: "not-run",
+      database: "not-run",
+      smtp: "not-run",
+    };
+    const runtimeKeyRolesDistinct = runtimeKeyRolesAreDistinct(pins);
+    const readiness = getPaymentReadiness();
     const passed = await runProductionRuntimePaymentPreflight({
       environment: process.env.VERCEL_ENV,
       paymentsEnabled: process.env.PAYMENTS_ENABLED,
       managedPaymentsEnabled: process.env.STRIPE_MANAGED_PAYMENTS_ENABLED,
       deploymentSha: process.env.VERCEL_GIT_COMMIT_SHA,
       expectedSha: pins.expectedSha,
-      runtimeKeyRolesDistinct: runtimeKeyRolesAreDistinct(pins),
-      readiness: getPaymentReadiness(),
+      runtimeKeyRolesDistinct,
+      readiness,
     }, {
-      verifyStripeProductAndZeroOpenSessions,
-      verifyRuntimeSchema: isPaymentRuntimeSchemaReady,
-      verifyRuntimeDatabaseRoleAndEndpoint: () => verifyProductionRuntimeDatabase(pins.expectedEndpointId),
-      verifyPaymentAlertTransportWithoutSending,
+      verifyStripeProductAndZeroOpenSessions: () => observeRuntimeDependency(
+        dependencyOutcomes,
+        "stripe",
+        verifyStripeProductAndZeroOpenSessions,
+      ),
+      verifyRuntimeSchema: () => observeRuntimeDependency(
+        dependencyOutcomes,
+        "schema",
+        isPaymentRuntimeSchemaReady,
+      ),
+      verifyRuntimeDatabaseRoleAndEndpoint: () => observeRuntimeDependency(
+        dependencyOutcomes,
+        "database",
+        () => verifyProductionRuntimeDatabase(pins.expectedEndpointId),
+      ),
+      verifyPaymentAlertTransportWithoutSending: () => observeRuntimeDependency(
+        dependencyOutcomes,
+        "smtp",
+        verifyPaymentAlertTransportWithoutSending,
+      ),
     });
+
+    if (!passed) {
+      const configuration = {
+        environment: process.env.VERCEL_ENV === "production",
+        paymentsOff: process.env.PAYMENTS_ENABLED === "false",
+        managedPayments: process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true",
+        sourceShaExact: process.env.VERCEL_GIT_COMMIT_SHA === pins.expectedSha,
+        runtimeKeyRolesDistinct,
+        readiness: {
+          paymentsDisabled: readiness.enabled === false,
+          launchDisabled: readiness.ready === false,
+          stripeConfigured: readiness.stripeConfigured,
+          stripeProductContractConfigured: readiness.stripeProductContractConfigured,
+          managedPaymentsConfigured: readiness.managedPaymentsConfigured,
+          webhookConfigured: readiness.webhookConfigured,
+          entitlementStoreConfigured: readiness.entitlementStoreConfigured,
+          firstSaleGateConfigured: readiness.firstSaleGateConfigured,
+          accessDeliveryImplemented: readiness.accessDeliveryImplemented,
+          sellerDetailsConfigured: readiness.sellerDetailsConfigured,
+          supportConfigured: readiness.supportConfigured,
+          operatorAlertsConfigured: readiness.operatorAlertsConfigured,
+        },
+      };
+      console.warn("[payments] Protected runtime preflight failed.", {
+        configuration,
+        dependencies: dependencyOutcomes,
+      });
+    }
 
     return passed ? fixedResponse(canonicalPass, 200) : failClosed(503);
   } catch {

@@ -56,7 +56,13 @@ for (const contract of [
   runtimePreflightFail,
 ]) assert.ok(routeSource.includes(contract), `runtime route is missing: ${contract}`);
 
-assert.doesNotMatch(routeSource, /sendTest:\s*true|sendMail\(|checkout\.sessions\.create|console\.(?:log|warn|error)/, "runtime preflight must not send mail, create Checkout or log details");
+assert.doesNotMatch(routeSource, /sendTest:\s*true|sendMail\(|checkout\.sessions\.create/, "runtime preflight must not send mail or create Checkout");
+assert.equal((routeSource.match(/console\.(?:log|warn|error)/g) ?? []).length, 1, "runtime preflight may emit only one fixed diagnostic log");
+assert.match(
+  routeSource,
+  /console\.warn\("\[payments\] Protected runtime preflight failed\.\", \{\s*configuration,\s*dependencies: dependencyOutcomes,\s*\}\);/,
+  "the protected diagnostic log must contain only fixed stage outcomes",
+);
 assert.doesNotMatch(routeSource, /ENTITLEMENT_DB_URL|ZOHO_SMTP_APP_PASSWORD|price\.id|product\.id|session\.id/, "runtime route must not expose raw secret and identifier fields");
 assert.doesNotMatch(routeSource, /(?:canonicalPass|canonicalFail)[^\n]*(?:runtimeKey|auditKeyHmac|accountingKeyHmac|challenge)/, "fixed evidence must not expose raw or derived key material");
 assert.equal((routeSource.match(/PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS/g) ?? []).length, 1);
