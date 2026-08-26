@@ -175,8 +175,12 @@ for (const [label, fixture, reason] of [
   assert.doesNotMatch(fixture.stdout, /rk_live_|postgresql:\/\//, `${label} must not print fixture secrets or database URLs`);
 }
 
-assert.ok(readiness.includes(".\\scripts\\run-production-payment-preflight.ps1"), "payment readiness must route live audits through the masked wrapper");
-assert.ok(checklist.includes(".\\scripts\\run-production-payment-preflight.ps1"), "the live launch checklist must route live audits through the masked wrapper");
+assert.ok(readiness.includes(".\\scripts\\run-vercel-production-payment-preflight.ps1"), "payment readiness must route live audits through the clean Vercel Production wrapper");
+assert.ok(checklist.includes(".\\scripts\\run-vercel-production-payment-preflight.ps1"), "the live launch checklist must route live audits through the clean Vercel Production wrapper");
+for (const document of [readiness, checklist]) {
+  assert.ok(document.includes("VERCEL_PRODUCTION_PREFLIGHT=PASS") && document.includes("FIRST_SALE_PREFLIGHT=PASS"), "live launch instructions must require both canonical PASS lines");
+  assert.ok(!document.includes("load the project-specific Automation Bypass value only into that process"), "live launch instructions must not preload the Automation Bypass into the Vercel parent process");
+}
 for (const [label, document] of [["payment readiness", readiness], ["live launch checklist", checklist]]) {
   assert.ok(document.includes("-ExpectedProductionSha <full-owner-approved-sha>"), `${label} must pass the full owner-approved SHA to the integrated wrapper`);
 }
@@ -222,6 +226,9 @@ for (const observedDeploymentBoundary of [
   integratedPass,
 ]) assert.ok(productionAudit.includes(observedDeploymentBoundary), `the Production audit is missing the current fail-closed deployment evidence: ${observedDeploymentBoundary}`);
 assert.ok(compactProductionAudit.includes("same masked accounting key must pass the integrated accounting preflight"), "the Production audit must use the same integrated three-key preflight as the canonical runbook");
+assert.ok(productionAudit.includes("scripts/run-vercel-production-payment-preflight.ps1 -ExpectedNeonEndpointId <approved-primary-endpoint> -ExpectedProductionSha <full-owner-approved-sha>"), "the authoritative Production audit must route operators through the clean Vercel wrapper with both pins");
+assert.ok(productionAudit.includes("only its `env run` child may request the Automation Bypass through a") && productionAudit.includes("outer `VERCEL_PRODUCTION_PREFLIGHT=PASS`"), "the Production audit must preserve the child-only bypass boundary and require both canonical PASS lines");
+assert.doesNotMatch(productionAudit, /^1\. Run `scripts\/run-production-payment-preflight\.ps1`/m, "the authoritative Production audit must not route operators directly to the inner masked wrapper");
 assert.doesNotMatch(productionAudit, /^8\. Run the protected live accounting preflight/m, "the Production audit must not retain a duplicate standalone accounting launch blocker");
 assert.ok(envExample.includes("PAYMENTS_EXPECTED_NEON_ENDPOINT_ID="), "the environment example must expose the required non-secret endpoint pin by name");
 assert.ok(envExample.includes("PAYMENTS_STRIPE_AUDIT_KEY="), "the environment example must expose the one-off Stripe Account audit key by name");

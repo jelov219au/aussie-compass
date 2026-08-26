@@ -7,6 +7,12 @@ import { SEARCH_TRANSFER_STORAGE_KEY, sanitizeTransferredSearch } from "@/lib/se
 
 const suggestions = ["TFN", "Bond", "전기 요금", "세후 급여", "영문 이력서", "커버레터", "이력서 양식", "공고 맞춤", "택스 리턴", "Super 환급", "중고거래", "통역", "교통"];
 
+const resumeOutcomeLabels: Partial<Record<string, string>> = {
+  "/resume-builder": "저장 결과 · 브라우저 이력서 + 무료 PDF",
+  "/resume-job-ad-checker": "증빙 결과 · 일치 표현 + 확인할 실제 근거",
+  "/resume-pro": "재사용 결과 · 회사별 지원서 저장 + 다시 열기",
+};
+
 function ResultList({ items }: { items: SearchItem[] }) {
   return (
     <ul>
@@ -15,7 +21,10 @@ function ResultList({ items }: { items: SearchItem[] }) {
           <Link href={item.href} className="group grid gap-4 py-6 transition hover:bg-white/70 sm:grid-cols-[3rem_0.8fr_1.2fr_auto] sm:items-center sm:px-3">
             <span className="font-mono text-xs text-gold-ink">{String(index + 1).padStart(2, "0")}</span>
             <strong className="text-lg text-navy">{item.title}</strong>
-            <span className="text-sm leading-6 text-muted">{item.description}</span>
+            <span className="text-sm leading-6 text-muted">
+              {item.description}
+              {resumeOutcomeLabels[item.href] && <span className="mt-2 block text-xs font-semibold text-[#806515]" data-search-resume-outcome>{resumeOutcomeLabels[item.href]}</span>}
+            </span>
             <span className="text-xl text-navy transition group-hover:translate-x-1" aria-hidden="true">→</span>
           </Link>
         </li>

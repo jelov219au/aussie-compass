@@ -6,7 +6,8 @@ admin authentication exists.
 
 ## Data sources
 
-- Vercel Web Analytics supplies aggregate `Resume Builder Started`,
+- Vercel Web Analytics supplies aggregate site visitors, page views, `/pro`
+  visitors, `/resume-pro` visitors, `Resume Builder Started`,
   `Resume Job Ad Viewed`, `Resume Job Ad Sample Viewed`, `Resume Job Ad Checked`, `Resume Pro CTA Clicked`,
   `Resume Pro Viewed`, `Resume Pro Free Proof Opened`,
   `Resume Pro Launch Interest` and `Checkout Started` counts.
@@ -47,11 +48,20 @@ restricted keys so neither role receives the other's permissions. Apply an IP
 access policy when practical.
 
 The current project-scoped Vercel reporting token expires on 2026-11-19. Replace
-it through the same local form before then. The report supports 7, 30 and 90
-day windows.
+it through the same local form before then. The report opens on today's partial
+UTC window for a daily check and also supports 7, 30 and 90 day windows.
 
 ## Reading the funnel
 
+- `사이트 방문자 → Resume Pro 상세 도달` is the period's anonymous aggregate
+  reach ratio, not a person-level joined journey. Use the 7- or 30-day view
+  before making product decisions from a small daily sample.
+- `Pro 비교 페이지` counts visitors to `/pro`; `Resume Pro 상세 도달` counts
+  visitors to `/resume-pro`. Do not add them together because one visitor can
+  appear in both page totals.
+- Page-visit totals and custom funnel events both explicitly filter to
+  `environment=production`, so Preview checks do not enter either the reach
+  denominators or customer-interest events.
 - `Resume Pro 방문 → 결제 시작` shows whether the product page helps a
   visitor decide to begin checkout.
 - `Resume Pro 방문 → 무료 확인 시작` shows whether the offer leads to a

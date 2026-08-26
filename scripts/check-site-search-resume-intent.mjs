@@ -5,7 +5,7 @@ import { getSiteSearchIntent, rankSiteSearchItems } from "../src/lib/siteSearch.
 import { SEARCH_TRANSFER_MAX_LENGTH, sanitizeTransferredSearch } from "../src/lib/searchTransfer.ts";
 
 const fixtures = [
-  { href: "/resume-pro", type: "도구", title: "Resume Pro — 공고별 이력서·커버레터", description: "회사별 지원 자료", keywords: ["resume", "STAR", "STAR examples", "selection criteria", "cover letter"] },
+  { href: "/resume-pro", type: "도구", title: "Resume Pro — 공고별 이력서·커버레터", description: "회사별 지원 마감일·지원 상태 저장", keywords: ["resume", "STAR", "STAR examples", "selection criteria", "cover letter", "지원 마감일", "지원 상태", "지원 현황", "지원서 관리"] },
   { href: "/salary-calculator", type: "도구", title: "급여 계산기", description: "급여 계산", keywords: ["급여"] },
   { href: "/resources/english-resume-achievement-examples", type: "자료", title: "호주 이력서 성과 문장", description: "근거를 확인하는 STAR 글", keywords: ["이력서", "resume", "CV", "STAR 예시", "STAR examples", "selection criteria", "cover letter", "호주 취업 이력서"] },
   { href: "/resources/australia-resume-template-submission-checklist", type: "자료", title: "호주 이력서 양식", description: "무료 PDF 작성과 제출 전 체크리스트", keywords: ["이력서", "이력서 양식", "resume", "resume template", "CV", "호주 취업 이력서"] },
@@ -47,6 +47,9 @@ for (const query of ["cover letter", "커버레터"]) {
 
 assert.equal(getSiteSearchIntent("Resume Pro"), "resume-pro-direct");
 assert.equal(rankSiteSearchItems(fixtures, "Resume Pro")[0]?.href, "/resume-pro", "an explicit product-name search must lead with Resume Pro");
+for (const query of ["지원 마감일", "지원 상태", "지원 현황", "지원서 관리"]) {
+  assert.equal(rankSiteSearchItems(fixtures, query)[0]?.href, "/resume-pro", `${query} must find the implemented Resume Pro application tracking result`);
+}
 assert.equal(getSiteSearchIntent("급여 이력"), "default", "partial words must not enter the resume allowlist");
 assert.equal(rankSiteSearchItems(fixtures, "급여 이력").length, 0, "unrelated compound searches must keep the ordinary filter behavior");
 
@@ -62,8 +65,19 @@ const growthRoadmap = readFileSync(resolve("docs/growth-and-revenue-roadmap.md")
 for (const query of ["STAR 예시", "STAR examples", "selection criteria", "cover letter", "호주 취업 이력서"]) {
   assert.ok(searchPage.includes(`"${query}"`), `the live search index is missing ${query}`);
 }
+for (const query of ["지원 마감일", "지원 상태", "지원 현황", "지원서 관리"]) {
+  assert.ok(searchPage.includes(`"${query}"`), `the live Resume Pro search item is missing ${query}`);
+}
 assert.match(searchComponent, /rankSiteSearchItems\(items, query\)/);
 assert.match(searchComponent, /이력서 준비 추천 순서/);
+for (const outcome of [
+  "저장 결과 · 브라우저 이력서 + 무료 PDF",
+  "증빙 결과 · 일치 표현 + 확인할 실제 근거",
+  "재사용 결과 · 회사별 지원서 저장 + 다시 열기",
+]) {
+  assert.ok(searchComponent.includes(outcome), `resume search result is missing its concrete outcome: ${outcome}`);
+}
+assert.match(searchComponent, /data-search-resume-outcome/);
 assert.ok(searchPage.includes('article.slug === "australia-cover-letter-job-ad-checklist"'), "the live search index must add dedicated cover-letter terms");
 assert.ok(searchPage.includes('article.slug === "australia-resume-template-submission-checklist"'), "the live search index must add dedicated resume-template terms");
 assert.doesNotMatch(searchComponent, /\btrack\(|analytics|sendBeacon|fetch\(|XMLHttpRequest|window\.location/, "search terms must stay inside the page and must not be sent to analytics, URLs or external requests");

@@ -48,7 +48,7 @@ export default function PaymentHelpPage() {
             <article className="border-t-2 border-navy bg-white p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">결제·거래 지원</p>
               <h2 className="mt-2 text-xl font-semibold text-navy">결제 화면·영수증의 지원 경로</h2>
-              <p className="mt-2 text-sm leading-6 text-muted">Stripe Managed Payments 거래의 결제, 영수증, 인보이스와 거래 환불은 최종 결제 화면이나 영수증에 표시된 거래상 판매자와 지원 경로를 확인하세요. 실제 거래 문서를 확인하기 전에는 여기서 그 사업자명을 단정하지 않습니다.</p>
+              <p className="mt-2 text-sm leading-6 text-muted">Stripe Managed Payments 거래의 거래상 판매자·문서 발행자·거래 지원 경로는 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만 그 문서를 기준으로 확인하세요. 명확하지 않으면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요.</p>
             </article>
             <p className="border-l-2 border-gold bg-surface p-4 text-sm leading-6 text-muted sm:col-span-2">거래 문제를 Hoju Compass에 먼저 알려도 제품 사실 확인과 필요한 절차 조율을 도와드립니다. 이 역할 구분은 Australian Consumer Law에 따른 권리를 제한하지 않습니다.</p>
           </section>

@@ -101,6 +101,14 @@ assert.ok(homeSection.includes("결제 전에 내 공고로 무료 확인") && h
 assert.ok(finder.includes("Resume Pro 가격은 A$19.90 1회 결제이며") && finder.includes("결제·이용 복구 안전 확인 중이라 판매하지 않아요"), "closed Resume Pro copy must distinguish its fixed price from its temporary sales hold");
 
 assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("report.jobAdViews") && reportPage.includes("report.jobAdChecks") && reportPage.includes("report.proCtaClicks"), "operator report must show all anonymous pre-offer aggregate steps");
+assert.ok(report.includes('web-analytics/visits/count') && report.includes("data?.visitors") && report.includes("data?.pageviews"), "operator report must query aggregate Vercel visitors and pageviews");
+assert.ok(report.includes('requestPath: "/pro"') && report.includes('requestPath: "/resume-pro"'), "operator report must compare Pro catalog and Resume Pro detail reach");
+assert.ok(report.includes("and environment eq 'production'"), "custom-event reporting must exclude Preview traffic");
+assert.ok(report.includes('const filters = ["environment eq \'production\'"]') && report.includes('filters.join(" and ")'), "visit denominators and path reach must exclude Preview traffic too");
+assert.ok(reportPage.includes('<option value="1">오늘 (UTC 기준)</option>') && reportPage.includes("표시된 UTC 날짜 범위") && reportPage.includes("report.siteVisitors") && reportPage.includes("report.sitePageviews"), "operator report must support an explicitly UTC daily traffic check");
+assert.ok(reportPage.includes("ratio(report.sitePageviews, report.siteVisitors)"), "pageviews per visitor must be a numeric ratio rather than a percentage");
+assert.ok(reportPage.includes("rate(report.proCatalogVisitors, report.siteVisitors)") && reportPage.includes("rate(report.resumeProVisitors, report.siteVisitors)"), "operator report must show visitor-to-Pro reach rates");
+assert.ok(performanceDoc.includes("not a person-level joined journey") && performanceDoc.includes("Do not add them together"), "operator guidance must prevent person-level or additive reach claims");
 assert.ok(reportPage.includes("rate(report.jobAdSampleViews, report.jobAdViews)") && reportPage.includes("rate(report.jobAdChecks, report.jobAdViews)"), "the checker report must distinguish reach from sample and real-input activation");
 assert.ok(checkerPage.includes("ResumeJobAdVisitTracker"), "the Job Ad checker page must mount its anonymous visit tracker");
 assert.ok(checkerVisitTracker.includes("trackResumeJobAdViewed()") && checkerVisitTracker.includes("useEffect"), "the Job Ad checker visit must emit from a small client boundary");

@@ -30,11 +30,12 @@ const verifier = await readFile(
   "utf8",
 );
 const packageSource = await readFile(new URL("../package.json", import.meta.url), "utf8");
-const [purchaseInformation, terms, paymentHelp, paymentSupportHelper] = await Promise.all([
+const [purchaseInformation, terms, paymentHelp, paymentSupportHelper, paymentReadiness] = await Promise.all([
   readFile(new URL("../src/app/purchase-information/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/terms/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/payment-help/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/PaymentSupportHelper.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../docs/payment-readiness.md", import.meta.url), "utf8"),
 ]);
 const compactEvidence = evidence.replace(/\s+/g, " ");
 const compactFirstPaymentPacket = firstPaymentPacket.replace(/\s+/g, " ");
@@ -101,9 +102,23 @@ assert.ok(
 );
 
 for (const publicSurface of [purchaseInformation, terms, paymentHelp]) {
+  for (const conservativeBoundary of [
+    "실제 발급 문서에 명확히 표시된 경우에만",
+    "명확하지 않으면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요",
+  ]) {
+    assert.ok(
+      publicSurface.includes(conservativeBoundary),
+      `public payment guidance must fail closed when a Managed Payments party is unclear: ${conservativeBoundary}`,
+    );
+  }
+}
+for (const readinessBoundary of [
+  "Treat a role as verified only when it and a populated business value are clearly customer-visible in that artifact",
+  "Otherwise record `UNVERIFIED`, do not infer the role from `BUSINESS_*` or another artifact",
+]) {
   assert.ok(
-    publicSurface.includes("실제 거래 문서를 확인하기 전"),
-    "public payment guidance must not guess the Managed Payments transaction seller before document inspection",
+    paymentReadiness.includes(readinessBoundary),
+    `payment readiness must preserve the same fail-closed customer-document boundary: ${readinessBoundary}`,
   );
 }
 for (const minimumSupportBoundary of [
@@ -119,7 +134,8 @@ for (const minimumSupportBoundary of [
 }
 assert.ok(
   paymentSupportHelper.includes("[있다면 마지막 8자만 입력]")
-    && paymentSupportHelper.includes("영수증 전체"),
+    && paymentSupportHelper.includes("영수증 전체")
+    && paymentSupportHelper.includes("판매자가 명확하지 않으면 그 점 기록"),
   "the support helper must preserve the same suffix-only customer handoff boundary",
 );
 assert.ok(

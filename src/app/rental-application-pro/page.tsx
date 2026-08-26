@@ -64,6 +64,13 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
           {access === "required" && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">이 기기의 Rental Pack Pro 접근이 만료됐거나 확인되지 않았습니다. 결제 완료 화면에서 다시 열거나 이용권 복구를 사용해 주세요.</div>}
           {access === "released" && <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">이 기기의 Rental Pack Pro 접근을 안전하게 해제했습니다. 구매 이용권은 유지됩니다.</div>}
           {checkout === "cancelled" && <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">결제가 취소됐습니다. 청구되지 않았으며 준비가 되면 다시 시작할 수 있습니다.</div>}
+          {entry === "property-inspection-checklist" && (
+            <section className="mt-5 border-l-2 border-gold bg-white px-5 py-4" aria-labelledby="rental-free-handoff-heading">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">무료 방문 점검 다음 단계</p>
+              <h2 id="rental-free-handoff-heading" className="mt-2 text-xl font-semibold text-navy">유효한 무료 방문 결과가 있으면 집 구분명과 점검 집계만 이어집니다.</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">현재 브라우저에 최대 24시간 보관된 결과를 Pro 작업공간에서 한 번 가져옵니다. 방문 메모와 세부 체크 결과는 옮기지 않으며, 원본 서류나 개인정보를 새로 수집하지 않습니다.</p>
+            </section>
+          )}
           <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
             <div className="max-w-3xl">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Rental Application Pack Pro</p>

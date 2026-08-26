@@ -35,6 +35,10 @@ type ConnectionState = {
 
 export type ResumeProPerformance = {
   rows: ResumeProPerformanceRow[];
+  siteVisitors: number;
+  sitePageviews: number;
+  proCatalogVisitors: number;
+  resumeProVisitors: number;
   builderStarts: number;
   jobAdViews: number;
   jobAdSampleViews: number;
@@ -63,6 +67,10 @@ type VercelAggregateResponse = {
   data?: Array<{ eventData?: unknown; count?: unknown }>;
 };
 
+type VercelVisitCountResponse = {
+  data?: { visitors?: unknown; pageviews?: unknown };
+};
+
 function dateText(date: Date) {
   return date.toISOString().slice(0, 10);
 }
@@ -84,6 +92,39 @@ function aggregateTotal(payload: VercelAggregateResponse) {
   return (payload.data ?? []).reduce((total, row) => total + safeCount(row.count), 0);
 }
 
+function visitTotals(payload: VercelVisitCountResponse) {
+  return {
+    visitors: safeCount(payload.data?.visitors),
+    pageviews: safeCount(payload.data?.pageviews),
+  };
+}
+
+async function fetchVercelVisits(params: {
+  token: string;
+  projectId: string;
+  teamId?: string;
+  since: string;
+  until: string;
+  requestPath?: "/pro" | "/resume-pro";
+}) {
+  const url = new URL("https://api.vercel.com/v1/query/web-analytics/visits/count");
+  url.searchParams.set("projectId", params.projectId);
+  if (params.teamId) url.searchParams.set("teamId", params.teamId);
+  url.searchParams.set("since", params.since);
+  url.searchParams.set("until", params.until);
+  const filters = ["environment eq 'production'"];
+  if (params.requestPath) filters.push(`requestPath eq '${params.requestPath}'`);
+  url.searchParams.set("filter", filters.join(" and "));
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${params.token}` },
+    cache: "no-store",
+  });
+
+  if (!response.ok) throw new Error("Vercel Web Analytics visits request failed.");
+  return await response.json() as VercelVisitCountResponse;
+}
+
 async function fetchVercelEvent(params: {
   token: string;
   projectId: string;
@@ -101,7 +142,7 @@ async function fetchVercelEvent(params: {
   url.searchParams.set("until", params.until);
   url.searchParams.set("by", `eventData/${params.groupBy ?? "entry"}`);
   url.searchParams.set("limit", "20");
-  url.searchParams.set("filter", `eventName eq '${params.eventName}'${params.extraFilter ? ` and ${params.extraFilter}` : ""}`);
+  url.searchParams.set("filter", `eventName eq '${params.eventName}' and environment eq 'production'${params.extraFilter ? ` and ${params.extraFilter}` : ""}`);
 
   const response = await fetch(url, {
     headers: { Authorization: `Bearer ${params.token}` },
@@ -122,6 +163,10 @@ async function loadVercelTotals(since: string, until: string) {
   if (!token || !projectId) {
     return {
       state: { connected: false, message: "VERCEL_TOKEN과 VERCEL_PROJECT_ID를 연결하면 Builder 시작부터 결제 시작까지 익명 합계를 자동으로 불러옵니다." },
+      siteVisitors: 0,
+      sitePageviews: 0,
+      proCatalogVisitors: 0,
+      resumeProVisitors: 0,
       visits: new Map<ResumeProEntry, number>(),
       proofStarts: new Map<ResumeProEntry, number>(),
       launchInterests: new Map<ResumeProEntry, number>(),
@@ -135,7 +180,10 @@ async function loadVercelTotals(since: string, until: string) {
   }
 
   try {
-    const [visits, proofStarts, launchInterests, checkouts, builderStarts, jobAdViews, jobAdSampleViews, jobAdChecks, proCtaClicks] = await Promise.all([
+    const [siteTraffic, proCatalogTraffic, resumeProTraffic, visits, proofStarts, launchInterests, checkouts, builderStarts, jobAdViews, jobAdSampleViews, jobAdChecks, proCtaClicks] = await Promise.all([
+      fetchVercelVisits({ token, projectId, teamId, since, until }),
+      fetchVercelVisits({ token, projectId, teamId, since, until, requestPath: "/pro" }),
+      fetchVercelVisits({ token, projectId, teamId, since, until, requestPath: "/resume-pro" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Resume Pro Viewed" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Resume Pro Free Proof Opened" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: "Resume Pro Launch Interest" }),
@@ -146,8 +194,15 @@ async function loadVercelTotals(since: string, until: string) {
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.jobAdChecked, extraFilter: `eventData/surface eq '${resumeFunnelSurfaces.jobAdCheckerForm}'`, groupBy: "context" }),
       fetchVercelEvent({ token, projectId, teamId, since, until, eventName: resumeFunnelEvents.proCtaClicked, groupBy: "context" }),
     ]);
+    const site = visitTotals(siteTraffic);
+    const proCatalog = visitTotals(proCatalogTraffic);
+    const resumePro = visitTotals(resumeProTraffic);
     return {
-      state: { connected: true, message: "Vercel의 익명 집계 데이터가 연결됐습니다." },
+      state: { connected: true, message: "Vercel의 익명 방문자·페이지뷰와 Resume Pro 퍼널 합계가 연결됐습니다." },
+      siteVisitors: site.visitors,
+      sitePageviews: site.pageviews,
+      proCatalogVisitors: proCatalog.visitors,
+      resumeProVisitors: resumePro.visitors,
       visits: aggregateMap(visits),
       proofStarts: aggregateMap(proofStarts),
       launchInterests: aggregateMap(launchInterests),
@@ -161,6 +216,10 @@ async function loadVercelTotals(since: string, until: string) {
   } catch {
     return {
       state: { connected: false, message: "Vercel 연결을 확인해 주세요. 토큰 권한과 프로젝트·팀 ID가 맞아야 합니다." },
+      siteVisitors: 0,
+      sitePageviews: 0,
+      proCatalogVisitors: 0,
+      resumeProVisitors: 0,
       visits: new Map<ResumeProEntry, number>(),
       proofStarts: new Map<ResumeProEntry, number>(),
       launchInterests: new Map<ResumeProEntry, number>(),
@@ -235,7 +294,7 @@ async function loadStripeTotals(sinceDate: Date) {
   }
 }
 
-export async function getResumeProPerformance(days: 7 | 30 | 90): Promise<ResumeProPerformance> {
+export async function getResumeProPerformance(days: 1 | 7 | 30 | 90): Promise<ResumeProPerformance> {
   const untilDate = new Date();
   const sinceDate = new Date(untilDate);
   sinceDate.setUTCDate(sinceDate.getUTCDate() - days + 1);
@@ -253,6 +312,10 @@ export async function getResumeProPerformance(days: 7 | 30 | 90): Promise<Resume
     until,
     vercel: vercel.state,
     stripe: stripe.state,
+    siteVisitors: vercel.siteVisitors,
+    sitePageviews: vercel.sitePageviews,
+    proCatalogVisitors: vercel.proCatalogVisitors,
+    resumeProVisitors: vercel.resumeProVisitors,
     builderStarts: vercel.builderStarts,
     jobAdViews: vercel.jobAdViews,
     jobAdSampleViews: vercel.jobAdSampleViews,

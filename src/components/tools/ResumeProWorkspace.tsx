@@ -30,6 +30,13 @@ import {
   type ResumeProApplicationStore,
   type ResumeProStoredApplication,
 } from "@/lib/resumeProApplicationStorage";
+import {
+  normaliseResumeProApplicationDeadline,
+  normaliseResumeProApplicationStatus,
+  resumeProApplicationStatuses,
+  resumeProApplicationStatusLabels,
+  type ResumeProApplicationStatus,
+} from "@/lib/resumeProApplicationTracking";
 
 type Tone = "clear" | "warm" | "concise";
 type ProLayout = "editorial" | "split" | "minimal";
@@ -52,6 +59,8 @@ type SavedResume = {
 type ProDraft = {
   company: string;
   role: string;
+  applicationDeadline: string;
+  applicationStatus: ResumeProApplicationStatus;
   hiringManager: string;
   jobAd: string;
   tone: Tone;
@@ -94,6 +103,8 @@ const proAccents: Record<ProAccent, { name: string; primary: string; secondary: 
 const initialDraft: ProDraft = {
   company: "",
   role: "",
+  applicationDeadline: "",
+  applicationStatus: "preparing",
   hiringManager: "",
   jobAd: "",
   tone: "clear",
@@ -131,6 +142,8 @@ function normaliseDraft(value: unknown, fallback: ProDraft = initialDraft): ProD
   return {
     company: stringValue("company"),
     role: stringValue("role"),
+    applicationDeadline: normaliseResumeProApplicationDeadline(stored.applicationDeadline),
+    applicationStatus: normaliseResumeProApplicationStatus(stored.applicationStatus),
     hiringManager: stringValue("hiringManager"),
     jobAd: stringValue("jobAd"),
     tone: stored.tone === "clear" || stored.tone === "warm" || stored.tone === "concise" ? stored.tone : fallback.tone,
@@ -630,6 +643,8 @@ export function ResumeProWorkspace() {
       "HOJU COMPASS — RESUME PRO APPLICATION KIT",
       `Company: ${draft.company || "Not set"}`,
       `Role: ${draft.role || savedResume.title || "Not set"}`,
+      `Application deadline: ${draft.applicationDeadline || "Not set"}`,
+      `Application status: ${resumeProApplicationStatusLabels[draft.applicationStatus]}`,
       `Hiring manager: ${draft.hiringManager || "Hiring Manager"}`,
       "",
       "SUBMISSION CHECK",
@@ -713,10 +728,12 @@ export function ResumeProWorkspace() {
         <div className={`mt-5 border-l-2 p-4 text-sm leading-6 ${hasResume ? "border-[#3f6d5c] bg-[#3f6d5c]/8 text-navy" : "border-gold bg-gold/8 text-muted"}`}>
           {hasResume ? <><strong className="block text-navy">{savedResume.name || "저장된 이력서"}의 내용을 연결했습니다.</strong>무료 이력서 빌더의 Summary, 경력과 Skills를 초안에 사용합니다.</> : <><strong className="block text-navy">저장된 이력서를 찾지 못했습니다.</strong>입력 없이도 사용할 수 있지만 무료 빌더를 먼저 작성하면 더 구체적인 초안이 만들어집니다.</>}
         </div>
-        <section className="mt-5 border border-border bg-white p-4" aria-labelledby="saved-applications-heading"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">현재 브라우저에 최대 30개까지 저장됩니다. 저장 뒤 저장본을 다시 열어 확인하고, 내용을 바꾸면 다시 저장해 주세요.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button id="resume-pro-save-application" type="button" onClick={saveApplication} className="min-h-10 bg-navy px-3 text-xs font-semibold text-white">{currentApplicationSaved ? "현재 지원서 저장됨" : "현재 지원서 저장"}</button>{currentApplicationSaved && activeApplicationId && !currentApplicationReopened && <button id="resume-pro-reopen-application" type="button" onClick={() => reopenApplication(activeApplicationId)} className="min-h-11 border border-navy px-3 text-xs font-semibold text-navy">저장본 다시 열어 확인</button>}</div></div>{applications.length > 0 ? <ul className="mt-4 divide-y divide-border border-y border-border">{applications.map((application) => <li key={application.id} className="flex flex-wrap items-center gap-3 py-3"><button type="button" onClick={() => reopenApplication(application.id)} className="min-h-10 flex-1 text-left"><strong className="block text-sm text-navy">{application.company}</strong><span className="mt-1 block text-xs text-muted">{application.role} · {application.updatedAt ? new Date(application.updatedAt).toLocaleDateString("en-AU") : "저장 시간 확인 필요"}{activeApplicationId === application.id ? currentApplicationReopened ? " · 다시 열기 확인됨" : currentApplicationSaved ? " · 저장됨" : " · 변경사항 있음" : ""}</span></button><button type="button" onClick={() => deleteApplication(application)} className="min-h-10 px-2 text-xs text-muted hover:text-red-700">삭제</button></li>)}</ul> : <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted">저장한 지원서가 아직 없습니다. 회사명을 입력하고 현재 지원서 저장을 눌러 주세요.</p>}</section>
+        <section className="mt-5 border border-border bg-white p-4" aria-labelledby="saved-applications-heading"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">현재 브라우저에 최대 30개까지 저장됩니다. 저장 뒤 저장본을 다시 열어 확인하고, 내용을 바꾸면 다시 저장해 주세요.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button id="resume-pro-save-application" type="button" onClick={saveApplication} className="min-h-10 bg-navy px-3 text-xs font-semibold text-white">{currentApplicationSaved ? "현재 지원서 저장됨" : "현재 지원서 저장"}</button>{currentApplicationSaved && activeApplicationId && !currentApplicationReopened && <button id="resume-pro-reopen-application" type="button" onClick={() => reopenApplication(activeApplicationId)} className="min-h-11 border border-navy px-3 text-xs font-semibold text-navy">저장본 다시 열어 확인</button>}</div></div>{applications.length > 0 ? <ul className="mt-4 divide-y divide-border border-y border-border">{applications.map((application) => <li key={application.id} className="flex flex-wrap items-center gap-3 py-3"><button type="button" onClick={() => reopenApplication(application.id)} className="min-h-10 flex-1 text-left"><strong className="block text-sm text-navy">{application.company}</strong><span className="mt-1 block text-xs text-muted">{application.role} · {resumeProApplicationStatusLabels[application.draft.applicationStatus]}{application.draft.applicationDeadline ? ` · 마감 ${application.draft.applicationDeadline}` : ""} · {application.updatedAt ? new Date(application.updatedAt).toLocaleDateString("en-AU") : "저장 시간 확인 필요"}{activeApplicationId === application.id ? currentApplicationReopened ? " · 다시 열기 확인됨" : currentApplicationSaved ? " · 저장됨" : " · 변경사항 있음" : ""}</span></button><button type="button" onClick={() => deleteApplication(application)} className="min-h-10 px-2 text-xs text-muted hover:text-red-700">삭제</button></li>)}</ul> : <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted">저장한 지원서가 아직 없습니다. 회사명을 입력하고 현재 지원서 저장을 눌러 주세요.</p>}</section>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className={labelClass}>회사명<input id="resume-pro-company" className={inputClass} value={draft.company} onChange={(event) => setField("company", event.target.value)} placeholder="Compass Cafe" /></label>
           <label className={labelClass}>지원 직무<input className={inputClass} value={draft.role} onChange={(event) => setField("role", event.target.value)} placeholder="Barista" /></label>
+          <label className={labelClass}>지원 마감일 <span className="font-normal text-muted">(선택)</span><input type="date" className={inputClass} value={draft.applicationDeadline} onChange={(event) => setField("applicationDeadline", normaliseResumeProApplicationDeadline(event.target.value))} /></label>
+          <label className={labelClass}>지원 상태<select className={inputClass} value={draft.applicationStatus} onChange={(event) => setField("applicationStatus", normaliseResumeProApplicationStatus(event.target.value))}>{resumeProApplicationStatuses.map((status) => <option key={status} value={status}>{resumeProApplicationStatusLabels[status]}</option>)}</select></label>
           <label className={`${labelClass} sm:col-span-2`}>담당자 이름 <span className="font-normal text-muted">(선택)</span><input className={inputClass} value={draft.hiringManager} onChange={(event) => setField("hiringManager", event.target.value)} placeholder="Hiring Manager" /></label>
         </div>
         <label className="mt-5 block text-sm font-medium text-navy">채용 공고<textarea id="resume-pro-job-ad" className={`${inputClass} min-h-48 resize-y`} value={draft.jobAd} onChange={(event) => setField("jobAd", event.target.value)} placeholder="채용 공고의 Responsibilities, Requirements 부분을 붙여 넣으세요." /></label>

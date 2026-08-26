@@ -20,6 +20,10 @@ function rate(part: number, total: number) {
   return total > 0 ? `${((part / total) * 100).toFixed(1)}%` : "—";
 }
 
+function ratio(part: number, total: number) {
+  return total > 0 ? (part / total).toFixed(1) : "—";
+}
+
 function money(cents: number) {
   return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(cents / 100);
 }
@@ -43,7 +47,7 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
   const rawDays = query.days;
   const connection = Array.isArray(query.connection) ? query.connection[0] : query.connection;
   const dayText = Array.isArray(rawDays) ? rawDays[0] : rawDays;
-  const days = dayText === "7" || dayText === "90" ? Number(dayText) as 7 | 90 : 30;
+  const days = dayText === "7" || dayText === "30" || dayText === "90" ? Number(dayText) as 7 | 30 | 90 : 1;
   const report = await getResumeProPerformance(days);
   const totals = report.rows.reduce((sum, row) => ({
     visits: sum.visits + row.visits,
@@ -69,11 +73,12 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
             <div className="max-w-4xl">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Resume Pro funnel</p>
               <h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">어느 글이 방문을 넘어<br /><span className="font-normal text-navy-light">어떤 결제 상태로 이어지는지 봅니다.</span></h1>
-              <p className="mt-5 max-w-3xl leading-7 text-muted">Builder 시작, 공고 점검기 진입, 공고 예시 확인, 실제 공고 맞춤 점검, Pro CTA 클릭, 방문, 무료 확인, 판매 시작 메일 준비 행동, 결제 시작과 live 결제·전액 환불을 같은 기간의 익명 합계로 비교합니다. 전액 환불된 통제 결제는 유지 결제에서 제외하지만, 남은 live 결제도 실제 신규 고객인지 자동 판정하지 않아요. 이메일 주소, 이름, 이력서·공고 내용, 회사명, 검색어나 URL 쿼리는 가져오지 않습니다.</p>
+              <p className="mt-5 max-w-3xl leading-7 text-muted">사이트 방문자와 페이지뷰부터 Pro 비교·상세 도달, Builder 시작, 공고 점검, Pro CTA, 무료 확인, 결제 시작과 live 결제·환불까지 같은 기간의 익명 합계로 비교합니다. 전액 환불된 통제 결제는 유지 결제에서 제외하지만, 남은 live 결제도 실제 신규 고객인지 자동 판정하지 않아요. 이메일 주소, 이름, 이력서·공고 내용, 회사명, 검색어나 URL 쿼리는 가져오지 않습니다.</p>
             </div>
             <form method="get" className="border-l-2 border-gold pl-5">
               <label className="text-sm font-semibold text-navy">확인 기간
                 <select name="days" defaultValue={String(days)} className="mt-2 min-h-11 w-full border border-border bg-white px-3 text-sm font-medium" aria-label="성과 확인 기간">
+                  <option value="1">오늘 (UTC 기준)</option>
                   <option value="7">최근 7일</option>
                   <option value="30">최근 30일</option>
                   <option value="90">최근 90일</option>
@@ -121,9 +126,13 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
           <section className="mt-8" aria-labelledby="funnel-summary-heading">
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-navy/20 pb-5">
               <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">{report.since} – {report.until}</p><h2 id="funnel-summary-heading" className="mt-2 text-2xl font-semibold text-navy">전체 흐름</h2></div>
-              <p className="text-xs leading-5 text-muted">수치는 선택한 기간 안에 발생한 합계입니다.</p>
+              <p className="text-xs leading-5 text-muted">수치는 표시된 UTC 날짜 범위 안에 발생한 합계입니다.</p>
             </div>
             <dl className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-6">
+              <div className="bg-white p-5"><dt className="text-xs text-muted">사이트 방문자</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.siteVisitors.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">익명 기간 합계</p></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">페이지뷰</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.sitePageviews.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">방문자당 {connected.vercel ? ratio(report.sitePageviews, report.siteVisitors) : "—"}회</p></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">Pro 비교 페이지</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.proCatalogVisitors.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">전체 방문자 대비 {connected.vercel ? rate(report.proCatalogVisitors, report.siteVisitors) : "—"}</p></div>
+              <div className="bg-white p-5"><dt className="text-xs text-muted">Resume Pro 상세 도달</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.resumeProVisitors.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">전체 방문자 대비 {connected.vercel ? rate(report.resumeProVisitors, report.siteVisitors) : "—"}</p></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">Builder 시작</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.builderStarts.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">공고 점검기 진입</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.jobAdViews.toLocaleString() : "—"}</dd></div>
               <div className="bg-white p-5"><dt className="text-xs text-muted">공고 예시 확인</dt><dd className="mt-2 text-3xl font-semibold text-navy">{connected.vercel ? report.jobAdSampleViews.toLocaleString() : "—"}</dd><p className="mt-1 text-xs text-muted">진입 대비 {connected.vercel ? rate(report.jobAdSampleViews, report.jobAdViews) : "—"}</p></div>

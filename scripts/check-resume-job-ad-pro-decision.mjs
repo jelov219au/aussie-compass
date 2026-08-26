@@ -28,7 +28,7 @@ for (const contract of [
   "원문 없이 표현 후보와 근거 질문을 저장해 다음 지원에서 파일로 다시 열어요.",
   "경력 + 실제 공고 저장",
   "다시 열어 나란히 비교",
-  "확인한 근거와 체크리스트를 재사용해요.",
+  "회사별 버전의 마감일·지원 상태를 저장하고, 확인한 근거와 체크리스트를 다시 열어요.",
 ]) {
   assert.ok(decision.includes(contract), `the pre-purchase decision is missing: ${contract}`);
 }

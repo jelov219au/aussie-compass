@@ -182,10 +182,13 @@ first customer remains **NO-GO**. Do not copy the deployment PASS into the
 Production exact-SHA identity and the Checkout HTTP 503/no-URL boundary are
 complete. They do not satisfy any blocker below.
 
-1. Run `scripts/run-production-payment-preflight.ps1` with payments off, the
-   full owner-approved Production SHA and separately approved Neon endpoint. It
-   must prove that exact SHA is the public Production deployment before asking
-   for any transient credential, then prove three distinct `rk_live_` roles:
+1. From a fresh PowerShell process, run
+   `scripts/run-vercel-production-payment-preflight.ps1 -ExpectedNeonEndpointId <approved-primary-endpoint> -ExpectedProductionSha <full-owner-approved-sha>`.
+   The clean outer wrapper must load Vercel Production without a dotenv file,
+   and only its `env run` child may request the Automation Bypass through a
+   masked prompt. The existing inner wrapper must then prove the exact SHA is
+   the public Production deployment before requesting any Stripe or database
+   credential, and prove three distinct `rk_live_` roles:
    the runtime key with only Prices Read,
    Products Read, Checkout Sessions create/retrieve and PaymentIntents Read; an
    Account-Read-only audit key; and a Balance-Transactions-Read accounting key.
@@ -194,7 +197,9 @@ complete. They do not satisfy any blocker below.
    accounting key must pass the integrated accounting preflight after the strict
    payment/database audit, and cleanup must finish before the exact final
    `FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no`
-   result. Never deploy or persist either audit key or the audit DB credential.
+   result. Retain it only with the outer `VERCEL_PRODUCTION_PREFLIGHT=PASS` from
+   the same uninterrupted run. Never deploy or persist the bypass, either audit
+   key or the audit DB credential.
 2. Run the protected no-send SMTP authentication check, then the separately
    approved labelled test-message path, and confirm receipt in the monitored
    mailbox. Keep credentials out of shell history, chat and logs.

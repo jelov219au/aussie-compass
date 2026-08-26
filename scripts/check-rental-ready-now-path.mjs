@@ -2,9 +2,12 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import {
+  createRentalReadyNowImportReceipt,
   createRentalReadyNowHandoff,
   parseRentalReadyNowHandoff,
   rentalReadyNowHandoffLifetimeMs,
+  rentalReadyNowReceiptMatches,
+  readRentalReadyNowSavedFlag,
 } from "../src/lib/rentalReadyNowHandoff.ts";
 
 const [offerPage, freePage, freeProject, freeTool, workspace, commerce] = await Promise.all([
@@ -23,6 +26,32 @@ assert.equal(createRentalReadyNowHandoff({ propertyLabel: "Buy", mode: "buy", re
 assert.deepEqual(parseRentalReadyNowHandoff(JSON.stringify(handoff), now + rentalReadyNowHandoffLifetimeMs), handoff);
 assert.equal(parseRentalReadyNowHandoff(JSON.stringify(handoff), now + rentalReadyNowHandoffLifetimeMs + 1), null, "handoffs must expire after 24 hours");
 assert.equal(parseRentalReadyNowHandoff("not-json", now), null);
+for (const [invalidCreatedAt, observationTime] of [
+  [String(now), now],
+  [null, 0],
+  [now + 0.5, now + 0.5],
+  [Number.MAX_SAFE_INTEGER + 1, Number.MAX_SAFE_INTEGER + 1],
+  [-1, -1],
+]) {
+  assert.equal(
+    parseRentalReadyNowHandoff(JSON.stringify({ ...handoff, createdAt: invalidCreatedAt }), observationTime),
+    null,
+    `handoff timestamps must be non-negative safe integers: ${String(invalidCreatedAt)}`,
+  );
+}
+for (const invalidNow of [Number.NaN, Number.POSITIVE_INFINITY, -1, now + 0.5, Number.MAX_SAFE_INTEGER + 1]) {
+  assert.equal(
+    createRentalReadyNowHandoff({ propertyLabel: "Invalid timestamp", mode: "rent", reviewedCount: 1, concernCount: 0 }, invalidNow),
+    null,
+    "handoff creation must not emit a timestamp that cannot survive an idempotent receipt round trip",
+  );
+}
+const receipt = createRentalReadyNowImportReceipt(handoff);
+assert.equal(rentalReadyNowReceiptMatches(receipt, handoff), true, "a persisted receipt must make a failed handoff cleanup retry idempotent");
+assert.equal(rentalReadyNowReceiptMatches({ ...receipt, sourceCreatedAt: now + 1 }, handoff), false, "a later handoff must remain importable");
+assert.equal(rentalReadyNowReceiptMatches({ mode: "rent", reviewedCount: 18, concernCount: 18 }, handoff), false, "legacy summaries without a receipt must not hide a new handoff");
+assert.equal(readRentalReadyNowSavedFlag({ getItem: () => "saved" }, "first-success"), true);
+assert.equal(readRentalReadyNowSavedFlag({ getItem: () => { throw new Error("blocked after successful import"); } }, "first-success"), false, "a later status read failure must not escape and replace a successful or duplicate-import message");
 
 const closedStart = offerPage.indexOf(") : (", offerPage.indexOf("{checkoutAvailable ? ("));
 const closedEnd = offerPage.indexOf(")}", closedStart);
@@ -61,7 +90,12 @@ assert.ok(freeTool.includes("rentalReadyNowHandoffStorageKey") && freeTool.inclu
 assert.ok(freeTool.includes("방문 메모와 세부 체크 결과는 옮기지 않습니다"), "the handoff must explain its privacy boundary");
 assert.ok(workspace.includes("readRentalReadyNowHandoff") && workspace.includes("clearRentalReadyNowHandoff"), "the Pro workspace must consume the handoff once");
 assert.ok(workspace.includes("inspectionSummary") && workspace.includes("방문 메모와 세부 체크 결과는 가져오지 않았습니다"), "the workspace must retain only the aggregate inspection summary");
-assert.ok(workspace.indexOf("window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextWorkspace))") < workspace.indexOf("clearRentalReadyNowHandoff(window.localStorage)"), "the imported result must persist before its one-time handoff is cleared");
+const importedHandoffBlock = workspace.slice(workspace.indexOf("if (importedHandoff)"));
+assert.ok(importedHandoffBlock.indexOf("window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextWorkspace))") < importedHandoffBlock.indexOf("clearRentalReadyNowHandoff(window.localStorage)"), "the imported result must persist before its one-time handoff is cleared");
+assert.ok(workspace.includes("rentalReadyNowReceiptMatches") && workspace.indexOf("const handoffAlreadyImported") < workspace.indexOf("nextWorkspace.packs.length < MAX_PACKS"), "a cleanup retry must deduplicate before applying the six-candidate limit");
+assert.ok(workspace.includes("The persisted import receipt makes a later retry idempotent"), "handoff cleanup failure must not abort the imported workspace state");
+assert.ok(workspace.includes("readRentalReadyNowSavedFlag(window.localStorage, FIRST_SUCCESS_KEY)"), "a later first-success read failure must not overwrite a completed or duplicate import status");
+assert.ok(workspace.includes("무료 방문 결과 원본은 삭제하지 않았습니다"), "a workspace storage failure must explain that the retry source was preserved without exposing an internal handoff term");
 assert.ok(!freeTool.includes("/api/checkout/rental-application-pro"), "the free result must never skip the product introduction");
 assert.ok(!freeTool.includes("resume_pro") && !workspace.includes("resume_pro"), "the Rental handoff must not touch Resume Pro state");
 

@@ -80,6 +80,7 @@ const comparison = [
   ["커버레터 작성 도구", false, true],
   ["채용 공고 키워드 점검", false, true],
   ["회사별 지원서 묶음", false, true],
+  ["회사별 지원 마감일·지원 상태 저장", false, true],
   ["재사용하는 STAR 경험 보관함", false, true],
 ] as const;
 

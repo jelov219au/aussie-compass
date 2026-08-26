@@ -10,6 +10,13 @@ export type RentalReadyNowHandoff = {
   createdAt: number;
 };
 
+export type RentalReadyNowImportReceipt = {
+  sourceCreatedAt?: number;
+  mode: "share" | "rent";
+  reviewedCount: number;
+  concernCount: number;
+};
+
 type HandoffInput = {
   propertyLabel: string;
   mode: "share" | "rent" | "buy";
@@ -25,8 +32,12 @@ function safeLabel(value: string) {
   return value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 60);
 }
 
+function isValidTimestamp(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+
 export function createRentalReadyNowHandoff(input: HandoffInput, nowMs = Date.now()): RentalReadyNowHandoff | null {
-  if (input.mode === "buy") return null;
+  if (input.mode === "buy" || !isValidTimestamp(nowMs)) return null;
   const reviewedCount = boundedCount(input.reviewedCount);
   return {
     version: 1,
@@ -42,13 +53,15 @@ export function parseRentalReadyNowHandoff(value: string | null, nowMs = Date.no
   if (!value) return null;
   try {
     const candidate = JSON.parse(value) as Partial<RentalReadyNowHandoff>;
-    const ageMs = nowMs - (candidate.createdAt ?? Number.NaN);
     if (candidate.version !== 1
       || (candidate.mode !== "share" && candidate.mode !== "rent")
       || typeof candidate.propertyLabel !== "string"
       || typeof candidate.reviewedCount !== "number"
       || typeof candidate.concernCount !== "number"
-      || !Number.isFinite(ageMs)
+      || !isValidTimestamp(candidate.createdAt)
+      || !isValidTimestamp(nowMs)) return null;
+    const ageMs = nowMs - candidate.createdAt;
+    if (!Number.isFinite(ageMs)
       || ageMs < 0
       || ageMs > rentalReadyNowHandoffLifetimeMs) return null;
     return createRentalReadyNowHandoff({
@@ -66,6 +79,33 @@ export function readRentalReadyNowHandoff(storage: Pick<Storage, "getItem">, now
   return parseRentalReadyNowHandoff(storage.getItem(rentalReadyNowHandoffStorageKey), nowMs);
 }
 
+export function readRentalReadyNowSavedFlag(storage: Pick<Storage, "getItem">, key: string) {
+  try {
+    return storage.getItem(key) === "saved";
+  } catch {
+    return false;
+  }
+}
+
 export function clearRentalReadyNowHandoff(storage: Pick<Storage, "removeItem">) {
   storage.removeItem(rentalReadyNowHandoffStorageKey);
+}
+
+export function createRentalReadyNowImportReceipt(handoff: RentalReadyNowHandoff): RentalReadyNowImportReceipt {
+  return {
+    sourceCreatedAt: handoff.createdAt,
+    mode: handoff.mode,
+    reviewedCount: handoff.reviewedCount,
+    concernCount: handoff.concernCount,
+  };
+}
+
+export function rentalReadyNowReceiptMatches(
+  receipt: RentalReadyNowImportReceipt | null,
+  handoff: RentalReadyNowHandoff,
+) {
+  return receipt?.sourceCreatedAt === handoff.createdAt
+    && receipt.mode === handoff.mode
+    && receipt.reviewedCount === handoff.reviewedCount
+    && receipt.concernCount === handoff.concernCount;
 }

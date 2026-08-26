@@ -8,10 +8,17 @@ import {
   type RentalApplicationPackSummary,
   type RentalContactStatus,
 } from "@/components/tools/RentalApplicationPortfolio";
-import { clearRentalReadyNowHandoff, readRentalReadyNowHandoff } from "@/lib/rentalReadyNowHandoff";
+import {
+  clearRentalReadyNowHandoff,
+  createRentalReadyNowImportReceipt,
+  readRentalReadyNowHandoff,
+  readRentalReadyNowSavedFlag,
+  rentalReadyNowReceiptMatches,
+  type RentalReadyNowImportReceipt,
+} from "@/lib/rentalReadyNowHandoff";
 
 type DocumentStatus = "todo" | "review" | "ready";
-type RentalInspectionSummary = { mode: "share" | "rent"; reviewedCount: number; concernCount: number };
+type RentalInspectionSummary = RentalReadyNowImportReceipt;
 type RentalDraft = {
   propertyLabel: string;
   moveDate: string;
@@ -121,7 +128,15 @@ function safeInspectionSummary(value: unknown): RentalInspectionSummary | null {
     || !Number.isFinite(candidate.reviewedCount)
     || !Number.isFinite(candidate.concernCount)) return null;
   const reviewedCount = Math.max(0, Math.min(100, Math.trunc(candidate.reviewedCount)));
-  return { mode: candidate.mode, reviewedCount, concernCount: Math.min(reviewedCount, Math.max(0, Math.min(100, Math.trunc(candidate.concernCount)))) };
+  const sourceCreatedAt = typeof candidate.sourceCreatedAt === "number" && Number.isFinite(candidate.sourceCreatedAt)
+    ? Math.trunc(candidate.sourceCreatedAt)
+    : undefined;
+  return {
+    mode: candidate.mode,
+    reviewedCount,
+    concernCount: Math.min(reviewedCount, Math.max(0, Math.min(100, Math.trunc(candidate.concernCount)))),
+    ...(sourceCreatedAt === undefined ? {} : { sourceCreatedAt }),
+  };
 }
 
 function normalizePack(value: unknown, index: number): RentalPack {
@@ -191,15 +206,15 @@ export function RentalApplicationWorkspace() {
       let importedHandoff = false;
       const handoff = readRentalReadyNowHandoff(window.localStorage);
       if (handoff) {
-        const inspectionSummary: RentalInspectionSummary = {
-          mode: handoff.mode,
-          reviewedCount: handoff.reviewedCount,
-          concernCount: handoff.concernCount,
-        };
+        const inspectionSummary = createRentalReadyNowImportReceipt(handoff);
+        const handoffAlreadyImported = nextWorkspace.packs.some((pack) => rentalReadyNowReceiptMatches(pack.inspectionSummary, handoff));
         const activeIndex = Math.max(0, nextWorkspace.packs.findIndex((pack) => pack.id === nextWorkspace.activeId));
         const activePack = nextWorkspace.packs[activeIndex] ?? nextWorkspace.packs[0];
         const propertyLabel = handoff.propertyLabel || `방문 점검 후보 ${nextWorkspace.packs.length}`;
-        if (activePack && !hasMeaningfulPackData(activePack, activeIndex)) {
+        if (handoffAlreadyImported) {
+          try { clearRentalReadyNowHandoff(window.localStorage); } catch {}
+          setMessage("무료 방문 결과는 이미 가져왔습니다. 같은 후보를 다시 만들지 않았습니다.");
+        } else if (activePack && !hasMeaningfulPackData(activePack, activeIndex)) {
           nextWorkspace = {
             ...nextWorkspace,
             packs: nextWorkspace.packs.map((pack) => pack.id === activePack.id ? { ...pack, propertyLabel, inspectionSummary } : pack),
@@ -215,15 +230,17 @@ export function RentalApplicationWorkspace() {
       }
       if (importedHandoff) {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextWorkspace));
-        window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved");
-        clearRentalReadyNowHandoff(window.localStorage);
+        try { window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved"); } catch {}
+        try { clearRentalReadyNowHandoff(window.localStorage); } catch {
+          // The persisted import receipt makes a later retry idempotent.
+        }
         setMessage("무료 집 방문 결과에서 집 구분명과 점검 집계만 가져왔습니다.");
       }
       setWorkspace(nextWorkspace);
       const completedBefore = nextWorkspace.packs.length > 1 || nextWorkspace.packs.some(hasMeaningfulPackData);
-      setFirstCandidateSaved(window.localStorage.getItem(FIRST_SUCCESS_KEY) === "saved" || completedBefore);
+      setFirstCandidateSaved(readRentalReadyNowSavedFlag(window.localStorage, FIRST_SUCCESS_KEY) || completedBefore);
     } catch {
-      // The workspace remains usable when local storage is unavailable.
+      setMessage("브라우저 저장소를 사용할 수 없어 무료 방문 결과를 가져오지 못했습니다. 무료 방문 결과 원본은 삭제하지 않았습니다.");
     }
     setLoaded(true);
   }, []);

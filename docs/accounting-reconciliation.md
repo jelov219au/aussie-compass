@@ -24,7 +24,7 @@ private `overall_tax_handoff=PASS` criteria are satisfied, record
 
 ## Private workbook
 
-The generated workbook starts with the controlled live A$19.90 Resume Pro purchase and full refund recorded on 20 August 2026. Unknown fee and payout values remain blank until reconciled against Stripe reports and the bank statement. Do not add customer names, email addresses, card details, ABNs or secret keys to the workbook.
+The generated workbook starts with the controlled live Resume Pro purchase and full refund recorded on 20 August 2026. Its fee source has been observed, while payout and bank reconciliation remain unresolved until private Stripe source and bank evidence close them. Do not add customer names, email addresses, card details, ABNs or secret keys to the workbook.
 
 ### Status-only controlled-payment reconciliation gate
 
