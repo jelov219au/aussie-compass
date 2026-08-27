@@ -82,6 +82,9 @@ for (const mobileScenario of [
   "환불 또는 제품 문제 해결 요청",
 ]) assert.ok(paymentSupportHelper.includes(mobileScenario), `mobile support helper is missing scenario: ${mobileScenario}`);
 assert.ok(paymentSupportHelper.includes("같은 결제를 다시 하지 않기"));
+assert.ok(paymentSupportHelper.includes("다시 결제하거나 영수증·인보이스 원문·링크를 보내지 말고, 결제 참조 마지막 8자와 대략적인 결제 시각·시간대로 Hoju Compass 제품 지원에 문의하기"));
+assert.ok(paymentSupportHelper.includes("4영업시간 이내 확인 결과 또는 다음 조치를 안내하는 것을 목표"));
+assert.ok(!paymentSupportHelper.includes("코드가 없다면 구매 증빙으로 지원 요청"));
 assert.ok(paymentSupportHelper.includes("각 결제 참조는 전체 값 대신 마지막 8자만 기록"));
 assert.ok(paymentSupportHelper.includes("판매자·문서 발행자·거래 지원 경로가 명확한 경우만 확인하고, 불명확하면 추정하지 않기"));
 assert.ok(paymentSupportHelper.includes("환불 요청은 환불 완료가 아님을 확인"));
