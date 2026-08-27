@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const [source, secureRunner, packageJson, readiness, checklist, auditRoleGrants, productionAudit, envExample, releaseManifest] = await Promise.all([
+const [source, secureRunner, packageJson, readiness, checklist, auditRoleGrants, productionAudit, envExample, releaseManifest, runtimePreflight, monitoredMode, alertRunbook, mobileOwnerChecklist] = await Promise.all([
   readFile(new URL("./check-payment-launch.mjs", import.meta.url), "utf8"),
   readFile(new URL("./run-production-payment-preflight.ps1", import.meta.url), "utf8"),
   readFile(new URL("../package.json", import.meta.url), "utf8"),
@@ -13,6 +13,10 @@ const [source, secureRunner, packageJson, readiness, checklist, auditRoleGrants,
   readFile(new URL("../docs/production-first-sale-readiness-audit-2026-08-24.md", import.meta.url), "utf8"),
   readFile(new URL("../.env.example", import.meta.url), "utf8"),
   readFile(new URL("../docs/release-candidate-manifest-2026-08-23.md", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/productionRuntimePaymentPreflight.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/firstSaleMonitoredMode.ts", import.meta.url), "utf8"),
+  readFile(new URL("../docs/payment-alerts.md", import.meta.url), "utf8"),
+  readFile(new URL("../docs/first-sale-mobile-owner-checklist.md", import.meta.url), "utf8"),
 ]);
 const compactProductionAudit = productionAudit.replace(/\s+/g, " ");
 
@@ -211,13 +215,46 @@ for (const currentReleaseBoundary of [
   "- [ ] Immediately before the release audit",
   "Any later commit creates a new candidate",
   "Historical evidence for an earlier Production SHA does not satisfy this release",
-  "keep `PAYMENTS_ENABLED=false` and `STRIPE_MANAGED_PAYMENTS_ENABLED=false`",
+  "keep `PAYMENTS_ENABLED=false` throughout setup and preflight",
+  "set `STRIPE_MANAGED_PAYMENTS_ENABLED=true`, as required by the executable payment-off preflight",
+  "setting `PAYMENTS_ENABLED=true` remains a separate later owner decision",
   "restore every required Production environment value while payments are off",
   "verify or apply the required database migrations in the documented order while payments are off",
   "promote the exact approved candidate while payments are off",
   "canonical outer preflight pinned to that full SHA",
   "do not drop or reverse the additive payment evidence migrations",
 ]) assert.ok(checklist.includes(currentReleaseBoundary), `the launch checklist is missing the current release/rollback boundary: ${currentReleaseBoundary}`);
+const executablePreflightOrder = checklist.match(/Keep this order fail-closed:[^\r\n]+/)?.[0] ?? "";
+assert.ok(
+  runtimePreflight.includes('input.paymentsEnabled === "false"')
+    && runtimePreflight.includes('input.managedPaymentsEnabled === "true"'),
+  "the executable runtime preflight must keep Checkout off while requiring Managed Payments readiness",
+);
+assert.doesNotMatch(
+  executablePreflightOrder,
+  /`PAYMENTS_ENABLED=false` and `STRIPE_MANAGED_PAYMENTS_ENABLED=false`/,
+  "the executable preflight order must not disable its required Managed Payments readiness setting",
+);
+for (const monitoredBoundary of [
+  'FIRST_SALE_MONITORED_MODE_ENABLED?.trim().toLowerCase() === "true"',
+  "FIRST_SALE_MONITORED_MODE_OWNER_ACK",
+  "firstSaleMonitoredModeOwnerAck",
+  'process.env.VERCEL_ENV === "production"',
+  'process.env.FIRST_SALE_GATE_ENABLED === "true"',
+  'process.env.PAYMENTS_ENTITLEMENT_STORE === "neon"',
+]) assert.ok(monitoredMode.includes(monitoredBoundary), `first-sale monitored mode is missing its fail-closed boundary: ${monitoredBoundary}`);
+for (const alertBoundary of [
+  "`PAYMENT_ALERTS_ENABLED=true`",
+  ".\\scripts\\run-payment-alert-transport-check.ps1 -SendTest",
+  "Record only the received",
+]) assert.ok(alertRunbook.includes(alertBoundary), `the payment-alert runbook is missing: ${alertBoundary}`);
+const smtpReceiptGate = mobileOwnerChecklist.indexOf("no-send SMTP 인증 PASS");
+const productionRehearsalGate = mobileOwnerChecklist.indexOf("PRODUCTION_PAYMENT_PATH_EVIDENCE=PASS");
+const ownerSaleApprovalGate = mobileOwnerChecklist.indexOf("한 건의 첫 판매만 명시적으로 승인");
+assert.ok(
+  smtpReceiptGate >= 0 && smtpReceiptGate < productionRehearsalGate && productionRehearsalGate < ownerSaleApprovalGate,
+  "SMTP receipt, payment-off Production rehearsal and owner single-sale approval must remain ordered fail-closed gates",
+);
 const deploymentIdentitySection = checklist.match(/## 0\. Production deployment identity([\s\S]*?)## 1\. Business identity/)?.[1] ?? "";
 assert.doesNotMatch(deploymentIdentitySection, /\b[0-9a-f]{40}\b/, "the deployment checklist must not hardcode a candidate or Production SHA that becomes stale after the next commit");
 assert.doesNotMatch(
