@@ -261,6 +261,8 @@ assert.ok(
   smtpReceiptGate >= 0 && smtpReceiptGate < productionRehearsalGate && productionRehearsalGate < ownerSaleApprovalGate,
   "SMTP receipt, payment-off Production rehearsal and owner single-sale approval must remain ordered fail-closed gates",
 );
+assert.ok(mobileOwnerChecklist.includes("PRODUCTION_PAYMENT_PATH_EVIDENCE=PASS mode=production source_sha=exact"), "Production rehearsal evidence must be bound to the exact approved Source SHA");
+assert.ok(readiness.includes("necessary but not sufficient for sale approval") && readiness.includes("preflight alone never authorizes `PAYMENTS_ENABLED=true`"), "payment readiness must not allow owner approval before monitoring and exact-SHA Production rehearsal pass");
 const deploymentIdentitySection = checklist.match(/## 0\. Production deployment identity([\s\S]*?)## 1\. Business identity/)?.[1] ?? "";
 assert.doesNotMatch(deploymentIdentitySection, /\b[0-9a-f]{40}\b/, "the deployment checklist must not hardcode a candidate or Production SHA that becomes stale after the next commit");
 assert.doesNotMatch(

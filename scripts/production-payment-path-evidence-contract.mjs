@@ -9,6 +9,7 @@ const migrationKeys = [
 const rootKeys = [
   "schema_version",
   "environment",
+  "production_source_sha",
   "observed_at",
   "payments_enabled",
   "migrations",
@@ -75,8 +76,9 @@ export function containsSensitiveProductionPathEvidence(raw) {
 
 export function createProductionPaymentPathEvidenceTemplate() {
   return {
-    schema_version: 1,
+    schema_version: 2,
     environment: "production",
+    production_source_sha: null,
     observed_at: null,
     payments_enabled: false,
     migrations: Object.fromEntries(migrationKeys.map((key) => [key, false])),
@@ -129,9 +131,15 @@ function validShape(packet) {
     && Object.entries(sectionKeys).every(([name, keys]) => hasExactKeys(packet[name], keys));
 }
 
-export function evaluateProductionPaymentPathEvidence(packet) {
-  if (!validShape(packet) || packet.schema_version !== 1 || packet.environment !== "production" || !isCanonicalUtc(packet.observed_at)) {
+export function evaluateProductionPaymentPathEvidence(packet, expectedSourceSha) {
+  if (!validShape(packet) || packet.schema_version !== 2 || packet.environment !== "production" || !isCanonicalUtc(packet.observed_at)) {
     return { passed: false, reason: "invalid_shape" };
+  }
+  if (typeof expectedSourceSha !== "string" || !/^[a-f0-9]{40}$/.test(expectedSourceSha)) {
+    return { passed: false, reason: "invalid_expected_sha" };
+  }
+  if (packet.production_source_sha !== expectedSourceSha) {
+    return { passed: false, reason: "source_sha_mismatch" };
   }
   if (packet.payments_enabled !== false) return { passed: false, reason: "payments_not_off" };
   if (!migrationKeys.every((key) => packet.migrations[key] === true)) {

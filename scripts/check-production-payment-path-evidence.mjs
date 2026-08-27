@@ -11,8 +11,11 @@ import {
   evaluateProductionPaymentPathEvidence,
 } from "./production-payment-path-evidence-contract.mjs";
 
+const expectedSourceSha = "a".repeat(40);
+
 function passingPacket() {
   const packet = createProductionPaymentPathEvidenceTemplate();
+  packet.production_source_sha = expectedSourceSha;
   packet.observed_at = "2026-08-25T00:00:00.000Z";
   for (const key of Object.keys(packet.migrations)) packet.migrations[key] = true;
   Object.assign(packet.webhook, { signed_delivery_http_status: 200, receipt_count_delta: 1, duplicate_receipt_count_delta: 0 });
@@ -42,10 +45,15 @@ function passingPacket() {
   return packet;
 }
 
-assert.deepEqual(evaluateProductionPaymentPathEvidence(passingPacket()), { passed: true, reason: null });
+assert.deepEqual(evaluateProductionPaymentPathEvidence(passingPacket(), expectedSourceSha), { passed: true, reason: null });
+assert.deepEqual(evaluateProductionPaymentPathEvidence(passingPacket()), { passed: false, reason: "invalid_expected_sha" });
+const legacyPacket = passingPacket();
+legacyPacket.schema_version = 1;
+assert.deepEqual(evaluateProductionPaymentPathEvidence(legacyPacket, expectedSourceSha), { passed: false, reason: "invalid_shape" });
 
 for (const [reason, mutate] of [
   ["payments_not_off", (packet) => { packet.payments_enabled = true; }],
+  ["source_sha_mismatch", (packet) => { packet.production_source_sha = "b".repeat(40); }],
   ["migrations_unverified", (packet) => { packet.migrations.restore_activation_nonce_v1 = false; }],
   ["webhook_unverified", (packet) => { packet.webhook.duplicate_receipt_count_delta = 1; }],
   ["outbox_unverified", (packet) => { packet.outbox.sent_count_delta = 0; }],
@@ -55,12 +63,12 @@ for (const [reason, mutate] of [
 ]) {
   const packet = passingPacket();
   mutate(packet);
-  assert.deepEqual(evaluateProductionPaymentPathEvidence(packet), { passed: false, reason });
+  assert.deepEqual(evaluateProductionPaymentPathEvidence(packet, expectedSourceSha), { passed: false, reason });
 }
 
 const unexpected = passingPacket();
 unexpected.event_suffix = "FORBIDDEN";
-assert.equal(evaluateProductionPaymentPathEvidence(unexpected).reason, "invalid_shape");
+assert.equal(evaluateProductionPaymentPathEvidence(unexpected, expectedSourceSha).reason, "invalid_shape");
 
 for (const unsafe of [
   "buyer@example.com",
@@ -77,13 +85,22 @@ try {
   const verifier = fileURLToPath(new URL("./verify-production-payment-path-evidence.mjs", import.meta.url));
   const passPath = join(directory, "pass.json");
   await writeFile(passPath, JSON.stringify(passingPacket()), "utf8");
-  const pass = spawnSync(process.execPath, [verifier, "--file", passPath], { encoding: "utf8" });
+  const pass = spawnSync(process.execPath, [verifier, "--expected-sha", expectedSourceSha, "--file", passPath], { encoding: "utf8" });
   assert.equal(pass.status, 0);
-  assert.equal(pass.stdout.trim(), "PRODUCTION_PAYMENT_PATH_EVIDENCE=PASS mode=production payments_off=yes webhook=verified outbox=sent nonce=bound release=denied restore=verified identifiers_printed=no secrets_printed=no");
+  assert.equal(pass.stdout.trim(), "PRODUCTION_PAYMENT_PATH_EVIDENCE=PASS mode=production source_sha=exact payments_off=yes webhook=verified outbox=sent nonce=bound release=denied restore=verified identifiers_printed=no secrets_printed=no");
+
+  const stale = spawnSync(process.execPath, [verifier, "--expected-sha", "b".repeat(40), "--file", passPath], { encoding: "utf8" });
+  assert.equal(stale.status, 1);
+  assert.match(stale.stdout, /^PRODUCTION_PAYMENT_PATH_EVIDENCE=FAIL .* reason=source_sha_mismatch\s*$/);
+  assert.doesNotMatch(stale.stdout, /[a-f0-9]{40}/);
+
+  const missingExpectedSha = spawnSync(process.execPath, [verifier, "--file", passPath], { encoding: "utf8" });
+  assert.equal(missingExpectedSha.status, 2);
+  assert.match(missingExpectedSha.stdout, /^PRODUCTION_PAYMENT_PATH_EVIDENCE=FAIL .* reason=usage_error\s*$/);
 
   const unsafePath = join(directory, "unsafe.json");
   await writeFile(unsafePath, '{"customer_email":"buyer@example.com"}', "utf8");
-  const unsafe = spawnSync(process.execPath, [verifier, "--file", unsafePath], { encoding: "utf8" });
+  const unsafe = spawnSync(process.execPath, [verifier, "--expected-sha", expectedSourceSha, "--file", unsafePath], { encoding: "utf8" });
   assert.equal(unsafe.status, 2);
   assert.match(unsafe.stdout, /^PRODUCTION_PAYMENT_PATH_EVIDENCE=FAIL .* reason=sensitive_evidence\s*$/);
   assert.doesNotMatch(`${unsafe.stdout}\n${unsafe.stderr}`, /buyer@example\.com/);

@@ -41,14 +41,17 @@ for (const boundary of [
   "POST_SALE_TAX_AGENT_HANDOFF=PASS|HOLD|STOP",
   "POST_SALE_CUSTOMER_DOCUMENTS=GO|NO-GO|STOP",
   "FIRST_SALE_OWNER_DECISION=NO-GO",
-  "DEPLOYMENT_IDENTITY=PASS",
-  "CHECKOUT_OFF_BOUNDARY=PASS",
+  "DEPLOYMENT_IDENTITY=HOLD",
+  "CHECKOUT_OFF_BOUNDARY=HOLD",
   "LOCAL_QUALITY_GATE=PASS",
   "STRIPE_KEY_PROVISIONING_SUPPORT=PASS",
   "RESTRICTED_KEY_SET=HOLD",
   "INTEGRATED_PREFLIGHT=HOLD",
   "SMTP_RECEIPT=HOLD",
   "PRODUCTION_REHEARSAL=HOLD",
+  "같은 approved full SHA",
+  "monitoring=smtp|manual",
+  "source_sha=exact",
   "POST_SALE_EVIDENCE=NOT_STARTED",
   "SECOND_SALE=HOLD",
   "둘은 첫 결제 전 차단이 아니지만 미완료면 두 번째 판매는 `HOLD`",
@@ -117,6 +120,9 @@ assert.match(launchChecklist, /- \[x\] Create a separate `rk_live_` operator-aud
 assert.match(launchChecklist, /- \[x\] Create a least-privilege Production Runtime `rk_live_` key/);
 assert.ok(checklist.includes("accounting key 권한이나 세 key 분리의 증거가 아니며"));
 assert.ok(checklist.includes("RESTRICTED_KEY_SET=HOLD"));
+assert.ok(oneScreenSection.indexOf("STRIPE_MANAGED_PAYMENTS_ENABLED=true") < oneScreenSection.indexOf("FIRST_SALE_PREFLIGHT=PASS"));
+assert.ok(oneScreenSection.indexOf("source_sha=exact") < oneScreenSection.indexOf("한 건의 첫 판매만 명시적으로 승인"));
+assert.doesNotMatch(oneScreenSection, /\| 0 \| `DONE`/);
 assert.ok(!checklist.includes("FIRST_SALE_OWNER_DECISION=APPROVED"));
 
 console.log("First-sale mobile owner checklist contract passed.");
