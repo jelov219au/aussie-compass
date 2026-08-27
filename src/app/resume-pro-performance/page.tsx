@@ -40,6 +40,12 @@ function trafficChange(current: number, previous: number) {
   return `${change > 0 ? "+" : ""}${change.toLocaleString()}`;
 }
 
+function resumeTemplatePulseDecision(status: "collected" | "not_configured" | "error", proViews: number) {
+  if (status !== "collected") return `HOLD · ${collectionLabel(status)} 상태라 판단하지 않습니다.`;
+  if (proViews < 10) return "HOLD · Resume Pro 조회가 10회 미만이라 전환 결론을 내리지 않습니다.";
+  return "판단 가능 · Resume Pro 조회 표본이 10회 이상입니다.";
+}
+
 function utcMoment(value: string) {
   return `${value.slice(0, 16).replace("T", " ")} UTC`;
 }
@@ -174,6 +180,35 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
                   );
                 })}
               </dl>
+              <div className="mt-8 border border-navy/15 bg-white p-5 sm:p-6" aria-labelledby="resume-template-pulse-heading">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Search template funnel</p>
+                <h3 id="resume-template-pulse-heading" className="mt-2 text-xl font-semibold text-navy">무료 이력서 양식 글 · 24시간 퍼널</h3>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">고정 검색 글 방문, 그 글 출처의 Resume Pro 조회와 Checkout 시작을 같은 24시간 창에서 봅니다. 같은 사람을 연결한 여정이 아니라 고정 경로·출처의 익명 합계이며, 이름·이력서 내용·검색어나 URL 쿼리는 사용하지 않습니다.</p>
+                <dl className="mt-5 grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-4">
+                  {([
+                    ["검색 글 방문", "resumeTemplateVisitors"],
+                    ["Resume Pro 조회", "resumeTemplateProViews"],
+                    ["Checkout 시작", "resumeTemplateCheckoutStarts"],
+                  ] as const).map(([label, key]) => {
+                    const current = report.trafficComparison!.current[key];
+                    const previous = report.trafficComparison!.previous[key];
+                    const collected = report.trafficComparison!.status === "collected";
+                    return (
+                      <div key={key} className="bg-surface p-4">
+                        <dt className="text-xs text-muted">{label}</dt>
+                        <dd className="mt-2 text-2xl font-semibold text-navy">{collected ? current.toLocaleString() : collectionLabel(report.trafficComparison!.status)}</dd>
+                        <p className="mt-2 text-xs leading-5 text-muted">직전 24시간 {collected ? previous.toLocaleString() : "—"}</p>
+                      </div>
+                    );
+                  })}
+                  <div className="bg-surface p-4">
+                    <dt className="text-xs text-muted">조회 → Checkout 시작</dt>
+                    <dd className="mt-2 text-2xl font-semibold text-navy">{report.trafficComparison.status === "collected" ? rate(report.trafficComparison.current.resumeTemplateCheckoutStarts, report.trafficComparison.current.resumeTemplateProViews) : "—"}</dd>
+                    <p className="mt-2 text-xs leading-5 text-muted">직전 24시간 {report.trafficComparison.status === "collected" ? rate(report.trafficComparison.previous.resumeTemplateCheckoutStarts, report.trafficComparison.previous.resumeTemplateProViews) : "—"}</p>
+                  </div>
+                </dl>
+                <p className="mt-4 border-l-2 border-gold bg-surface p-3 text-sm font-semibold leading-6 text-navy" role="status">{resumeTemplatePulseDecision(report.trafficComparison.status, report.trafficComparison.current.resumeTemplateProViews)}</p>
+              </div>
             </section>
           )}
 

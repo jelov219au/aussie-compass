@@ -131,6 +131,17 @@ for (const textState of [
 assert.ok(reportPage.includes("<time dateTime={report.trafficComparison.current.since}") && reportPage.includes("<time dateTime={report.trafficComparison.previous.until}"), "UTC comparison bounds must use semantic time elements");
 assert.ok(reportPage.includes('className="inline-flex min-h-11') && reportPage.includes("24시간 합계 새로고침"), "the mobile refresh action needs an accessible minimum target size");
 assert.ok(reportPage.includes('current === 0 ? "수집됨 · 활동 0 · "') && reportPage.includes('"숫자로 판단하지 마세요"'), "the daily view must distinguish a collected zero from missing or failed collection");
+for (const field of ["resumeTemplateVisitors", "resumeTemplateProViews", "resumeTemplateCheckoutStarts"]) {
+  assert.ok(report.includes(`${field}: number`) && reportPage.includes(field), `the rolling resume-template funnel is missing ${field}`);
+}
+assert.ok(report.includes('requestPath: "/resources/australia-resume-template-submission-checklist"') && report.includes('entry: "article-resume-template"'), "the rolling source funnel must use one fixed public path and allowlisted entry");
+assert.equal((report.match(/requestPath: resumeTemplateSource\.requestPath/g) ?? []).length, 2, "the resume-template visit denominator must be queried once for each adjacent 24-hour window");
+assert.equal((report.match(/eventName: "Resume Pro Viewed", extraFilter: `eventData\/entry eq '\$\{resumeTemplateSource\.entry\}'`/g) ?? []).length, 2, "the existing Pro view event must be filtered to the fixed source in both windows");
+assert.equal((report.match(/eventName: "Checkout Started", extraFilter: `eventData\/product eq 'resume_pro' and eventData\/entry eq '\$\{resumeTemplateSource\.entry\}'`/g) ?? []).length, 2, "the existing Checkout event must be filtered to the fixed product and source in both windows");
+assert.ok(reportPage.includes("무료 이력서 양식 글 · 24시간 퍼널") && reportPage.includes("조회 → Checkout 시작"), "the operator view must name the source funnel and its conversion ratio");
+assert.ok(reportPage.includes("rate(report.trafficComparison.current.resumeTemplateCheckoutStarts, report.trafficComparison.current.resumeTemplateProViews)") && reportPage.includes("rate(report.trafficComparison.previous.resumeTemplateCheckoutStarts, report.trafficComparison.previous.resumeTemplateProViews)"), "the current and previous source conversion rates must use Pro views as their denominator");
+assert.ok(reportPage.includes("proViews < 10") && reportPage.includes("HOLD · Resume Pro 조회가 10회 미만"), "source conversion conclusions must stay on HOLD below ten Pro views");
+assert.ok(reportPage.includes("이름·이력서 내용·검색어나 URL 쿼리는 사용하지 않습니다"), "the source pulse must repeat its no-PII and no-query boundary");
 assert.ok(reportPage.includes("ratio(report.sitePageviews, report.siteVisitors)"), "pageviews per visitor must be a numeric ratio rather than a percentage");
 assert.ok(reportPage.includes("rate(report.proCatalogVisitors, report.siteVisitors)") && reportPage.includes("rate(report.resumeProVisitors, report.siteVisitors)"), "operator report must show visitor-to-Pro reach rates");
 assert.ok(performanceDoc.includes("not a person-level joined journey") && performanceDoc.includes("Do not add them together"), "operator guidance must prevent person-level or additive reach claims");

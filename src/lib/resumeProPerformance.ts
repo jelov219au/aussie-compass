@@ -43,6 +43,9 @@ export type ResumeProTrafficWindow = {
   sitePageviews: number;
   proCatalogVisitors: number;
   resumeProVisitors: number;
+  resumeTemplateVisitors: number;
+  resumeTemplateProViews: number;
+  resumeTemplateCheckoutStarts: number;
 };
 
 export type ResumeProTrafficComparison = {
@@ -82,6 +85,11 @@ const entries: Array<{ entry: ResumeProEntry; label: string }> = [
   { entry: "pro-catalog-card", label: "Pro 상품 비교 카드" },
   { entry: "direct", label: "직접 방문·기타" },
 ];
+
+const resumeTemplateSource = {
+  requestPath: "/resources/australia-resume-template-submission-checklist",
+  entry: "article-resume-template",
+} as const satisfies { requestPath: string; entry: ResumeProEntry };
 
 type VercelAggregateResponse = {
   data?: Array<{ eventData?: unknown; count?: unknown }>;
@@ -138,7 +146,7 @@ async function fetchVercelVisits(params: {
   teamId?: string;
   since: string;
   until: string;
-  requestPath?: "/pro" | "/resume-pro";
+  requestPath?: "/pro" | "/resume-pro" | typeof resumeTemplateSource.requestPath;
 }) {
   const url = new URL("https://api.vercel.com/v1/query/web-analytics/visits/count");
   url.searchParams.set("projectId", params.projectId);
@@ -274,6 +282,9 @@ function emptyTrafficWindow(since: string, until: string): ResumeProTrafficWindo
     sitePageviews: 0,
     proCatalogVisitors: 0,
     resumeProVisitors: 0,
+    resumeTemplateVisitors: 0,
+    resumeTemplateProViews: 0,
+    resumeTemplateCheckoutStarts: 0,
   };
 }
 
@@ -297,20 +308,41 @@ async function loadVercelTrafficComparison(now: Date): Promise<ResumeProTrafficC
   }
 
   try {
-    const [currentSite, currentPro, currentResumePro, previousSite, previousPro, previousResumePro] = await Promise.all([
+    const [
+      currentSite,
+      currentPro,
+      currentResumePro,
+      currentResumeTemplate,
+      currentResumeTemplateProViews,
+      currentResumeTemplateCheckoutStarts,
+      previousSite,
+      previousPro,
+      previousResumePro,
+      previousResumeTemplate,
+      previousResumeTemplateProViews,
+      previousResumeTemplateCheckoutStarts,
+    ] = await Promise.all([
       fetchVercelVisits({ token, projectId, teamId, ...windows.current }),
       fetchVercelVisits({ token, projectId, teamId, ...windows.current, requestPath: "/pro" }),
       fetchVercelVisits({ token, projectId, teamId, ...windows.current, requestPath: "/resume-pro" }),
+      fetchVercelVisits({ token, projectId, teamId, ...windows.current, requestPath: resumeTemplateSource.requestPath }),
+      fetchVercelEvent({ token, projectId, teamId, ...windows.current, eventName: "Resume Pro Viewed", extraFilter: `eventData/entry eq '${resumeTemplateSource.entry}'` }),
+      fetchVercelEvent({ token, projectId, teamId, ...windows.current, eventName: "Checkout Started", extraFilter: `eventData/product eq 'resume_pro' and eventData/entry eq '${resumeTemplateSource.entry}'` }),
       fetchVercelVisits({ token, projectId, teamId, ...windows.previous }),
       fetchVercelVisits({ token, projectId, teamId, ...windows.previous, requestPath: "/pro" }),
       fetchVercelVisits({ token, projectId, teamId, ...windows.previous, requestPath: "/resume-pro" }),
+      fetchVercelVisits({ token, projectId, teamId, ...windows.previous, requestPath: resumeTemplateSource.requestPath }),
+      fetchVercelEvent({ token, projectId, teamId, ...windows.previous, eventName: "Resume Pro Viewed", extraFilter: `eventData/entry eq '${resumeTemplateSource.entry}'` }),
+      fetchVercelEvent({ token, projectId, teamId, ...windows.previous, eventName: "Checkout Started", extraFilter: `eventData/product eq 'resume_pro' and eventData/entry eq '${resumeTemplateSource.entry}'` }),
     ]);
     const currentSiteTotals = visitTotals(currentSite);
     const currentProTotals = visitTotals(currentPro);
     const currentResumeProTotals = visitTotals(currentResumePro);
+    const currentResumeTemplateTotals = visitTotals(currentResumeTemplate);
     const previousSiteTotals = visitTotals(previousSite);
     const previousProTotals = visitTotals(previousPro);
     const previousResumeProTotals = visitTotals(previousResumePro);
+    const previousResumeTemplateTotals = visitTotals(previousResumeTemplate);
 
     return {
       status: "collected",
@@ -321,6 +353,9 @@ async function loadVercelTrafficComparison(now: Date): Promise<ResumeProTrafficC
         sitePageviews: currentSiteTotals.pageviews,
         proCatalogVisitors: currentProTotals.visitors,
         resumeProVisitors: currentResumeProTotals.visitors,
+        resumeTemplateVisitors: currentResumeTemplateTotals.visitors,
+        resumeTemplateProViews: aggregateTotal(currentResumeTemplateProViews),
+        resumeTemplateCheckoutStarts: aggregateTotal(currentResumeTemplateCheckoutStarts),
       },
       previous: {
         ...emptyPrevious,
@@ -328,6 +363,9 @@ async function loadVercelTrafficComparison(now: Date): Promise<ResumeProTrafficC
         sitePageviews: previousSiteTotals.pageviews,
         proCatalogVisitors: previousProTotals.visitors,
         resumeProVisitors: previousResumeProTotals.visitors,
+        resumeTemplateVisitors: previousResumeTemplateTotals.visitors,
+        resumeTemplateProViews: aggregateTotal(previousResumeTemplateProViews),
+        resumeTemplateCheckoutStarts: aggregateTotal(previousResumeTemplateCheckoutStarts),
       },
     };
   } catch {
