@@ -10,6 +10,7 @@ const activateRoute = await readFile(new URL("../src/app/api/rental-application-
 const releaseRoute = await readFile(new URL("../src/app/api/rental-application-pro/access/release/route.ts", import.meta.url), "utf8");
 const restoreRoute = await readFile(new URL("../src/app/api/rental-application-pro/restore/route.ts", import.meta.url), "utf8");
 const restoreCodeRoute = await readFile(new URL("../src/app/api/rental-application-pro/restore-code/route.ts", import.meta.url), "utf8");
+const accessTools = await readFile(new URL("../src/components/tools/RentalApplicationProAccessTools.tsx", import.meta.url), "utf8");
 const activationForm = await readFile(new URL("../src/components/tools/RentalApplicationProActivationForm.tsx", import.meta.url), "utf8");
 const successPage = await readFile(new URL("../src/app/rental-application-pro/success/page.tsx", import.meta.url), "utf8");
 const restoreForm = await readFile(new URL("../src/components/tools/RentalApplicationProRestoreForm.tsx", import.meta.url), "utf8");
@@ -58,6 +59,9 @@ assert.ok(access.includes('productCode: "rental_application_pro"'), "Rental acce
 assert.ok(activateRoute.includes("activation_nonce") && activateRoute.includes("consumeCheckoutActivation"), "Rental activation must consume a browser-bound nonce on the server");
 assert.ok(activateRoute.includes('productCode: "rental_application_pro"'), "Rental activation must never consume another product's entitlement");
 assert.ok(releaseRoute.includes("releaseAccessSession") && releaseRoute.includes("hashRentalApplicationAccessSessionId"), "Rental sign-out must revoke the server-tracked device session before clearing its cookie");
+assert.ok(accessTools.includes("onSubmit={releaseAccess}") && accessTools.includes('headers: { Accept: "application/json" }'), "Rental sign-out must verify its server outcome without leaving mobile or PWA users on a raw response");
+assert.ok(accessTools.includes("result?.released !== true") && accessTools.includes('result.destination !== "/rental-application-pro?access=released"'), "Rental sign-out must only redirect after an exact confirmed release");
+assert.ok(accessTools.includes('href="/rental-application-pro/workspace"') && accessTools.includes("접근 상태 다시 확인"), "an unknown Rental release outcome must preserve a safe access recheck path");
 assert.ok(restoreRoute.includes("restore_nonce") && restoreRoute.includes("consumeRestoreTokenHash"), "Rental restore must consume a nonce-bound one-time token");
 assert.ok(restoreRoute.includes('productCode: "rental_application_pro"'), "Rental restore must remain product-scoped");
 assert.ok(restoreCodeRoute.includes("getActiveRentalApplicationProEntitlement"), "Restore codes must require an active server-tracked Rental session");
