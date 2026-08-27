@@ -75,8 +75,13 @@ export function parseRentalReadyNowHandoff(value: string | null, nowMs = Date.no
   }
 }
 
-export function readRentalReadyNowHandoff(storage: Pick<Storage, "getItem">, nowMs = Date.now()) {
-  return parseRentalReadyNowHandoff(storage.getItem(rentalReadyNowHandoffStorageKey), nowMs);
+export function readRentalReadyNowHandoff(storage: Pick<Storage, "getItem" | "removeItem">, nowMs = Date.now()) {
+  const storedValue = storage.getItem(rentalReadyNowHandoffStorageKey);
+  const handoff = parseRentalReadyNowHandoff(storedValue, nowMs);
+  if (storedValue !== null && !handoff && isValidTimestamp(nowMs)) {
+    try { storage.removeItem(rentalReadyNowHandoffStorageKey); } catch {}
+  }
+  return handoff;
 }
 
 export function readRentalReadyNowSavedFlag(storage: Pick<Storage, "getItem">, key: string) {

@@ -6,9 +6,18 @@ import {
   createRentalReadyNowHandoff,
   parseRentalReadyNowHandoff,
   rentalReadyNowHandoffLifetimeMs,
+  rentalReadyNowHandoffStorageKey,
   rentalReadyNowReceiptMatches,
+  readRentalReadyNowHandoff,
   readRentalReadyNowSavedFlag,
 } from "../src/lib/rentalReadyNowHandoff.ts";
+
+class MemoryStorage {
+  #values = new Map();
+  getItem(key) { return this.#values.get(key) ?? null; }
+  setItem(key, value) { this.#values.set(key, String(value)); }
+  removeItem(key) { this.#values.delete(key); }
+}
 
 const [offerPage, freePage, freeProject, freeTool, workspace, commerce] = await Promise.all([
   readFile(new URL("../src/app/rental-application-pro/page.tsx", import.meta.url), "utf8"),
@@ -26,6 +35,22 @@ assert.equal(createRentalReadyNowHandoff({ propertyLabel: "Buy", mode: "buy", re
 assert.deepEqual(parseRentalReadyNowHandoff(JSON.stringify(handoff), now + rentalReadyNowHandoffLifetimeMs), handoff);
 assert.equal(parseRentalReadyNowHandoff(JSON.stringify(handoff), now + rentalReadyNowHandoffLifetimeMs + 1), null, "handoffs must expire after 24 hours");
 assert.equal(parseRentalReadyNowHandoff("not-json", now), null);
+const expiredStorage = new MemoryStorage();
+expiredStorage.setItem(rentalReadyNowHandoffStorageKey, JSON.stringify(handoff));
+assert.equal(readRentalReadyNowHandoff(expiredStorage, now + rentalReadyNowHandoffLifetimeMs + 1), null);
+assert.equal(expiredStorage.getItem(rentalReadyNowHandoffStorageKey), null, "an expired handoff must be physically removed when this browser next reads it");
+const malformedStorage = new MemoryStorage();
+malformedStorage.setItem(rentalReadyNowHandoffStorageKey, "not-json");
+assert.equal(readRentalReadyNowHandoff(malformedStorage, now), null);
+assert.equal(malformedStorage.getItem(rentalReadyNowHandoffStorageKey), null, "a malformed handoff must not remain on a shared browser");
+const validStorage = new MemoryStorage();
+validStorage.setItem(rentalReadyNowHandoffStorageKey, JSON.stringify(handoff));
+assert.deepEqual(readRentalReadyNowHandoff(validStorage, now), handoff);
+assert.notEqual(validStorage.getItem(rentalReadyNowHandoffStorageKey), null, "a valid handoff must remain available for its one-time import");
+assert.doesNotThrow(() => readRentalReadyNowHandoff({
+  getItem: () => JSON.stringify(handoff),
+  removeItem: () => { throw new Error("blocked"); },
+}, now + rentalReadyNowHandoffLifetimeMs + 1), "blocked cleanup must not break the workspace fallback");
 for (const [invalidCreatedAt, observationTime] of [
   [String(now), now],
   [null, 0],
