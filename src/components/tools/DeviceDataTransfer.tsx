@@ -8,6 +8,7 @@ import {
   propertyInspectionStorageKey,
   rentalApplicationProWorkspaceStorageKey,
 } from "@/lib/rentalApplicationProDeviceStorage";
+import { resumeProStarStoriesStorageKey } from "@/lib/resumeProDeviceStorage";
 
 type StoredRecord = {
   key: string;
@@ -49,6 +50,7 @@ const storedRecords: StoredRecord[] = [
   { key: "aussie-compass-resume-v1", label: "영문 이력서", group: "구직", sensitive: true },
   { key: "hoju-compass-resume-pro-preview-v1", label: "Resume Pro 지원서", group: "구직", sensitive: true },
   { key: "hoju-compass-resume-pro-applications-v1", label: "Resume Pro 회사별 지원서 목록", group: "구직", sensitive: true },
+  { key: resumeProStarStoriesStorageKey, label: "Resume Pro STAR 경험 보관함", group: "구직", sensitive: true },
   { key: "aussie-compass-job-tracker-v1", label: "구직 지원 현황", group: "구직", sensitive: true },
   { key: "hoju-compass-pay-evidence-pro-v1", label: "급여 증빙 패키지", group: "구직", sensitive: true },
   { key: "aussie-compass-commute-housing-v1", label: "통학·생활권 비교", group: "주거·이동" },

@@ -36,6 +36,7 @@ assert.match(workspace, /const savedDraft: ProDraft = \{ \.\.\.draft, resumeSnap
 assert.match(workspace, /const saved: SavedApplication = \{ id, company, role, updatedAt: new Date\(\)\.toISOString\(\), draft: savedDraft \}/, "the persisted application must use the immutable resume snapshot draft");
 assert.match(workspace, /setSavedResume\(nextDraft\.resumeSnapshot \?\? readSavedResume\(\)\)/, "reopening an application must restore its saved resume snapshot while legacy records remain compatible");
 assert.match(workspace, /setField\("resumeSnapshot", next\)/, "loading the latest Builder resume must be an explicit draft change");
+assert.match(workspace, /const startNewApplication = \(\) => \{[\s\S]*const latestBuilderResume = readSavedResume\(\);[\s\S]*setSavedResume\(latestBuilderResume\);[\s\S]*setDraft\(\(current\) => \(\{ \.\.\.initialDraft, role: latestBuilderResume\.title \|\| ""/, "starting a new application after reopening an old one must reconnect the latest Builder resume before the next save");
 assert.ok(
   workspace.indexOf('id: "save-application"') < workspace.indexOf("quickStartCompleted"),
   "the saved application must count toward the existing quick-start completion gate",
@@ -89,6 +90,10 @@ const reopenedSnapshot = readResumeProApplicationStore(snapshotStorage, "applica
 assert.notDeepEqual(reopenedSnapshot.store.items[0].draft.resumeSnapshot, laterBuilderResume, "later Builder edits must not mutate a saved company resume snapshot");
 assert.deepEqual(reopenedSnapshot.store.items[0].draft.resumeSnapshot, originalBuilderResume, "the saved resume snapshot must survive close and reopen");
 assert.deepEqual(reopenedSnapshot.store.items[0].draft.jobAdEvidence, importedEvidence, "Job Ad evidence must remain paired with the saved resume snapshot");
+const newestBuilderResume = { ...originalBuilderResume, title: "Cafe Supervisor", summary: "Latest Builder copy" };
+const newApplicationAfterReopen = { ...valid, id: "application-2", role: newestBuilderResume.title, draft: { ...valid.draft, resumeSnapshot: newestBuilderResume, jobAdEvidence: [] } };
+assert.notDeepEqual(newApplicationAfterReopen.draft.resumeSnapshot, reopenedSnapshot.store.items[0].draft.resumeSnapshot, "a new application must not silently reuse the previously reopened company snapshot");
+assert.deepEqual(newApplicationAfterReopen.draft.resumeSnapshot, newestBuilderResume, "the next save must snapshot the latest Builder resume");
 assert.equal(persistResumeProApplicationStore({ getItem: () => null, setItem: () => { throw new Error("quota"); } }, "applications", { activeId: valid.id, items: [valid] }), false, "a failed write must never report saved");
 assert.equal(persistResumeProApplicationStore({ getItem: () => "mismatch", setItem: () => {} }, "applications", { activeId: valid.id, items: [valid] }), false, "a write that cannot be read back must never report saved");
 

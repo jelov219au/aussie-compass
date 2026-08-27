@@ -561,7 +561,9 @@ export function ResumeProWorkspace() {
   };
 
   const startNewApplication = () => {
-    setDraft((current) => ({ ...initialDraft, role: savedResume.title || "", tone: current.tone, layout: current.layout, accent: current.accent }));
+    const latestBuilderResume = readSavedResume();
+    setSavedResume(latestBuilderResume);
+    setDraft((current) => ({ ...initialDraft, role: latestBuilderResume.title || "", tone: current.tone, layout: current.layout, accent: current.accent }));
     setActiveApplicationId(null);
     setReopenedApplicationId(null);
     setMessage("새 지원서를 시작했습니다. 기존에 목록에 저장한 지원서는 그대로 남아 있습니다.");

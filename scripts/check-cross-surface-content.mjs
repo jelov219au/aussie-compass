@@ -50,6 +50,7 @@ assert.match(homeTransportSection, /href=\{RAIL_WORK_ALERT_ROUTE\}/, "web and in
 assert.doesNotMatch(homeTransportSection, /display-mode|standalone\)\.matches/, "the feature must not be hidden from either surface");
 assert.match(railRegistry, /RAIL_WORK_ALERT_ROUTE = "\/rail-work-alerts"/, "the canonical transport route must remain explicit");
 assert.match(deviceTransfer, /RAIL_WORK_ALERT_STORAGE_KEY/, "browser and installed-PWA storage must have an explicit manual transfer path");
+assert.match(deviceTransfer, /resumeProStarStoriesStorageKey[\s\S]*Resume Pro STAR 경험 보관함[\s\S]*sensitive: true/, "Resume Pro STAR stories used by application-kit exports must transfer with company snapshots across web and installed-PWA storage");
 await access(new URL("../src/app/rail-work-alerts/page.tsx", import.meta.url));
 
 assert.equal(packageJson.scripts["test:cross-surface-content"], "node scripts/check-cross-surface-content.mjs", "package scripts must expose the cross-surface contract");
