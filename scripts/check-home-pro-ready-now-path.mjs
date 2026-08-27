@@ -1,15 +1,18 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [section, homePage, proPage, checkerPage, builderPage] = await Promise.all([
+const [section, homePage, catalogPage, finder, proPage, checkerPage, builderPage] = await Promise.all([
   readFile(new URL("../src/components/sections/PremiumToolsSection.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/pro/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/ProProductFinder.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-builder/page.tsx", import.meta.url), "utf8"),
 ]);
 
 assert.ok(homePage.includes("<PremiumToolsSection />"), "the ready-now path must be rendered on the public home page");
+assert.ok(catalogPage.includes("<ProProductFinder resumeProLive={resumeProLive} />"), "the public Pro catalog must render the checkout-aware product finder");
 assert.ok(checkerPage.includes("<ResumeJobAdChecker />"), "the primary free path must open the working local comparison tool");
 assert.ok(builderPage.includes("<ResumeBuilder resumeProLive={resumeProLive} />"), "the secondary free path must open the working saved-draft Builder");
 
@@ -35,6 +38,17 @@ const proPreview = closedBranch.indexOf('<ResumeProCtaLink href="/resume-pro?fro
 assert.ok(freeProof >= 0 && freeProof < freeBuilder && freeBuilder < proPreview, "when sales are unavailable, working free comparison and saved-draft actions must precede the Pro preview in mobile and DOM order");
 assert.match(closedBranch, /ResumeProProofLink[\s\S]*min-h-12[\s\S]*Link href="\/resume-builder"[\s\S]*min-h-12/, "both ready-now mobile actions need 48px targets");
 assert.doesNotMatch(closedBranch, /출시 준비 중|결제 시작|checkout|disabled/, "the unavailable state must not lead with a dead-end or imply checkout availability");
+
+const unavailableFinderStart = finder.indexOf("const unavailableJobActions = (");
+const unavailableFinderEnd = finder.indexOf("  );", unavailableFinderStart);
+assert.ok(unavailableFinderStart >= 0 && unavailableFinderEnd > unavailableFinderStart, "the Pro finder needs a dedicated checkout-off action order");
+const unavailableFinderActions = finder.slice(unavailableFinderStart, unavailableFinderEnd);
+const finderFreeProof = unavailableFinderActions.indexOf('<ResumeProProofLink entry="pro-finder"');
+const finderFreeBuilder = unavailableFinderActions.indexOf('<Link href="/resume-builder"');
+const finderProPreview = unavailableFinderActions.indexOf('<ResumeProCtaLink href="/resume-pro?from=pro-finder"');
+assert.ok(finderFreeProof >= 0 && finderFreeProof < finderFreeBuilder && finderFreeBuilder < finderProPreview, "when Resume Pro checkout is off, the public Pro finder must lead with working free proof and Builder before the product preview");
+assert.match(unavailableFinderActions, /ResumeProProofLink[\s\S]*bg-gold[\s\S]*Link href="\/resume-builder"[\s\S]*min-h-12/, "the Pro finder must make its first checkout-off action a working 48px free CTA");
+assert.ok(finder.includes("Resume Pro 가격은 A$19.90 1회 결제이며, 현재는 결제·이용 복구 안전 확인 중이라 판매하지 않아요."), "the Pro finder must preserve the fixed price and unavailable sales state");
 
 const productCtaStart = proPage.indexOf('<div className="mt-10 flex flex-wrap items-start gap-3">');
 const productCtaEnd = proPage.indexOf("</div>", productCtaStart);
