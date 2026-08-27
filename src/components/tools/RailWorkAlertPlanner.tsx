@@ -1,8 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  RAIL_WORK_ALERT_MAX_AREAS,
+  RAIL_WORK_ALERT_SOURCES,
+  RAIL_WORK_ALERT_STORAGE_KEY,
+  type RailWorkAlertSupportedState,
+} from "@/lib/railWorkAlerts";
 
-type SupportedState = "NSW" | "VIC" | "QLD";
+type SupportedState = RailWorkAlertSupportedState;
 
 type WatchArea = {
   id: string;
@@ -15,15 +21,9 @@ type WatchArea = {
 
 type CheckId = "official" | "dates" | "alternative" | "accessibility";
 
-const STORAGE_KEY = "aussie-compass-rail-work-watch-areas-v1";
-const MAX_AREAS = 5;
+const STORAGE_KEY = RAIL_WORK_ALERT_STORAGE_KEY;
+const MAX_AREAS = RAIL_WORK_ALERT_MAX_AREAS;
 const EMPTY_CHECKS: Record<CheckId, boolean> = { official: false, dates: false, alternative: false, accessibility: false };
-
-const OFFICIAL_SOURCES: Record<SupportedState, { label: string; href: string }> = {
-  NSW: { label: "Transport for NSW Travel alerts", href: "https://transportnsw.info/alerts" },
-  VIC: { label: "Victoria's Big Build disruptions map", href: "https://bigbuild.vic.gov.au/disruptions/disruptions-map" },
-  QLD: { label: "Translink service updates", href: "https://translink.com.au/service-updates" },
-};
 
 const CHECKS: Array<{ id: CheckId; label: string }> = [
   { id: "official", label: "공식 공지 원문 열기" },
@@ -116,7 +116,7 @@ export function RailWorkAlertPlanner() {
 
     {areas.length ? <ol className="mt-6 grid gap-4 lg:grid-cols-2" aria-label="저장한 철도 작업 확인 지역">
       {areas.map((area, index) => {
-        const source = OFFICIAL_SOURCES[area.state];
+        const source = RAIL_WORK_ALERT_SOURCES[area.state];
         const mapHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${area.place} railway station`)}`;
         return <li key={area.id} className="border border-border p-5">
           <div className="flex items-start justify-between gap-4"><div><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")} · {area.state}</span><h3 className="mt-1 text-lg font-semibold text-navy">{area.label}</h3><p className="mt-1 text-sm text-muted">{area.place}</p></div><button type="button" onClick={() => setAreas((current) => current.filter((item) => item.id !== area.id))} className="min-h-11 px-2 text-xs font-semibold text-muted">삭제</button></div>
