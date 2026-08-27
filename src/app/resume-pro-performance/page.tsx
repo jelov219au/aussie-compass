@@ -40,10 +40,10 @@ function trafficChange(current: number, previous: number) {
   return `${change > 0 ? "+" : ""}${change.toLocaleString()}`;
 }
 
-function resumeTemplatePulseDecision(status: "collected" | "not_configured" | "error", proViews: number) {
+function resumeTemplatePulseDecision(status: "collected" | "not_configured" | "error", currentProViews: number, previousProViews: number) {
   if (status !== "collected") return `HOLD · ${collectionLabel(status)} 상태라 판단하지 않습니다.`;
-  if (proViews < 10) return "HOLD · Resume Pro 조회가 10회 미만이라 전환 결론을 내리지 않습니다.";
-  return "판단 가능 · Resume Pro 조회 표본이 10회 이상입니다.";
+  if (currentProViews < 10 || previousProViews < 10) return "HOLD · 최근·직전 24시간 중 Resume Pro 조회가 10회 미만인 구간이 있어 전환율을 비교하지 않습니다.";
+  return "판단 가능 · 최근·직전 24시간의 Resume Pro 조회가 각각 10회 이상입니다.";
 }
 
 function utcMoment(value: string) {
@@ -207,7 +207,7 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
                     <p className="mt-2 text-xs leading-5 text-muted">직전 24시간 {report.trafficComparison.status === "collected" ? rate(report.trafficComparison.previous.resumeTemplateCheckoutStarts, report.trafficComparison.previous.resumeTemplateProViews) : "—"}</p>
                   </div>
                 </dl>
-                <p className="mt-4 border-l-2 border-gold bg-surface p-3 text-sm font-semibold leading-6 text-navy" role="status">{resumeTemplatePulseDecision(report.trafficComparison.status, report.trafficComparison.current.resumeTemplateProViews)}</p>
+                <p className="mt-4 border-l-2 border-gold bg-surface p-3 text-sm font-semibold leading-6 text-navy" role="status">{resumeTemplatePulseDecision(report.trafficComparison.status, report.trafficComparison.current.resumeTemplateProViews, report.trafficComparison.previous.resumeTemplateProViews)}</p>
               </div>
             </section>
           )}
