@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const checklist = await readFile(
-  new URL("../docs/first-sale-mobile-owner-checklist.md", import.meta.url),
-  "utf8",
-);
+const [checklist, launchChecklist] = await Promise.all([
+  readFile(new URL("../docs/first-sale-mobile-owner-checklist.md", import.meta.url), "utf8"),
+  readFile(new URL("../docs/live-payment-launch-checklist.md", import.meta.url), "utf8"),
+]);
 const compact = checklist.replace(/\s+/g, " ");
 
 for (const heading of [
@@ -44,7 +44,7 @@ for (const boundary of [
   "DEPLOYMENT_IDENTITY=PASS",
   "CHECKOUT_OFF_BOUNDARY=PASS",
   "LOCAL_QUALITY_GATE=PASS",
-  "STRIPE_SUPPORT_REPLY=HOLD",
+  "STRIPE_KEY_PROVISIONING_SUPPORT=PASS",
   "RESTRICTED_KEY_SET=HOLD",
   "INTEGRATED_PREFLIGHT=HOLD",
   "SMTP_RECEIPT=HOLD",
@@ -55,7 +55,7 @@ for (const boundary of [
 ]) assert.ok(compact.includes(boundary), `mobile owner checklist is missing boundary: ${boundary}`);
 
 const orderedOwnerSteps = [
-  "Stripe 지원 회신",
+  "Stripe 지원 기반 key provisioning 의존성",
   "Account Read 전용 audit key",
   "FIRST_SALE_PREFLIGHT=PASS",
   "no-send SMTP 인증",
@@ -113,6 +113,10 @@ for (const forbidden of [
 ]) assert.doesNotMatch(checklist, forbidden, `mobile owner checklist contains forbidden raw data pattern: ${forbidden}`);
 
 assert.ok(checklist.includes("docs/live-payment-launch-checklist.md"));
+assert.match(launchChecklist, /- \[x\] Create a separate `rk_live_` operator-audit key/);
+assert.match(launchChecklist, /- \[x\] Create a least-privilege Production Runtime `rk_live_` key/);
+assert.ok(checklist.includes("accounting key 권한이나 세 key 분리의 증거가 아니며"));
+assert.ok(checklist.includes("RESTRICTED_KEY_SET=HOLD"));
 assert.ok(!checklist.includes("FIRST_SALE_OWNER_DECISION=APPROVED"));
 
 console.log("First-sale mobile owner checklist contract passed.");

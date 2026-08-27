@@ -116,14 +116,14 @@ secrets_copied=no pii_opened=no changes_made=no payment_attempted=no refund_atte
 
 ### One-screen first-sale operating order
 
-아래는 25 August 현재의 비민감 상태와 다음 순서다. 휴대폰에서는 상태와
+아래는 현재 repository에 기록된 비민감 상태와 다음 순서다. 휴대폰에서는 상태와
 담당 인계만 확인하며, 키 생성·preflight·SMTP·rehearsal·승인·결제는 실행하지
 않는다. 전체 SHA와 key 값은 이 화면에 옮기지 않는다.
 
 | # | 현재 상태 | 담당 위치 | 다음 단계와 PASS 경계 |
 | --- | --- | --- | --- |
 | 0 | `DONE` | local evidence / owner | Production exact-SHA identity, payment-off Checkout HTTP 503/no URL, 전체 quality gate가 각각 PASS다. 이 세 결과는 아래 미완료 gate를 대신하지 않는다. |
-| 1 | `HOLD` | payment operator | Stripe 지원 회신을 확인한다. 회신은 키 생성 절차의 입력일 뿐 restricted-key PASS가 아니다. key·URL·계정값을 메일·채팅·이 표에 복사하지 않는다. |
+| 1 | `DONE` | payment operator | 현재 launch checklist가 live runtime 및 Account Read audit restricted key 생성을 완료로 기록하므로 Stripe 지원 기반 key provisioning 의존성은 해소됐고 더 이상 독립 launch gate가 아니다. 지원 회신은 accounting key 권한이나 세 key 분리의 증거가 아니며, 그 검증은 아래 2·3단계의 `HOLD`로 유지한다. key·URL·계정값을 메일·채팅·이 표에 복사하지 않는다. |
 | 2 | `HOLD` | owner laptop | Account Read 전용 audit key와 Balance Transactions Read 전용 accounting key를 각각 만들고 runtime key와 서로 다른 세 `rk_live_` 역할임을 masked wrapper 안에서만 확인한다. 생성 사실만으로 PASS 처리하지 않는다. |
 | 3 | `HOLD` | owner laptop | payments off 상태에서 통합 Production preflight를 실행한다. 정확한 최종 `FIRST_SALE_PREFLIGHT=PASS` 한 줄만 PASS이며 중단·누락·FAIL은 `HOLD`다. |
 | 4 | `HOLD` | mailbox owner / owner laptop | no-send SMTP 인증 PASS 뒤 별도 승인된 labelled non-customer test의 실제 mailbox 수신까지 확인한다. 설정 존재나 send 결과만으로 수신 PASS를 만들지 않는다. |
@@ -138,7 +138,7 @@ secrets_copied=no pii_opened=no changes_made=no payment_attempted=no refund_atte
 DEPLOYMENT_IDENTITY=PASS
 CHECKOUT_OFF_BOUNDARY=PASS
 LOCAL_QUALITY_GATE=PASS
-STRIPE_SUPPORT_REPLY=HOLD
+STRIPE_KEY_PROVISIONING_SUPPORT=PASS
 RESTRICTED_KEY_SET=HOLD
 INTEGRATED_PREFLIGHT=HOLD
 SMTP_RECEIPT=HOLD
