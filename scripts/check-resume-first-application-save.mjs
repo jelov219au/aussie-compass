@@ -20,6 +20,7 @@ for (const contract of [
   "저장본 다시 열어 확인",
   "다시 열기 확인됨",
   "변경사항 있음",
+  "저장할 때 연결된 무료 이력서와 Job Ad 근거를 함께 보관하며",
 ]) assert.ok(workspace.includes(contract), `the first saved-application success contract is missing: ${contract}`);
 
 assert.match(workspace, /const activeApplication = useMemo\([\s\S]*applications\.find\([\s\S]*activeApplicationId/);
@@ -31,6 +32,10 @@ assert.ok(
 assert.match(workspace, /currentApplicationReopened = currentApplicationSaved && reopenedApplicationId === activeApplicationId/, "quick start must require reopening the current persisted application");
 assert.match(workspace, /const reopenApplication = \(applicationId: string\) => \{[\s\S]*readResumeProApplicationStore\([\s\S]*\.find\(\(item\) => item\.id === applicationId\)[\s\S]*setReopenedApplicationId\(application\.id\)/, "reopen confirmation must come from the browser store, not only in-memory state");
 assert.match(workspace, /currentApplicationSaved && activeApplicationId[\s\S]*\? "resume-pro-reopen-application"[\s\S]*: "resume-pro-save-application"/, "the quick-start action must move directly from save to reopen confirmation");
+assert.match(workspace, /const savedDraft: ProDraft = \{ \.\.\.draft, resumeSnapshot: normaliseSavedResume\(savedResume\) \}/, "saving a company application must snapshot the currently connected resume");
+assert.match(workspace, /const saved: SavedApplication = \{ id, company, role, updatedAt: new Date\(\)\.toISOString\(\), draft: savedDraft \}/, "the persisted application must use the immutable resume snapshot draft");
+assert.match(workspace, /setSavedResume\(nextDraft\.resumeSnapshot \?\? readSavedResume\(\)\)/, "reopening an application must restore its saved resume snapshot while legacy records remain compatible");
+assert.match(workspace, /setField\("resumeSnapshot", next\)/, "loading the latest Builder resume must be an explicit draft change");
 assert.ok(
   workspace.indexOf('id: "save-application"') < workspace.indexOf("quickStartCompleted"),
   "the saved application must count toward the existing quick-start completion gate",
@@ -69,6 +74,21 @@ const reopened = readResumeProApplicationStore(workingStorage, "applications", d
 assert.equal(reopened.status, "ok");
 assert.equal(reopened.store.activeId, valid.id);
 assert.equal(reopened.store.items[0].company, valid.company, "a verified write must be reopenable from browser storage");
+
+const originalBuilderResume = { name: "Minji Kim", title: "Barista", summary: "Customer service", experiences: [{ role: "Barista", details: "Served customers" }] };
+const importedEvidence = [{ term: "customer service", status: "verified", evidence: "Cafe experience" }];
+const applicationWithSnapshot = {
+  ...valid,
+  draft: { ...valid.draft, resumeSnapshot: originalBuilderResume, jobAdEvidence: importedEvidence },
+};
+let snapshotStore = "";
+const snapshotStorage = { getItem: () => snapshotStore, setItem: (_key, value) => { snapshotStore = value; } };
+assert.equal(persistResumeProApplicationStore(snapshotStorage, "applications", { activeId: valid.id, items: [applicationWithSnapshot] }), true);
+const laterBuilderResume = { ...originalBuilderResume, summary: "Changed after this application was saved" };
+const reopenedSnapshot = readResumeProApplicationStore(snapshotStorage, "applications", (value) => value, identify);
+assert.notDeepEqual(reopenedSnapshot.store.items[0].draft.resumeSnapshot, laterBuilderResume, "later Builder edits must not mutate a saved company resume snapshot");
+assert.deepEqual(reopenedSnapshot.store.items[0].draft.resumeSnapshot, originalBuilderResume, "the saved resume snapshot must survive close and reopen");
+assert.deepEqual(reopenedSnapshot.store.items[0].draft.jobAdEvidence, importedEvidence, "Job Ad evidence must remain paired with the saved resume snapshot");
 assert.equal(persistResumeProApplicationStore({ getItem: () => null, setItem: () => { throw new Error("quota"); } }, "applications", { activeId: valid.id, items: [valid] }), false, "a failed write must never report saved");
 assert.equal(persistResumeProApplicationStore({ getItem: () => "mismatch", setItem: () => {} }, "applications", { activeId: valid.id, items: [valid] }), false, "a write that cannot be read back must never report saved");
 
@@ -78,5 +98,6 @@ for (const guardedField of ["company", "role", "hiringManager", "jobAd", "coverL
   assert.ok(workspace.includes(`stringValue(\"${guardedField}\")`), `corrupt ${guardedField} values must not enter the application draft`);
 }
 assert.ok(workspace.includes('stored.tone === "clear"') && workspace.includes('stored.layout === "editorial"') && workspace.includes('stored.accent === "eucalyptus"'), "stored enum fields must be allowlisted");
+assert.match(workspace, /resumeSnapshot: stored\.resumeSnapshot === undefined \? fallback\.resumeSnapshot : normaliseSavedResume\(stored\.resumeSnapshot\)/, "legacy drafts must remain compatible while stored snapshots are allowlist-normalised");
 
 console.log("Resume Pro first saved-application success contract passed.");

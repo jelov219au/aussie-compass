@@ -70,6 +70,7 @@ type ProDraft = {
   accent: ProAccent;
   coverLetter: string;
   jobAdEvidence: ResumeJobAdProofTerm[];
+  resumeSnapshot: SavedResume | null;
   starStoryId: string;
   interviewQuestions: InterviewQuestion[];
   interviewAnswers: Record<string, string>;
@@ -114,6 +115,7 @@ const initialDraft: ProDraft = {
   accent: "eucalyptus",
   coverLetter: "",
   jobAdEvidence: [],
+  resumeSnapshot: null,
   starStoryId: "",
   interviewQuestions: [],
   interviewAnswers: {},
@@ -153,6 +155,7 @@ function normaliseDraft(value: unknown, fallback: ProDraft = initialDraft): ProD
     accent: stored.accent === "eucalyptus" || stored.accent === "ocean" || stored.accent === "terracotta" ? stored.accent : fallback.accent,
     coverLetter: stringValue("coverLetter"),
     jobAdEvidence: stored.jobAdEvidence === undefined ? fallback.jobAdEvidence : normaliseResumeJobAdProofTerms(stored.jobAdEvidence),
+    resumeSnapshot: stored.resumeSnapshot === undefined ? fallback.resumeSnapshot : normaliseSavedResume(stored.resumeSnapshot),
     starStoryId: stringValue("starStoryId"),
     interviewQuestions: storedQuestions,
     interviewAnswers: storedAnswers,
@@ -166,9 +169,43 @@ function toStarStoryDraft(story: StarStory): StarStoryDraft {
   return editable;
 }
 
+function normaliseSavedResume(value: unknown): SavedResume {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const stored = value as Record<string, unknown>;
+  const resume: SavedResume = {};
+  for (const field of ["name", "title", "phone", "email", "location", "link", "summary", "skills", "licences", "languages"] as const) {
+    if (typeof stored[field] === "string") resume[field] = stored[field];
+  }
+  if (typeof stored.showReferences === "boolean") resume.showReferences = stored.showReferences;
+  if (Array.isArray(stored.experiences)) {
+    resume.experiences = stored.experiences.flatMap((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+      const entry = item as Record<string, unknown>;
+      return [{
+        role: typeof entry.role === "string" ? entry.role : "",
+        company: typeof entry.company === "string" ? entry.company : "",
+        period: typeof entry.period === "string" ? entry.period : "",
+        details: typeof entry.details === "string" ? entry.details : "",
+      }];
+    }).slice(0, 30);
+  }
+  if (Array.isArray(stored.education)) {
+    resume.education = stored.education.flatMap((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+      const entry = item as Record<string, unknown>;
+      return [{
+        course: typeof entry.course === "string" ? entry.course : "",
+        school: typeof entry.school === "string" ? entry.school : "",
+        period: typeof entry.period === "string" ? entry.period : "",
+      }];
+    }).slice(0, 30);
+  }
+  return resume;
+}
+
 function readSavedResume(): SavedResume {
   try {
-    return JSON.parse(window.localStorage.getItem(resumeStorageKey) || "{}") as SavedResume;
+    return normaliseSavedResume(JSON.parse(window.localStorage.getItem(resumeStorageKey) || "{}"));
   } catch {
     return {};
   }
@@ -289,13 +326,15 @@ export function ResumeProWorkspace() {
   const starStoriesSaveTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    setSavedResume(readSavedResume());
+    const builderResume = readSavedResume();
+    let storedDraft = initialDraft;
     try {
       const stored = window.localStorage.getItem(resumeProDraftStorageKey);
-      if (stored) setDraft((current) => normaliseDraft(JSON.parse(stored), current));
+      if (stored) storedDraft = normaliseDraft(JSON.parse(stored));
     } catch {
       // The preview remains usable when local storage is unavailable.
     }
+    setDraft(storedDraft);
     const applicationRead = readResumeProApplicationStore(
       window.localStorage,
       resumeProApplicationsStorageKey,
@@ -304,6 +343,11 @@ export function ResumeProWorkspace() {
     );
     setApplications(applicationRead.store.items);
     setActiveApplicationId(applicationRead.store.activeId);
+    const activeApplication = applicationRead.store.items.find((item) => item.id === applicationRead.store.activeId);
+    const savedApplicationStillOpen = Boolean(activeApplication && JSON.stringify(activeApplication.draft) === JSON.stringify(storedDraft));
+    setSavedResume(savedApplicationStillOpen && activeApplication?.draft.resumeSnapshot
+      ? activeApplication.draft.resumeSnapshot
+      : builderResume);
     if (applicationRead.status === "recovered") setMessage("손상되거나 중복된 회사별 지원서 항목을 제외하고 안전하게 복구했습니다.");
     if (applicationRead.status === "unavailable") setMessage("이 브라우저의 저장공간을 확인할 수 없습니다. 작업 내용을 별도 파일로 백업해 주세요.");
     try {
@@ -460,6 +504,7 @@ export function ResumeProWorkspace() {
   const refreshResume = () => {
     const next = readSavedResume();
     setSavedResume(next);
+    setField("resumeSnapshot", next);
     setMessage(next.name || next.summary ? "무료 빌더의 최신 이력서를 불러왔습니다." : "저장된 이력서가 없습니다. 무료 빌더에서 먼저 작성해 주세요.");
   };
 
@@ -471,7 +516,8 @@ export function ResumeProWorkspace() {
       return;
     }
     const id = activeApplicationId || `application-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const saved: SavedApplication = { id, company, role, updatedAt: new Date().toISOString(), draft };
+    const savedDraft: ProDraft = { ...draft, resumeSnapshot: normaliseSavedResume(savedResume) };
+    const saved: SavedApplication = { id, company, role, updatedAt: new Date().toISOString(), draft: savedDraft };
     const nextApplications = [saved, ...applications.filter((item) => item.id !== id)].slice(0, 30);
     if (applicationsSaveTimerRef.current !== null) window.clearTimeout(applicationsSaveTimerRef.current);
     applicationsSaveTimerRef.current = null;
@@ -480,6 +526,7 @@ export function ResumeProWorkspace() {
       return;
     }
     setApplications(nextApplications);
+    setDraft(savedDraft);
     setActiveApplicationId(id);
     setReopenedApplicationId(null);
     setMessage(`${company} 지원서를 저장했습니다. 저장본을 다시 열어 내용이 남았는지 확인해 주세요.`);
@@ -504,6 +551,7 @@ export function ResumeProWorkspace() {
     const nextDraft = normaliseDraft(application.draft, initialDraft);
     setApplications(applicationRead.store.items);
     setDraft(nextDraft);
+    setSavedResume(nextDraft.resumeSnapshot ?? readSavedResume());
     const linkedStory = starStories.find((story) => story.id === nextDraft.starStoryId);
     setStarStoryDraft(linkedStory ? toStarStoryDraft(linkedStory) : emptyStarStory);
     setEditingStarStoryId(linkedStory?.id ?? null);
@@ -748,7 +796,7 @@ export function ResumeProWorkspace() {
         </div>
         <section className="mt-5 border border-border bg-white p-4" aria-labelledby="saved-applications-heading">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">현재 브라우저에 최대 30개까지 저장됩니다. 저장 뒤 저장본을 다시 열어 확인하고, 내용을 바꾸면 다시 저장해 주세요.</p></div>
+            <div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">저장할 때 연결된 무료 이력서와 Job Ad 근거를 함께 보관하며, 현재 브라우저에 최대 30개까지 저장됩니다. 저장 뒤 저장본을 다시 열어 확인하고, 내용을 바꾸면 다시 저장해 주세요.</p></div>
             <div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button id="resume-pro-save-application" type="button" onClick={saveApplication} className="min-h-10 bg-navy px-3 text-xs font-semibold text-white">{currentApplicationSaved ? "현재 지원서 저장됨" : "현재 지원서 저장"}</button>{currentApplicationSaved && activeApplicationId && !currentApplicationReopened && <button id="resume-pro-reopen-application" type="button" onClick={() => reopenApplication(activeApplicationId)} className="min-h-11 border border-navy px-3 text-xs font-semibold text-navy">저장본 다시 열어 확인</button>}</div>
           </div>
           {applications.length > 0 ? (
