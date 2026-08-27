@@ -6,7 +6,7 @@ function absoluteUrl(path: `/${string}`) {
   return `${siteUrl}${path}`;
 }
 
-export function buildLlmsText() {
+function buildLlmsText() {
   return `# Hoju Compass
 
 > Korean-first practical tools and official-source-linked guides for people working and living in Australia. Hoju Compass is independent and is not an Australian government service.
