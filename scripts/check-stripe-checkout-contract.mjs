@@ -58,7 +58,9 @@ for (const contract of [
   "readiness.stripeConfigured",
   "supportConfigured",
   "operatorAlertsConfigured",
-  "sellerDetailsConfigured && supportConfigured && operatorAlertsConfigured",
+  "firstSaleMonitoredModeConfigured",
+  "operatorMonitoringConfigured",
+  "sellerDetailsConfigured && supportConfigured && operatorMonitoringConfigured",
 ]) {
   assert.ok(commerce.includes(contract), `Checkout readiness fail-closed contract is missing: ${contract}`);
 }

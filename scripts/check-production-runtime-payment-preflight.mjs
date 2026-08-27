@@ -13,6 +13,7 @@ import {
   buildRuntimePreflightRequestBody,
   buildVercelCurlArguments,
   runtimePreflightFail,
+  runtimePreflightMonitoredPass,
   runtimePreflightPass,
   runtimePreflightPath,
   verifyVercelProductionRuntimePreflight,
@@ -53,6 +54,7 @@ for (const contract of [
   "runPaymentAlertTransportCheck({ sendTest: false })",
   '"Cache-Control": "no-store, max-age=0"',
   runtimePreflightPass,
+  runtimePreflightMonitoredPass,
   runtimePreflightFail,
 ]) assert.ok(routeSource.includes(contract), `runtime route is missing: ${contract}`);
 
@@ -65,7 +67,7 @@ assert.match(
 );
 assert.doesNotMatch(routeSource, /ENTITLEMENT_DB_URL|ZOHO_SMTP_APP_PASSWORD|price\.id|product\.id|session\.id/, "runtime route must not expose raw secret and identifier fields");
 assert.doesNotMatch(routeSource, /(?:canonicalPass|canonicalFail)[^\n]*(?:runtimeKey|auditKeyHmac|accountingKeyHmac|challenge)/, "fixed evidence must not expose raw or derived key material");
-assert.equal((routeSource.match(/PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS/g) ?? []).length, 1);
+assert.equal((routeSource.match(/PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS/g) ?? []).length, 2);
 assert.equal((routeSource.match(/PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=FAIL/g) ?? []).length, 1);
 
 for (const contract of [
@@ -86,6 +88,7 @@ for (const contract of [
   "readiness.sellerDetailsConfigured",
   "readiness.supportConfigured",
   "readiness.operatorAlertsConfigured",
+  "readiness.firstSaleMonitoredModeConfigured",
   "verifyRuntimeDatabaseRoleAndEndpoint",
 ]) assert.ok(helperSource.includes(contract), `runtime helper is missing: ${contract}`);
 
@@ -156,6 +159,7 @@ const readiness = {
   sellerDetailsConfigured: true,
   supportConfigured: true,
   operatorAlertsConfigured: true,
+  firstSaleMonitoredModeConfigured: false,
   ready: false,
 };
 const expectedSha = "a".repeat(40);
@@ -202,6 +206,20 @@ function dependencies(overrides = {}) {
 
 assert.equal(await runProductionRuntimePaymentPreflight(validInput, dependencies()), true);
 
+let monitoredSmtpCalls = 0;
+const monitoredInput = {
+  ...validInput,
+  readiness: {
+    ...readiness,
+    operatorAlertsConfigured: false,
+    firstSaleMonitoredModeConfigured: true,
+  },
+};
+assert.equal(await runProductionRuntimePaymentPreflight(monitoredInput, dependencies({
+  verifyPaymentAlertTransportWithoutSending: async () => { monitoredSmtpCalls += 1; return false; },
+})), true);
+assert.equal(monitoredSmtpCalls, 0, "explicit manual first-sale monitoring must not depend on SMTP");
+
 const operatorEnvironment = {
   PAYMENTS_STRIPE_AUDIT_KEY: "rk_live_contractauditonly",
   PAYMENTS_AUDIT_DB_URL: "postgresql://audit:contract@ep-contract-primary-a1b2c3-pooler.ap-southeast-2.aws.neon.tech/neondb",
@@ -231,6 +249,7 @@ for (const invalidInput of [
   { ...validInput, expectedSha: "invalid" },
   { ...validInput, runtimeKeyRolesDistinct: false },
   { ...validInput, readiness: { ...readiness, webhookConfigured: false } },
+  { ...validInput, readiness: { ...readiness, operatorAlertsConfigured: false, firstSaleMonitoredModeConfigured: false } },
   { ...validInput, readiness: { ...readiness, ready: true } },
 ]) {
   let remoteCalls = 0;
@@ -282,6 +301,17 @@ assert.equal(await verifyVercelProductionRuntimePreflight({
   },
 }), true);
 assert.deepEqual(invokedRuntime, { deploymentOrigin: "https://candidate-a.vercel.app", expectedSha, expectedEndpointId, challenge, auditKeyHmac, accountingKeyHmac });
+
+assert.equal(await verifyVercelProductionRuntimePreflight({
+  deploymentOrigin: "https://candidate-a.vercel.app",
+  expectedSha,
+  expectedEndpointId,
+  challenge,
+  auditKeyHmac,
+  accountingKeyHmac,
+  fetchImpl: protectedFetch,
+  runVercelCurl: async () => ({ status: 0, stdout: `${runtimePreflightMonitoredPass}\n` }),
+}), true);
 
 let unprotectedRuntimeCalls = 0;
 assert.equal(await verifyVercelProductionRuntimePreflight({

@@ -64,7 +64,8 @@ for (const boundary of [
   "&& stripeAccountVerified",
   "&& stripeSupportProfileVerified",
   "paymentAlertsConfigured()",
-  '"운영 결제 알림"',
+  "isFirstSaleMonitoredModeConfigured()",
+  '"운영 결제 감시"',
   "preflightRemoteBoundaryReady",
   "runtimeStripeRemoteBoundaryReady",
   "stripeAuditRemoteBoundaryReady",
@@ -290,7 +291,7 @@ const dryRun = spawnSync(process.execPath, [fileURLToPath(new URL("./check-payme
 });
 assert.equal(dryRun.status, 1, "strict preflight must fail when remote Stripe and database evidence are absent");
 assert.match(dryRun.stdout, /PASS  결제 스위치 — PAYMENTS_ENABLED=false/, "preflight must require Checkout to remain off during the audit");
-assert.match(dryRun.stdout, /WAIT  운영 결제 알림 — SMTP 인증·발신자·지원 수신함 일치/, "preflight must expose an invalid operator-alert configuration");
+assert.match(dryRun.stdout, /WAIT  운영 결제 감시 — SMTP 알림 또는 owner 승인 단일판매 수동감시/, "preflight must expose an invalid operator-monitoring configuration");
 assert.match(dryRun.stdout, /WAIT  Stripe 원격 사전감사 — --verify-stripe 필요/, "strict preflight must require remote Stripe evidence");
 assert.match(dryRun.stdout, /WAIT  Production DB 사전감사 — --verify-database 필요/, "strict preflight must require remote database evidence");
 

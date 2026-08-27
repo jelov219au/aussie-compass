@@ -4,7 +4,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 export const runtimePreflightPath = "/api/operator/payment-runtime-preflight";
-export const runtimePreflightPass = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS environment=production source_sha=exact payments=off managed_payments=configured config=verified stripe=read-only-pass open_sessions=zero database=runtime-schema-pass smtp=verify-pass email_sent=no secrets_printed=no";
+export const runtimePreflightPass = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS environment=production source_sha=exact payments=off managed_payments=configured config=verified stripe=read-only-pass open_sessions=zero database=runtime-schema-pass operator_monitoring=smtp smtp=verify-pass email_sent=no secrets_printed=no";
+export const runtimePreflightMonitoredPass = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS environment=production source_sha=exact payments=off managed_payments=configured config=verified stripe=read-only-pass open_sessions=zero database=runtime-schema-pass operator_monitoring=manual-first-sale smtp=not-run email_sent=no secrets_printed=no";
 export const runtimePreflightFail = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=FAIL environment=unverified source_sha=unverified payments=unverified managed_payments=unverified config=unverified stripe=unverified open_sessions=unverified database=unverified smtp=unverified email_sent=no secrets_printed=no launch=NO-GO";
 
 const exactShaPattern = /^[a-f0-9]{40}$/;
@@ -120,6 +121,7 @@ export async function verifyVercelProductionRuntimePreflight({
   accountingKeyHmac,
   fetchImpl = fetch,
   runVercelCurl = defaultRunVercelCurl,
+  onAcceptedPass,
 }) {
   const deploymentOrigin = parseDeploymentOrigin(rawDeploymentOrigin);
   if (
@@ -157,7 +159,10 @@ export async function verifyVercelProductionRuntimePreflight({
 
   if (result?.status !== 0) return false;
   const lines = String(result.stdout ?? "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-  return lines.length === 1 && lines[0] === runtimePreflightPass;
+  const accepted = lines.length === 1
+    && (lines[0] === runtimePreflightPass || lines[0] === runtimePreflightMonitoredPass);
+  if (accepted) onAcceptedPass?.(lines[0]);
+  return accepted;
 }
 
 function parseArguments(argumentsList) {
@@ -183,10 +188,14 @@ function parseArguments(argumentsList) {
 
 async function main() {
   const options = parseArguments(process.argv.slice(2));
+  let acceptedPass = runtimePreflightPass;
   const passed = options
-    ? await verifyVercelProductionRuntimePreflight(options)
+    ? await verifyVercelProductionRuntimePreflight({
+      ...options,
+      onAcceptedPass: (line) => { acceptedPass = line; },
+    })
     : false;
-  console.log(passed ? runtimePreflightPass : runtimePreflightFail);
+  console.log(passed ? acceptedPass : runtimePreflightFail);
   if (!passed) process.exitCode = 1;
 }
 

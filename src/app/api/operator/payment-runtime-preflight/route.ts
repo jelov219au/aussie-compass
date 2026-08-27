@@ -16,7 +16,8 @@ const requestContract = "read-only-v1";
 const requestHeader = "x-hoju-runtime-preflight";
 const maximumBodyBytes = 512;
 const exactShaPattern = /^[a-f0-9]{40}$/;
-const canonicalPass = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS environment=production source_sha=exact payments=off managed_payments=configured config=verified stripe=read-only-pass open_sessions=zero database=runtime-schema-pass smtp=verify-pass email_sent=no secrets_printed=no";
+const canonicalSmtpPass = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS environment=production source_sha=exact payments=off managed_payments=configured config=verified stripe=read-only-pass open_sessions=zero database=runtime-schema-pass operator_monitoring=smtp smtp=verify-pass email_sent=no secrets_printed=no";
+const canonicalMonitoredPass = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS environment=production source_sha=exact payments=off managed_payments=configured config=verified stripe=read-only-pass open_sessions=zero database=runtime-schema-pass operator_monitoring=manual-first-sale smtp=not-run email_sent=no secrets_printed=no";
 const canonicalFail = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=FAIL environment=unverified source_sha=unverified payments=unverified managed_payments=unverified config=unverified stripe=unverified open_sessions=unverified database=unverified smtp=unverified email_sent=no secrets_printed=no launch=NO-GO";
 type RuntimeDependency = "stripe" | "schema" | "database" | "smtp";
 type RuntimeDependencyOutcome = "not-run" | "pass" | "fail" | "error";
@@ -205,6 +206,7 @@ export async function POST(request: NextRequest) {
           sellerDetailsConfigured: readiness.sellerDetailsConfigured,
           supportConfigured: readiness.supportConfigured,
           operatorAlertsConfigured: readiness.operatorAlertsConfigured,
+          firstSaleMonitoredModeConfigured: readiness.firstSaleMonitoredModeConfigured,
         },
       };
       console.warn("[payments] Protected runtime preflight failed.", {
@@ -213,6 +215,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const canonicalPass = readiness.firstSaleMonitoredModeConfigured
+      ? canonicalMonitoredPass
+      : canonicalSmtpPass;
     return passed ? fixedResponse(canonicalPass, 200) : failClosed(503);
   } catch {
     return failClosed(503);

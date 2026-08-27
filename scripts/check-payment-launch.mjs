@@ -5,6 +5,7 @@ import {
   getResumeProStripeProductConfig,
 } from "../src/lib/resumeProStripeProduct.ts";
 import { paymentAlertsConfigured } from "../src/lib/paymentAlerts.ts";
+import { isFirstSaleMonitoredModeConfigured } from "../src/lib/firstSaleMonitoredMode.ts";
 
 const strict = process.argv.includes("--strict");
 const preflight = process.argv.includes("--preflight");
@@ -93,7 +94,7 @@ const checks = [
   ["법적 판매자", present(process.env.BUSINESS_LEGAL_NAME), "고객 공개용"],
   ["ABN", /^\d{11}$/.test(abnDigits), "11자리"],
   ["지원 이메일", /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail), "유효한 이메일"],
-  ["운영 결제 알림", paymentAlertsConfigured(), "SMTP 인증·발신자·지원 수신함 일치"],
+  ["운영 결제 감시", paymentAlertsConfigured() || isFirstSaleMonitoredModeConfigured(), "SMTP 알림 또는 owner 승인 단일판매 수동감시"],
 ];
 
 console.log(`Hoju Compass 결제 출시 점검 (${isProduction ? "Production" : "Preview/Local"}${preflight ? ", 결제 OFF 사전감사" : ""})`);

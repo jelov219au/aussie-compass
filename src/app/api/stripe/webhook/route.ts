@@ -6,6 +6,10 @@ import { matchesCheckoutProductEntitlementContract } from "@/lib/productEntitlem
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import { FIRST_SALE_PRODUCT_CODE } from "@/lib/firstSaleGate";
 import { FirstSalePaymentIntentContractError, verifyFirstSalePaymentIntent } from "@/lib/firstSalePaymentIntent";
+import {
+  firstSaleManualMonitoringTarget,
+  isFirstSaleMonitoredModeConfigured,
+} from "@/lib/firstSaleMonitoredMode";
 import { getConfiguredFirstSaleGate } from "@/lib/neonFirstSaleGate";
 import { getConfiguredPaymentAlertOutbox } from "@/lib/neonPaymentAlertOutbox";
 import {
@@ -28,6 +32,22 @@ function webhookResponse(body: Record<string, unknown>, status = 200) {
 
 function stripeReferenceSuffix(value: string) {
   return value.slice(-8);
+}
+
+function logFirstSaleManualMonitoring(
+  event: Stripe.Event,
+  alertKind: ReturnType<typeof getPaymentOperatorAlertKind>,
+  reason: "smtp_not_configured" | "smtp_delivery_unavailable",
+) {
+  console.warn("[payments] Manual first-sale monitoring required.", {
+    eventRef: stripeReferenceSuffix(event.id),
+    type: event.type,
+    alertKind,
+    reason,
+    monitoring: firstSaleManualMonitoringTarget,
+    durableOutbox: "pending",
+    salesGate: "single-first-sale",
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -174,23 +194,49 @@ export async function POST(request: NextRequest) {
 
     const alertKind = getPaymentOperatorAlertKind(event);
     if (alertKind) {
-      if (!alertOutbox || !paymentAlertsConfigured()) {
-        if (event.livemode) throw new Error("Payment operator alert delivery is unavailable.");
-      } else {
-        const notification = await deliverDurablePaymentOperatorAlert(
-          event,
-          alertKind,
-          alertOutbox,
-          sendStripeOperatorAlert,
-        );
-        if (notification.outcome === "busy") {
-          throw new Error("The payment operator alert is leased by another worker.");
+      const monitoredMode = event.livemode
+        && entitlementCommand.productCode === FIRST_SALE_PRODUCT_CODE
+        && isFirstSaleMonitoredModeConfigured();
+
+      if (!alertOutbox) {
+        if (event.livemode) throw new Error("The durable payment operator alert outbox is unavailable.");
+      } else if (!paymentAlertsConfigured()) {
+        if (monitoredMode) {
+          logFirstSaleManualMonitoring(event, alertKind, "smtp_not_configured");
+        } else if (event.livemode) {
+          throw new Error("Payment operator alert delivery is unavailable.");
         }
-        console.info("Handled durable Stripe operator alert", {
-          eventRef: stripeReferenceSuffix(event.id),
-          type: event.type,
-          outcome: notification.outcome,
-        });
+      } else {
+        let smtpDeliveryFailed = false;
+        try {
+          const notification = await deliverDurablePaymentOperatorAlert(
+            event,
+            alertKind,
+            alertOutbox,
+            async (alertEvent, kind) => {
+              try {
+                return await sendStripeOperatorAlert(alertEvent, kind);
+              } catch {
+                smtpDeliveryFailed = true;
+                throw new Error("Payment operator alert transport failed.");
+              }
+            },
+          );
+          if (notification.outcome === "busy") {
+            throw new Error("The payment operator alert is leased by another worker.");
+          }
+          console.info("Handled durable Stripe operator alert", {
+            eventRef: stripeReferenceSuffix(event.id),
+            type: event.type,
+            outcome: notification.outcome,
+          });
+        } catch (error) {
+          // Only the SMTP transport may fall back to explicit manual monitoring.
+          // Missing/mismatched outbox evidence, leases and mark-sent failures
+          // continue to return 503 so Stripe retries the signed event.
+          if (!monitoredMode || !smtpDeliveryFailed) throw error;
+          logFirstSaleManualMonitoring(event, alertKind, "smtp_delivery_unavailable");
+        }
       }
     }
 

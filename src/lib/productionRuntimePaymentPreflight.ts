@@ -10,6 +10,7 @@ export type RuntimePaymentReadiness = {
   sellerDetailsConfigured: boolean;
   supportConfigured: boolean;
   operatorAlertsConfigured: boolean;
+  firstSaleMonitoredModeConfigured: boolean;
   ready: boolean;
 };
 
@@ -52,7 +53,7 @@ function configurationReady(input: ProductionRuntimePaymentPreflightInput) {
     && readiness.accessDeliveryImplemented
     && readiness.sellerDetailsConfigured
     && readiness.supportConfigured
-    && readiness.operatorAlertsConfigured;
+    && (readiness.operatorAlertsConfigured || readiness.firstSaleMonitoredModeConfigured);
 }
 
 export async function runProductionRuntimePaymentPreflight(
@@ -62,14 +63,16 @@ export async function runProductionRuntimePaymentPreflight(
   if (!configurationReady(input)) return false;
 
   try {
-    const [stripeReady, schemaReady, runtimeDatabaseReady, alertTransportReady] = await Promise.all([
+    const [stripeReady, schemaReady, runtimeDatabaseReady, operatorMonitoringReady] = await Promise.all([
       dependencies.verifyStripeProductAndZeroOpenSessions(),
       dependencies.verifyRuntimeSchema(),
       dependencies.verifyRuntimeDatabaseRoleAndEndpoint(),
-      dependencies.verifyPaymentAlertTransportWithoutSending(),
+      input.readiness.firstSaleMonitoredModeConfigured
+        ? Promise.resolve(true)
+        : dependencies.verifyPaymentAlertTransportWithoutSending(),
     ]);
 
-    return stripeReady && schemaReady && runtimeDatabaseReady && alertTransportReady;
+    return stripeReady && schemaReady && runtimeDatabaseReady && operatorMonitoringReady;
   } catch {
     return false;
   }

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getEntitlementDatabaseUrl } from "@/lib/entitlementConfig";
+import { isFirstSaleMonitoredModeConfigured } from "@/lib/firstSaleMonitoredMode";
 import { isEntitlementSessionConfigured } from "@/lib/resumeProAccess";
 import { paymentAlertsConfigured } from "@/lib/paymentAlerts";
 import { hasResumeProStripeProductConfig, resumeProStripeProductDefinition } from "@/lib/resumeProStripeProduct";
@@ -38,6 +39,8 @@ export type PaymentReadiness = {
   sellerDetailsConfigured: boolean;
   supportConfigured: boolean;
   operatorAlertsConfigured: boolean;
+  firstSaleMonitoredModeConfigured: boolean;
+  operatorMonitoringConfigured: boolean;
   ready: boolean;
 };
 
@@ -74,7 +77,9 @@ export function getPaymentReadiness(): PaymentReadiness {
   );
   const supportConfigured = Boolean(supportEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail));
   const operatorAlertsConfigured = paymentAlertsConfigured();
-  const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && firstSaleGateConfigured && accessDeliveryImplemented && sellerDetailsConfigured && supportConfigured && operatorAlertsConfigured;
+  const firstSaleMonitoredModeConfigured = isFirstSaleMonitoredModeConfigured();
+  const operatorMonitoringConfigured = operatorAlertsConfigured || firstSaleMonitoredModeConfigured;
+  const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && firstSaleGateConfigured && accessDeliveryImplemented && sellerDetailsConfigured && supportConfigured && operatorMonitoringConfigured;
 
   if (
     enabled
@@ -96,10 +101,12 @@ export function getPaymentReadiness(): PaymentReadiness {
       sellerDetailsConfigured,
       supportConfigured,
       operatorAlertsConfigured,
+      firstSaleMonitoredModeConfigured,
+      operatorMonitoringConfigured,
     });
   }
 
-  return { enabled, stripeConfigured, stripeProductContractConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, firstSaleGateConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, operatorAlertsConfigured, ready };
+  return { enabled, stripeConfigured, stripeProductContractConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, firstSaleGateConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, operatorAlertsConfigured, firstSaleMonitoredModeConfigured, operatorMonitoringConfigured, ready };
 }
 
 export function canCreateTestCheckout() {
