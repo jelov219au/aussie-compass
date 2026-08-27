@@ -26,12 +26,20 @@ for (const reference of [
 for (const field of [
   "POST_FIRST_SALE_INCIDENT=PASS|HOLD|STOP",
   "PAYMENT_SOURCE=PASS|HOLD|STOP",
+  "EVIDENCE_SUFFIX=........|MISSING",
+  "OBSERVED_AT_UTC=YYYY-MM-DDTHH:MM:SSZ|MISSING",
   "SIGNED_WEBHOOK=PASS|HOLD|STOP",
   "ENTITLEMENT_ACCESS=PASS|HOLD|STOP",
   "REFUND_DISPUTE_SOURCE=PASS|HOLD|STOP",
   "SUPPORT_ALERT=PASS|HOLD|STOP",
   "ACCOUNTING_LINK=PASS|HOLD|STOP",
   "CUSTOMER_DOCUMENT_ROUTE=PASS|HOLD|STOP",
+  "TRANSACTION_SELLER=PRESENT|ABSENT|UNVERIFIED",
+  "DOCUMENT_ISSUER=PRESENT|ABSENT|UNVERIFIED",
+  "PRICE_CURRENCY_MATCH=PASS|HOLD|STOP",
+  "TAX_DISPLAY=PASS|HOLD|STOP",
+  "TRANSACTION_SUPPORT_ROUTE=PRESENT|ABSENT|UNVERIFIED",
+  "REFUND_STATE=none_confirmed|refund_request_pending|partial_refund_succeeded|full_refund_succeeded|unresolved",
   "DATA_MINIMISATION=PASS|HOLD|STOP",
   "PRIMARY_HANDOFF=NONE|SUPPORT_OWNER|TECHNICAL_OWNER|PAYMENT_OPERATOR|ACCOUNTING_OPERATOR|BUSINESS_OWNER|SECURITY_OWNER",
   "SECOND_SALE=HOLD",
@@ -42,7 +50,12 @@ for (const boundary of [
   "접근 문제가 있다는 사실도 결제 실패나 환불 사유를 자동으로 증명하지 않는다",
   "15분까지 미수신",
   "원 gross를 보존하고 실제 refund/dispute만 별도 조정으로 연결",
-  "실제 발행 문서의 seller·issuer·support route 상태가 기존 9행 gate와 일치",
+  "seller·issuer·support route 집계가 모두 `PRESENT`이고 기존 9행 gate와 일치",
+  "기존 9행 customer-document packet을 반복하지 않는다",
+  "고정 예상 가격 **A$19.90 AUD** 일치 여부만 상태로 기록",
+  "`PASS`는 세금 책임·BAS·회계 결론이 아니며",
+  "`none_confirmed`는 닫힌 source window가 있을 때만 사용",
+  "suffix 하나와 UTC 관찰 시각만 존재",
   "하나라도 `STOP`이면 전체 `STOP`",
   "수동 owner 승인으로 `HOLD`나 `STOP`을 PASS로 덮어쓰지 않는다",
   "여러 문제가 동시에 보이면 아래 위에서부터 처음 일치하는 역할 하나만",
@@ -68,8 +81,18 @@ for (const forbidden of [
   /postgres(?:ql)?:\/\/[^\s"']+/i,
   /\b(?:cs_(?:test|live)|pi_|ch_|evt_|re_|cus_|in_|sub_|po_|txn_)[A-Za-z0-9_]{8,}\b/,
   /\b\d{2}\s?\d{3}\s?\d{3}\s?\d{3}\b/,
-  /\b(?:AUD|A\$|\$)\s*\d/i,
 ]) assert.doesNotMatch(card, forbidden, `mobile incident card contains forbidden raw data pattern: ${forbidden}`);
+
+assert.equal((card.match(/A\$19\.90 AUD/g) ?? []).length, 1, "the fixed expected product price may appear once and must not be copied as observed transaction data");
+const cardWithoutExpectedPrice = card.replace("A$19.90 AUD", "");
+assert.doesNotMatch(
+  cardWithoutExpectedPrice,
+  /(?:A\$|\$)\s*\d|\b\d+(?:\.\d{1,2})?\s*AUD\b/i,
+  "the mobile card must not contain any other amount",
+);
+assert.ok(card.includes("전체 ID나 여러 suffix를 기록하지 않음"));
+assert.ok(card.includes("금액 원문을 카드에 복사"));
+assert.ok(card.includes("주소·URL을 복사하지 않고"));
 
 assert.ok(!card.includes("SECOND_SALE=PASS"));
 assert.ok(!card.includes("PRIMARY_HANDOFF=APPROVED"));
