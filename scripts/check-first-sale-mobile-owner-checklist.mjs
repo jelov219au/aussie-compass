@@ -61,7 +61,7 @@ const orderedOwnerSteps = [
   "Stripe 지원 기반 key provisioning 의존성",
   "Account Read 전용 audit key",
   "FIRST_SALE_PREFLIGHT=PASS",
-  "no-send SMTP 인증",
+  "actual mailbox receipt evidence",
   "PRODUCTION_PAYMENT_PATH_EVIDENCE=PASS",
   "한 건의 첫 판매만 명시적으로 승인",
   "첫 실제 고객 결제 후 15분",

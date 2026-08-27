@@ -241,6 +241,17 @@ assert.doesNotMatch(
   /`PAYMENTS_ENABLED=false` and `STRIPE_MANAGED_PAYMENTS_ENABLED=false`/,
   "the executable preflight order must not disable its required Managed Payments readiness setting",
 );
+assert.ok(
+  readiness.includes("Use `STRIPE_MANAGED_PAYMENTS_ENABLED=false` only for the initial payment-off deployment baseline and rollback")
+    && readiness.includes("before the executable preflight, set it to `true` and redeploy the same approved SHA while `PAYMENTS_ENABLED` stays `false`"),
+  "payment readiness must distinguish the initial two-switch-off baseline from the Managed Payments-on payment-off preflight",
+);
+assert.ok(
+  readiness.includes("Require `operatorMonitoringConfigured=true` in Production")
+    && readiness.includes("`monitoring=manual` may satisfy only the protected payment-off runtime preflight")
+    && readiness.includes("does not waive the separate actual mailbox receipt gate before live-sale approval"),
+  "payment readiness must keep manual runtime monitoring distinct from final mailbox evidence",
+);
 for (const monitoredBoundary of [
   'FIRST_SALE_MONITORED_MODE_ENABLED?.trim().toLowerCase() === "true"',
   "FIRST_SALE_MONITORED_MODE_OWNER_ACK",
@@ -254,12 +265,18 @@ for (const alertBoundary of [
   ".\\scripts\\run-payment-alert-transport-check.ps1 -SendTest",
   "Record only the received",
 ]) assert.ok(alertRunbook.includes(alertBoundary), `the payment-alert runbook is missing: ${alertBoundary}`);
-const smtpReceiptGate = mobileOwnerChecklist.indexOf("no-send SMTP 인증 PASS");
+const smtpReceiptGate = mobileOwnerChecklist.indexOf("actual mailbox receipt evidence");
 const productionRehearsalGate = mobileOwnerChecklist.indexOf("PRODUCTION_PAYMENT_PATH_EVIDENCE=PASS");
 const ownerSaleApprovalGate = mobileOwnerChecklist.indexOf("한 건의 첫 판매만 명시적으로 승인");
 assert.ok(
   smtpReceiptGate >= 0 && smtpReceiptGate < productionRehearsalGate && productionRehearsalGate < ownerSaleApprovalGate,
   "SMTP receipt, payment-off Production rehearsal and owner single-sale approval must remain ordered fail-closed gates",
+);
+assert.ok(
+  checklist.includes("Either mode still requires separate actual mailbox receipt evidence before final live-sale approval")
+    && checklist.includes("`monitoring=manual` cannot replace actual receipt evidence")
+    && mobileOwnerChecklist.includes("`monitoring=manual`은 actual mailbox receipt evidence를 면제하지 않는다"),
+  "manual preflight mode must never replace the final live-sale mailbox receipt gate",
 );
 assert.ok(mobileOwnerChecklist.includes("PRODUCTION_PAYMENT_PATH_EVIDENCE=PASS mode=production source_sha=exact"), "Production rehearsal evidence must be bound to the exact approved Source SHA");
 assert.ok(readiness.includes("necessary but not sufficient for sale approval") && readiness.includes("preflight alone never authorizes `PAYMENTS_ENABLED=true`"), "payment readiness must not allow owner approval before monitoring and exact-SHA Production rehearsal pass");
