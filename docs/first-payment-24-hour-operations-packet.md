@@ -60,10 +60,11 @@ private 회계 위치에만 보관한다. `overall_tax_handoff=PASS`가 아니�
 
 이 패킷은 live `resume_pro` 첫 고객 결제 전 실행한 통합 gate의 정확한 최종
 결과
-`FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no`
+`FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=<smtp|manual> keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no`
 를 하나의 private launch reference와 실행 시각으로 보존해야 한다. JSON에는
 최종 문구, 키, DB URL 또는 전체 Stripe ID를 복사하지 않고 아래 고정 check의
-`PASS/MISSING/FAIL`만 기록한다.
+`PASS/MISSING/FAIL`만 기록한다. Placeholder를 기록하지 말고 같은 실행의 outer
+PASS와 일치하는 실제 `smtp` 또는 `manual` 값만 보존한다.
 
 | 마감 | 필수 check | 책임 역할 | PASS 기준 | MISSING/FAIL 처리 |
 | --- | --- | --- | --- | --- |

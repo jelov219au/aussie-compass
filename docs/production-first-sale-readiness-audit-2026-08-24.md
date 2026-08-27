@@ -197,9 +197,10 @@ complete. They do not satisfy any blocker below.
    runtime and `hoju_payment_auditor` connections resolve to it. The same masked
    accounting key must pass the integrated accounting preflight after the
    runtime and local operator audits, and cleanup must finish before the exact final
-   `FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no`
+   `FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=<smtp|manual> keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no`
    result. Retain it only with the outer `VERCEL_PRODUCTION_PREFLIGHT=PASS` from
-   the same uninterrupted run. Never deploy or persist the bypass, either audit
+   the same uninterrupted run and only when both lines carry the same concrete
+   `smtp` or `manual` value. Never deploy or persist the bypass, either audit
    key or the audit DB credential.
 2. Run the protected no-send SMTP authentication check, then the separately
    approved labelled test-message path, and confirm receipt in the monitored

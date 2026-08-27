@@ -22,6 +22,7 @@ $secureAuditDatabaseUrl = $null
 $challenge = $null
 $auditKeyHmac = $null
 $accountingKeyHmac = $null
+$monitoringMode = "unverified"
 $exitCode = 1
 $failureReason = "input_or_runtime_error"
 
@@ -105,8 +106,20 @@ try {
   Push-Location -LiteralPath $projectRoot
   $locationPushed = $true
   $failureReason = "production_runtime_preflight_failed"
-  & npm.cmd --silent run payments:verify-production-runtime -- --deployment $DeploymentOrigin --expected-sha $ExpectedProductionSha --expected-endpoint $ExpectedNeonEndpointId --challenge $challenge --audit-key-hmac $auditKeyHmac --accounting-key-hmac $accountingKeyHmac
-  if ($LASTEXITCODE -ne 0) { throw "Protected Production runtime preflight failed closed." }
+  $runtimeSmtpPass = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS environment=production source_sha=exact payments=off managed_payments=configured config=verified stripe=read-only-pass open_sessions=zero database=runtime-schema-pass operator_monitoring=smtp smtp=verify-pass email_sent=no secrets_printed=no"
+  $runtimeManualPass = "PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=PASS environment=production source_sha=exact payments=off managed_payments=configured config=verified stripe=read-only-pass open_sessions=zero database=runtime-schema-pass operator_monitoring=manual-first-sale smtp=not-run email_sent=no secrets_printed=no"
+  $runtimeOutput = @(& npm.cmd --silent run payments:verify-production-runtime -- --deployment $DeploymentOrigin --expected-sha $ExpectedProductionSha --expected-endpoint $ExpectedNeonEndpointId --challenge $challenge --audit-key-hmac $auditKeyHmac --accounting-key-hmac $accountingKeyHmac)
+  $runtimeExitCode = $LASTEXITCODE
+  foreach ($line in $runtimeOutput) { Write-Host $line }
+  $runtimeRecords = @($runtimeOutput | Where-Object { $_ -cmatch '^PRODUCTION_RUNTIME_PAYMENT_PREFLIGHT=' })
+  if ($runtimeExitCode -ne 0 -or $runtimeRecords.Count -ne 1) { throw "Protected Production runtime preflight failed closed." }
+  if ($runtimeRecords[0] -ceq $runtimeSmtpPass) {
+    $monitoringMode = "smtp"
+  } elseif ($runtimeRecords[0] -ceq $runtimeManualPass) {
+    $monitoringMode = "manual"
+  } else {
+    throw "Protected Production runtime preflight returned a non-canonical result."
+  }
 
   $secureAuditDatabaseUrl = Read-Host "One-off hoju_payment_auditor database URL" -AsSecureString
   $auditDatabasePointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureAuditDatabaseUrl)
@@ -160,9 +173,16 @@ try {
 
 if ($exitCode -eq 0) {
   Write-Host "STRIPE_KEY_ROLES=PASS mode=live distinct=yes permissions=separate-preflights-required secrets_printed=no"
-  Write-Host "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no"
+  if ($monitoringMode -ceq "smtp") {
+    Write-Host "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=smtp keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no"
+  } elseif ($monitoringMode -ceq "manual") {
+    Write-Host "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=manual keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no"
+  } else {
+    Write-Host "FIRST_SALE_PREFLIGHT=FAIL mode=live payments_off=required monitoring=unverified keys=unverified required_operations=unverified database=unverified secrets_printed=no launch=NO-GO reason=monitoring_mode_unverified"
+    exit 1
+  }
 } else {
-  Write-Host "FIRST_SALE_PREFLIGHT=FAIL mode=live payments_off=required keys=unverified required_operations=unverified database=unverified secrets_printed=no launch=NO-GO reason=$failureReason"
+  Write-Host "FIRST_SALE_PREFLIGHT=FAIL mode=live payments_off=required monitoring=unverified keys=unverified required_operations=unverified database=unverified secrets_printed=no launch=NO-GO reason=$failureReason"
 }
 
 exit $exitCode

@@ -88,15 +88,19 @@ assert.ok(packageJson.includes("npm run test:payment-launch-preflight"), "the fu
 
 const command = "npm run payments:operator-audit";
 const accountingCommand = "npm run accounting:preflight";
-const integratedPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no";
+const documentedIntegratedPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=<smtp|manual> keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no";
+const innerSmtpPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=smtp keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no";
+const innerManualPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=manual keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no";
 assert.ok(readiness.includes(command), "payment readiness must document the fail-closed preflight command");
 assert.ok(checklist.includes(command), "the live launch checklist must document the fail-closed preflight command");
 for (const [label, document] of [["payment readiness", readiness], ["live launch checklist", checklist]]) {
   assert.ok(document.includes(accountingCommand), `${label} must document the integrated accounting permission preflight`);
   assert.ok(document.includes("same masked accounting key") || document.includes("same prompted accounting key"), `${label} must bind accounting permission evidence to the key checked for role separation`);
-  assert.ok(document.includes(integratedPass), `${label} must name the canonical integrated first-sale PASS`);
+  assert.ok(document.includes(documentedIntegratedPass), `${label} must name the monitoring-qualified integrated first-sale PASS`);
   assert.ok(document.indexOf(command) < document.indexOf(accountingCommand), `${label} must place accounting permission verification after the strict payment/database audit`);
-  assert.ok(document.indexOf(accountingCommand) < document.indexOf(integratedPass), `${label} must place the final first-sale PASS after both permission preflights`);
+  assert.ok(document.indexOf(accountingCommand) < document.indexOf(documentedIntegratedPass), `${label} must place the final first-sale PASS after both permission preflights`);
+  assert.ok(document.includes("same concrete monitoring value"), `${label} must bind outer and inner PASS to one concrete monitoring mode`);
+  assert.match(document, /placeholder[^\r\n]*(?:mismatch|불일치)|(?:placeholder|mismatch)[^\r\n]*(?:NO-GO|`NO-GO`)/i, `${label} must reject placeholder or mismatched monitoring evidence`);
   assert.doesNotMatch(document, /(?:never assigns or uses|is never assigned to the process)[^\n]*accounting key|accounting key[^\n]*(?:never assigned|requires the separate accounting preflight|remains separately fail-closed)/i, `${label} must not claim the accounting key is excluded from the integrated wrapper`);
 }
 assert.ok(checklist.includes("this single integrated result satisfies the Balance Transactions read check"), "the first-customer checklist must use one integrated accounting criterion");
@@ -125,8 +129,9 @@ for (const secureBoundary of [
   'npm.cmd --silent run payments:verify-production-runtime',
   'npm.cmd run payments:operator-audit',
   'npm.cmd run accounting:preflight',
-  'FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no',
-  'FIRST_SALE_PREFLIGHT=FAIL mode=live payments_off=required keys=unverified required_operations=unverified database=unverified secrets_printed=no launch=NO-GO',
+  innerSmtpPass,
+  innerManualPass,
+  'FIRST_SALE_PREFLIGHT=FAIL mode=live payments_off=required monitoring=unverified keys=unverified required_operations=unverified database=unverified secrets_printed=no launch=NO-GO',
 ]) assert.ok(secureRunner.includes(secureBoundary), `secure Production preflight is missing: ${secureBoundary}`);
 assert.equal((secureRunner.match(/ZeroFreeBSTR\(/g) ?? []).length, 3, "all three masked plaintext buffers must be zeroed");
 assert.doesNotMatch(secureRunner, /Write-Host[^\n]*(?:plainAuditKey|plainAccountingKey|STRIPE_SECRET_KEY)/, "the role-separation result must not print a Stripe key");
@@ -176,6 +181,7 @@ for (const document of [readiness, checklist]) {
 }
 for (const [label, document] of [["payment readiness", readiness], ["live launch checklist", checklist]]) {
   assert.ok(document.includes("-ExpectedProductionSha <full-owner-approved-sha>"), `${label} must pass the full owner-approved SHA to the integrated wrapper`);
+  assert.ok(document.includes("redeploy") && document.includes("same approved") && document.includes("exact-SHA"), `${label} must require a same-SHA redeploy and exact-SHA recheck after the managed-payments setting changes`);
 }
 
 for (const contract of [
@@ -269,7 +275,7 @@ for (const observedDeploymentBoundary of [
   "`resume-pro-restore-notice`",
   "`aria-atomic=\"true\"`",
   "deployment identity remains `MISSING`",
-  integratedPass,
+  documentedIntegratedPass,
 ]) assert.ok(productionAudit.includes(observedDeploymentBoundary), `the Production audit is missing the current fail-closed deployment evidence: ${observedDeploymentBoundary}`);
 assert.ok(compactProductionAudit.includes("same masked accounting key must pass the integrated accounting preflight"), "the Production audit must use the same integrated three-key preflight as the canonical runbook");
 assert.ok(productionAudit.includes("scripts/run-vercel-production-payment-preflight.ps1 -ExpectedNeonEndpointId <approved-primary-endpoint> -ExpectedProductionSha <full-owner-approved-sha>"), "the authoritative Production audit must route operators through the clean Vercel wrapper with both pins");

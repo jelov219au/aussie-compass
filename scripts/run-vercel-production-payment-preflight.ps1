@@ -13,6 +13,7 @@ $environmentExamplePath = Join-Path $projectRoot ".env.example"
 $vercelPackage = "vercel@59.5.0"
 $exitCode = 1
 $failureReason = "input_or_runtime_error"
+$monitoringMode = "unverified"
 
 $forbiddenDotEnvFiles = @(
   ".env", ".env.local", ".env.development", ".env.development.local",
@@ -86,8 +87,16 @@ try {
     $innerPreflightExitCode = $LASTEXITCODE
     foreach ($line in $innerPreflightOutput) { Write-Host $line }
     $innerPreflightRecords = @($innerPreflightOutput | Where-Object { $_ -cmatch '^FIRST_SALE_PREFLIGHT=' })
-    $innerPreflightPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no"
-    if ($innerPreflightExitCode -ne 0 -or $innerPreflightRecords.Count -ne 1 -or $innerPreflightRecords[0] -cne $innerPreflightPass) { throw "The integrated Production preflight failed closed." }
+    $innerSmtpPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=smtp keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no"
+    $innerManualPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=manual keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no"
+    if ($innerPreflightExitCode -ne 0 -or $innerPreflightRecords.Count -ne 1) { throw "The integrated Production preflight failed closed." }
+    if ($innerPreflightRecords[0] -ceq $innerSmtpPass) {
+      $monitoringMode = "smtp"
+    } elseif ($innerPreflightRecords[0] -ceq $innerManualPass) {
+      $monitoringMode = "manual"
+    } else {
+      throw "The integrated Production preflight returned a non-canonical monitoring mode."
+    }
   } finally {
     Pop-Location
   }
@@ -101,9 +110,9 @@ try {
 }
 
 if ($exitCode -eq 0) {
-  Write-Host "VERCEL_PRODUCTION_PREFLIGHT=PASS environment=production project=pinned payments=off exact_sha=required endpoint=required secrets_printed=no"
+  Write-Host "VERCEL_PRODUCTION_PREFLIGHT=PASS environment=production project=pinned payments=off monitoring=$monitoringMode exact_sha=required endpoint=required secrets_printed=no"
 } else {
-  Write-Host "VERCEL_PRODUCTION_PREFLIGHT=FAIL environment=production project=pinned payments=off exact_sha=required endpoint=required secrets_printed=no launch=NO-GO reason=$failureReason"
+  Write-Host "VERCEL_PRODUCTION_PREFLIGHT=FAIL environment=production project=pinned payments=off monitoring=unverified exact_sha=required endpoint=required secrets_printed=no launch=NO-GO reason=$failureReason"
 }
 
 exit $exitCode
