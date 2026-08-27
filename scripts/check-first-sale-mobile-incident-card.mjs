@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const card = await readFile(
-  new URL("../docs/first-sale-mobile-incident-card.md", import.meta.url),
-  "utf8",
-);
+const [card, ownerChecklist] = await Promise.all([
+  readFile(new URL("../docs/first-sale-mobile-incident-card.md", import.meta.url), "utf8"),
+  readFile(new URL("../docs/first-sale-mobile-owner-checklist.md", import.meta.url), "utf8"),
+]);
 const compact = card.replace(/\s+/g, " ");
+const compactOwnerChecklist = ownerChecklist.replace(/\s+/g, " ");
 
 for (const heading of [
   "# First-sale mobile incident card",
@@ -56,12 +57,24 @@ for (const boundary of [
   "`PASS`는 세금 책임·BAS·회계 결론이 아니며",
   "`none_confirmed`는 닫힌 source window가 있을 때만 사용",
   "suffix 하나와 UTC 관찰 시각만 존재",
+  "휴대폰에서는 Stripe 고객·거래 상세, Checkout, receipt, invoice, tax report 또는 고객별 문서 화면을 열지 않는다",
+  "승인된 private-source 담당자가 통제된 기기에서 원본을 확인하고 마지막 8자 suffix 하나, UTC 관찰 시각 하나와 아래 고정 상태만 전달한다",
+  "모바일 운영자는 전달받은 허용 필드 외에 고객·거래·문서 정보를 추가로 요청하지 않는다",
   "하나라도 `STOP`이면 전체 `STOP`",
   "수동 owner 승인으로 `HOLD`나 `STOP`을 PASS로 덮어쓰지 않는다",
   "여러 문제가 동시에 보이면 아래 위에서부터 처음 일치하는 역할 하나만",
   "이 카드는 메시지를 보내지 않음",
   "전부 PASS여도 이 카드를 재판매 승인으로 사용하지 않고",
 ]) assert.ok(compact.includes(boundary), `mobile incident card is missing fail-closed boundary: ${boundary}`);
+
+assert.ok(
+  compactOwnerChecklist.includes("고객·거래·문서 식별자와 고객별 화면은 열거나 기록하지 않는다"),
+  "mobile owner checklist must keep its customer-detail prohibition",
+);
+assert.ok(
+  !compact.includes("승인된 live mode에서 첫 Resume Pro 원거래와 실제 발행 문서를 읽기 전용으로 확인한다"),
+  "mobile incident operator must not be told to open customer transaction artifacts",
+);
 
 for (const owner of [
   "`SECURITY_OWNER`",

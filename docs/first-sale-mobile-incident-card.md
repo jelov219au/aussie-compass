@@ -1,7 +1,8 @@
 # First-sale mobile incident card
 
-첫 실제 Resume Pro 결제 직후 고객 문서·가격·세금 표시를 확인하고, 환불,
-접근 또는 고객지원 문제가 보일 때 인계하는 모바일용 **상태-only** 카드다.
+첫 실제 Resume Pro 결제 직후 승인된 private-source 담당자가 확인한 고객
+문서·가격·세금 표시와 환불·접근·고객지원 상태를 인계받는 모바일용
+**상태-only** 카드다.
 이 카드는 `/payment-help`의 고객 안내,
 `docs/payment-alerts.md`의 webhook·outbox·mailbox 증거,
 `docs/accounting-reconciliation.md`의 원거래·조정·payout 대사,
@@ -18,8 +19,12 @@ packet을 대체하지 않는다. 원본 증거는 승인된 private 위치와 �
   아래 고정 상태뿐이다.
 - 휴대폰에서는 결제, 환불, dispute 응답, payout, entitlement 변경, gate
   reopen, 이메일·메시지 전송, 외부 제출 또는 설정 변경을 실행하지 않는다.
-- 화면의 원문을 이 카드에 옮기지 않는다. 승인된 owner가 private 원본에서
-  확인한 결과를 `PASS`, `HOLD`, `STOP` 중 하나로만 전달받는다.
+- 휴대폰에서는 Stripe 고객·거래 상세, Checkout, receipt, invoice, tax report
+  또는 고객별 문서 화면을 열지 않는다. 승인된 private-source 담당자가 통제된
+  기기에서 원본을 확인하고 마지막 8자 suffix 하나, UTC 관찰 시각 하나와 아래
+  고정 상태만 전달한다.
+- 화면의 원문을 이 카드에 옮기지 않는다. 모바일 운영자는 전달받은 허용 필드
+  외에 고객·거래·문서 정보를 추가로 요청하지 않는다.
 - 원본을 열 수 없거나 결과가 서로 다르거나 아직 pending이면 `HOLD`다.
   개인정보·비밀값 노출, 잘못된 계정/mode/product, 실제 paid 상태와
   entitlement/access의 충돌 또는 첫 15분 필수 증거 실패는 `STOP`이다.
@@ -61,9 +66,9 @@ SECOND_SALE=HOLD
 
 ### Immediate document and accounting summary
 
-이 요약은 기존 9행 customer-document packet을 반복하지 않는다. 운영자는
-Checkout과 실제 발행된 문서를 읽기 전용으로 확인하고 아래 집계 상태만 이
-카드에 옮긴다.
+이 요약은 기존 9행 customer-document packet을 반복하지 않는다. 승인된
+private-source 담당자가 통제된 기기에서 Checkout과 실제 발행 문서를 읽기
+전용으로 확인하고, 모바일 운영자는 아래 집계 상태만 카드에 옮긴다.
 
 | Field | 기록 기준 | Fail-closed 경계 |
 | --- | --- | --- |
@@ -115,18 +120,19 @@ owner 승인으로 `HOLD`나 `STOP`을 PASS로 덮어쓰지 않는다.
 
 ## Mobile handoff sequence
 
-1. 승인된 live mode에서 첫 Resume Pro 원거래와 실제 발행 문서를 읽기
-   전용으로 확인한다. 공개 `/payment-help`나 고객 메시지에서 내용을 복사하지
-   않는다.
-2. 원거래 suffix 하나와 UTC 관찰 시각을 기록하고 seller, issuer, 고정 가격·통화,
-   tax/GST 표시, 거래 지원 경로와 refund 상태의 고정 field만 선택한다.
-3. 승인된 담당자가 private 원본과 기존 packet에서 고정 field 결과를 확인할 때까지
+1. 휴대폰에서는 첫 Resume Pro 고객·거래·문서 상세 화면을 열지 않고, 공개
+   `/payment-help`나 고객 메시지에서도 내용을 복사하지 않는다.
+2. 승인된 private-source 담당자가 통제된 기기에서 live 원거래와 실제 발행
+   문서를 확인해 suffix 하나, UTC 관찰 시각 하나와 고정 상태만 전달한다.
+3. 모바일 운영자는 전달받은 suffix·UTC 시각과 seller, issuer, 고정 가격·통화,
+   tax/GST 표시, 거래 지원 경로와 refund 상태의 고정 field만 기록한다.
+4. 승인된 담당자가 private 원본과 기존 packet에서 고정 field 결과를 확인할 때까지
    `POST_FIRST_SALE_INCIDENT=HOLD`, `SECOND_SALE=HOLD`를 유지한다.
-4. 받은 상태를 카드에 선택하고 우선순위에 따라 `PRIMARY_HANDOFF` 하나를
+5. 받은 상태를 카드에 선택하고 우선순위에 따라 `PRIMARY_HANDOFF` 하나를
    지정한다. customer reply, refund decision 또는 기술 조치를 쓰지 않는다.
-5. `STOP`이면 즉시 두 번째 판매를 닫은 상태로 security/technical/business
+6. `STOP`이면 즉시 두 번째 판매를 닫은 상태로 security/technical/business
    owner에게 인계한다. `HOLD`이면 지정 owner의 확인을 기다린다.
-6. 전부 PASS여도 이 카드를 재판매 승인으로 사용하지 않고 기존 24시간 및
+7. 전부 PASS여도 이 카드를 재판매 승인으로 사용하지 않고 기존 24시간 및
    첫 payout 증거 절차로 넘긴다.
 
 로컬 계약 검사는
