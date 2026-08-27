@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 type RestoreCodeResponse = {
@@ -61,6 +62,7 @@ export function RentalApplicationProAccessTools() {
         <form action="/api/rental-application-pro/access/release" method="post" className="mt-3">
           <button type="submit" className="inline-flex min-h-11 items-center justify-center border border-navy px-4 py-2 text-sm font-semibold text-navy">이 기기 접근 해제</button>
         </form>
+        <p className="mt-3 text-xs leading-5 text-muted">작성한 집 후보와 방문 점검도 지우려면 <Link href="/data-transfer#rental-delete-heading" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">Rental 로컬 기록 삭제</Link>를 사용하세요. 이용권과 결제 증빙은 유지됩니다.</p>
       </div>
     </section>
   );

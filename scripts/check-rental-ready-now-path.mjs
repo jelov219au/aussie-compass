@@ -11,6 +11,14 @@ import {
   readRentalReadyNowHandoff,
   readRentalReadyNowSavedFlag,
 } from "../src/lib/rentalReadyNowHandoff.ts";
+import {
+  clearRentalApplicationProDeviceData,
+  propertyInspectionStorageKey,
+  rentalApplicationProDeviceDataStorageKeys,
+  rentalApplicationProFirstSuccessStorageKey,
+  rentalApplicationProTransferableStorageKeys,
+  rentalApplicationProWorkspaceStorageKey,
+} from "../src/lib/rentalApplicationProDeviceStorage.ts";
 
 class MemoryStorage {
   #values = new Map();
@@ -19,13 +27,15 @@ class MemoryStorage {
   removeItem(key) { this.#values.delete(key); }
 }
 
-const [offerPage, freePage, freeProject, freeTool, workspace, commerce] = await Promise.all([
+const [offerPage, freePage, freeProject, freeTool, workspace, commerce, deviceTransfer, accessTools] = await Promise.all([
   readFile(new URL("../src/app/rental-application-pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/property-inspection-checklist/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/LocalProjectChecklist.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/PropertyInspectionChecklist.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/RentalApplicationWorkspace.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/commerce.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/DeviceDataTransfer.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/RentalApplicationProAccessTools.tsx", import.meta.url), "utf8"),
 ]);
 
 const now = Date.parse("2026-08-25T00:00:00.000Z");
@@ -78,6 +88,28 @@ assert.equal(rentalReadyNowReceiptMatches({ mode: "rent", reviewedCount: 18, con
 assert.equal(readRentalReadyNowSavedFlag({ getItem: () => "saved" }, "first-success"), true);
 assert.equal(readRentalReadyNowSavedFlag({ getItem: () => { throw new Error("blocked after successful import"); } }, "first-success"), false, "a later status read failure must not escape and replace a successful or duplicate-import message");
 
+assert.deepEqual(rentalApplicationProTransferableStorageKeys, [propertyInspectionStorageKey, rentalApplicationProWorkspaceStorageKey], "only reusable Rental records belong in a device backup");
+assert.deepEqual(rentalApplicationProDeviceDataStorageKeys, [
+  propertyInspectionStorageKey,
+  rentalApplicationProWorkspaceStorageKey,
+  rentalReadyNowHandoffStorageKey,
+  rentalApplicationProFirstSuccessStorageKey,
+], "the shared-device purge must cover every Rental browser-data boundary exactly once");
+const rentalDeviceStorage = new MemoryStorage();
+rentalApplicationProDeviceDataStorageKeys.forEach((key) => rentalDeviceStorage.setItem(key, "private"));
+rentalDeviceStorage.setItem("unrelated-product", "keep");
+assert.deepEqual(clearRentalApplicationProDeviceData(rentalDeviceStorage), {
+  removedKeys: [...rentalApplicationProDeviceDataStorageKeys],
+  failedKeys: [],
+});
+rentalApplicationProDeviceDataStorageKeys.forEach((key) => assert.equal(rentalDeviceStorage.getItem(key), null, `Rental device purge left ${key} behind`));
+assert.equal(rentalDeviceStorage.getItem("unrelated-product"), "keep", "Rental device purge must not delete another product's data");
+const blockedRentalStorage = {
+  getItem: (key) => key === rentalReadyNowHandoffStorageKey ? "private" : null,
+  removeItem: (key) => { if (key === rentalReadyNowHandoffStorageKey) throw new Error("blocked"); },
+};
+assert.deepEqual(clearRentalApplicationProDeviceData(blockedRentalStorage).failedKeys, [rentalReadyNowHandoffStorageKey], "a blocked deletion must be reported instead of claiming success");
+
 const closedStart = offerPage.indexOf(") : (", offerPage.indexOf("{checkoutAvailable ? ("));
 const closedEnd = offerPage.indexOf(")}", closedStart);
 assert.ok(closedStart >= 0 && closedEnd > closedStart, "the unavailable Rental state needs a dedicated ready-now branch");
@@ -123,5 +155,14 @@ assert.ok(workspace.includes("readRentalReadyNowSavedFlag(window.localStorage, F
 assert.ok(workspace.includes("무료 방문 결과 원본은 삭제하지 않았습니다"), "a workspace storage failure must explain that the retry source was preserved without exposing an internal handoff term");
 assert.ok(!freeTool.includes("/api/checkout/rental-application-pro"), "the free result must never skip the product introduction");
 assert.ok(!freeTool.includes("resume_pro") && !workspace.includes("resume_pro"), "the Rental handoff must not touch Resume Pro state");
+for (const contract of [
+  "공용 기기의 Rental 기록 삭제",
+  "구매 이용권·결제 증빙·서버 기록과 다른 기기의 데이터는 변경하지 않습니다",
+  "workspace 안의 집 후보와 내부 가져오기 표식도 함께 옮겨집니다",
+  "일시적인 이어보기 정보와 로컬 완료 표식은 이전 대상이 아닙니다",
+  "설치형 앱과 일반 브라우저에서 기록이 따로 보이면 각 환경에서 각각 백업하거나 삭제하세요",
+  "clearRentalApplicationProDeviceData(window.localStorage)",
+]) assert.ok(deviceTransfer.includes(contract), `the Rental shared-device privacy control is missing: ${contract}`);
+assert.ok(accessTools.includes('href="/data-transfer#rental-delete-heading"'), "the paid workspace must expose the Rental local-data purge before a shared-device user leaves");
 
 console.log("Rental Pack ready-now free project and privacy-minimised Pro handoff contracts passed.");

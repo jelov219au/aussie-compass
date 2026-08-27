@@ -16,6 +16,10 @@ import {
   rentalReadyNowReceiptMatches,
   type RentalReadyNowImportReceipt,
 } from "@/lib/rentalReadyNowHandoff";
+import {
+  rentalApplicationProFirstSuccessStorageKey,
+  rentalApplicationProWorkspaceStorageKey,
+} from "@/lib/rentalApplicationProDeviceStorage";
 
 type DocumentStatus = "todo" | "review" | "ready";
 type RentalInspectionSummary = RentalReadyNowImportReceipt;
@@ -53,8 +57,8 @@ type DocumentItem = {
   caution?: string;
 };
 
-const STORAGE_KEY = "hoju-compass-rental-application-pro-v1";
-const FIRST_SUCCESS_KEY = "hoju-compass-rental-application-pro-first-success-v1";
+const STORAGE_KEY = rentalApplicationProWorkspaceStorageKey;
+const FIRST_SUCCESS_KEY = rentalApplicationProFirstSuccessStorageKey;
 const initialDraft: RentalDraft = {
   propertyLabel: "",
   moveDate: "",
