@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { RAIL_WORK_ALERT_STORAGE_KEY } from "@/lib/railWorkAlerts";
 
 type StoredRecord = {
   key: string;
@@ -46,6 +47,7 @@ const storedRecords: StoredRecord[] = [
   { key: "aussie-compass-job-tracker-v1", label: "구직 지원 현황", group: "구직", sensitive: true },
   { key: "hoju-compass-pay-evidence-pro-v1", label: "급여 증빙 패키지", group: "구직", sensitive: true },
   { key: "aussie-compass-commute-housing-v1", label: "통학·생활권 비교", group: "주거·이동" },
+  { key: RAIL_WORK_ALERT_STORAGE_KEY, label: "철도 작업 확인 지역", group: "주거·이동", sensitive: true },
   { key: "aussie-compass-property-inspection-v1", label: "집 방문 점검", group: "주거·이동", sensitive: true },
   { key: "hoju-compass-rental-application-pro-v1", label: "렌트 신청 패키지", group: "주거·이동", sensitive: true },
   { key: "aussie-compass-service-quotes-v1", label: "서비스 견적 비교", group: "생활 서비스", sensitive: true },

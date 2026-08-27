@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Container } from "@/components/ui/Container";
 import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory } from "@/lib/articleProgress";
+import { RAIL_WORK_ALERT_STORAGE_KEY } from "@/lib/railWorkAlerts";
 
 const progressKeys = [
   "visa-preparation-project",
@@ -17,6 +18,7 @@ const progressKeys = [
   "aussie-compass-resume-v1",
   "aussie-compass-salary-calculation",
   "aussie-compass-living-budget-v1",
+  RAIL_WORK_ALERT_STORAGE_KEY,
   "aussie-compass-life-reminders-v1",
   "hoju-compass-personal-plan-v1",
 ];

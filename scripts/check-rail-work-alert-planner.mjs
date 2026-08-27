@@ -6,6 +6,8 @@ const component = readFileSync(new URL("../src/components/tools/RailWorkAlertPla
 const page = readFileSync(new URL("../src/app/rail-work-alerts/page.tsx", import.meta.url), "utf8");
 const homePage = readFileSync(new URL("../src/app/page.tsx", import.meta.url), "utf8");
 const homeSection = readFileSync(new URL("../src/components/sections/HomeTransportAlertsSection.tsx", import.meta.url), "utf8");
+const returnVisit = readFileSync(new URL("../src/components/sections/ReturnVisitSection.tsx", import.meta.url), "utf8");
+const deviceTransfer = readFileSync(new URL("../src/components/tools/DeviceDataTransfer.tsx", import.meta.url), "utf8");
 const transportPage = readFileSync(new URL("../src/app/public-transport-guide/page.tsx", import.meta.url), "utf8");
 const rentalPage = readFileSync(new URL("../src/app/rental-application-pro/page.tsx", import.meta.url), "utf8");
 const toolsPage = readFileSync(new URL("../src/app/tools/page.tsx", import.meta.url), "utf8");
@@ -32,6 +34,7 @@ assert.match(component, /공식 공지 원문 열기/);
 assert.match(component, /시작·종료 날짜 다시 확인/);
 assert.match(component, /대체 버스·우회 경로 확인/);
 assert.match(component, /접근성·막차 영향 확인/);
+assert.match(component, /href="\/data-transfer"[\s\S]*관심 지역 백업·이전/, "separate browser and installed-PWA storage must have a manual transfer path");
 assert.doesNotMatch(component, /fetch\(|XMLHttpRequest|sendBeacon|geolocation|cookie|sessionStorage/, "P1 must remain local and network-free");
 assert.match(page, /실시간 알림, 거리 계산 또는 운행 보장을 제공하지 않습니다/, "the page must fail closed on unavailable capabilities");
 assert.match(registry, /https:\/\/datahub\.roadsafety\.gov\.au\/infrastructure\/roadworks-and-road-closures/, "the federal roadworks map must use the official Data Hub URL");
@@ -67,6 +70,8 @@ assert.match(registry, /RAIL_WORK_ALERT_ROUTE = "\/rail-work-alerts"/, "all surf
 assert.match(manifest, /start_url: "\/"[\s\S]*scope: "\/"[\s\S]*display: "standalone"/, "the installed PWA must start on the same homepage and route scope as the website");
 assert.match(serviceWorker, /fetch\(event\.request\)\.catch\(\(\) => caches\.match\(OFFLINE_URL\)\)/, "offline navigation must retain the existing safe fallback");
 assert.doesNotMatch(serviceWorker, /rail-work-alerts|nsw-planning-snapshot/, "the service worker must not duplicate or cache transport data paths");
+assert.match(deviceTransfer, /key: RAIL_WORK_ALERT_STORAGE_KEY[\s\S]*철도 작업 확인 지역[\s\S]*sensitive: true/, "rail watch areas must be available in the explicit sensitive device backup flow");
+assert.match(returnVisit, /RAIL_WORK_ALERT_STORAGE_KEY/, "saved rail watch areas must count as resumable local work on the homepage");
 assert.match(toolsPage, /href: "\/rail-work-alerts"[\s\S]*최대 5곳 로컬 저장[\s\S]*NSW·VIC·QLD 공식 링크[\s\S]*날짜·대체교통 체크/, "the tools directory must describe only implemented planner capabilities");
 assert.match(searchPage, /href:"\/rail-work-alerts"[\s\S]*동네·역을 브라우저에 저장하고 지도 위치, 공식 작업 공지와 날짜·대체교통 체크리스트 반복 확인/, "site search must expose the implemented local workflow");
 assert.match(sitemap, /"\/rail-work-alerts"/, "the public route must be present in the sitemap");

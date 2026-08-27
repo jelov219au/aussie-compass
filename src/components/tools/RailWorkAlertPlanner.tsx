@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   RAIL_WORK_ALERT_MAX_AREAS,
@@ -127,5 +128,9 @@ export function RailWorkAlertPlanner() {
       })}
     </ol> : <div className="mt-6 border border-dashed border-border p-6 text-center"><p className="font-semibold text-navy">저장한 관심 지역이 없습니다.</p><p className="mt-2 text-sm leading-6 text-muted">통근·통학에 자주 쓰는 역 하나부터 저장하고 공식 공지를 확인하세요.</p></div>}
     <p className="mt-4 min-h-5 text-sm text-muted" aria-live="polite">{message}</p>
+    <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <p className="leading-6 text-muted">일반 브라우저와 홈 화면 앱의 저장 공간은 서로 다를 수 있습니다.</p>
+      <Link href="/data-transfer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">관심 지역 백업·이전 →</Link>
+    </div>
   </section>;
 }
