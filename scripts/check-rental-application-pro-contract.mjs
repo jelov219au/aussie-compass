@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const checkout = await readFile(new URL("../src/app/api/checkout/rental-application-pro/route.ts", import.meta.url), "utf8");
+const offerPage = await readFile(new URL("../src/app/rental-application-pro/page.tsx", import.meta.url), "utf8");
 const checkoutForm = await readFile(new URL("../src/components/tools/RentalApplicationProCheckoutForm.tsx", import.meta.url), "utf8");
 const commerce = await readFile(new URL("../src/lib/commerce.ts", import.meta.url), "utf8");
 const purchase = await readFile(new URL("../src/lib/rentalApplicationProPurchase.ts", import.meta.url), "utf8");
@@ -62,6 +63,8 @@ assert.ok(releaseRoute.includes("releaseAccessSession") && releaseRoute.includes
 assert.ok(accessTools.includes("onSubmit={releaseAccess}") && accessTools.includes('headers: { Accept: "application/json" }'), "Rental sign-out must verify its server outcome without leaving mobile or PWA users on a raw response");
 assert.ok(accessTools.includes("result?.released !== true") && accessTools.includes('result.destination !== "/rental-application-pro?access=released"'), "Rental sign-out must only redirect after an exact confirmed release");
 assert.ok(accessTools.includes('href="/rental-application-pro/workspace"') && accessTools.includes("접근 상태 다시 확인"), "an unknown Rental release outcome must preserve a safe access recheck path");
+assert.ok(offerPage.includes("작성한 집 후보와 방문 점검은 이 브라우저에 남아 있습니다") && offerPage.includes('href="/data-transfer#rental-delete-heading"'), "a confirmed Rental release must not imply that shared-device local records were deleted");
+assert.ok(offerPage.includes('className="mt-3 inline-flex min-h-12 w-full') && offerPage.includes("Rental 로컬 기록 삭제"), "the post-release Rental purge action must remain reachable on mobile and installed PWA surfaces");
 assert.ok(restoreRoute.includes("restore_nonce") && restoreRoute.includes("consumeRestoreTokenHash"), "Rental restore must consume a nonce-bound one-time token");
 assert.ok(restoreRoute.includes('productCode: "rental_application_pro"'), "Rental restore must remain product-scoped");
 assert.ok(restoreCodeRoute.includes("getActiveRentalApplicationProEntitlement"), "Restore codes must require an active server-tracked Rental session");

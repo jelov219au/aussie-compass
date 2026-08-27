@@ -62,7 +62,13 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
         <Container>
           <Link href="/property-inspection-checklist" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 집 방문 체크리스트로 돌아가기</Link>
           {access === "required" && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">이 기기의 Rental Pack Pro 접근이 만료됐거나 확인되지 않았습니다. 결제 완료 화면에서 다시 열거나 이용권 복구를 사용해 주세요.</div>}
-          {access === "released" && <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">이 기기의 Rental Pack Pro 접근을 안전하게 해제했습니다. 구매 이용권은 유지됩니다.</div>}
+          {access === "released" && (
+            <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">
+              <p>이 기기의 Rental Pack Pro 접근을 안전하게 해제했습니다. 구매 이용권은 유지됩니다.</p>
+              <p className="mt-2 text-xs leading-5 text-muted">작성한 집 후보와 방문 점검은 이 브라우저에 남아 있습니다. 공용 기기라면 아래에서 Rental 로컬 기록도 따로 삭제하세요.</p>
+              <Link href="/data-transfer#rental-delete-heading" className="mt-3 inline-flex min-h-12 w-full items-center justify-center border border-navy px-4 py-2 font-semibold text-navy sm:w-auto">Rental 로컬 기록 삭제</Link>
+            </div>
+          )}
           {checkout === "cancelled" && <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">결제가 취소됐습니다. 청구되지 않았으며 준비가 되면 다시 시작할 수 있습니다.</div>}
           {entry === "property-inspection-checklist" && (
             <section className="mt-5 border-l-2 border-gold bg-white px-5 py-4" aria-labelledby="rental-free-handoff-heading">
