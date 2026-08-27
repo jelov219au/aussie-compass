@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [offerPage, workspacePage, workspace, portfolio] = await Promise.all([
+const [offerPage, workspacePage, workspace, portfolio, deviceStorage] = await Promise.all([
   readFile(new URL("../src/app/rental-application-pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/rental-application-pro/workspace/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/RentalApplicationWorkspace.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/RentalApplicationPortfolio.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/rentalApplicationProDeviceStorage.ts", import.meta.url), "utf8"),
 ]);
 
 for (const value of [
@@ -18,7 +19,7 @@ assert.ok(workspacePage.includes("집마다 준비와 후속 행동을 따로 �
 assert.ok(workspacePage.includes("<RentalApplicationWorkspace />"), "the protected workspace must retain the portfolio workspace");
 
 for (const contract of [
-  'const STORAGE_KEY = "hoju-compass-rental-application-pro-v1"',
+  "const STORAGE_KEY = rentalApplicationProWorkspaceStorageKey",
   "const MAX_PACKS = 6",
   "version: 2",
   "readStoredWorkspace",
@@ -32,7 +33,7 @@ for (const contract of [
   "window.confirm",
   "contactStatus",
   "followUpDate",
-  'const FIRST_SUCCESS_KEY = "hoju-compass-rental-application-pro-first-success-v1"',
+  "const FIRST_SUCCESS_KEY = rentalApplicationProFirstSuccessStorageKey",
   "hasMeaningfulPackData",
   "saveFirstCandidate",
   "window.localStorage.setItem(FIRST_SUCCESS_KEY, \"saved\")",
@@ -50,6 +51,11 @@ for (const contract of [
   'id="rental-cover-note-action"',
   'id="rental-package-download-action"',
 ]) assert.ok(workspace.includes(contract), `the local rental portfolio contract is missing: ${contract}`);
+
+for (const storageContract of [
+  'rentalApplicationProWorkspaceStorageKey = "hoju-compass-rental-application-pro-v1"',
+  'rentalApplicationProFirstSuccessStorageKey = "hoju-compass-rental-application-pro-first-success-v1"',
+]) assert.ok(deviceStorage.includes(storageContract), `the canonical Rental device-storage contract is missing: ${storageContract}`);
 
 const reuseStart = workspace.indexOf("const nextPack = reuseCurrent");
 const reuseEnd = workspace.indexOf("setWorkspace((current)", reuseStart);
