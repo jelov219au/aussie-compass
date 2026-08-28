@@ -32,13 +32,26 @@ export function ExperienceStoriesSection() {
       <Container>
         <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:gap-14">
           <div className="lg:pt-2">
-            <p className="text-xs font-semibold tracking-[0.16em] text-gold">생활에서 놓치기 쉬운 부분</p>
+            <p className="text-xs font-semibold tracking-[0.16em] text-gold">집과 이동에서 직접 확인할 것</p>
             <h2 id="experience-stories-heading" className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
               사진과 지도만 봐서는<br className="hidden sm:block" /> 알기 어려운 것도 담았어요.
             </h2>
             <p className="mt-5 max-w-md text-sm leading-7 text-white/70 sm:text-base">
               공식 안내에 잘 나오지 않는 생활의 세부는 확인할 질문으로 바꾸고, 규정과 수치는 공식 자료와 함께 정리했어요.
             </p>
+            <div className="mt-7 border-t border-white/15 pt-6">
+              <p className="max-w-md text-sm leading-6 text-white/70">
+                생활 영어부터 입주 첫날, 첫 계좌, 첫 급여 기록까지. 처음 호주에 왔을 때 기록해 둔 생활 상황과, 지금 함께 보면 좋은 가이드를 한곳에 모았어요.
+              </p>
+              <TrackedLink
+                href="/resources#lived-experience-guides"
+                eventName="Home Navigation"
+                properties={{ section: "experience_stories", destination: "lived_experience_collection" }}
+                className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-gold underline decoration-gold decoration-2 underline-offset-4"
+              >
+                실제로 살면서 알게 된 글 모아보기 →
+              </TrackedLink>
+            </div>
           </div>
 
           <ol className="divide-y divide-navy/15 overflow-hidden bg-white text-navy">

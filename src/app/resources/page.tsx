@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { LivedExperienceGuides } from "@/components/resources/LivedExperienceGuides";
 import { ResourcesDirectory } from "@/components/resources/ResourcesDirectory";
 import { Container } from "@/components/ui/Container";
 import { BreadcrumbJsonLd, CollectionJsonLd } from "@/components/seo/JsonLd";
@@ -53,6 +54,7 @@ export default function ResourcesPage() {
             </span>
             <span className="text-xl text-navy transition group-hover:translate-x-1" aria-hidden="true">→</span>
           </Link>
+          <LivedExperienceGuides />
           <section className="mt-12" aria-labelledby="new-life-tips-heading">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
