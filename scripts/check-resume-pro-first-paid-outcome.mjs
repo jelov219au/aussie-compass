@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [offerPage, successPage, purchaseSteps, workspace] = await Promise.all([
+const [offerPage, successPage, purchaseSteps, workspace, exampleKit] = await Promise.all([
   readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-pro/success/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeProPostPurchaseSteps.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ResumeProWorkspace.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../public/downloads/resume-pro-example-application-kit.txt", import.meta.url), "utf8"),
 ]);
 
 const sectionStart = offerPage.indexOf('<section className="border-t border-navy/20');
@@ -32,6 +33,19 @@ assert.ok(openStep >= 0 && openStep < connectStep && connectStep < saveStep, "th
 
 assert.ok(successPage.includes("결제가 확인됐습니다. 이제 작업공간을 여세요."), "the offer must lead to the verified success outcome");
 assert.ok(purchaseSteps.includes("이 기기에 이용권 연결") && purchaseSteps.includes("작업공간에서 첫 지원서 저장"), "the preview must match the post-purchase handoff");
+assert.ok(offerPage.includes('href="/downloads/resume-pro-example-application-kit.txt"') && offerPage.includes("가상 예시 지원서 패키지 TXT 보기·저장"), "the pre-purchase preview must expose the fictional application-kit download");
+for (const section of [
+  "SUBMISSION CHECK",
+  "RESUME SNAPSHOT",
+  "REUSABLE STAR EXPERIENCE",
+  "COVER LETTER",
+  "INTERVIEW PREPARATION",
+]) {
+  assert.ok(workspace.includes(`"${section}"`), `the live application-kit export is missing: ${section}`);
+  assert.ok(exampleKit.includes(section), `the fictional application-kit sample is missing: ${section}`);
+}
+assert.ok(exampleKit.includes("FICTIONAL EXAMPLE — DO NOT SUBMIT") && exampleKit.includes("does not verify your claims or guarantee an interview or job"), "the public sample must remain clearly fictional and non-guaranteed");
+assert.doesNotMatch(exampleKit, /@|\+?\d[\d\s()-]{7,}|https?:\/\//, "the public sample must not contain an email, phone number or external URL");
 for (const workspaceContract of [
   'label: "무료 이력서 연결"',
   'label: "회사와 직무 입력"',

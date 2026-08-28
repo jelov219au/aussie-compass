@@ -69,7 +69,7 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
               <Link href="/data-transfer#rental-delete-heading" className="mt-3 inline-flex min-h-12 w-full items-center justify-center border border-navy px-4 py-2 font-semibold text-navy sm:w-auto">Rental 로컬 기록 삭제</Link>
             </div>
           )}
-          {checkout === "cancelled" && <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">결제가 취소됐습니다. 청구되지 않았으며 준비가 되면 다시 시작할 수 있습니다.</div>}
+          {checkout === "cancelled" && <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">Stripe 결제 창에서 돌아왔습니다. 이 주소만으로 결제 완료 여부를 판단할 수 없습니다. 완료 화면이나 영수증을 봤거나 상태가 불명확하면 다시 결제하지 말고 <Link href="/payment-help" className="font-semibold underline decoration-gold underline-offset-4">결제 상태 확인 순서</Link>를 이용하세요.</div>}
           {entry === "property-inspection-checklist" && (
             <section className="mt-5 border-l-2 border-gold bg-white px-5 py-4" aria-labelledby="rental-free-handoff-heading">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">무료 방문 점검 다음 단계</p>

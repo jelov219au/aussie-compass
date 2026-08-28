@@ -39,7 +39,7 @@ export default async function ResumeProWorkspacePage() {
           </div>
           <ResumeProWorkspaceEntryGuide accessProtected={accessProtected} />
           <div id="resume-pro-workspace" tabIndex={-1} className="mt-9 scroll-mt-24 focus:outline-none"><ResumeProWorkspace /></div>
-          {accessProtected ? <ResumeProAccessTools /> : <ResumeProDevicePrivacyTools />}
+          {accessProtected ? <ResumeProAccessTools /> : <ResumeProDevicePrivacyTools requireRecoveryAcknowledgement={false} />}
           <section className="mt-10 border-l-2 border-gold bg-surface p-5 text-sm leading-7 text-muted"><h2 className="font-semibold text-navy">개인정보와 결과 안내</h2><p className="mt-1">이 도구는 입력 내용을 외부 AI나 서버로 전송하지 않고 브라우저 안에서 규칙 기반으로 초안을 만듭니다. 생성된 문장은 일반적인 제안이며 취업 결과를 보장하지 않습니다.</p></section>
         </Container>
       </main>

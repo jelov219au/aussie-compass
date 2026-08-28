@@ -61,6 +61,8 @@ assert.deepEqual(clearResumeProDeviceData(emptyStorage), [], "empty browser stor
 
 const privacyTools = await readFile(new URL("../src/components/tools/ResumeProDevicePrivacyTools.tsx", import.meta.url), "utf8");
 const workspace = await readFile(new URL("../src/components/tools/ResumeProWorkspace.tsx", import.meta.url), "utf8");
+const workspacePage = await readFile(new URL("../src/app/resume-pro/workspace/page.tsx", import.meta.url), "utf8");
+const accessTools = await readFile(new URL("../src/components/tools/ResumeProAccessTools.tsx", import.meta.url), "utf8");
 const accessRoute = await readFile(new URL("../src/app/api/resume-pro/access/release/route.ts", import.meta.url), "utf8");
 const resumePage = await readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8");
 const requestSecurity = await readFile(new URL("../src/lib/requestSecurity.ts", import.meta.url), "utf8");
@@ -69,12 +71,24 @@ for (const contract of [
   "접근만 해제 · 데이터 유지",
   "이 기기의 Resume Pro 데이터까지 삭제",
   "삭제한 내용은 복구할 수 없습니다",
-  "disabled={!deleteConfirmed || deleting}",
   "접근 해제 + 이 기기 데이터 완전 삭제",
   "요청 결과를 확인하지 못했어요. 다시 결제하지 마세요.",
   "접근 상태 다시 확인",
   "고객지원 문의",
+  "복구 코드를 보관했거나, 코드가 없으면 고객지원 확인 전까지 다시 열 수 없음을 이해했습니다.",
+  "복구 코드 없이 접근을 해제하면 자동 복구할 수 없습니다.",
+  "disabled={recoveryRequired || releasing || deleting}",
+  "disabled={recoveryRequired || !deleteConfirmed || deleting || releasing}",
 ]) assert.ok(privacyTools.includes(contract), `device-deletion safety copy is missing: ${contract}`);
+
+assert.ok(privacyTools.includes("const recoveryRequired = requireRecoveryAcknowledgement && !recoveryAcknowledged;"), "the recovery acknowledgement must apply only to protected purchased access");
+assert.ok(privacyTools.includes("if (releasing || deleting || recoveryRequired) return;"), "access-only release must require the shared recovery acknowledgement and reject concurrent deletion");
+assert.ok(privacyTools.includes("if (deleting || releasing || !deleteConfirmed || recoveryRequired)"), "release-and-delete must require the shared recovery acknowledgement and reject concurrent release");
+assert.equal((privacyTools.match(/resume-pro-release-recovery-warning/g) ?? []).length, 4, "the warning id, acknowledgement and both release actions must stay linked");
+assert.equal((privacyTools.match(/checked=\{recoveryAcknowledged\}/g) ?? []).length, 1, "both release paths must share one recovery acknowledgement state");
+assert.doesNotMatch(privacyTools, /restoreCode|localStorage\.setItem|raw code/i, "the release acknowledgement must not read or store a raw restore code");
+assert.ok(accessTools.includes("<ResumeProDevicePrivacyTools requireRecoveryAcknowledgement />"), "purchased access tools must require the recovery acknowledgement");
+assert.ok(workspacePage.includes("<ResumeProDevicePrivacyTools requireRecoveryAcknowledgement={false} />"), "the no-purchase local preview must not require an unavailable recovery code");
 
 assert.ok(
   privacyTools.indexOf("await fetch") < privacyTools.indexOf("completeResumeProDevicePurge(window.localStorage, window.sessionStorage)"),

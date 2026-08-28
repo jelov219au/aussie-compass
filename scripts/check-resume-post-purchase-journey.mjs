@@ -50,6 +50,11 @@ assert.ok(activationForm.includes("코드가 없다면 고객지원 확인 순�
 assert.ok(workspacePage.includes("<ResumeProWorkspaceEntryGuide accessProtected={accessProtected} />"), "the activated workspace needs a visible handoff guide");
 assert.ok(workspacePage.indexOf("<ResumeProWorkspaceEntryGuide") < workspacePage.indexOf("<ResumeProWorkspace />"), "the handoff guide must appear before the full workspace");
 assert.ok(workspaceGuide.includes('href="#resume-pro-workspace"') && workspaceGuide.includes('href="#resume-pro-access"'), "workspace guidance must link to the first task and later recovery-code action");
+assert.ok(workspaceGuide.indexOf('href="#resume-pro-access"') < workspaceGuide.indexOf('href="#resume-pro-workspace"'), "the activated workspace must offer recovery-code preparation before the first task");
+assert.ok(workspaceGuide.includes('accessProtected ? "그다음 첫 작업 시작하기 ↓" : "첫 작업 시작하기 ↓"'), "the local preview must not imply an unavailable recovery step happened first");
+for (const recoveryBoundary of ["먼저 1회용 복구 코드를 만들어 비밀번호 관리 앱 등에 보관", "30일 이용 확인 종료", "자동 복구할 수 없고 고객지원 확인이 필요합니다"]) {
+  assert.ok(workspaceGuide.includes(recoveryBoundary), `the first workspace handoff is missing the recovery boundary: ${recoveryBoundary}`);
+}
 assert.ok(purchaseSteps.includes("첫 10분 빠른 시작에서 회사별 지원서를 저장하고 저장본을 다시 열어 확인해요."), "the mobile success steps must name the executable saved outcome");
 assert.ok(accessTools.includes('id="resume-pro-access"'), "the recovery-code guidance needs a stable destination");
 

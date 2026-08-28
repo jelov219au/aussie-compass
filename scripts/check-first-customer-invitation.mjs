@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { firstCustomerLaunchGateManifest, getFirstCustomerPrePaymentBlockers } from "../src/lib/firstCustomerLaunchGates.ts";
 import { isFirstCustomerGoCurrent } from "../src/lib/firstCustomerLaunchPolicy.ts";
 
 const page = readFileSync("src/app/first-customer-invitation/page.tsx", "utf8");
@@ -9,8 +10,7 @@ const policy = readFileSync("src/lib/firstCustomerLaunchPolicy.ts", "utf8");
 const request = readFileSync("src/components/tools/ResumeProLaunchInterestLink.tsx", "utf8");
 const boundaries = readFileSync("scripts/check-public-boundaries.mjs", "utf8");
 const checklist = readFileSync("docs/live-payment-launch-checklist.md", "utf8");
-const productionAudit = readFileSync("docs/production-first-sale-readiness-audit-2026-08-24.md", "utf8");
-const compactProductionAudit = productionAudit.replace(/\s+/g, " ");
+const historicalAudit = readFileSync("docs/production-first-sale-readiness-audit-2026-08-24.md", "utf8");
 
 const errors = [];
 const requireText = (source, text, label) => {
@@ -49,10 +49,11 @@ for (const boundary of ["canonical UTC `approvedAt`", "`validUntil` timestamps n
 }
 requireText(page, "decision={firstCustomerLaunchDecision}", "server decision handoff");
 requireText(decision, 'status: "no_go"', "current Production decision");
-requireText(decision, 'auditedAt: "2026-08-24"', "decision evidence date");
+requireText(decision, 'auditedAt: "2026-08-28"', "decision evidence date");
 requireText(decision, "approvedAt: null", "NO-GO approval boundary");
 requireText(decision, "validUntil: null", "NO-GO expiry boundary");
 requireText(decision, 'import "server-only";', "server-only decision source");
+requireText(decision, "getFirstCustomerPrePaymentBlockers()", "phase-filtered blocker source");
 for (const boundary of [
   "firstCustomerGoWindowMs = 60 * 60 * 1000",
   "utcTimestampPattern",
@@ -79,21 +80,43 @@ assert.equal(isFirstCustomerGoCurrent({ ...baseGo, validUntil: "2026-08-24T01:00
 assert.equal(isFirstCustomerGoCurrent({ ...baseGo, approvedAt: null }, Date.parse("2026-08-24T00:30:00.000Z")), false, "GO without an approval time must fail closed");
 assert.equal(isFirstCustomerGoCurrent({ ...baseGo, approvedAt: "2026-08-24T00:00:00+00:00" }, Date.parse("2026-08-24T00:30:00.000Z")), false, "GO timestamps must use the canonical UTC format");
 assert.equal(isFirstCustomerGoCurrent(baseGo, Number.NaN), false, "an invalid operator clock must fail closed");
-if ((decision.match(/^    "/gm) ?? []).length !== 7) errors.push("current NO-GO decision must enumerate seven known blockers");
-for (const [decisionMarker, evidenceSource, evidenceMarker] of [
-  ["Vercel exact Source SHA", compactProductionAudit, "Production Source SHA equals the full owner-approved commit"],
-  ["Production post-migration", compactProductionAudit, "Production functional rehearsal is still missing"],
-  ["suffix/count", compactProductionAudit, "suffix-only and count-only Production evidence"],
-  ["live runtime", compactProductionAudit, "proven three-key least-privilege integrated preflight"],
-  ["Neon endpoint pin", compactProductionAudit, "strict-audit Neon endpoint pin"],
-  ["실 SMTP", compactProductionAudit, "Real SMTP transport proof is still missing"],
-  ["Managed Payments Checkout·영수증", compactProductionAudit, "Managed Payments Checkout and every receipt/invoice actually issued"],
-  ["등록 세무사", compactProductionAudit, "registered tax agent"],
-  ["Balance Transactions accounting", checklist, "FIRST_SALE_PREFLIGHT=PASS"],
-]) {
-  requireText(decision, decisionMarker, "audited blocker decision");
-  requireText(evidenceSource, evidenceMarker, "audited blocker evidence");
+const prePaymentGates = firstCustomerLaunchGateManifest.filter((gate) => gate.phase === "pre_payment");
+const postPaymentGates = firstCustomerLaunchGateManifest.filter((gate) => gate.phase === "post_first_payment");
+const prePaymentBlockers = getFirstCustomerPrePaymentBlockers();
+assert.equal(prePaymentGates.length, 7, "the current NO-GO decision must enumerate seven genuine pre-payment blockers");
+assert.deepEqual(prePaymentBlockers, prePaymentGates.map((gate) => gate.label), "the decision blockers must be derived only from the pre-payment manifest");
+assert.deepEqual(postPaymentGates.map((gate) => gate.id), [
+  "actual_customer_document_review",
+  "registered_tax_agent_handoff",
+  "post_payment_evidence_windows",
+], "customer artifacts, tax handoff and later evidence must remain post-first-payment gates");
+for (const gate of postPaymentGates) {
+  assert.ok(!prePaymentBlockers.includes(gate.label), `post-first-payment gate re-entered the pre-payment blocker list: ${gate.id}`);
 }
+const prePaymentHeading = historicalAudit.indexOf("## Remaining pre-customer blockers");
+const postPaymentHeading = historicalAudit.indexOf("## Post-first-payment / second-sale gates");
+assert.ok(prePaymentHeading >= 0 && postPaymentHeading > prePaymentHeading, "the historical audit must separate pre-payment and post-first-payment topology");
+const historicalPrePaymentSection = historicalAudit.slice(prePaymentHeading, postPaymentHeading);
+const historicalPostPaymentSection = historicalAudit.slice(postPaymentHeading);
+for (const postOnlyText of ["actual Managed Payments", "registered tax agent"]) {
+  assert.ok(!historicalPrePaymentSection.includes(postOnlyText), `post-first-payment evidence leaked into the historical pre-payment section: ${postOnlyText}`);
+  assert.ok(historicalPostPaymentSection.includes(postOnlyText), `historical post-first-payment section is missing: ${postOnlyText}`);
+}
+for (const id of [
+  "production_runtime_preflight",
+  "managed_payments_dashboard_review",
+  "least_privilege_live_keys",
+  "payment_refund_mailbox_receipts",
+  "production_payment_path_rehearsal",
+  "controlled_payment_reconciliation",
+  "single_sale_owner_approval",
+]) assert.ok(prePaymentGates.some((gate) => gate.id === id), `missing genuine pre-payment gate: ${id}`);
+for (const boundary of [
+  "actual nine-row customer-document observation",
+  "post-first-sale evidence inputs",
+  "not blockers before the first customer payment",
+  "FIRST_SALE_PREFLIGHT=PASS",
+]) requireText(checklist, boundary, "phase-aware launch checklist");
 requireText(checklist, "[x] Add `support@hojucompass.com` as the Stripe live business-profile support email", "verified Stripe support email evidence");
 requireText(boundaries, '["/first-customer-invitation", "src/app/first-customer-invitation/page.tsx"]', "operator route registry");
 requireText(boundaries, '"src/components/tools/FirstCustomerInvitationDesk.tsx"', "operator file registry");

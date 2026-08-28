@@ -37,6 +37,8 @@ assert.ok(!checkout.includes("automatic_tax"), "Rental checkout must not add aut
 assert.ok(checkoutForm.includes('/terms'), "Rental checkout must link the service terms");
 assert.ok(checkoutForm.includes('/purchase-information'), "Rental checkout must link the purchase information");
 assert.ok(checkoutForm.includes('/privacy'), "Rental checkout must link the privacy notice");
+assert.ok(offerPage.includes("이 주소만으로 결제 완료 여부를 판단할 수 없습니다") && offerPage.includes('href="/payment-help"'), "the unverified Rental cancelled query must route to payment verification without promising that no charge occurred");
+assert.ok(!offerPage.includes("결제가 취소됐습니다. 청구되지 않았으며"), "the Rental cancelled query must not make an unverified no-charge claim");
 assert.ok(commerce.includes("RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED"), "Rental payments require a product-specific kill switch");
 assert.ok(commerce.includes("STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID"), "Rental payments require a separate Stripe Price");
 assert.ok(commerce.includes('process.env.VERCEL_ENV !== "production"'), "Rental paid validation must fail closed in Production");

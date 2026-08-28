@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { parseLocalOperatorEnvFile, upsertLocalOperatorEnvLine } from "../src/lib/localOperatorEnv.ts";
+import { isVercelProjectId, vercelProjectIdMaxLength } from "../src/lib/vercelProjectId.ts";
 
 const [contract, client, builder, checker, checkerPage, checkerVisitTracker, articleStep, homeSection, finder, proHub, offerPage, proofLink, report, reportPage, privacyDoc, performanceDoc, visitTracker, checkoutForm, activationForm, successPage, restorePage, localConnection, connectionRoute, envExample, accountingExporter, accountingAccess] = await Promise.all([
   readFile(new URL("../src/lib/resumeFunnelAnalyticsContract.ts", import.meta.url), "utf8"),
@@ -156,6 +158,18 @@ assert.ok(report.includes('getLocalOperatorConnectionValue("STRIPE_PERFORMANCE_K
 assert.ok(!report.includes('getLocalOperatorConnectionValue("STRIPE_ACCOUNTING_KEY")'), "the performance report must not reuse the Balance Transactions key");
 assert.ok(localConnection.includes('"STRIPE_PERFORMANCE_KEY"') && localConnection.includes("stripePerformanceKey"), "local operator storage must support the dedicated performance key");
 assert.ok(connectionRoute.includes('form.get("stripe_performance_key")') && !connectionRoute.includes('form.get("stripe_accounting_key")'), "the local connection route must save the performance key under its own role");
+assert.ok(reportPage.includes('name="vercel_project_id"') && reportPage.includes('pattern="prj_[A-Za-z0-9]+"'), "the local performance form must collect the required Vercel Project ID");
+assert.ok(connectionRoute.includes('form.get("vercel_project_id")') && connectionRoute.includes("invalidVercelProjectId"), "the local connection route must validate the Vercel Project ID");
+assert.ok(localConnection.includes("vercelProjectId?: string") && localConnection.includes('upsertLocalOperatorEnvLine(contents, "VERCEL_PROJECT_ID", input.vercelProjectId)'), "local operator storage must persist the Vercel Project ID required by the report");
+assert.equal(isVercelProjectId("prj_AbC123"), true, "a canonical Vercel Project ID must pass");
+for (const invalidProjectId of [
+  "aussie-compass",
+  "prj_bad-value",
+  "prj_valid123\n",
+  `prj_${"a".repeat(vercelProjectIdMaxLength)}`,
+]) assert.equal(isVercelProjectId(invalidProjectId), false, `unsafe Vercel Project ID passed: ${JSON.stringify(invalidProjectId)}`);
+const projectIdEnv = upsertLocalOperatorEnvLine("VERCEL_TEAM_ID=team_fixture\n", "VERCEL_PROJECT_ID", "prj_AbC123");
+assert.equal(parseLocalOperatorEnvFile(projectIdEnv).get("VERCEL_PROJECT_ID"), "prj_AbC123", "Vercel Project ID must survive the local env serialization round trip");
 assert.ok(envExample.includes("STRIPE_ACCOUNTING_KEY=") && envExample.includes("STRIPE_PERFORMANCE_KEY="), "the environment example must keep accounting and performance roles separate");
 assert.ok(accountingAccess.includes("STRIPE_ACCOUNTING_KEY") && !`${accountingExporter}\n${accountingAccess}`.includes("STRIPE_PERFORMANCE_KEY"), "the Balance Transaction exporter must keep its accounting-only key");
 assert.ok(performanceDoc.includes("intentionally use different") && performanceDoc.includes("neither role receives the other's permissions"), "operator guidance must explain the least-privilege key boundary");

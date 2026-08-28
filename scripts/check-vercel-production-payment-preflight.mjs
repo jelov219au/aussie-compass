@@ -9,6 +9,7 @@ const launcher = readFileSync(launcherPath, "utf8");
 const wrapper = readFileSync(wrapperPath, "utf8");
 const innerPreflight = readFileSync(new URL("./run-production-payment-preflight.ps1", import.meta.url), "utf8");
 const runtimeVerifier = readFileSync(new URL("./vercel-production-runtime-preflight.mjs", import.meta.url), "utf8");
+const deploymentVerifier = readFileSync(new URL("./verify-production-deployment-evidence.mjs", import.meta.url), "utf8");
 const packageJson = readFileSync(new URL("../package.json", import.meta.url), "utf8");
 
 for (const contract of [
@@ -87,6 +88,15 @@ for (const boundary of [
 ]) assert.ok(runtimeVerifier.includes(boundary), `runtime verifier is missing: ${boundary}`);
 assert.doesNotMatch(runtimeVerifier, /env run|env pull|--token|--protection-bypass/, "runtime verifier must use authenticated Vercel curl without downloadable secrets or manual bypass values");
 
+for (const contract of [
+  "const protectedReadTimeoutMs = 120_000;",
+  "const protectedReadMaxBuffer = 8 * 1024 * 1024;",
+  "timeout: protectedReadTimeoutMs,",
+  "maxBuffer: protectedReadMaxBuffer,",
+  'if (result.status !== 0) throw new Error("protected deployment unavailable");',
+]) assert.ok(deploymentVerifier.includes(contract), `Production deployment verifier is missing its bounded protected-read safeguard: ${contract}`);
+assert.doesNotMatch(deploymentVerifier, /console\.(?:log|warn|error)\([^)]*(?:stderr|error)/, "protected-read failures must not print Vercel diagnostics that could include operator data");
+
 assert.ok(packageJson.includes('"test:vercel-production-preflight"'));
 assert.ok(packageJson.includes("npm run test:vercel-production-preflight"));
 assert.ok(packageJson.includes('"test:production-runtime-preflight"'));
@@ -94,6 +104,7 @@ assert.ok(packageJson.includes('"test:production-runtime-preflight"'));
 const powershell = process.platform === "win32"
   ? `${process.env.SystemRoot}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe`
   : "pwsh";
+const earlyFixtureTimeoutMs = 20_000;
 function runEarlyFixture(endpoint, sha, extraEnvironment = {}) {
   const environment = { ...process.env };
   for (const name of [
@@ -106,7 +117,7 @@ function runEarlyFixture(endpoint, sha, extraEnvironment = {}) {
     "-File", wrapperPath,
     "-ExpectedNeonEndpointId", endpoint,
     "-ExpectedProductionSha", sha,
-  ], { encoding: "utf8", env: environment, timeout: 10_000 });
+  ], { encoding: "utf8", env: environment, timeout: earlyFixtureTimeoutMs });
 }
 
 for (const [label, fixture, reason] of [

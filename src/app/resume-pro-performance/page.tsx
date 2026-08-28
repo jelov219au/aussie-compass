@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/Container";
 import { requireLocalOperatorAccess } from "@/lib/operatorOnly";
 import { getResumeProPerformance, type ResumeProPerformanceRow } from "@/lib/resumeProPerformance";
 import { createPageMetadata } from "@/lib/site";
+import { vercelProjectIdMaxLength } from "@/lib/vercelProjectId";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -133,6 +134,9 @@ export default async function ResumeProPerformancePage({ searchParams }: Props) 
               <form action="/api/resume-pro-performance/connection" method="post" className="mt-5 grid gap-4 lg:grid-cols-2">
                 <label className="text-sm font-semibold text-navy">Vercel 접근 토큰
                   <input type="password" name="vercel_token" minLength={20} maxLength={512} autoComplete="off" spellCheck={false} className="mt-2 min-h-11 w-full border border-border bg-surface px-3 text-sm font-normal outline-none focus:border-gold" />
+                </label>
+                <label className="text-sm font-semibold text-navy">Vercel 프로젝트 ID
+                  <input type="password" name="vercel_project_id" maxLength={vercelProjectIdMaxLength} pattern="prj_[A-Za-z0-9]+" autoComplete="off" spellCheck={false} className="mt-2 min-h-11 w-full border border-border bg-surface px-3 text-sm font-normal outline-none focus:border-gold" />
                 </label>
                 <label className="text-sm font-semibold text-navy">Vercel 팀 ID
                   <input type="password" name="vercel_team_id" maxLength={128} pattern="team_[A-Za-z0-9]+" autoComplete="off" spellCheck={false} className="mt-2 min-h-11 w-full border border-border bg-surface px-3 text-sm font-normal outline-none focus:border-gold" />
