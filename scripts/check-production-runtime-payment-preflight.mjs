@@ -138,13 +138,14 @@ for (const contract of [
   "current_user = 'hoju_payment_auditor'",
   "audit_role_has_safe_attributes",
   "audit_does_not_inherit_elevated_roles",
-  "audit_has_read_only_protected_table_access",
+  "audit_has_no_protected_table_mutation",
   "required_migrations_present",
   "named_entitlement_link_constraint_active",
   "no_reservation_in_flight",
   productionOperatorAuditPass,
   productionOperatorAuditFail,
 ]) assert.ok(operatorAuditSource.includes(contract), `operator audit is missing: ${contract}`);
+assert.doesNotMatch(operatorAuditSource, /audit_has_read_only_protected_table_access/, "operator audit must not require broad protected-table read access");
 assert.doesNotMatch(operatorAuditSource, /console\.(?:warn|error)|checkout\.sessions\.create|sendMail\(|writeFile|appendFile/, "operator audit must remain read-only and fixed-output");
 
 const readiness = {

@@ -118,7 +118,6 @@ async function verifyAuditDatabase(databaseUrl) {
       (
         select bool_and(
           to_regclass(table_name.qualified_name) is not null
-          and coalesce(has_table_privilege(current_user, to_regclass(table_name.qualified_name), 'SELECT'), false)
           and not coalesce(has_table_privilege(
             current_user,
             to_regclass(table_name.qualified_name),
@@ -127,7 +126,7 @@ async function verifyAuditDatabase(databaseUrl) {
         )
         from protected_tables table_name
         cross join mutation_privileges privilege
-      ) as audit_has_read_only_protected_table_access,
+      ) as audit_has_no_protected_table_mutation,
       (
         select bool_and(
           to_regprocedure(blocked.signature) is not null
