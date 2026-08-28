@@ -9,11 +9,17 @@ import {
   completeResumeProDevicePurge,
 } from "@/lib/resumeProDeviceStorage";
 
-export function ResumeProDevicePrivacyTools() {
+export function ResumeProDevicePrivacyTools({
+  requireRecoveryAcknowledgement,
+}: {
+  requireRecoveryAcknowledgement: boolean;
+}) {
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+  const [recoveryAcknowledged, setRecoveryAcknowledged] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [releasing, setReleasing] = useState(false);
   const [releaseUnknown, setReleaseUnknown] = useState(false);
+  const recoveryRequired = requireRecoveryAcknowledgement && !recoveryAcknowledged;
 
   async function requestRelease(devicePurge: boolean) {
     const response = await fetch("/api/resume-pro/access/release", {
@@ -34,7 +40,7 @@ export function ResumeProDevicePrivacyTools() {
 
   async function releaseOnly(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (releasing) return;
+    if (releasing || deleting || recoveryRequired) return;
     setReleasing(true);
     setReleaseUnknown(false);
     try {
@@ -48,7 +54,7 @@ export function ResumeProDevicePrivacyTools() {
 
   async function releaseAndDelete(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!deleteConfirmed) {
+    if (deleting || releasing || !deleteConfirmed || recoveryRequired) {
       return;
     }
 
@@ -72,9 +78,24 @@ export function ResumeProDevicePrivacyTools() {
     <section className="mt-6 border-t border-border pt-5" aria-labelledby="resume-pro-device-privacy-heading">
       <h3 id="resume-pro-device-privacy-heading" className="text-sm font-semibold text-navy">공용 기기에서 이용 중인가요?</h3>
       <p className="mt-2 text-sm leading-6 text-muted">구매 이용권과 다른 기기의 접근은 그대로 유지하면서, 이 기기의 접근만 해제할 수 있습니다.</p>
+      {requireRecoveryAcknowledgement && (
+        <>
+          <p id="resume-pro-release-recovery-warning" className="mt-3 border-l-2 border-gold bg-gold/10 p-3 text-xs leading-5 text-navy">이 기기의 이용 확인은 30일이며, 복구 코드 없이 접근을 해제하면 자동 복구할 수 없습니다. 다시 열려면 고객지원의 구매 확인이 필요합니다.</p>
+          <label className="mt-3 flex min-h-11 cursor-pointer items-start gap-3 text-sm font-medium leading-6 text-navy">
+            <input
+              type="checkbox"
+              checked={recoveryAcknowledged}
+              onChange={(event) => setRecoveryAcknowledged(event.target.checked)}
+              aria-describedby="resume-pro-release-recovery-warning"
+              className="mt-1 h-5 w-5 shrink-0 accent-gold"
+            />
+            복구 코드를 보관했거나, 코드가 없으면 고객지원 확인 전까지 다시 열 수 없음을 이해했습니다.
+          </label>
+        </>
+      )}
 
       <form action="/api/resume-pro/access/release" method="post" onSubmit={releaseOnly} className="mt-4 w-full sm:w-auto">
-        <button type="submit" disabled={releasing || deleting} aria-busy={releasing} className="inline-flex min-h-12 w-full items-center justify-center border border-navy px-4 py-2 text-sm font-semibold text-navy disabled:cursor-wait disabled:opacity-50 sm:w-auto">
+        <button type="submit" disabled={recoveryRequired || releasing || deleting} aria-busy={releasing} aria-describedby={requireRecoveryAcknowledgement ? "resume-pro-release-recovery-warning" : undefined} className="inline-flex min-h-12 w-full items-center justify-center border border-navy px-4 py-2 text-sm font-semibold text-navy disabled:cursor-wait disabled:opacity-50 sm:w-auto">
           {releasing ? "접근 상태 확인 중…" : "접근만 해제 · 데이터 유지"}
         </button>
       </form>
@@ -104,7 +125,8 @@ export function ResumeProDevicePrivacyTools() {
         <form onSubmit={releaseAndDelete} className="mt-3">
           <button
             type="submit"
-            disabled={!deleteConfirmed || deleting}
+            disabled={recoveryRequired || !deleteConfirmed || deleting || releasing}
+            aria-describedby={requireRecoveryAcknowledgement ? "resume-pro-release-recovery-warning" : undefined}
             className="inline-flex min-h-12 w-full items-center justify-center bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
           >
             {deleting ? "접근 해제 및 삭제 중…" : "접근 해제 + 이 기기 데이터 완전 삭제"}

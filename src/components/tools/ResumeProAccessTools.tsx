@@ -57,7 +57,7 @@ export function ResumeProAccessTools() {
         </div>
       )}
       {status && <p className="mt-3 text-sm leading-6 text-muted" role="status">{status}</p>}
-      <ResumeProDevicePrivacyTools />
+      <ResumeProDevicePrivacyTools requireRecoveryAcknowledgement />
     </section>
   );
 }
