@@ -26,6 +26,12 @@ available only on a loopback development address, accepts same-origin posts
 only, and stores the values in the ignored `.env.local` file without showing
 them again. Never commit that file.
 
+The Vercel access token and `VERCEL_PROJECT_ID` are both required for traffic
+collection. The form accepts the project ID directly so a new computer does not
+remain permanently in `미수집` after saving only the token. In Vercel, find the
+non-secret ID under the target project's **Settings → General → Project ID**;
+enter the value beginning with `prj_`. Do not substitute the project name.
+
 The same values can be added manually when needed:
 
 ```text

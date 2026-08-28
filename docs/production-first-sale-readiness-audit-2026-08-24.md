@@ -5,6 +5,14 @@ payment, customer contact, database mutation, Stripe mutation, environment
 change, refund or sale-gate reopen. No environment value, customer field,
 credential, full Stripe identifier or database connection string is recorded.
 
+Phase correction recorded on 28 August 2026: this historical audit's customer
+receipt/invoice observation and registered-tax-agent handoff are now governed by
+the newer `docs/live-payment-launch-checklist.md`. Both require artifacts that do
+not exist until after the first genuine payment, so they hold the second sale,
+not the single first payment. This correction does not change the current
+first-sale `NO-GO`; the remaining pre-payment runtime, monitoring, rehearsal,
+reconciliation and owner-approval gates still apply.
+
 ## Decision
 
 **NO-GO for the first customer payment.** The application runtime and separate
@@ -213,13 +221,21 @@ complete. They do not satisfy any blocker below.
 4. Record suffix-only and count-only Production evidence for the resulting
    gate, outbox, entitlement and access-session rows. Zero current Production
    rows cannot prove these paths.
-5. Confirm the actual Managed Payments Checkout and every receipt/invoice
-   actually issued for transaction seller, document issuer and transaction
-   support using `docs/managed-payments-customer-document-evidence.md`; keep the
-   completed evidence private and do not infer an unissued invoice.
-6. Complete ABN/GST and bookkeeping treatment review with the registered tax
-   agent and preserve it outside the repository.
-
-After these pass, the owner may approve a single opt-in first-customer notice
+After pre-payment steps 1–4 pass, the owner may approve a single opt-in first-customer notice
 under `docs/live-payment-launch-checklist.md`. Keep `PAYMENTS_ENABLED=false`
 until that approval; never send a raw Stripe Checkout URL by email.
+
+## Post-first-payment / second-sale gates
+
+These checks require artifacts from a genuine first payment. They do not block
+the owner-approved single first payment, but they hold every later sale until
+the evidence is complete.
+
+1. After the first customer payment, confirm the actual Managed Payments
+   Checkout and every receipt/invoice actually issued for transaction seller,
+   document issuer and transaction support using
+   `docs/managed-payments-customer-document-evidence.md`; keep the completed
+   evidence private and hold the second sale if unresolved.
+2. After first-sale artifacts exist, complete the ABN/GST and bookkeeping
+   treatment handoff with the registered tax agent when professional advice is
+   used, preserve it outside the repository and hold the second sale if needed.

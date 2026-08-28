@@ -121,6 +121,8 @@ assert.match(form, /useEffect\(\(\) => \{[\s\S]*if \(!failure\) return;[\s\S]*ge
 assert.ok(failureNotice.includes("max-w-full") && !failureNotice.includes("whitespace-nowrap"), "failure actions must wrap safely at 390px");
 assert.equal(form.match(/\btrack\(/g)?.length, 1, "public failures must not add analytics events");
 assert.ok(form.includes('track("Checkout Started", { product: "resume_pro", entry })'), "the only Checkout event must use fixed product and normalized entry values");
+assert.ok(page.includes("이 주소만으로 결제 완료 여부를 판단할 수 없습니다") && page.includes('href="/payment-help"'), "the unverified cancelled query must not promise that no charge occurred and must route to payment verification");
+assert.ok(!page.includes("결제가 취소됐습니다. 청구되지 않았으며"), "the cancelled query must not make an unverified no-charge claim");
 assert.ok(form.includes('id="resume-pro-checkout-heading"') && form.includes("tabIndex={-1}"), "the Checkout section needs a programmatically focusable heading");
 assert.ok(form.includes('focus:ring-2 focus:ring-gold'), "programmatic Checkout focus must remain visibly apparent");
 const checkboxIndex = form.indexOf('type="checkbox"');
