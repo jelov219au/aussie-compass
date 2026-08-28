@@ -436,6 +436,9 @@ export default async function ResumeProPage({ searchParams }: Props) {
             </div>
 
             <p className="mt-7 border-l-2 border-gold pl-4 text-sm leading-6 text-muted">이 예시는 기능을 설명하기 위한 샘플이에요. Resume Pro는 없는 경력이나 자격을 만들지 않으며, 공고에 나온 표현도 실제로 해본 일일 때만 추가해야 해요.</p>
+            <a href="/downloads/resume-pro-example-application-kit.txt" download className="mt-5 inline-flex min-h-11 items-center justify-center border border-navy px-4 py-2 text-sm font-semibold text-navy hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
+              가상 예시 지원서 패키지 TXT 보기·저장
+            </a>
             <div className="mt-8 grid gap-5 border-y border-navy/20 bg-surface p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#806515]">결제 전에 직접 확인</p>
