@@ -12,6 +12,10 @@ const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const launcherPath = resolve(scriptsDirectory, "invoke-vercel-cli-with-ascii-hostname.mjs");
 const projectRoot = resolve(scriptsDirectory, "..");
 const deploymentIdPattern = /^dpl_[A-Za-z0-9]+$/;
+// A cold authenticated Vercel CLI read has exceeded 60 seconds on this Windows
+// operator host. Keep a finite per-page ceiling while allowing that observed path.
+const protectedReadTimeoutMs = 120_000;
+const protectedReadMaxBuffer = 8 * 1024 * 1024;
 
 function readProtectedPageWithVercelCurl(deploymentOrigin, path) {
   const executable = process.platform === "win32" ? process.execPath : "npx";
@@ -41,7 +45,8 @@ function readProtectedPageWithVercelCurl(deploymentOrigin, path) {
     cwd: projectRoot,
     encoding: "utf8",
     env: childEnvironment,
-    timeout: 60_000,
+    timeout: protectedReadTimeoutMs,
+    maxBuffer: protectedReadMaxBuffer,
     windowsHide: true,
   });
   if (result.status !== 0) throw new Error("protected deployment unavailable");
