@@ -1,4 +1,12 @@
 const strict = process.argv.includes("--strict");
+const productArgument = process.argv.find((argument) => argument.startsWith("--product="));
+const selectedProduct = productArgument?.slice("--product=".length) || "resume-pro";
+
+if (!new Set(["resume-pro", "rental-application-pro"]).has(selectedProduct)) {
+  console.error("Unknown payment product. Use --product=resume-pro or --product=rental-application-pro.");
+  process.exit(2);
+}
+
 const isProduction = process.env.VERCEL_ENV === "production";
 const expectedStripeMode = isProduction ? "live" : "test";
 
@@ -20,12 +28,20 @@ const tradingName = process.env.BUSINESS_TRADING_NAME?.trim() || "Hoju Compass";
 const entitlementDatabaseUrl = process.env.ENTITLEMENT_DB_URL?.trim()
   || process.env.ENTITLEMENT_DB_DATABASE_URL?.trim()
   || "";
+const productChecks = selectedProduct === "rental-application-pro"
+  ? [
+      ["Rental Pack Pro 스위치", process.env.RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED === "true", "RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED=true"],
+      ["Rental Pack Pro 가격", process.env.STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID?.trim().startsWith("price_") ?? false, "price_ ID"],
+    ]
+  : [
+      ["Resume Pro 가격", process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_") ?? false, "price_ ID"],
+    ];
 
 const checks = [
   ["결제 스위치", process.env.PAYMENTS_ENABLED === "true", "PAYMENTS_ENABLED=true"],
   ["Stripe 키 환경", stripeMode === expectedStripeMode, `${expectedStripeMode} 모드 키`],
   ["최소 권한 Stripe 키", process.env.STRIPE_SECRET_KEY?.trim().startsWith("rk_") ?? false, "rk_ 제한 키"],
-  ["Resume Pro 가격", process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_") ?? false, "price_ ID"],
+  ...productChecks,
   ["Managed Payments", process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true", "활성화"],
   ["웹훅 서명", process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_") ?? false, "whsec_ 비밀"],
   ["이용권 저장소", process.env.PAYMENTS_ENTITLEMENT_STORE === "neon", "Neon"],
@@ -37,7 +53,7 @@ const checks = [
   ["지원 이메일", /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail), "유효한 이메일"],
 ];
 
-console.log(`Hoju Compass 결제 출시 점검 (${isProduction ? "Production" : "Preview/Local"})`);
+console.log(`Hoju Compass ${selectedProduct} 결제 출시 점검 (${isProduction ? "Production" : "Preview/Local"})`);
 console.log("실제 키, 개인정보, 연결 문자열은 출력하지 않습니다.\n");
 
 for (const [label, passed, requirement] of checks) {

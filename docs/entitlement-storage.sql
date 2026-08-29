@@ -158,6 +158,30 @@ begin
   for update;
 
   if v_inserted_event_id is null then
+    if v_entitlement_id is null then
+      return query
+      select
+        case
+          when exists (
+            select 1
+            from payment_webhook_events event
+            where event.stripe_event_id = p_event_id
+              and event.failure_code = 'unmatched_reference'
+          ) then 'ignored_unmatched'::text
+          else 'duplicate'::text
+        end,
+        null::bigint,
+        null::text,
+        null::text,
+        null::text,
+        null::text,
+        null::text,
+        null::text,
+        null::timestamptz,
+        null::timestamptz;
+      return;
+    end if;
+
     return query
     select
       'duplicate'::text,
@@ -185,8 +209,9 @@ begin
     -- A review event must never weaken an already revoked entitlement. Stripe
     -- can deliver refund.created/refund.updated after charge.refunded, and both
     -- states block access, but preserving revoked makes the completed refund
-    -- authoritative. A later explicit grant (for example a won dispute) can
-    -- still restore access.
+    -- authoritative. Dispute-won and funds-reinstated events are review-only
+    -- because their payload alone cannot prove the charge was not separately
+    -- refunded. Access can reopen only after a verified operator decision.
     if v_current_status = 'revoked' and p_action = 'review' then
       v_should_apply := false;
     else
@@ -211,7 +236,30 @@ begin
 
   if v_entitlement_id is null then
     if p_product_code is null then
-      raise exception 'No entitlement matches Stripe event %', p_event_id;
+      -- Refunds and disputes can arrive even when the original grant was never
+      -- persisted. Record the verified event as an unmatched no-op and
+      -- acknowledge it so Stripe does not retry indefinitely. Never create an
+      -- entitlement from a refund or dispute event alone.
+      update payment_webhook_events
+      set
+        processing_status = 'processed',
+        failure_code = 'unmatched_reference',
+        processed_at = now()
+      where stripe_event_id = p_event_id;
+
+      return query
+      select
+        'ignored_unmatched'::text,
+        null::bigint,
+        null::text,
+        null::text,
+        null::text,
+        null::text,
+        null::text,
+        null::text,
+        null::timestamptz,
+        null::timestamptz;
+      return;
     end if;
 
     insert into purchase_entitlements (
@@ -286,3 +334,7 @@ $$;
 -- 5. Do not store the full Stripe webhook payload unless a separate retention and privacy policy is approved.
 -- 6. Preserve last_stripe_event_created_at so delayed events cannot overwrite a newer entitlement state.
 -- 7. Preserve revoked when later refund lifecycle events only request manual review.
+-- 8. A signed refund or dispute with no matching purchase is recorded as
+--    ignored_unmatched and acknowledged without creating an entitlement.
+-- 9. Never turn dispute-won or funds-reinstated into an automatic grant. Verify
+--    the current charge and refund state before any operator-approved reopen.

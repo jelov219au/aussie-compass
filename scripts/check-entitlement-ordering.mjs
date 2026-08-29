@@ -58,8 +58,8 @@ assert.equal(shouldApply({
   currentCreatedAt: earlier,
   currentStatus: "revoked",
   incomingCreatedAt: later,
-  incomingAction: "grant",
-}), true, "a newer dispute-win event may restore access");
+  incomingAction: "review",
+}), false, "a newer dispute-win review must not reopen refunded access");
 
 assert.equal(shouldApply({
   currentCreatedAt: earlier,
@@ -76,6 +76,9 @@ for (const contract of [
   "p_stripe_created_at = v_last_event_created_at",
   "v_current_status = 'revoked' and p_action = 'review'",
   "ignored_stale",
+  "ignored_unmatched",
+  "failure_code = 'unmatched_reference'",
+  "Never create an",
 ]) {
   assert.ok(sql.includes(contract), `SQL contract is missing: ${contract}`);
 }

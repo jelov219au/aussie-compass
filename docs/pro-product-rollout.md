@@ -7,29 +7,33 @@ This document keeps public product labels aligned with the checkout and access s
 | Product | Public status | Workspace | Payment and access |
 | --- | --- | --- | --- |
 | Resume Pro | Live when the production readiness contract passes | Complete and protected in production | Live one-time purchase, signed-webhook entitlement, recovery and refund revocation verified on 20 August 2026 |
-| Rental Application Pack Pro | Paid-flow validation | Implemented and protected by its own entitlement in deployed builds | Checkout, success, recovery and release code complete; product-specific switch remains off until controlled verification |
+| Rental Pack Pro | Controlled release readiness | Multi-property workspace with reusable profile and evidence library, property-isolated checklists and contact logs, due-action warnings, jurisdiction guidance and PDF/TXT/JSON export; protected by its own entitlement in deployed builds | Checkout, success, recovery, refund revocation and release code verified; product-specific switch remains off until live approval |
 | Pay Evidence Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
 | EOFY Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
 | Leaving Australia Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
 
 The homepage and Pro catalogue must derive Resume Pro's live label from the production payment-readiness contract. They must never infer availability from a hard-coded date or price.
 
-## Next product: Rental Application Pack Pro
+## Next product: Rental Pack Pro
 
-Rental Application Pack Pro is the next candidate because the workspace is already implemented and its output is a preparation package rather than a tax, employment-law or migration decision.
+`Rental Pack Pro` is the customer-facing name. `Rental Application Pack Pro` remains the formal checkout and purchase-record name so existing product metadata, terms and support records stay unambiguous. The product is the next candidate because its expanded workspace reduces repeated work across multiple applications while remaining a preparation package rather than a legal or tenancy decision.
 
-The product-isolation foundation and application flow are implemented: Resume Pro and Rental Application Pack use separate product codes throughout checkout metadata, webhook grants, signed access cookies, active-entitlement lookups and restore-code consumption. Rental Application Pack also has its own Price variable and product-specific kill switch. The database constraint expansion must be applied and verified before the switch is enabled in a test environment.
+The product-isolation foundation and application flow are implemented: Resume Pro and Rental Application Pack use separate product codes throughout checkout metadata, webhook grants, signed access cookies, active-entitlement lookups and restore-code consumption. Rental Application Pack also has its own Price variable and product-specific kill switch. A read-only Production Neon query on 29 August 2026 confirmed that the `purchase_entitlements_product_code_check` constraint already permits `rental_application_pro`; no additional product-code migration is required before the controlled live test.
+
+The prior candidate-duplication flow copied property-specific document states and message drafts into a new property. That launch blocker was removed on 23 August 2026. Reusable evidence now has its own preparation state and review date, while a new property receives only lease-condition defaults; address, agent, messages, submission state, privacy checks and follow-up history stay isolated.
 
 Before public sale:
 
-1. Confirm the proposed product name and A$14.90 one-time price after the paid-flow test. The 30-day period applies to the device session and one-time restore code, not expiry of an active purchase entitlement.
-2. Apply and verify the prepared product-code constraint expansion in the entitlement database.
+1. Confirm A$14.90 as the one-time price after the paid-flow test. The public name is `Rental Pack Pro`; the 30-day period applies to the device session and one-time restore code, not expiry of an active purchase entitlement.
+2. Keep the verified product-code constraint in place; the Production database check passed on 29 August 2026.
 3. Add a dedicated Stripe Product and one-time Price, then validate its currency, amount and active state on the server.
 4. Verify the implemented server-only Checkout reuses Managed Payments and seller-detail safeguards and records purchase-terms version `2026-08-22`.
 5. Verify the implemented production workspace gate accepts only an active `rental_application_pro` entitlement.
 6. Verify the implemented product-specific success, access recovery, release and payment-help paths.
 7. Verify test purchase, duplicate and out-of-order webhooks, recovery-code single use, full refund and immediate access revocation.
 8. Complete one controlled live purchase and full refund before changing the public status to available.
+
+Before changing either Production switch, run `npm run payments:check -- --product=rental-application-pro --strict` in the target environment. The Rental mode verifies the shared payment contract plus the product-specific Price and kill switch without printing credentials or private seller values.
 
 ## Later products
 

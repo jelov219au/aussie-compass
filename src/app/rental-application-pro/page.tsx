@@ -18,10 +18,10 @@ export const metadata = createPageMetadata({
 export const dynamic = "force-dynamic";
 
 const features = [
-  ["01", "Document readiness", "신분·지불 능력·임대 이력·레퍼런스 자료를 올리지 않고, 빠진 준비가 없는지 확인해요."],
-  ["02", "Privacy guard", "TFN, 전체 거래내역이나 불필요한 신분증 번호를 보내기 전에 한 번 더 확인해요."],
-  ["03", "English note", "입주일·계약기간과 생활 패턴을 바탕으로 에이전트에게 보낼 짧은 영문 소개문을 만들어요."],
-  ["04", "Local pack", "서류 상태와 확인 질문, 영문 소개문을 내 기기에 한 개의 정리본으로 저장해요."],
+  ["01", "Application tracker", "집마다 서류, 제출일, 다음 행동과 연락 이력을 따로 적어두고 최대 20개 후보를 놓치지 않게 관리해요."],
+  ["02", "Reusable evidence", "신청자 프로필과 증빙의 준비 상태·확인일은 재사용하되, 새 집에는 조건만 복제해 오래된 문구가 섞이지 않게 해요."],
+  ["03", "State & privacy", "TFN이나 은행 로그인처럼 필요하지 않은 정보를 보내기 전에 주별 공식 안내와 함께 점검해요."],
+  ["04", "Messages & export", "영문 문구 3종과 후속 연락 기록을 집별 PDF·TXT·비공개 JSON으로 묶고 전체 작업 공간도 백업해요."],
 ];
 
 const comparison = [
@@ -29,8 +29,11 @@ const comparison = [
   ["주별 공식 임대 정보", true, true],
   ["렌트 신청 서류 상태 관리", false, true],
   ["개인정보 과다 제출 점검", false, true],
-  ["영문 신청 소개문", false, true],
-  ["집 후보별 준비 패키지 저장", false, true],
+  ["여러 집 후보·다음 행동 추적", false, true],
+  ["공용 증빙 확인일·집별 후속 연락 기록", false, true],
+  ["집 후보별 8개 주·준주 공식 신청 안내", false, true],
+  ["상황별 영문 연락 문구 3종", false, true],
+  ["집별 PDF·TXT·비공개 JSON과 전체 백업", false, true],
 ] as const;
 
 const officialSources = [
@@ -40,7 +43,7 @@ const officialSources = [
 ];
 
 function PackPreview() {
-  return <div className="border border-navy/15 bg-white p-5 shadow-[0_24px_60px_rgba(26,39,68,0.1)] sm:p-7"><div className="flex items-start justify-between border-b-2 border-navy pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">렌트 신청 준비</p><p className="mt-2 text-xl font-semibold text-navy">Carlton 후보 1</p></div><span className="font-mono text-sm text-muted">75%</span></div><div className="mt-6 grid grid-cols-3 gap-3"><div className="bg-surface p-3"><p className="text-xs text-muted">준비 완료</p><p className="mt-1 text-xl font-semibold text-navy">06</p></div><div className="bg-gold/15 p-3"><p className="text-xs text-muted">확인 필요</p><p className="mt-1 text-xl font-semibold text-navy">02</p></div><div className="bg-surface p-3"><p className="text-xs text-muted">원본 업로드</p><p className="mt-1 text-xl font-semibold text-navy">0</p></div></div><div className="mt-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">개인정보 다시 확인</p><div className="mt-3 space-y-3"><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">은행 명세서 범위 확인</p><p className="mt-1 text-xs text-muted">거래내역 없이 지불 능력을 증명할 수 있는지 질문</p></div><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">레퍼런스 동의</p><p className="mt-1 text-xs text-muted">연락처 제출 전에 당사자에게 안내</p></div></div></div><p className="mt-7 border-t border-border pt-4 text-xs leading-5 text-muted">예시 화면입니다. 신분증·Payslip·은행 서류의 실제 파일은 받지 않습니다.</p></div>;
+  return <div className="border border-navy/15 bg-white p-5 shadow-[0_24px_60px_rgba(26,39,68,0.1)] sm:p-7"><div className="flex items-start justify-between border-b-2 border-navy pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">신청 진행 대시보드</p><p className="mt-2 text-xl font-semibold text-navy">Carlton 후보 1</p></div><span className="font-mono text-sm text-muted">75%</span></div><div className="mt-6 grid grid-cols-3 gap-3"><div className="bg-surface p-3"><p className="text-xs text-muted">관리 중</p><p className="mt-1 text-xl font-semibold text-navy">04</p></div><div className="bg-gold/15 p-3"><p className="text-xs text-muted">제출</p><p className="mt-1 text-xl font-semibold text-navy">02</p></div><div className="bg-surface p-3"><p className="text-xs text-muted">다음 행동</p><p className="mt-1 text-sm font-semibold text-navy">22 Aug</p></div></div><div className="mt-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">이 집에서 남은 일</p><div className="mt-3 space-y-3"><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">은행 명세서 범위 확인</p><p className="mt-1 text-xs text-muted">거래내역 없이 지불 능력을 증명할 수 있는지 질문</p></div><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">제출 후 확인 문구</p><p className="mt-1 text-xs text-muted">신청 접수 여부와 빠진 자료 확인</p></div></div></div><p className="mt-7 border-t border-border pt-4 text-xs leading-5 text-muted">예시 화면입니다. 신분증·Payslip·은행 서류의 실제 파일은 받지 않습니다.</p></div>;
 }
 
 type Props = { searchParams: Promise<{ access?: string; checkout?: string; from?: string | string[] }> };
@@ -54,7 +57,7 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
 
   return <>
     <RentalApplicationProVisitTracker entry={entry} checkoutAvailable={checkoutAvailable} />
-    <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "집 방문 체크리스트", path: "/property-inspection-checklist" }, { name: "Rental Application Pack Pro", path: "/rental-application-pro" }]} />
+    <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "집 방문 체크리스트", path: "/property-inspection-checklist" }, { name: "Rental Pack Pro", path: "/rental-application-pro" }]} />
     <Header />
     <main>
       <section className="border-b border-navy/15 py-12 sm:py-20">
@@ -65,19 +68,19 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
           {checkout === "cancelled" && <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">결제가 취소됐습니다. 청구되지 않았으며 준비가 되면 다시 시작할 수 있습니다.</div>}
           <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
             <div className="max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Rental Application Pack Pro</p>
-              <h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">한 집에 지원할 때마다,<br /><span className="font-normal text-navy-light">안전한 준비 패키지 하나.</span></h1>
-              <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">필요 서류의 준비 상태를 확인하고, 과도한 개인정보 요청을 한 번 더 점검하고, 에이전트에게 보낼 영문 소개문까지 정리합니다.</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Rental Pack Pro</p>
+              <h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">여러 집에 지원해도,<br /><span className="font-normal text-navy-light">준비와 연락을 놓치지 않게.</span></h1>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">신청자 프로필과 증빙 준비 상태는 재사용하고, 집별 서류·개인정보·제출일·후속 연락은 분리해 추적합니다. 영문 문구와 검토 가능한 패키지도 함께 만듭니다.</p>
             </div>
             <aside className="border-l-2 border-gold pl-6">
               <p className="text-sm font-semibold text-muted">{checkoutAvailable ? "1회 가격" : "검증 중인 1회 가격"}</p>
               <p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$14.90</p>
-              <p className="mt-2 text-sm leading-6 text-muted">매달 빠져나가는 구독료 없이 한 번만 결제해요.</p>
+              <p className="mt-2 text-sm leading-6 text-muted">구독 없이 최대 20개 집 후보를 현재 기기에서 반복 관리해요.</p>
             </aside>
           </div>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 체크리스트 사용</Link>
-            <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">{checkoutAvailable ? "Pro 작업 공간 이용 가능" : "유료 검증 준비 중"}</span>
+            <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">{checkoutAvailable ? "Pro 작업 공간 이용 가능" : "강화 버전 검증 중 · 결제 미오픈"}</span>
             <Link href="/rental-application-pro/restore" className="inline-flex min-h-12 items-center border border-navy px-5 text-sm font-semibold text-navy">이용권 복구</Link>
           </div>
           {checkoutAvailable && <div id="rental-pro-checkout" className="mt-5 scroll-mt-24"><RentalApplicationProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}

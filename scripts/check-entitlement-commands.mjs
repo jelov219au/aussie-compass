@@ -95,8 +95,13 @@ assert.equal(
 );
 assert.equal(
   getEntitlementCommand(stripeEvent("charge.dispute.funds_reinstated", { id: "dp_1", status: "won", charge: "ch_1" }))?.action,
-  "grant",
-  "reinstated funds may restore access",
+  "review",
+  "reinstated funds must not reopen access without checking for a separate refund",
+);
+assert.equal(
+  getEntitlementCommand(stripeEvent("charge.dispute.closed", { id: "dp_1", status: "won", charge: "ch_1" }))?.reason,
+  "dispute_won_or_funds_reinstated_requires_charge_check",
+  "a won dispute must remain blocked pending a charge-status check",
 );
 assert.equal(
   getEntitlementCommand(stripeEvent("charge.dispute.closed", { id: "dp_1", status: "lost", charge: "ch_1" }))?.action,

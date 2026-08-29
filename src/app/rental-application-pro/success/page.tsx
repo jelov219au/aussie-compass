@@ -23,7 +23,7 @@ type Props = {
 export default async function RentalApplicationProSuccessPage({ searchParams }: Props) {
   const { session_id: sessionId, status } = await searchParams;
   let paid = false;
-  let entitlementActive = false;
+  let entitlementStatus: "active" | "revoked" | "review" | null = null;
   let testMode = true;
 
   if (sessionId) {
@@ -32,10 +32,13 @@ export default async function RentalApplicationProSuccessPage({ searchParams }: 
       paid = true;
       testMode = !session.livemode;
       const store = getConfiguredEntitlementStore();
-      entitlementActive = Boolean(await store?.findActiveByCheckoutSession(session.id, "rental_application_pro"));
+      const entitlement = await store?.findByCheckoutSession(session.id, "rental_application_pro");
+      entitlementStatus = entitlement?.status ?? null;
     }
   }
 
+  const entitlementActive = entitlementStatus === "active";
+  const entitlementRevoked = entitlementStatus === "revoked";
   const canActivate = paid && entitlementActive && isRentalApplicationEntitlementSessionConfigured();
 
   return (
@@ -45,16 +48,17 @@ export default async function RentalApplicationProSuccessPage({ searchParams }: 
         <Container className="max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">결제 결과 확인</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">
-            {paid ? "결제가 확인됐습니다." : "결제 상태를 확인할 수 없습니다."}
+            {entitlementRevoked ? "환불 또는 결제 취소가 확인됐습니다." : paid ? "결제가 확인됐습니다." : "결제 상태를 확인할 수 없습니다."}
           </h1>
           <div className="mt-8 border-l-2 border-gold bg-white p-6 text-sm leading-7 text-muted">
-            {paid && testMode && entitlementActive && "Stripe 테스트 결제와 서명된 웹훅 이용권이 확인됐습니다. 실제 청구는 없으며 테스트 접근 세션만 발급할 수 있습니다."}
-            {paid && testMode && !entitlementActive && "Stripe 테스트 결제는 확인됐지만 웹훅 이용권 처리가 아직 완료되지 않았습니다."}
-            {paid && !testMode && entitlementActive && "결제와 서명된 웹훅 이용권이 확인됐습니다. 아래 버튼을 눌러 이 기기에 접근 세션을 발급하세요."}
-            {paid && !testMode && !entitlementActive && "결제는 확인됐지만 서명된 웹훅 이용권 처리가 아직 완료되지 않았습니다."}
+            {paid && entitlementRevoked && "결제 이용권이 회수되어 Rental Pack Pro 접근이 종료됐습니다. 환불 내역은 Stripe에서 발송한 이메일 또는 결제 수단 명세서에서 확인해 주세요."}
+            {paid && !entitlementRevoked && testMode && entitlementActive && "Stripe 테스트 결제와 서명된 웹훅 이용권이 확인됐습니다. 실제 청구는 없으며 테스트 접근 세션만 발급할 수 있습니다."}
+            {paid && !entitlementRevoked && testMode && !entitlementActive && "Stripe 테스트 결제는 확인됐지만 웹훅 이용권 처리가 아직 완료되지 않았습니다."}
+            {paid && !entitlementRevoked && !testMode && entitlementActive && "결제와 서명된 웹훅 이용권이 확인됐습니다. 아래 버튼을 눌러 이 기기에 접근 세션을 발급하세요."}
+            {paid && !entitlementRevoked && !testMode && !entitlementActive && "결제는 확인됐지만 서명된 웹훅 이용권 처리가 아직 완료되지 않았습니다."}
             {!paid && "잘못된 주소이거나 결제가 완료되지 않았습니다. Stripe 결제 화면 또는 제품 소개 페이지에서 다시 확인해 주세요."}
-            {status === "pending" && " 잠시 후 이 페이지에서 다시 시도해 주세요."}
-            {status === "unavailable" && " 접근 세션 설정을 확인할 수 없습니다."}
+            {status === "pending" && !entitlementRevoked && " 잠시 후 이 페이지에서 다시 시도해 주세요."}
+            {status === "unavailable" && !entitlementRevoked && " 접근 세션 설정을 확인할 수 없습니다."}
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
             {canActivate && sessionId && (

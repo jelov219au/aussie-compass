@@ -12,10 +12,10 @@ import type {
 } from "@/lib/entitlements";
 
 type EntitlementRow = {
-  outcome?: "processed" | "duplicate" | "ignored_stale";
-  id: string | number | bigint;
-  product_code: ProductCode;
-  status: "active" | "revoked" | "review";
+  outcome?: "processed" | "duplicate" | "ignored_stale" | "ignored_unmatched";
+  id: string | number | bigint | null;
+  product_code: ProductCode | null;
+  status: "active" | "revoked" | "review" | null;
   stripe_checkout_session_id: string | null;
   stripe_payment_intent_id: string | null;
   stripe_charge_id: string | null;
@@ -39,6 +39,10 @@ function optionalDate(value: Date | string | null) {
 }
 
 function toEntitlementRecord(row: EntitlementRow): EntitlementRecord {
+  if (row.id === null || row.product_code === null || row.status === null) {
+    throw new Error("The entitlement database returned an incomplete entitlement.");
+  }
+
   return {
     id: String(row.id),
     productCode: row.product_code,
@@ -58,28 +62,47 @@ async function applyStripeEvent(input: {
 }) {
   const sql = neon(getConnectionString());
   const { receipt, command } = input;
-  const rows = await sql`
-    select * from apply_entitlement_event(
-      ${receipt.eventId},
-      ${receipt.eventType},
-      ${receipt.livemode},
-      ${receipt.createdAt.toISOString()},
-      ${command.action},
-      ${command.productCode ?? null},
-      ${command.checkoutSessionId ?? null},
-      ${command.paymentIntentId ?? null},
-      ${command.chargeId ?? null},
-      ${command.customerId ?? null},
-      ${command.reason}
-    )
-  ` as EntitlementRow[];
+  let rows: EntitlementRow[];
+
+  try {
+    rows = await sql`
+      select * from apply_entitlement_event(
+        ${receipt.eventId},
+        ${receipt.eventType},
+        ${receipt.livemode},
+        ${receipt.createdAt.toISOString()},
+        ${command.action},
+        ${command.productCode ?? null},
+        ${command.checkoutSessionId ?? null},
+        ${command.paymentIntentId ?? null},
+        ${command.chargeId ?? null},
+        ${command.customerId ?? null},
+        ${command.reason}
+      )
+    ` as EntitlementRow[];
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+
+    // A verified refund or dispute can have no stored purchase if the earlier
+    // checkout webhook never reached this environment. It must never create
+    // access, and retrying cannot manufacture that missing grant.
+    if (!command.productCode && message.includes("No entitlement matches Stripe event")) {
+      return { outcome: "ignored_unmatched" } as const;
+    }
+
+    throw error;
+  }
   const row = rows[0];
 
   if (!row) throw new Error("The entitlement database returned no result.");
 
+  const entitlement = row.id !== null && row.product_code !== null && row.status !== null
+    ? toEntitlementRecord(row)
+    : undefined;
+
   return {
     outcome: row.outcome ?? "processed",
-    entitlement: toEntitlementRecord(row),
+    ...(entitlement ? { entitlement } : {}),
   } as const;
 }
 
@@ -135,6 +158,30 @@ async function findActiveByCheckoutSession(checkoutSessionId: string, productCod
     where stripe_checkout_session_id = ${checkoutSessionId}
       and product_code = ${productCode}
       and status = 'active'
+    limit 1
+  ` as EntitlementRow[];
+
+  return rows[0] ? toEntitlementRecord(rows[0]) : null;
+}
+
+async function findByCheckoutSession(checkoutSessionId: string, productCode: ProductCode) {
+  if (!/^cs_(?:test|live)_[A-Za-z0-9]+$/.test(checkoutSessionId)) return null;
+
+  const sql = neon(getConnectionString());
+  const rows = await sql`
+    select
+      id,
+      product_code,
+      status,
+      stripe_checkout_session_id,
+      stripe_payment_intent_id,
+      stripe_charge_id,
+      stripe_customer_id,
+      granted_at,
+      revoked_at
+    from purchase_entitlements
+    where stripe_checkout_session_id = ${checkoutSessionId}
+      and product_code = ${productCode}
     limit 1
   ` as EntitlementRow[];
 
@@ -203,6 +250,7 @@ async function createRestoreTokenHash(input: {
 export const neonEntitlementStore: EntitlementStore = {
   applyStripeEvent,
   consumeRestoreTokenHash,
+  findByCheckoutSession,
   findActiveByCheckoutSession,
   findActiveById,
   createRestoreTokenHash,

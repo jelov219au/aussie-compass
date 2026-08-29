@@ -12,6 +12,7 @@ for (const productCode of ["resume_pro", "rental_application_pro"]) {
 
 for (const methodContract of [
   "consumeRestoreTokenHash(tokenHash: string, productCode: ProductCode)",
+  "findByCheckoutSession(checkoutSessionId: string, productCode: ProductCode)",
   "findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode)",
   "findActiveById(entitlementId: string, productCode: ProductCode)",
   "productCode: ProductCode;",

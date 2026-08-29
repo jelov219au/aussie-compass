@@ -50,11 +50,13 @@ export interface EntitlementStore {
     receipt: StripeEventReceipt;
     command: EntitlementCommand;
   }): Promise<{
-    outcome: "processed" | "duplicate" | "ignored_stale";
+    outcome: "processed" | "duplicate" | "ignored_stale" | "ignored_unmatched";
     entitlement?: EntitlementRecord;
   }>;
 
   consumeRestoreTokenHash(tokenHash: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
+
+  findByCheckoutSession(checkoutSessionId: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
 
   findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
 
@@ -141,8 +143,11 @@ function disputeCommand(event: Stripe.Event, dispute: Stripe.Dispute): Entitleme
     action = "revoke";
     reason = "dispute_opened";
   } else if (event.type === "charge.dispute.funds_reinstated" || dispute.status === "won") {
-    action = "grant";
-    reason = "dispute_won_or_funds_reinstated";
+    // Funds can be reinstated while the underlying charge has separately been
+    // refunded. The dispute payload alone cannot prove that paid access should
+    // reopen, so keep access blocked until an operator verifies the charge.
+    action = "review";
+    reason = "dispute_won_or_funds_reinstated_requires_charge_check";
   } else if (event.type === "charge.dispute.closed" && dispute.status === "lost") {
     action = "revoke";
     reason = "dispute_lost";

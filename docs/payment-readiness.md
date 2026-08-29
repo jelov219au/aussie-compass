@@ -95,6 +95,24 @@ The protected Preview integration was verified on 18 August 2026 without enablin
 
 This record proves the Checkout-to-webhook path, durable entitlement idempotency, signed device access, access release and one-time recovery work in test mode. Deterministic local tests additionally cover token tampering and expiry.
 
+## Rental Pack Pro Preview verification record
+
+The protected Rental Application Pack Pro Preview integration was verified on 21 August 2026 without enabling Production payments:
+
+- A Stripe Sandbox product and one-time AUD 14.90 inclusive Price were created for `rental_application_pro` using the personal-use SaaS tax code.
+- Managed Payments test Checkout included AUD 1.35 GST inside the AUD 14.90 total and reported Stripe as the automatic-tax liability party.
+- A signed `checkout.session.completed` delivery reached the protected Preview webhook with HTTP 200 and created the active Neon entitlement.
+- The paid success page exposed the activation action only after the persisted entitlement existed. Activation issued the signed browser session and opened `/rental-application-pro/workspace`.
+- Releasing the current device blocked direct workspace access. A 30-day one-time recovery code restored access once and a second use was rejected.
+- A full AUD 14.90 test refund delivered `refund.created`, `charge.refunded` and `refund.updated` with HTTP 200. The charge event revoked the entitlement and removed the workspace activation action.
+- The success page distinguishes a revoked entitlement from a webhook still being processed and identifies the refund or cancellation state directly.
+- Both Sandbox verification payments were fully refunded. The temporary Stripe webhook was disabled and every temporary Vercel automation bypass was revoked after the test.
+- No Production price, payment gate, webhook, entitlement or deployment setting was changed during this verification.
+
+The connected Stripe Sandbox was rechecked on 23 August 2026: the Rental product and one-time AUD 14.90 inclusive Price remain active, both recorded Rental Checkout Sessions are paid test sessions, and both charges remain fully refunded. No new Checkout or refund was created during this read-only recheck.
+
+No customer email, card detail, legal name, ABN, secret key, webhook secret, Vercel bypass value or database connection string is recorded in this verification note.
+
 ## Live verification record
 
 The public Production integration was verified on 20 August 2026:

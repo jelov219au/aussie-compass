@@ -12,6 +12,8 @@
     "test:entitlement-commands": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-entitlement-commands.mjs",
     "test:resume-pro-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-resume-pro-tokens.mjs",
     "test:rental-pro-contract": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-rental-application-pro-contract.mjs",
+    "test:rental-pack": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-rental-pack-contract.mjs",
+    "test:rental-ready-handoff": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-rental-ready-now-handoff.mjs",
     "test:rental-pro-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-rental-application-pro-tokens.mjs",
     "test:entitlement-ordering": "node scripts/check-entitlement-ordering.mjs",
     "test:product-entitlements": "node scripts/check-product-entitlement-isolation.mjs",

@@ -1,6 +1,9 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+
+import { createRentalReadyNowHandoff, rentalReadyNowHandoffStorageKey } from "@/lib/rentalReadyNowHandoff";
 
 type Mode = "share" | "rent" | "buy";
 type Status = "ok" | "concern";
@@ -61,12 +64,14 @@ const groups: Group[] = [
 const storageKey = "aussie-compass-property-inspection-v1";
 
 export function PropertyInspectionChecklist() {
+  const router = useRouter();
   const [mode, setMode] = useState<Mode>("share");
   const [propertyName, setPropertyName] = useState("");
   const [statuses, setStatuses] = useState<Record<string, Status>>({});
   const [notes, setNotes] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [handoffError, setHandoffError] = useState("");
 
   useEffect(() => { try { const saved = localStorage.getItem(storageKey); if (saved) { const data = JSON.parse(saved); setMode(data.mode || "share"); setPropertyName(data.propertyName || ""); setStatuses(data.statuses || {}); setNotes(data.notes || ""); } } catch {} setLoaded(true); }, []);
   useEffect(() => { if (!loaded) return; try { localStorage.setItem(storageKey, JSON.stringify({ mode, propertyName, statuses, notes })); } catch {} }, [mode, propertyName, statuses, notes, loaded]);
@@ -83,6 +88,16 @@ export function PropertyInspectionChecklist() {
     const text = [`집 방문 체크 — ${propertyName || "이름 미입력"}`, `유형: ${modeName} · 확인 ${reviewed}/${items.length} · 우려 ${concerns.length}`, "", "다시 확인할 항목:", ...(concerns.length ? concerns.map((item) => `- ${item.label}: ${item.hint}`) : ["- 없음"]), notes ? `\n메모:\n${notes}` : "", "\n※ 계약 전 관할 지역의 공식 규정과 전문가 조언을 확인하세요."].join("\n");
     await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1800);
   }
+  function continueToRentalPack() {
+    const handoff = createRentalReadyNowHandoff({ propertyLabel: propertyName, mode, reviewedCount: reviewed, concernCount: concerns.length });
+    if (!handoff) return;
+    try {
+      localStorage.setItem(rentalReadyNowHandoffStorageKey, JSON.stringify(handoff));
+      router.push("/rental-application-pro?from=property-inspection-checklist");
+    } catch {
+      setHandoffError("이 브라우저에서 안전한 이어보기를 준비할 수 없습니다. 요약을 복사해 직접 옮겨 주세요.");
+    }
+  }
 
   return <section className="rounded-3xl border border-border bg-white p-5 shadow-sm sm:p-8" aria-labelledby="inspection-heading">
     <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-sm font-semibold text-gold">방문할 때마다 새로 점검</p><h2 id="inspection-heading" className="mt-2 text-2xl font-semibold text-navy">집 인스펙션 체크리스트</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted">정확한 주소, 출입 비밀번호, 계약서 번호 같은 민감정보는 입력하지 마세요. 작성 내용은 이 브라우저에만 저장됩니다.</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={copySummary} className="min-h-11 rounded-lg border border-navy px-4 text-sm font-semibold text-navy hover:bg-surface">{copied ? "복사됨" : "요약 복사"}</button><button type="button" onClick={reset} className="min-h-11 rounded-lg bg-navy px-4 text-sm font-semibold text-white hover:bg-navy-light">새 방문 시작</button></div></div>
@@ -90,5 +105,7 @@ export function PropertyInspectionChecklist() {
     <div className="mt-6 grid gap-4 sm:grid-cols-3"><div className="rounded-xl border border-border p-4"><span className="text-xs text-muted">확인 진행</span><strong className="mt-1 block text-2xl text-navy">{reviewed}/{items.length}</strong></div><div className="rounded-xl border border-border p-4"><span className="text-xs text-muted">괜찮음</span><strong className="mt-1 block text-2xl text-emerald-700">{items.filter((item) => statuses[item.id] === "ok").length}</strong></div><div className={`rounded-xl border p-4 ${concerns.length ? "border-amber-300 bg-amber-50" : "border-border"}`}><span className="text-xs text-muted">다시 확인</span><strong className="mt-1 block text-2xl text-amber-800">{concerns.length}</strong></div></div>
     <div className="mt-8 grid gap-6 lg:grid-cols-2">{visibleGroups.map((group) => <fieldset key={group.title} className="rounded-2xl border border-border p-5"><legend className="px-1 text-lg font-semibold text-navy">{group.title}</legend><div className="mt-2 divide-y divide-border">{group.items.map((item) => <div key={item.id} className="py-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-sm font-semibold text-navy">{item.label}</p><p className="mt-1 text-xs leading-5 text-muted">{item.hint}</p></div><div className="flex shrink-0 gap-2" role="group" aria-label={`${item.label} 상태`}><button type="button" aria-pressed={statuses[item.id] === "ok"} onClick={() => setStatus(item.id,"ok")} className={`min-h-10 rounded-lg border px-3 text-xs font-semibold ${statuses[item.id] === "ok" ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-border text-muted"}`}>괜찮음</button><button type="button" aria-pressed={statuses[item.id] === "concern"} onClick={() => setStatus(item.id,"concern")} className={`min-h-10 rounded-lg border px-3 text-xs font-semibold ${statuses[item.id] === "concern" ? "border-amber-500 bg-amber-50 text-amber-900" : "border-border text-muted"}`}>다시 확인</button></div></div></div>)}</div></fieldset>)}</div>
     <label className="mt-6 block text-sm font-medium text-navy">방문 메모<textarea value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1500} rows={5} placeholder="질문할 내용, 약속받은 수리, 다시 방문할 시간 등을 기록하세요." className="mt-2 w-full rounded-xl border border-border p-3 leading-6 outline-none focus:border-navy" /></label>
+    {mode !== "buy" && <div className="mt-6 border-l-2 border-gold bg-surface p-4 sm:flex sm:items-center sm:justify-between sm:gap-5"><div><p className="text-sm font-semibold text-navy">Rental Pack에서 이어서 준비</p><p className="mt-1 text-xs leading-5 text-muted">집 구분명과 확인·우려 개수만 24시간 동안 이 브라우저에 전달합니다. 방문 메모와 세부 체크 결과는 옮기지 않습니다.</p></div><button type="button" onClick={continueToRentalPack} className="mt-3 min-h-11 shrink-0 bg-navy px-4 text-sm font-semibold text-white sm:mt-0">안전하게 이어보기 →</button></div>}
+    {handoffError && <p className="mt-3 text-sm text-red-800" role="alert">{handoffError}</p>}
   </section>;
 }

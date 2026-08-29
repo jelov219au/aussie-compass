@@ -71,7 +71,7 @@ export default function TermsPage() {
               <div><p className="font-mono text-xs text-gold">02 / PRODUCT</p><h2 className="mt-2 text-xl font-semibold text-navy">Pro 제품에서 받는 것</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>Resume Pro는 프리미엄 이력서 레이아웃, 커버레터 작성 도구, 채용 공고 표현 점검과 회사별 지원서 정리를 제공하는 브라우저 기반 디지털 작업 공간입니다.</p>
-                <p>Rental Application Pack Pro는 렌트 신청 서류의 준비 상태, 개인정보 점검, 영문 소개문과 집 후보별 준비 요약을 제공하는 브라우저 기반 디지털 작업 공간입니다. 신분증·Payslip·은행 서류 원본은 받거나 제출하지 않습니다.</p>
+                <p>Rental Pack Pro(결제 기록명 Rental Application Pack Pro)는 최대 20개 집 후보의 신청 단계·다음 행동·서류·개인정보 점검을 관리하고, 재사용 신청자 프로필·상황별 영문 연락 문구·PDF/TXT 준비본·JSON 백업을 제공하는 브라우저 기반 디지털 작업 공간입니다. 신분증·Payslip·은행 서류 원본은 받거나 제출하지 않습니다.</p>
                 <p>채용 합격, 면접 기회, 고용주 응답 또는 특정 결과를 보장하지 않습니다. 사용자는 생성된 문장을 자신의 실제 경험과 지원 직무에 맞게 확인하고 수정해야 합니다.</p>
                 <p>Rental Application Pack Pro도 임대 승인, 에이전트 응답 또는 특정 집의 계약을 보장하지 않으며 신청서 제출이나 법률 자문을 대신하지 않습니다.</p>
               </div>
