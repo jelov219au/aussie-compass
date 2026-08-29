@@ -5,6 +5,7 @@ import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Container } from "@/components/ui/Container";
 import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory } from "@/lib/articleProgress";
 import { RAIL_WORK_ALERT_STORAGE_KEY } from "@/lib/railWorkAlerts";
+import { taxPrepRecordsStorageKey } from "@/lib/taxPrepStorage";
 
 const progressKeys = [
   "visa-preparation-project",
@@ -13,6 +14,7 @@ const progressKeys = [
   "moving-project",
   "leaving-australia-project",
   "aussie-compass-tax-return-checklist-v1",
+  taxPrepRecordsStorageKey,
   "aussie-compass-job-tracker-v1",
   "aussie-compass-savings-goal-v1",
   "aussie-compass-resume-v1",

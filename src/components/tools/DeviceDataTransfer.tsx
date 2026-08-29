@@ -9,6 +9,7 @@ import {
   rentalApplicationProWorkspaceStorageKey,
 } from "@/lib/rentalApplicationProDeviceStorage";
 import { resumeProStarStoriesStorageKey } from "@/lib/resumeProDeviceStorage";
+import { taxPrepRecordsStorageKey } from "@/lib/taxPrepStorage";
 
 type StoredRecord = {
   key: string;
@@ -42,6 +43,7 @@ const storedRecords: StoredRecord[] = [
   { key: "hoju-compass-english-phrase-cards-v1", label: "저장한 생활 영어 문장", group: "생활 준비" },
   { key: "aussie-compass-life-reminders-v1", label: "만료일·갱신 일정", group: "생활 관리" },
   { key: "aussie-compass-tax-return-checklist-v1", label: "택스 리턴 준비", group: "돈 관리" },
+  { key: taxPrepRecordsStorageKey, label: "연중 택스 리턴 준비 장부", group: "돈 관리", sensitive: true },
   { key: "hoju-compass-eofy-pro-v1", label: "EOFY 준비 패키지", group: "돈 관리", sensitive: true },
   { key: "aussie-compass-salary-calculation", label: "급여 계산", group: "돈 관리", sensitive: true },
   { key: "aussie-compass-living-budget-v1", label: "생활비 예산", group: "돈 관리", sensitive: true },

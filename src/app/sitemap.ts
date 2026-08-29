@@ -31,6 +31,7 @@ const routes = [
   "/resources",
   "/career-pathways",
   "/tax-return-guide",
+  "/tax-prep-tracker",
   "/service-quote-comparator",
   "/property-inspection-checklist",
   "/public-transport-guide",
@@ -58,6 +59,10 @@ const routes = [
 // reflects a significant page update, so do not replace them with new Date().
 const acquisitionRouteUpdates: Record<string, string> = {
   "": "2026-08-29",
+  "/tools": "2026-08-29",
+  "/used-car-comparison": "2026-08-29",
+  "/tax-prep-tracker": "2026-08-29",
+  "/tax-return-guide": "2026-08-29",
   "/resume-builder": "2026-08-24",
   "/resume-job-ad-checker": "2026-08-24",
   "/resume-pro": "2026-08-24",
