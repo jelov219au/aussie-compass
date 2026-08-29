@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { VehicleComparison } from "@/components/tools/VehicleComparison";
+import { VehicleInspectionProviderPicker } from "@/components/tools/VehicleInspectionProviderPicker";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
@@ -43,59 +44,6 @@ const buyingSteps = [
   ["동행과 독립 검사 구분", "차량을 잘 아는 지인은 현장 1차 확인에 동행하고, 기계 상태 판단은 판매자와 이해관계가 없는 검사자에게 pre-purchase inspection을 의뢰합니다."],
   ["PPSR·Rego 확인", "구매 직전 VIN으로 공식 PPSR을 발급하고 거주 주의 등록기관에서 Rego와 이전 절차를 확인합니다."],
   ["비용 비교 후 결제", "차값에 이전비, 인지세, 보험, 즉시 필요한 정비비를 더한 뒤 명의 이전과 결제를 진행합니다."],
-];
-
-const inspectionPathways = [
-  {
-    region: "VIC",
-    provider: "RACV-Accredited Auto Care Centres",
-    href: "https://www.racv.com.au/cars-transport/vehicle-maintenance/inspections.html",
-    access: "Victoria 전역 50곳 이상의 제휴 센터에 직접 예약하는 워크숍 방식",
-    scope: "Pre-purchase 검사는 부품의 외부 상태를 육안으로 확인하고, 수리 필요도를 Immediate · Early · Observation으로 구분합니다.",
-  },
-  {
-    region: "QLD",
-    provider: "RACQ Vehicle Inspections",
-    href: "https://www.racq.com.au/car/vehicle-inspections",
-    access: "Queensland 내 검사 지점 또는 서비스 가능 지역의 출장 검사",
-    scope: "Mechanical과 Premium 등 상품별로 기계·외관 범위가 다릅니다. 지점 방문과 출장 모두 예약 화면에서 가능 여부를 확인하세요.",
-  },
-  {
-    region: "WA",
-    provider: "RAC Vehicle Inspections",
-    href: "https://rac.com.au/car-motoring/car-servicing-and-repair/vehicle-inspections",
-    access: "Perth 광역권 RAC Auto Services 센터 또는 선택 지역 출장·딜러 방문",
-    scope: "차종별 검사 범위가 다르며, 출장 점검은 안전하고 평평한 작업 공간이 필요합니다. EV 배터리 상태 검사는 별도 추가 항목입니다.",
-  },
-  {
-    region: "SA",
-    provider: "RAA Vehicle Inspections",
-    href: "https://www.raa.com.au/motor/motoring-services/vehicle-inspections",
-    access: "Adelaide West Croydon 워크숍, regional SA 승인 센터, 일부 출장 검사",
-    scope: "Pre-purchase 상품별 보고·상담 범위가 다르고, 워크숍에서만 가능한 브레이크·정렬 장비 검사가 있을 수 있습니다.",
-  },
-  {
-    region: "TAS",
-    provider: "RACT Vehicle Inspections",
-    href: "https://www.ract.com.au/cars-and-driving/vehicle-inspections",
-    access: "Hobart와 Launceston AutoServe 워크숍에 예약",
-    scope: "기계·차량 이력·외관·하부·타이어·road test 항목을 안내합니다. 다른 지역은 해당 사업자에게 직접 가능 여부를 물어보세요.",
-  },
-  {
-    region: "NT",
-    provider: "AANT Approved Vehicle Inspection Centres",
-    href: "https://www.aant.com.au/motoring/driving-and-maintenance/approved-repairers",
-    access: "AANT 검색에서 Inspections를 선택해 승인 센터를 찾고 해당 센터에 직접 예약",
-    scope: "Pre-purchase용 독립·비편향 보고서를 안내하지만, 센터별 위치·예약·세부 범위는 직접 확인해야 합니다.",
-  },
-  {
-    region: "NSW · ACT",
-    provider: "NRMA 안내 RedBook Inspect",
-    href: "https://www.mynrma.com.au/cars-and-driving/vehicle-inspections",
-    access: "NSW는 Sydney·Newcastle·Central Coast 등 NRMA가 표시한 서비스 지역의 출장 검사, ACT는 현재 안내상 Remote Video Assessment 경로",
-    scope: "NRMA가 명시한 대로 visual and non-mechanical inspection입니다. 분해하지 않고 보이는 범위를 평가하므로 정비사 워크숍의 리프트·내부 기계 진단과 같지 않습니다.",
-    caution: true,
-  },
 ];
 
 const beforeBookingChecks = [
@@ -199,22 +147,8 @@ export default function UsedCarComparisonPage() {
         <section id="inspection-providers" className="mt-14 scroll-mt-24" aria-labelledby="inspection-providers-heading">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">05 · 주·준주별 예약 출발점</p>
           <h2 id="inspection-providers-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">자동차협회·공식 성격의 안내에서 시작하세요</h2>
-          <p className="mt-3 max-w-4xl text-sm leading-7 text-muted">아래는 2026년 8월 30일 각 제공자의 공식 페이지에서 다시 확인한 출발점이며, 지역 순서로만 표시했습니다. Hoju Compass의 유료 추천이나 품질 순위가 아니고, 예약 수수료를 받는 링크도 아닙니다. 서비스 지역·출장/워크숍 가능 여부·검사 범위·가격은 차량과 위치에 따라 달라질 수 있으니 결제 전에 제공자에게 다시 확인하세요.</p>
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
-            {inspectionPathways.map((pathway) => <article key={pathway.region} className={`rounded-2xl border p-6 ${pathway.caution ? "border-amber-300 bg-amber-50" : "border-border bg-white"}`}>
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <p className="font-mono text-xs font-semibold text-gold-ink">{pathway.region}</p>
-                <span className="text-xs text-muted">공식 출처</span>
-              </div>
-              <h3 className="mt-2 text-lg font-semibold text-navy">{pathway.provider}</h3>
-              <dl className="mt-4 space-y-3 text-sm leading-6">
-                <div><dt className="font-semibold text-navy">지역·방식</dt><dd className="text-muted">{pathway.access}</dd></div>
-                <div><dt className="font-semibold text-navy">현재 안내 범위</dt><dd className="text-muted">{pathway.scope}</dd></div>
-              </dl>
-              <a href={pathway.href} target="_blank" rel="noreferrer" className="mt-5 inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">공식 검사·예약 안내 열기 ↗</a>
-            </article>)}
-          </div>
-          <p className="mt-4 border-l-2 border-amber-400 bg-amber-50 p-4 text-sm leading-6 text-amber-950"><strong>NSW·ACT에서 특히 확인:</strong> NRMA는 파트너 RedBook Inspect의 현장 검사와 Remote Video Assessment를 안내합니다. 현장 보고서도 <span lang="en">visual and non-mechanical</span> 검사이며 부품을 분해하지 않습니다. ACT처럼 현재 현장 서비스 지역으로 표시되지 않은 곳의 원격 영상 평가는 판매자가 카메라로 보여주는 범위에 의존하므로, 리프트·하부·내부 기계 진단이 필요하면 별도의 현지 독립 정비사 워크숍을 찾으세요.</p>
+          <p className="mt-3 max-w-4xl text-sm leading-7 text-muted">아래는 2026년 8월 30일 각 제공자의 공식 페이지에서 다시 확인한 출발점입니다. 검사할 주·준주를 고르면 해당 지역 안내만 표시됩니다. Hoju Compass의 유료 추천이나 품질 순위가 아니고, 예약 수수료를 받는 링크도 아닙니다. 서비스 지역·출장/워크숍 가능 여부·검사 범위·가격은 차량과 위치에 따라 달라질 수 있으니 결제 전에 제공자에게 다시 확인하세요.</p>
+          <VehicleInspectionProviderPicker />
         </section>
 
         <section className="mt-14" aria-labelledby="before-booking-heading">
@@ -226,6 +160,7 @@ export default function UsedCarComparisonPage() {
           <div className="mt-5 rounded-2xl bg-surface p-5 sm:p-6">
             <h3 className="font-semibold text-navy">예약할 때 복사해 물어볼 핵심 문장</h3>
             <p className="mt-3 border-l-2 border-gold bg-white p-4 text-sm leading-7 text-navy" lang="en">Before I book, could you confirm your independence from the seller, the written inclusions and exclusions, and whether the inspection includes a hoist/underbody check, diagnostic scan and road test? Please also confirm the total price, cancellation or reinspection terms, and your experience with this vehicle type.</p>
+            <p className="mt-3 text-sm leading-7 text-muted">(예약하기 전에 판매자와 독립적인 관계인지, 서면 검사 포함·제외 항목이 무엇인지, 리프트·하부 점검·진단 스캔·시운전이 포함되는지 확인해 주실 수 있을까요? 총가격과 취소·재검 조건, 그리고 이 차종의 검사 경험도 함께 알려주세요.)</p>
           </div>
         </section>
 
