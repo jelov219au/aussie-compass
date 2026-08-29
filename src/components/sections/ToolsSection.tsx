@@ -4,15 +4,15 @@ import { Container } from "@/components/ui/Container";
 import { sectionIds } from "@/lib/utils";
 
 const essentials = [
-  { number: "01", href: "/salary-calculator", eyebrow: "일과 급여", title: "통합 급여 계산기", description: "시급이나 연봉을 넣으면 세전·세후 급여와 Super를 함께 볼 수 있어요." },
-  { number: "02", href: "/arrival-checklist", eyebrow: "호주 도착", title: "첫 30일 정착", description: "전화와 교통부터 은행, TFN, 첫 직장 준비까지 순서대로 챙겨보세요." },
+  { number: "01", href: "/arrival-checklist", eyebrow: "호주 도착", title: "첫 30일 정착", description: "전화와 교통부터 은행, TFN, 첫 직장 준비까지 순서대로 챙겨보세요." },
+  { number: "02", href: "/visa-preparation-guide", eyebrow: "출국 준비", title: "비자·신체검사 준비", description: "신청 경로와 비용, 지정 병원을 공식 사이트에서 확인하는 순서를 알아보세요." },
   { number: "03", href: "/property-inspection-checklist", eyebrow: "집 구하기", title: "집 방문 체크리스트", description: "집을 보러 간 자리에서 상태와 비용, 계약 조건을 하나씩 확인할 수 있어요." },
   { number: "04", href: "/resume-builder", eyebrow: "취업 준비", title: "영문 이력서 빌더", description: "내 실제 경험을 브라우저에 저장하고, PDF와 백업 파일로 내보내 다음 지원에도 다시 사용하세요." },
 ];
 
 export function ToolsSection() {
   return <section id={sectionIds.tools} className="scroll-mt-20 bg-background py-16 sm:py-24" aria-labelledby="essential-tools-heading"><Container>
-    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold text-gold-ink">바로 써볼 수 있어요</p><h2 id="essential-tools-heading" className="mt-2 text-3xl font-semibold tracking-[-0.025em] text-navy sm:text-4xl">많이 쓰는 도구</h2><p className="mt-3 text-sm leading-6 text-muted sm:text-base">처음 오셨다면 지금 필요한 것부터 편하게 써보세요.</p></div><Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy">전체 도구 보기 →</Link></div>
+    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold text-gold-ink">바로 써볼 수 있어요</p><h2 id="essential-tools-heading" className="mt-2 text-3xl font-semibold tracking-[-0.025em] text-navy sm:text-4xl">처음이라면 여기부터</h2><p className="mt-3 text-sm leading-6 text-muted sm:text-base">도착과 정착, 집, 일자리 준비처럼 지금 필요한 순서부터 편하게 시작하세요.</p></div><Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy">전체 도구 보기 →</Link></div>
 
     <TrackedLink href="/english-phrase-cards" eventName="Home Navigation" properties={{ section: "english_phrase_preview", destination: "english-phrase-cards" }} className="group relative mt-8 block overflow-hidden rounded-2xl bg-navy text-white transition hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(26,39,68,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
       <span className="absolute -right-12 -top-20 h-64 w-64 rounded-full border border-white/10" aria-hidden="true" />

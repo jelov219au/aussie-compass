@@ -57,7 +57,7 @@ const routes = [
 // Keep these dates manual and evidence-based. Google only uses lastmod when it
 // reflects a significant page update, so do not replace them with new Date().
 const acquisitionRouteUpdates: Record<string, string> = {
-  "": "2026-08-24",
+  "": "2026-08-29",
   "/resume-builder": "2026-08-24",
   "/resume-job-ad-checker": "2026-08-24",
   "/resume-pro": "2026-08-24",
@@ -68,7 +68,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${siteUrl}${route}`,
     lastModified: acquisitionRouteUpdates[route],
     changeFrequency: route === "" ? "weekly" : "monthly",
-    priority: route === "" ? 1 : route === "/salary-calculator" ? 0.9 : 0.7,
+    priority: route === "" ? 1 : route === "/tools" || route === "/resources" ? 0.9 : 0.7,
   }));
 
   const articleEntries: MetadataRoute.Sitemap = articles.map((article) => ({

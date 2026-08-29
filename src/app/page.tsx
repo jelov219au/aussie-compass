@@ -18,11 +18,11 @@ export default function HomePage() {
       <main>
         <Hero />
         <HomeSearch />
-        <HomeTransportAlertsSection />
         <ToolsSection />
-        <ReturnVisitSection />
         <PersonalRouteFinder />
+        <ReturnVisitSection />
         <ExperienceStoriesSection />
+        <HomeTransportAlertsSection />
         <ArticlesSection />
         <HomeTrustBar />
         <PremiumToolsSection />

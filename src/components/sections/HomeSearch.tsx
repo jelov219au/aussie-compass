@@ -7,14 +7,14 @@ import { Container } from "@/components/ui/Container";
 import { SEARCH_TRANSFER_STORAGE_KEY, sanitizeTransferredSearch } from "@/lib/searchTransfer";
 
 const popularSearches = [
-  { label: "TFN", topic: "tax" },
-  { label: "세후 급여", topic: "pay" },
+  { label: "워홀 준비", topic: "visa" },
+  { label: "호주 도착 준비", topic: "arrival" },
   { label: "집 구하기", topic: "housing" },
+  { label: "TFN", topic: "tax" },
   { label: "이력서 양식", topic: "jobs" },
-  { label: "공고 맞춤", topic: "jobs" },
-  { label: "커버레터", topic: "jobs" },
+  { label: "첫 일자리", topic: "jobs" },
   { label: "택스 리턴", topic: "tax" },
-  { label: "Super 환급", topic: "super" },
+  { label: "세후 급여", topic: "pay" },
 ];
 
 const searchTopics = [
@@ -90,7 +90,7 @@ export function HomeSearch() {
               </button>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span className="text-xs text-muted">많이 찾는 주제</span>
+              <span className="text-xs text-muted">처음이라면 여기부터</span>
               {popularSearches.map(({ label, topic }) => (
                 <button
                   type="button"

@@ -65,6 +65,8 @@ for (const query of ["렌트 신청", "rental application"]) {
 const searchComponent = readFileSync(resolve("src/components/search/SiteSearch.tsx"), "utf8");
 const searchPage = readFileSync(resolve("src/app/search/page.tsx"), "utf8");
 const homeSearch = readFileSync(resolve("src/components/sections/HomeSearch.tsx"), "utf8");
+const homeTools = readFileSync(resolve("src/components/sections/ToolsSection.tsx"), "utf8");
+const homePage = readFileSync(resolve("src/app/page.tsx"), "utf8");
 const searchTransfer = readFileSync(resolve("src/lib/searchTransfer.ts"), "utf8");
 const jsonLd = readFileSync(resolve("src/components/seo/JsonLd.tsx"), "utf8");
 const site = readFileSync(resolve("src/lib/site.ts"), "utf8");
@@ -109,6 +111,14 @@ assert.match(homeSearch, /track\("Home Search", \{ topic, entry \}\)/, "analytic
 assert.equal(homeSearch.match(/\btrack\(/g)?.length, 1, "home search must expose only one fixed analytics call");
 assert.match(homeSearch, /openSearch\(query, classifySearch\(query\), "free_text"\)/);
 assert.match(homeSearch, /openSearch\(label, topic, "popular"\)/);
+assert.ok(homeSearch.indexOf('label: "워홀 준비"') < homeSearch.indexOf('label: "세후 급여"'), "newcomer discovery topics must precede the downstream pay query");
+const essentialTools = homeTools.slice(homeTools.indexOf("const essentials = ["), homeTools.indexOf("];", homeTools.indexOf("const essentials = [")));
+for (const href of ["/arrival-checklist", "/visa-preparation-guide", "/property-inspection-checklist", "/resume-builder"]) {
+  assert.ok(essentialTools.includes(`href: "${href}"`), `the newcomer-first home tools are missing ${href}`);
+}
+assert.doesNotMatch(essentialTools, /\/salary-calculator/, "the salary calculator must remain a downstream discovery tool instead of a primary home card");
+assert.ok(homePage.indexOf("<ToolsSection />") < homePage.indexOf("<PersonalRouteFinder />"), "the first-step tools must lead into the personalized route");
+assert.ok(homePage.indexOf("<PersonalRouteFinder />") < homePage.indexOf("<HomeTransportAlertsSection />"), "the broad newcomer route must precede the niche transport alert section");
 assert.ok(homeSearch.indexOf('router.push("/search")') > homeSearch.indexOf("sessionStorage.setItem"), "queryless navigation must still occur after the storage attempt");
 assert.doesNotMatch(homeSearch, /action=["']\/search|method=["']get|name=["']q|\/search\?q=|href=\{?`?\/search\?|URLSearchParams|window\.location/, "home search must not put raw terms in a form GET, link, URL or navigation request");
 assert.match(searchComponent, /sessionStorage\.getItem\(SEARCH_TRANSFER_STORAGE_KEY\)/);
@@ -123,7 +133,7 @@ assert.ok(site.includes('["호주 컴퍼스", "호주컴퍼스"]'), "the brand n
 assert.ok(layout.includes("호주 취업·급여·정착 실용 도구 | Hoju Compass") && layout.includes("description = siteDescription"), "the homepage metadata must describe the high-intent utility and reuse the shared summary");
 assert.equal((jsonLd.match(/alternateName: siteAlternateNames/g) ?? []).length, 2, "the WebSite and Organization entities must share the same Korean brand aliases");
 assert.equal((jsonLd.match(/description: siteDescription/g) ?? []).length, 1, "the WebSite entity must reuse the customer-facing discovery summary");
-assert.ok(sitemap.includes('"": "2026-08-24"'), "the significantly updated homepage needs an evidence-based sitemap lastmod");
+assert.ok(sitemap.includes('"": "2026-08-29"'), "the significantly updated homepage needs an evidence-based sitemap lastmod");
 for (const verificationName of ["BING_SITE_VERIFICATION", "NAVER_SITE_VERIFICATION"]) {
   assert.ok(growthRoadmap.includes(verificationName), `the current search-discovery HOLD is missing: ${verificationName}`);
 }
