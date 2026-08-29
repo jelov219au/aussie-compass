@@ -208,3 +208,13 @@ POST returns HTTP 503 with `Cache-Control: no-store`. No Rental candidate was
 promoted over that concurrent source. The sole unpaid Session is scheduled to
 expire at 30 August 2026 00:52:17 AEST; confirm Stripe reports it expired before
 closing this record.
+
+## Production activation — 30 August 2026
+
+Rental Pack Pro is live at `https://hojucompass.com/rental-application-pro` for a one-time A$14.90 purchase. The released source is `dba0b5e32e59f9a2b7c15ffd1f9b5b565436ee6a`; it was fast-forwarded to `main` and deployed as Vercel Production deployment `dpl_ApJHN6gxtHRjEw2y8Ygxq1smPpBp` (`https://aussie-compass-f7uh7w5wg-aussiecompass.vercel.app`). Vercel logs identify `Branch: main, Commit: dba0b5e`, a successful TypeScript build and all 122 generated pages. `hojucompass.com` and `www.hojucompass.com` resolve to the Ready deployment.
+
+The exact-SHA checkout-off gate passed Production runtime, operator audit, Stripe account-read and key-role checks, accounting preflight, database/runtime schema, first-sale preflight and deployment evidence. The Neon Rental gate migration and postflight passed. One expired unpaid reservation was released only after its matching live Stripe Checkout Session was verified as expired, unpaid and without a PaymentIntent. No customer payment, fee, refund or entitlement resulted from that cleanup.
+
+Production `PAYMENTS_ENABLED` and `RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED` are enabled. After activation, a read-only public browser check confirmed the A$14.90 price, required terms checkbox, visible purchase button, disabled-before-consent and enabled-after-consent behaviour, and zero console errors. The purchase button was not clicked. A read-only live Stripe query returned zero open Checkout Sessions, so activation itself created no Checkout, charge or fee.
+
+Do not create a live self-purchase merely as a release test. Monitor the first organic sale and verify the signed webhook, product-scoped entitlement, durable operator alert and customer workspace access. If any part fails, disable both payment switches, redeploy the same approved SHA and preserve the event identifiers for incident review.
