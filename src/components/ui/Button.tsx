@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { TrackedLink, type AnalyticsValue } from "@/components/analytics/TrackedLink";
+import { actionClass } from "@/components/ui/actionStyles";
 
 type ButtonVariant = "primary" | "secondary" | "ghost";
 
@@ -26,22 +27,13 @@ type ButtonAsLink = ButtonBaseProps & {
 
 type ButtonProps = ButtonAsButton | ButtonAsLink;
 
-const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    "bg-navy text-white hover:bg-navy-light focus-visible:ring-navy border border-navy",
-  secondary:
-    "bg-white text-navy border border-border hover:border-navy/30 hover:bg-surface focus-visible:ring-navy",
-  ghost:
-    "bg-transparent text-navy border border-transparent hover:bg-surface focus-visible:ring-navy",
-};
-
 export function Button({
   children,
   variant = "primary",
   className = "",
   ...props
 }: ButtonProps) {
-  const classes = `inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${variantClasses[variant]} ${className}`;
+  const classes = actionClass(variant === "ghost" ? "tertiary" : variant, className);
 
   if ("href" in props && props.href) {
     if (props.eventName) {

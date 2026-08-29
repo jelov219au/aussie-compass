@@ -8,6 +8,8 @@ import { ArticleNextStep } from "@/components/resources/ArticleNextStep";
 import { ArticleReadingNav } from "@/components/resources/ArticleReadingNav";
 import { ResumeTemplateDownloadLink } from "@/components/analytics/ResumeTemplateDownloadLink";
 import { Container } from "@/components/ui/Container";
+import { TopicIcon } from "@/components/ui/TopicIcon";
+import { actionClass } from "@/components/ui/actionStyles";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import {
   articleContentTypeLabels,
@@ -73,7 +75,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             &larr; 실용 자료 목록
           </Link>
           <article className="mx-auto mt-5 max-w-4xl">
-            <header className="border-t-2 border-navy pt-7">
+            <header className="rounded-[2rem] border-2 border-navy/10 bg-white p-6 shadow-[0_16px_38px_rgba(26,39,68,0.07)] sm:p-9">
               <div className="mb-5 flex flex-wrap gap-2">
                 <span className="border border-border bg-white/60 px-3 py-1.5 text-xs font-semibold text-navy">
                   {articleRegionLabels[getArticleRegion(article)]}
@@ -91,13 +93,13 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 {article.slug === "australia-resume-template-submission-checklist" && (
                   <ResumeTemplateDownloadLink
                     entry="article_resume_template"
-                    className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy/90"
+                    className={actionClass("primary")}
                   >
                     ATS용 Word 양식 무료 다운로드 ↓
                   </ResumeTemplateDownloadLink>
                 )}
                 {article.slug === "english-resume-achievement-examples" && (
-                  <Link href={article.toolHref} className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy/90">
+                  <Link href={article.toolHref} className={actionClass("primary")}>
                     내 사례를 무료로 저장하기 →
                   </Link>
                 )}
@@ -105,15 +107,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               </div>
             </header>
 
-            <section className="mt-10 border-y border-navy/20 py-7 sm:grid sm:grid-cols-[10rem_1fr] sm:gap-8" aria-labelledby="quick-summary-heading">
+            <section className="mt-8 rounded-[2rem] bg-navy p-6 text-white sm:grid sm:grid-cols-[11rem_1fr] sm:gap-8 sm:p-8" aria-labelledby="quick-summary-heading">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">바쁘다면 여기부터</p>
-                <h2 id="quick-summary-heading" className="mt-2 text-xl font-semibold text-navy">먼저 이것만</h2>
+                <h2 id="quick-summary-heading" className="mt-2 text-xl font-semibold text-white">먼저 이것만</h2>
               </div>
               <ol className="mt-5 space-y-4 sm:mt-0">
                 {article.quickSummary.map((summary, index) => (
-                  <li key={summary} className="grid grid-cols-[2rem_1fr] gap-3 text-sm leading-7 text-navy sm:text-base">
-                    <span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span>
+                  <li key={summary} className="grid grid-cols-[2rem_1fr] gap-3 text-sm leading-7 text-white/90 sm:text-base">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gold font-mono text-xs font-bold text-navy">{index + 1}</span>
                     <span>{summary}</span>
                   </li>
                 ))}
@@ -125,10 +127,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               article={{ href: `/resources/${article.slug}`, title: article.title }}
             />
 
-            <div id="article-body" className="mt-12 border-t border-navy/20">
+            <div id="article-body" className="mt-12 space-y-5">
               {article.sections.map((section, index) => (
-                <section id={`section-${index + 1}`} key={section.heading} className="scroll-mt-24 border-b border-border py-10 sm:grid sm:grid-cols-[5rem_1fr] sm:gap-6 sm:py-12">
-                  <p className="font-mono text-sm text-gold" aria-hidden="true">{String(index + 1).padStart(2, "0")}</p>
+                <section id={`section-${index + 1}`} key={section.heading} className="scroll-mt-24 rounded-2xl border-2 border-navy/10 bg-white p-6 shadow-[0_8px_24px_rgba(26,39,68,0.04)] sm:grid sm:grid-cols-[4rem_1fr] sm:gap-6 sm:p-8">
+                  <div className="flex items-center gap-2 sm:flex-col sm:items-start" aria-hidden="true"><TopicIcon name="guide" size="sm" /><span className="font-mono text-xs font-semibold text-gold-ink">{String(index + 1).padStart(2, "0")}</span></div>
                   <div className="mt-3 sm:mt-0">
                     <h2 className="text-2xl font-semibold leading-8 tracking-tight text-navy sm:text-3xl">{section.heading}</h2>
                     {section.paragraphs?.map((paragraph) => (
@@ -149,7 +151,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             </div>
 
             {article.sources && (
-              <section className="mt-14 bg-white px-5 py-7 ring-1 ring-border sm:px-8 sm:py-9" aria-labelledby="article-sources">
+              <section className="mt-14 rounded-2xl border-2 border-navy/10 bg-white px-5 py-7 shadow-[0_8px_24px_rgba(26,39,68,0.04)] sm:px-8 sm:py-9" aria-labelledby="article-sources">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">공식 자료 기준 · 마지막 확인 {(article.updatedAt ?? article.publishedAt).replaceAll("-", ".")}</p>
                 <h2 id="article-sources" className="mt-2 text-2xl font-semibold text-navy">원문을 열기 전에 알아둘 내용</h2>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-muted">각 공식 자료에서 무엇을 확인할 수 있는지 먼저 한국어로 풀어봤어요. 제도가 바뀌었거나 내 조건에 따라 달라질 수 있는 내용은 마지막으로 원문에서 확인해 주세요.</p>
@@ -175,20 +177,20 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           </article>
 
           {relatedArticles.length > 0 && (
-            <section className="mx-auto mt-16 max-w-5xl border-t border-navy/20 pt-8" aria-labelledby="related-articles-heading">
+            <section className="mx-auto mt-16 max-w-5xl" aria-labelledby="related-articles-heading">
               <div className="flex items-end justify-between gap-6 border-b border-border pb-5">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">함께 보면 좋은 글</p>
                   <h2 id="related-articles-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">이 내용도 도움이 될 거예요</h2>
                 </div>
-                <Link href="/resources" className="hidden min-h-11 items-center text-sm font-semibold text-navy sm:inline-flex">
+                <Link href="/resources" className={actionClass("tertiary", "hidden sm:inline-flex")}>
                   전체 자료 →
                 </Link>
               </div>
-              <ol className="grid lg:grid-cols-2">
+              <ol className="mt-5 grid gap-4 lg:grid-cols-2">
                 {relatedArticles.map((related, index) => (
-                  <li key={related.slug} className="border-b border-border lg:odd:border-r">
-                    <Link href={`/resources/${related.slug}`} className="group grid h-full min-h-52 grid-rows-[auto_auto_1fr] p-6 transition hover:bg-white/60 sm:p-8">
+                  <li key={related.slug}>
+                    <Link href={`/resources/${related.slug}`} className="group grid h-full min-h-52 grid-rows-[auto_auto_1fr] rounded-2xl border-2 border-navy/10 bg-white p-6 transition hover:border-gold sm:p-8">
                       <div className="flex items-center justify-between gap-4">
                         <p className="text-xs font-semibold text-gold">{related.category} · {related.readingTime}</p>
                         <span className="font-mono text-xs text-muted">0{index + 1}</span>

@@ -4,6 +4,7 @@ import { track } from "@vercel/analytics";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Container } from "@/components/ui/Container";
+import { actionClass } from "@/components/ui/actionStyles";
 import { SEARCH_TRANSFER_STORAGE_KEY, sanitizeTransferredSearch } from "@/lib/searchTransfer";
 
 const popularSearches = [
@@ -65,16 +66,16 @@ export function HomeSearch() {
         <form onSubmit={(event) => {
           event.preventDefault();
           openSearch(query, classifySearch(query), "free_text");
-        }} className="grid gap-4 lg:grid-cols-[minmax(14rem,0.55fr)_minmax(0,1.45fr)] lg:items-end lg:gap-8">
-          <div>
+        }} className="grid min-w-0 gap-4 lg:grid-cols-[minmax(14rem,0.55fr)_minmax(0,1.45fr)] lg:items-end lg:gap-8">
+          <div className="min-w-0">
             <p className="text-xs font-semibold tracking-[0.14em] text-gold-ink">바로 찾아보기</p>
             <h2 id="home-search-heading" className="mt-2 text-xl font-semibold tracking-tight text-navy sm:text-2xl">
               지금 궁금한 말을 그대로 입력하세요.
             </h2>
           </div>
-          <div>
+          <div className="min-w-0">
             <label htmlFor="home-search" className="sr-only">호주 생활 정보 검색</label>
-            <div className="flex min-h-14 items-center rounded-2xl border border-navy/20 bg-background px-4 transition focus-within:border-navy focus-within:ring-2 focus-within:ring-navy/10 sm:px-5">
+            <div className="flex min-h-16 items-center rounded-2xl border-2 border-navy/15 bg-background px-4 transition focus-within:border-navy focus-within:ring-2 focus-within:ring-navy/10 sm:px-5">
               <span className="mr-3 text-xl text-gold-ink" aria-hidden="true">⌕</span>
               <input
                 id="home-search"
@@ -85,8 +86,8 @@ export function HomeSearch() {
                 placeholder="예: Bond를 돌려받지 못했어요"
                 className="min-w-0 flex-1 bg-transparent py-3 text-base text-navy outline-none placeholder:text-muted/60"
               />
-              <button type="submit" className="ml-3 inline-flex min-h-10 shrink-0 items-center rounded-full bg-navy px-4 text-sm font-semibold text-white transition hover:bg-navy-light">
-                검색
+              <button type="submit" className={actionClass("primary", "ml-3 min-h-11 shrink-0 px-4 py-2")}>
+                검색 <span aria-hidden="true">→</span>
               </button>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -96,7 +97,7 @@ export function HomeSearch() {
                   type="button"
                   key={label}
                   onClick={() => openSearch(label, topic, "popular")}
-                  className="inline-flex min-h-8 items-center border-b border-border text-xs font-semibold text-navy transition hover:border-gold"
+                  className="inline-flex min-h-9 items-center rounded-full border border-navy/15 bg-surface px-3 text-xs font-semibold text-navy transition hover:border-gold hover:bg-white"
                 >
                   {label}
                 </button>

@@ -4,6 +4,8 @@ import { Footer } from "@/components/layout/Footer";
 import { LivedExperienceGuides } from "@/components/resources/LivedExperienceGuides";
 import { ResourcesDirectory } from "@/components/resources/ResourcesDirectory";
 import { Container } from "@/components/ui/Container";
+import { TopicIcon } from "@/components/ui/TopicIcon";
+import { actionClass } from "@/components/ui/actionStyles";
 import { BreadcrumbJsonLd, CollectionJsonLd } from "@/components/seo/JsonLd";
 import { articles } from "@/data/articles";
 import { createPageMetadata } from "@/lib/site";
@@ -44,16 +46,17 @@ export default function ResourcesPage() {
               <span>공식 원문 링크</span>
             </div>
           </div>
-          <Link href="/glossary" className="group mt-10 grid gap-6 border-y border-navy/20 py-7 sm:grid-cols-[auto_1fr_auto] sm:items-center">
-            <span className="font-mono text-3xl text-gold">A—Z</span>
+          <Link href="/glossary" className="group mt-10 grid gap-6 rounded-2xl border-2 border-navy/10 bg-white p-6 shadow-[0_10px_26px_rgba(26,39,68,0.05)] transition hover:border-gold sm:grid-cols-[auto_1fr_auto] sm:items-center">
+            <span className="flex items-center gap-3"><TopicIcon name="search" /><span className="font-mono text-xl text-gold-ink">A—Z</span></span>
             <span>
               <strong className="block text-xl text-navy">호주 생활 용어집</strong>
               <span className="mt-1 block text-sm leading-6 text-muted">
                 TFN, ABN, Award, Super, Bond처럼 처음 보는 약어를 한국어 뜻과 확인할 점으로 찾아보세요.
               </span>
             </span>
-            <span className="text-xl text-navy transition group-hover:translate-x-1" aria-hidden="true">→</span>
+            <span className="inline-flex min-h-11 items-center justify-center rounded-xl bg-navy px-4 text-sm font-semibold text-white">용어 찾기 <span className="ml-2 transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
           </Link>
+          <ResourcesDirectory articles={sortedArticles} />
           <LivedExperienceGuides />
           <section className="mt-12" aria-labelledby="new-life-tips-heading">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -61,21 +64,20 @@ export default function ResourcesPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">이번 주 생활 팁</p>
                 <h2 id="new-life-tips-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">오늘 바로 써볼 수 있는 정보</h2>
               </div>
-              <Link href="/editorial-policy" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold underline-offset-4">출처를 확인하는 기준 →</Link>
+              <Link href="/editorial-policy" className={actionClass("tertiary")}>출처를 확인하는 기준 →</Link>
             </div>
-            <ol className="mt-6 grid border-y border-navy/20 sm:grid-cols-2 lg:grid-cols-4">
-              {featuredArticles.map((article, index) => (
-                <li key={article.slug} className="border-b border-border sm:odd:border-r lg:border-b-0 lg:border-r lg:last:border-r-0">
-                  <Link href={`/resources/${article.slug}`} className="group grid h-full min-h-60 grid-rows-[auto_1fr_auto] p-5 transition hover:bg-white/65 sm:p-6">
-                    <span className="flex items-center justify-between text-xs"><span className="font-mono text-gold">0{index + 1}</span><span className="text-muted">{article.category}</span></span>
+            <ol className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {featuredArticles.map((article) => (
+                <li key={article.slug}>
+                  <Link href={`/resources/${article.slug}`} className="group grid h-full min-h-60 grid-rows-[auto_1fr_auto] rounded-2xl border-2 border-navy/10 bg-white p-5 shadow-[0_8px_20px_rgba(26,39,68,0.04)] transition hover:-translate-y-0.5 hover:border-gold sm:p-6">
+                    <span className="flex items-center justify-between text-xs"><TopicIcon name="guide" size="sm" /><span className="font-semibold text-gold-ink">{article.category}</span></span>
                     <span className="py-7"><strong className="block text-lg leading-7 text-navy">{article.title}</strong><span className="mt-3 block text-sm leading-6 text-muted">{article.quickSummary[0]}</span></span>
-                    <span className="text-sm font-semibold text-navy">자세히 보기 <span className="transition group-hover:ml-1" aria-hidden="true">→</span></span>
+                    <span className="inline-flex min-h-10 items-center justify-center rounded-lg bg-navy px-4 text-sm font-semibold text-white">자세히 보기 <span className="ml-2 transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
                   </Link>
                 </li>
               ))}
             </ol>
           </section>
-          <ResourcesDirectory articles={sortedArticles} />
         </Container>
       </main>
       <Footer />

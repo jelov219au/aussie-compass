@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Container } from "@/components/ui/Container";
+import { TopicIcon } from "@/components/ui/TopicIcon";
+import { actionClass } from "@/components/ui/actionStyles";
 import { sectionIds } from "@/lib/utils";
 
 const essentials = [
-  { number: "01", href: "/arrival-checklist", eyebrow: "호주 도착", title: "첫 30일 정착", description: "전화와 교통부터 은행, TFN, 첫 직장 준비까지 순서대로 챙겨보세요." },
-  { number: "02", href: "/visa-preparation-guide", eyebrow: "출국 준비", title: "비자·신체검사 준비", description: "신청 경로와 비용, 지정 병원을 공식 사이트에서 확인하는 순서를 알아보세요." },
-  { number: "03", href: "/property-inspection-checklist", eyebrow: "집 구하기", title: "집 방문 체크리스트", description: "집을 보러 간 자리에서 상태와 비용, 계약 조건을 하나씩 확인할 수 있어요." },
-  { number: "04", href: "/resume-builder", eyebrow: "취업 준비", title: "영문 이력서 빌더", description: "내 실제 경험을 브라우저에 저장하고, PDF와 백업 파일로 내보내 다음 지원에도 다시 사용하세요." },
+  { number: "01", icon: "arrival" as const, href: "/arrival-checklist", eyebrow: "호주 도착", title: "첫 30일 정착", description: "전화와 교통부터 은행, TFN, 첫 직장 준비까지 순서대로 챙겨보세요.", action: "23개 항목 체크 시작" },
+  { number: "02", icon: "visa" as const, href: "/visa-preparation-guide", eyebrow: "출국 준비", title: "비자·신체검사 준비", description: "신청 경로와 비용, 지정 병원을 공식 사이트에서 확인하는 순서를 알아보세요.", action: "공식 확인 순서 보기" },
+  { number: "03", icon: "home" as const, href: "/property-inspection-checklist", eyebrow: "집 구하기", title: "집 방문 체크리스트", description: "집을 보러 간 자리에서 상태와 비용, 계약 조건을 하나씩 확인할 수 있어요.", action: "현장 체크 시작" },
+  { number: "04", icon: "work" as const, href: "/resume-builder", eyebrow: "취업 준비", title: "영문 이력서 빌더", description: "내 실제 경험을 브라우저에 저장하고, PDF와 백업 파일로 내보내 다음 지원에도 다시 사용하세요.", action: "무료 이력서 만들기" },
 ];
 
 export function ToolsSection() {
   return <section id={sectionIds.tools} className="scroll-mt-20 bg-background py-16 sm:py-24" aria-labelledby="essential-tools-heading"><Container>
-    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold text-gold-ink">바로 써볼 수 있어요</p><h2 id="essential-tools-heading" className="mt-2 text-3xl font-semibold tracking-[-0.025em] text-navy sm:text-4xl">처음이라면 여기부터</h2><p className="mt-3 text-sm leading-6 text-muted sm:text-base">도착과 정착, 집, 일자리 준비처럼 지금 필요한 순서부터 편하게 시작하세요.</p></div><Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy">전체 도구 보기 →</Link></div>
+    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold text-gold-ink">바로 써볼 수 있어요</p><h2 id="essential-tools-heading" className="mt-2 text-3xl font-semibold tracking-[-0.025em] text-navy sm:text-4xl">처음이라면 여기부터</h2><p className="mt-3 text-sm leading-6 text-muted sm:text-base">도착과 정착, 집, 일자리 준비처럼 지금 필요한 순서부터 편하게 시작하세요.</p></div><Link href="/tools" className={actionClass("tertiary")}>전체 도구 보기 <span aria-hidden="true">→</span></Link></div>
 
     <TrackedLink href="/english-phrase-cards" eventName="Home Navigation" properties={{ section: "english_phrase_preview", destination: "english-phrase-cards" }} className="group relative mt-8 block overflow-hidden rounded-2xl bg-navy text-white transition hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(26,39,68,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
       <span className="absolute -right-12 -top-20 h-64 w-64 rounded-full border border-white/10" aria-hidden="true" />
@@ -30,7 +32,7 @@ export function ToolsSection() {
       </span>
     </TrackedLink>
 
-    <ol className="mt-8 grid gap-4 sm:grid-cols-2">{essentials.map((tool)=><li key={tool.href}><TrackedLink href={tool.href} eventName="Home Navigation" properties={{ section: "essential_tools", destination: tool.href.slice(1) }} className="group grid h-full min-h-52 grid-rows-[auto_1fr_auto] rounded-2xl border border-border bg-white p-6 transition hover:-translate-y-0.5 hover:border-navy/25 hover:shadow-[0_12px_30px_rgba(26,39,68,0.06)] sm:p-7"><div className="flex items-center justify-between"><span className="text-xs text-muted">{tool.number}</span><span className="text-xs font-semibold text-gold-ink">{tool.eyebrow}</span></div><div className="self-center py-7"><h3 className="text-2xl font-semibold tracking-tight text-navy">{tool.title}</h3><p className="mt-3 max-w-md text-sm leading-6 text-muted">{tool.description}</p></div><span className="flex items-center justify-between text-sm font-semibold text-navy"><span>바로 써보기</span><span className="text-xl transition group-hover:translate-x-1" aria-hidden="true">→</span></span></TrackedLink></li>)}</ol>
+    <ol className="mt-8 grid gap-5 sm:grid-cols-2">{essentials.map((tool)=><li key={tool.href}><TrackedLink href={tool.href} eventName="Home Navigation" properties={{ section: "essential_tools", destination: tool.href.slice(1) }} className="group grid h-full min-h-64 grid-rows-[auto_1fr_auto] overflow-hidden rounded-3xl border-2 border-navy/10 bg-white p-6 shadow-[0_10px_28px_rgba(26,39,68,0.06)] transition hover:-translate-y-1 hover:border-gold hover:shadow-[0_18px_40px_rgba(26,39,68,0.11)] sm:p-7"><div className="flex items-start justify-between gap-4"><TopicIcon name={tool.icon} /><span className="rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-gold-ink">{tool.number} · {tool.eyebrow}</span></div><div className="py-7"><h3 className="text-2xl font-semibold tracking-tight text-navy">{tool.title}</h3><p className="mt-3 max-w-md text-sm leading-6 text-muted">{tool.description}</p></div><span className="flex min-h-12 items-center justify-between rounded-xl bg-navy px-5 text-sm font-semibold text-white transition group-hover:bg-navy-light"><span>{tool.action}</span><span className="text-lg transition group-hover:translate-x-1" aria-hidden="true">→</span></span></TrackedLink></li>)}</ol>
 
     <TrackedLink href="/resume-job-ad-checker" eventName="Home Navigation" properties={{ section: "resume_job_ad_evidence", destination: "resume-job-ad-checker" }} className="group mt-4 block border border-navy/20 bg-surface transition hover:border-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
       <span className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[11rem_1fr_auto] lg:items-center">

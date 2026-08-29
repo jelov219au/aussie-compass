@@ -13,6 +13,7 @@ import {
   type ArticleTopicId,
 } from "@/data/articles";
 import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory } from "@/lib/articleProgress";
+import { TopicIcon, type TopicIconName } from "@/components/ui/TopicIcon";
 
 const filters = [
   { id: "all", label: "전체" },
@@ -24,6 +25,14 @@ const filters = [
 
 type FilterId = (typeof filters)[number]["id"];
 type RegionFilterId = "all" | ArticleRegionId;
+
+function resourceIcon(category: string): TopicIconName {
+  if (/구직|취업|이력서|일/.test(category)) return "work";
+  if (/집|차|주거/.test(category)) return "home";
+  if (/돈|급여|세금|생활비/.test(category)) return "money";
+  if (/도착|정착|비자/.test(category)) return "arrival";
+  return "guide";
+}
 
 function searchableText(article: Article) {
   const sectionText = article.sections.flatMap((section) => [
@@ -96,30 +105,30 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
           <h2 id="resource-directory-heading" className="mt-1 text-xl font-semibold text-navy">
             지금 필요한 주제를 골라보세요
           </h2>
-          <div className="mt-5 flex gap-x-6 gap-y-2 overflow-x-auto pb-1" role="group" aria-label="자료 주제 필터">
+          <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="자료 주제 필터">
             {filters.map((filter) => (
               <button
                 key={filter.id}
                 type="button"
                 aria-pressed={active === filter.id}
                 onClick={() => setActive(filter.id)}
-                className={`min-h-10 shrink-0 border-b-2 text-sm font-semibold transition ${
+                className={`min-h-10 shrink-0 rounded-full border px-4 text-sm font-semibold transition ${
                   active === filter.id
-                    ? "border-gold text-navy"
-                    : "border-transparent text-muted hover:border-border hover:text-navy"
+                    ? "border-navy bg-navy text-white"
+                    : "border-navy/15 bg-white text-muted hover:border-gold hover:text-navy"
                 }`}
               >
                 {filter.label}
               </button>
             ))}
           </div>
-          <div className="mt-4 flex items-center gap-3 overflow-x-auto border-t border-border/70 pt-4" role="group" aria-label="자료 지역 필터">
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/70 pt-4" role="group" aria-label="자료 지역 필터">
             <span className="shrink-0 text-xs font-semibold text-muted">지역</span>
             <button
               type="button"
               aria-pressed={activeRegion === "all"}
               onClick={() => setActiveRegion("all")}
-              className={`min-h-9 shrink-0 border px-3 text-xs font-semibold transition ${
+              className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-semibold transition ${
                 activeRegion === "all" ? "border-navy bg-navy text-white" : "border-border bg-white/50 text-muted hover:border-navy hover:text-navy"
               }`}
             >
@@ -131,7 +140,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
                 type="button"
                 aria-pressed={activeRegion === filter.id}
                 onClick={() => setActiveRegion(filter.id)}
-                className={`min-h-9 shrink-0 border px-3 text-xs font-semibold transition ${
+                className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-semibold transition ${
                   activeRegion === filter.id ? "border-navy bg-navy text-white" : "border-border bg-white/50 text-muted hover:border-navy hover:text-navy"
                 }`}
               >
@@ -145,7 +154,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
           <label htmlFor="resource-search" className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
             자료 검색
           </label>
-          <div className="mt-2 flex border-b border-navy bg-white/55 focus-within:border-gold">
+          <div className="mt-2 flex rounded-xl border-2 border-navy/15 bg-white focus-within:border-navy focus-within:ring-2 focus-within:ring-navy/10">
             <span className="flex w-11 items-center justify-center text-muted" aria-hidden="true">
               ⌕
             </span>
@@ -173,20 +182,18 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
       </div>
 
       {visible.length > 0 ? (
-        <ol className="grid border-b border-navy/20 lg:grid-cols-2" aria-label="실용 자료 목록">
+        <ol className="grid gap-4 py-6 lg:grid-cols-2" aria-label="실용 자료 목록">
           {visible.map((article, index) => {
             const href = `/resources/${article.slug}`;
             const hasRead = readHrefs.has(href);
             return (
-              <li key={article.slug} className="border-b border-border last:border-b-0 lg:[&:nth-last-child(-n+2)]:border-b-0 lg:odd:border-r">
+              <li key={article.slug}>
                 <Link
                   href={href}
-                  className="group grid h-full min-h-72 grid-rows-[auto_auto_auto_1fr_auto] px-1 py-8 transition hover:bg-white/60 focus-visible:bg-white focus-visible:outline-none sm:px-6 lg:p-8"
+                  className="group grid h-full min-h-72 grid-rows-[auto_auto_auto_1fr_auto] rounded-2xl border-2 border-navy/10 bg-white p-5 shadow-[0_10px_26px_rgba(26,39,68,0.05)] transition hover:-translate-y-0.5 hover:border-gold hover:shadow-[0_16px_34px_rgba(26,39,68,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy sm:p-7"
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.13em] text-gold">
-                      {article.category} · {article.readingTime}
-                    </p>
+                    <div className="flex items-center gap-3"><TopicIcon name={resourceIcon(article.category)} size="sm" /><p className="text-xs font-semibold uppercase tracking-[0.13em] text-gold-ink">{article.category} · {article.readingTime}</p></div>
                     <span className="font-mono text-xs text-muted/70">
                       {String(index + 1).padStart(2, "0")} / {String(visible.length).padStart(2, "0")}
                     </span>
@@ -207,13 +214,11 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
                     <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-muted">이 글에서 바로 확인</p>
                     <p className="mt-1 text-sm leading-6 text-navy">{article.quickSummary[0]}</p>
                   </div>
-                  <div className="mt-8 flex items-end justify-between gap-4 border-t border-border pt-4">
+                  <div className="mt-8 flex items-center justify-between gap-4 border-t border-border pt-4">
                     <span className="text-xs font-medium text-muted">
                       {hasRead ? "✓ 읽어본 글" : article.sources?.length ? `한국어 설명 + 공식 출처 ${article.sources.length}개` : "차근차근 읽는 한국어 안내"}
                     </span>
-                    <span className="flex h-10 w-10 items-center justify-center border border-border text-lg text-navy transition group-hover:translate-x-1 group-hover:border-gold group-hover:bg-gold" aria-hidden="true">
-                      →
-                    </span>
+                    <span className="inline-flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg bg-navy px-4 text-sm font-semibold text-white">자료 읽기 <span className="transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
                   </div>
                 </Link>
               </li>
@@ -224,7 +229,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
         <div className="border-b border-navy/20 py-16 text-center">
           <p className="text-lg font-semibold text-navy">아직 맞는 자료를 찾지 못했어요.</p>
           <p className="mt-2 text-sm text-muted">검색어를 조금 짧게 쓰거나 다른 주제를 골라보세요.</p>
-          <button type="button" onClick={reset} className="mt-6 min-h-11 border border-navy px-5 text-sm font-semibold text-navy transition hover:bg-navy hover:text-white">
+          <button type="button" onClick={reset} className="mt-6 min-h-11 rounded-xl border-2 border-navy px-5 text-sm font-semibold text-navy transition hover:bg-navy hover:text-white">
             전체 자료 보기
           </button>
         </div>

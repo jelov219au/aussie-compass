@@ -29,26 +29,18 @@ export function Hero() {
               {content.hero.description}
             </p>
 
-            <div className="mt-6 max-w-2xl border-l-2 border-gold/70 pl-5 sm:pl-6">
-              <p className="text-xs font-semibold tracking-[0.14em] text-[#874b32]">Hoju Compass를 만든 이유</p>
-              <p className="mt-3 text-sm leading-7 text-navy-light sm:text-[0.98rem] sm:leading-7">
-                호주 생활 정보를 찾다 보면 정부 사이트와 여러 안내 글을 계속 오가게 돼요. 검색 결과는 많아도 내 상황에서 무엇부터 해야 하는지 바로 알기 어려울 때가 있고요.
-              </p>
-              <p className="mt-3 text-sm leading-7 text-navy-light sm:text-[0.98rem] sm:leading-7">
-                Hoju Compass는 그 시간을 줄이려고 만들었어요. 꼭 알아야 할 내용은 쉽게 풀고, 계산하거나 기록할 일은 바로 해볼 수 있는 도구로 정리해요. 규정과 금액에는 다시 확인할 수 있는 공식 출처도 함께 남겨요.
-              </p>
-            </div>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Button href="#route-finder" eventName="Home Navigation" properties={{ section: "hero", destination: "route_finder" }}>
-                {content.hero.primaryCta}
+                {content.hero.primaryCta} <span aria-hidden="true">→</span>
               </Button>
               <Button href="/tools" variant="secondary" eventName="Home Navigation" properties={{ section: "hero", destination: "tools" }}>
                 {content.hero.secondaryCta}
               </Button>
             </div>
-
-            <p className="mt-10 border-t border-navy/10 pt-5 text-xs leading-6 text-muted">먼저 둘러보기만 해도 괜찮아요. 회원가입은 필요 없고, 입력한 내용은 별도 안내가 없는 한 이 기기에만 남아요.</p>
+            <ul className="mt-7 grid max-w-2xl gap-2 text-sm text-navy sm:grid-cols-3" aria-label="Hoju Compass 정보 원칙">
+              {["공식 원문 연결", "한국어 실행 순서", "로그인 없이 바로 사용"].map((item) => <li key={item} className="flex min-h-11 items-center gap-2 rounded-xl border border-navy/15 bg-white/70 px-3"><span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gold text-xs font-bold text-navy" aria-hidden="true">✓</span>{item}</li>)}
+            </ul>
+            <p className="mt-5 text-xs leading-6 text-muted">입력한 내용은 별도 안내가 없는 한 현재 기기에만 남아요.</p>
           </div>
 
           <AustralianSky />
