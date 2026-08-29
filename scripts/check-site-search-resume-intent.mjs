@@ -126,11 +126,11 @@ assert.match(searchComponent, /sessionStorage\.removeItem\(SEARCH_TRANSFER_STORA
 assert.ok(searchComponent.indexOf("sessionStorage.removeItem(SEARCH_TRANSFER_STORAGE_KEY)") < searchComponent.indexOf("setQuery(sanitizeTransferredSearch(transferredQuery))"), "the transferred term must be removed before it is applied to search state");
 assert.doesNotMatch(searchPage, /searchParams|initialQuery/, "the search server component must not read or serialize raw query parameters");
 assert.doesNotMatch(jsonLd, /search\?q=|search_term_string|SearchAction/, "structured data must not advertise a raw-query URL that the private client boundary does not support");
-for (const discoverySignal of ["호주 영문 이력서·Job Ad 무료 점검", "급여·세금·Super 계산기", "한국어 정착 가이드"]) {
-  assert.ok(site.includes(discoverySignal), `the shared site description is missing the first-sale discovery signal: ${discoverySignal}`);
+for (const discoverySignal of ["호주 워킹홀리데이 출국 준비", "첫 30일 정착", "집 구하기", "영문 이력서", "한국어 체크리스트와 무료 도구"]) {
+  assert.ok(site.includes(discoverySignal), `the shared site description is missing the newcomer discovery signal: ${discoverySignal}`);
 }
 assert.ok(site.includes('["호주 컴퍼스", "호주컴퍼스"]'), "the brand needs fixed Korean alternate names for search and AI disambiguation");
-assert.ok(layout.includes("호주 취업·급여·정착 실용 도구 | Hoju Compass") && layout.includes("description = siteDescription"), "the homepage metadata must describe the high-intent utility and reuse the shared summary");
+assert.ok(layout.includes("호주 워홀 준비·정착·집·취업 가이드 | Hoju Compass") && layout.includes("description = siteDescription"), "the homepage metadata must lead with the newcomer journey and reuse the shared summary");
 assert.equal((jsonLd.match(/alternateName: siteAlternateNames/g) ?? []).length, 2, "the WebSite and Organization entities must share the same Korean brand aliases");
 assert.equal((jsonLd.match(/description: siteDescription/g) ?? []).length, 1, "the WebSite entity must reuse the customer-facing discovery summary");
 assert.ok(sitemap.includes('"": "2026-08-29"'), "the significantly updated homepage needs an evidence-based sitemap lastmod");

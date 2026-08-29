@@ -6,7 +6,7 @@ import { DomainMigrationNotice } from "@/components/layout/DomainMigrationNotice
 import { PrivacyFriendlyAnalytics } from "@/components/analytics/PrivacyFriendlyAnalytics";
 import "./globals.css";
 
-const title = "호주 취업·급여·정착 실용 도구 | Hoju Compass";
+const title = "호주 워홀 준비·정착·집·취업 가이드 | Hoju Compass";
 const description = siteDescription;
 
 const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
