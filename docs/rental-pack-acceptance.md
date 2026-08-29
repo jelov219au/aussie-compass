@@ -103,3 +103,18 @@ Verification for the hardened audit:
 - The unknown-product path returned the documented usage error, targeted ESLint and TypeScript validation passed, and the repository secret scan passed across 262 tracked and untracked source files.
 
 No external launch state was changed during this pass. This worktree has no Vercel project link and no Stripe, Vercel or Neon CLI. A read-only check through the owner's authenticated Chrome session confirmed that the live Stripe catalogue contains no Rental Product or Price, while Vercel's two Rental variables exist only for the dedicated Preview branch and not Production. After the owner completed Vercel two-factor verification, a read-only Production Neon query returned the `purchase_entitlements_product_code_check` definition and confirmed that it already permits `rental_application_pro`; no database migration is required. The public Production Rental page is deployed and still reports that checkout is closed. Creating the live Product and A$14.90 Price, adding Production variables, publishing the current local release changes, creating a real Checkout and issuing its full refund remain separate owner-approved actions.
+
+## Checkout-off Production preparation — 29 August 2026
+
+The owner approved a preparation deployment that must keep Rental checkout closed. Before changing external state, the active Codex task list, local worktrees, remote refs and Vercel deployments were checked. A separate `main` Production deployment had just completed successfully; no deployment was still building. The preserved Rental worktree was committed as `e687904` on `codex/rental-release-readiness` and pushed as a new remote branch, leaving the root checkout and the other task's branch unchanged.
+
+The live Stripe account now contains an active `Rental Application Pack Pro` Product and default Price with these verified properties:
+
+- one-time AUD 14.90 with inclusive tax behaviour;
+- `Software as a service (SaaS) - personal use`, eligible for Managed Payments;
+- Product metadata `product_code=rental_application_pro` and `billing_model=one_time`;
+- customer-visible description and feature list aligned with reusable evidence, property-isolated tracking and local exports.
+
+Vercel Production now has dedicated secret variables for the Rental Price and product switch. The switch was saved as `false`. Vercel built the exact `e687904` Preview successfully, then promoted that exact source into a new Production build using Production variables. The promoted deployment reached `Ready` and was assigned to `hojucompass.com`. A fresh public check showed the expanded 20-candidate Rental copy and the explicit `강화 버전 검증 중 · 결제 미오픈` state with no browser console error.
+
+Checkout was not opened, and no live Checkout Session, charge, refund or entitlement was created. Before the controlled live test, recheck that no newer `main` deployment has replaced `e687904`, reconcile the release branch into the intended long-lived branch, run the Rental Production audit, and request action-time approval before changing the Rental switch to `true` or making the A$14.90 purchase.

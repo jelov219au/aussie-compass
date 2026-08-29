@@ -35,6 +35,8 @@ Before public sale:
 
 Before changing either Production switch, run `npm run payments:check -- --product=rental-application-pro --strict` in the target environment. The Rental mode verifies the shared payment contract plus the product-specific Price and kill switch without printing credentials or private seller values.
 
+Checkout-off Production preparation completed on 29 August 2026: the live one-time AUD 14.90 inclusive Price exists and is Managed Payments eligible, the dedicated Production Price variable exists, the product switch remains `false`, and release commit `e687904` is deployed with the public page still reporting payment unavailable. A controlled live payment still requires a fresh deployment-conflict check, strict audit, explicit switch approval, one real purchase and a full refund with immediate entitlement revocation.
+
 ## Later products
 
 - Pay Evidence Pack Pro needs an additional employment-information review so the tool does not present an entered difference as a legal underpayment finding.
