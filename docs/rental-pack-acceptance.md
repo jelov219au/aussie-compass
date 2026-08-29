@@ -142,3 +142,11 @@ Reconciled verification:
 - The secret scan passed across 456 tracked and untracked source files, and `git diff --check` passed.
 
 No Stripe, Neon, Vercel, Production, payment switch, Checkout Session, charge, refund or entitlement state changed during reconciliation. The last explicitly verified checkout-off Production source remains `e687904`; the reconciled branch requires a new collision check and separate preparation-deployment approval before it replaces any Production source. A real A$14.90 purchase and refund remain a later action-time approval.
+
+## Reconciled checkout-off Production deployment — 29 August 2026
+
+The owner approved the reconciled preparation deployment. Immediately before promotion, `origin/main` remained at `c2025ff`, the release branch was clean and fully pushed at `072fe2a18b7b1349edf1ceca17e5c4bb882e22cf`, and Vercel showed no queued or building deployment. The exact Ready Preview `Dgk9FgcYcShqL9ZMtNgRK4kXohWn` identified that branch and commit, and was promoted into Production deployment `F1qCXD7cuD8G1cM1q5T7EYjxjJXn` using the existing Production environment.
+
+The Production build reached `Ready` in 32 seconds and was assigned to `hojucompass.com`. A fresh public check of `/rental-application-pro` showed the reconciled maximum-20-candidate flow, A$14.90 one-time price copy and the explicit `강화 버전 검증 중 · 결제 미오픈` state without a checkout action. A direct unauthorised request to `/rental-application-pro/workspace` redirected to `/rental-application-pro?access=required` and displayed the access-recovery notice.
+
+The Rental Production switch remains `false`. No Stripe or Neon state was changed, and no Checkout Session, charge, refund or entitlement was created. The next external-state gate is a fresh Production audit followed by separate action-time approval immediately before enabling Rental checkout or starting the controlled A$14.90 purchase and full-refund exercise.
