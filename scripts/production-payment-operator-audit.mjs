@@ -5,6 +5,15 @@ import { pathToFileURL } from "node:url";
 
 export const productionOperatorAuditPass = "PRODUCTION_OPERATOR_AUDIT=PASS stripe=account-read-pass business_profile=verified database=audit-role-pass migrations=eight rental_gate=active named_constraint=active reservation=none secrets_printed=no";
 export const productionOperatorAuditFail = "PRODUCTION_OPERATOR_AUDIT=FAIL stripe=unverified business_profile=unverified database=unverified migrations=unverified named_constraint=unverified reservation=unverified secrets_printed=no launch=NO-GO";
+export const productionOperatorAuditStripeFail = "PRODUCTION_OPERATOR_AUDIT=FAIL stripe=account-read-fail business_profile=unverified database=not-run migrations=unverified named_constraint=unverified reservation=unverified secrets_printed=no launch=NO-GO reason=stripe_account_audit_failed";
+export const productionOperatorAuditDatabaseFail = "PRODUCTION_OPERATOR_AUDIT=FAIL stripe=account-read-pass business_profile=verified database=audit-role-or-contract-fail migrations=unverified named_constraint=unverified reservation=unverified secrets_printed=no launch=NO-GO reason=audit_database_failed";
+
+const operatorAuditOutcome = Object.freeze({
+  pass: "pass",
+  invalidInput: "invalid-input",
+  stripeFailed: "stripe-failed",
+  databaseFailed: "database-failed",
+});
 
 const supportEmail = "support@hojucompass.com";
 const endpointPattern = /^ep-[a-z0-9-]+$/;
@@ -181,6 +190,13 @@ export async function runProductionPaymentOperatorAudit(
   environment = process.env,
   dependencies = { verifyStripeAccount, verifyAuditDatabase },
 ) {
+  return (await runProductionPaymentOperatorAuditDiagnostic(environment, dependencies)) === operatorAuditOutcome.pass;
+}
+
+export async function runProductionPaymentOperatorAuditDiagnostic(
+  environment = process.env,
+  dependencies = { verifyStripeAccount, verifyAuditDatabase },
+) {
   const auditKey = environment.PAYMENTS_STRIPE_AUDIT_KEY?.trim() ?? "";
   const databaseUrl = environment.PAYMENTS_AUDIT_DB_URL?.trim() ?? "";
   const expectedEndpointId = environment.PAYMENTS_EXPECTED_NEON_ENDPOINT_ID?.trim().toLowerCase() ?? "";
@@ -188,23 +204,34 @@ export async function runProductionPaymentOperatorAudit(
     !/^rk_live_[A-Za-z0-9]+$/.test(auditKey)
     || !endpointPattern.test(expectedEndpointId)
     || endpointIdFromDatabaseUrl(databaseUrl) !== expectedEndpointId
-  ) return false;
+  ) return operatorAuditOutcome.invalidInput;
 
   try {
-    const [stripeReady, databaseReady] = await Promise.all([
-      dependencies.verifyStripeAccount(auditKey),
-      dependencies.verifyAuditDatabase(databaseUrl),
-    ]);
-    return stripeReady && databaseReady;
+    const stripeReady = await dependencies.verifyStripeAccount(auditKey);
+    if (!stripeReady) return operatorAuditOutcome.stripeFailed;
   } catch {
-    return false;
+    return operatorAuditOutcome.stripeFailed;
+  }
+
+  try {
+    const databaseReady = await dependencies.verifyAuditDatabase(databaseUrl);
+    return databaseReady ? operatorAuditOutcome.pass : operatorAuditOutcome.databaseFailed;
+  } catch {
+    return operatorAuditOutcome.databaseFailed;
   }
 }
 
 async function main() {
-  const passed = await runProductionPaymentOperatorAudit();
-  console.log(passed ? productionOperatorAuditPass : productionOperatorAuditFail);
-  if (!passed) process.exitCode = 1;
+  const outcome = await runProductionPaymentOperatorAuditDiagnostic();
+  const output = outcome === operatorAuditOutcome.pass
+    ? productionOperatorAuditPass
+    : outcome === operatorAuditOutcome.stripeFailed
+      ? productionOperatorAuditStripeFail
+      : outcome === operatorAuditOutcome.databaseFailed
+        ? productionOperatorAuditDatabaseFail
+        : productionOperatorAuditFail;
+  console.log(output);
+  if (outcome !== operatorAuditOutcome.pass) process.exitCode = 1;
 }
 
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {

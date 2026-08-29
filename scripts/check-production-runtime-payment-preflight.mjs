@@ -6,8 +6,11 @@ import { fileURLToPath } from "node:url";
 import { runProductionRuntimePaymentPreflight } from "../src/lib/productionRuntimePaymentPreflight.ts";
 import {
   productionOperatorAuditFail,
+  productionOperatorAuditDatabaseFail,
   productionOperatorAuditPass,
+  productionOperatorAuditStripeFail,
   runProductionPaymentOperatorAudit,
+  runProductionPaymentOperatorAuditDiagnostic,
 } from "./production-payment-operator-audit.mjs";
 import {
   buildRuntimePreflightRequestBody,
@@ -144,6 +147,8 @@ for (const contract of [
   "no_reservation_in_flight",
   productionOperatorAuditPass,
   productionOperatorAuditFail,
+  productionOperatorAuditStripeFail,
+  productionOperatorAuditDatabaseFail,
 ]) assert.ok(operatorAuditSource.includes(contract), `operator audit is missing: ${contract}`);
 assert.doesNotMatch(operatorAuditSource, /audit_has_read_only_protected_table_access/, "operator audit must not require broad protected-table read access");
 assert.doesNotMatch(operatorAuditSource, /console\.(?:warn|error)|checkout\.sessions\.create|sendMail\(|writeFile|appendFile/, "operator audit must remain read-only and fixed-output");
@@ -241,6 +246,22 @@ assert.equal(await runProductionPaymentOperatorAudit(operatorEnvironment, {
   verifyStripeAccount: async () => false,
   verifyAuditDatabase: async () => true,
 }), false);
+assert.equal(await runProductionPaymentOperatorAuditDiagnostic(operatorEnvironment, {
+  verifyStripeAccount: async () => false,
+  verifyAuditDatabase: async () => { throw new Error("database probe must not run after Stripe failure"); },
+}), "stripe-failed");
+assert.equal(await runProductionPaymentOperatorAuditDiagnostic(operatorEnvironment, {
+  verifyStripeAccount: async () => true,
+  verifyAuditDatabase: async () => false,
+}), "database-failed");
+assert.equal(await runProductionPaymentOperatorAuditDiagnostic(operatorEnvironment, {
+  verifyStripeAccount: async () => { throw new Error("redacted Stripe fixture"); },
+  verifyAuditDatabase: async () => true,
+}), "stripe-failed");
+assert.equal(await runProductionPaymentOperatorAuditDiagnostic(operatorEnvironment, {
+  verifyStripeAccount: async () => true,
+  verifyAuditDatabase: async () => { throw new Error("redacted database fixture"); },
+}), "database-failed");
 for (const invalidInput of [
   { ...validInput, environment: "preview" },
   { ...validInput, paymentsEnabled: "" },
