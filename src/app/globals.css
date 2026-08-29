@@ -66,6 +66,34 @@ body {
   text-wrap: balance;
 }
 
+/* Give wrapped site headings enough vertical separation for Korean glyphs.
+   Export previews keep their own compact layout-specific leading. */
+:where(main h1):not(#resume-preview h1, #resume-pro-preview h1, [data-heading-spacing="preserve"] h1) {
+  line-height: 1.24;
+}
+
+:where(main h2):not(#resume-preview h2, #resume-pro-preview h2, [data-heading-spacing="preserve"] h2) {
+  line-height: 1.32;
+}
+
+:where(main h3):not(#resume-preview h3, #resume-pro-preview h3, [data-heading-spacing="preserve"] h3) {
+  line-height: 1.38;
+}
+
+@media (min-width: 640px) {
+  :where(main h1):not(#resume-preview h1, #resume-pro-preview h1, [data-heading-spacing="preserve"] h1) {
+    line-height: 1.2;
+  }
+
+  :where(main h2):not(#resume-preview h2, #resume-pro-preview h2, [data-heading-spacing="preserve"] h2) {
+    line-height: 1.28;
+  }
+
+  :where(main h3):not(#resume-preview h3, #resume-pro-preview h3, [data-heading-spacing="preserve"] h3) {
+    line-height: 1.34;
+  }
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

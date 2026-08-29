@@ -7,7 +7,7 @@ const key = "aussie-compass-vehicle-comparison-v1";
 const makeVehicle = (index: number): Vehicle => ({ id: `${Date.now()}-${index}`, name: "", price: "", transfer: "", inspection: "", insurance: "", rego: "", servicing: "", fuel: "", ppsr: false, vin: false, regoCheck: false, mechanic: false, history: false, testDrive: false });
 const money = (value: string) => { const parsed = Number(value); return Number.isFinite(parsed) && parsed > 0 ? parsed : 0; };
 const checks: Array<[keyof Vehicle,string,string]> = [
-  ["vin","VIN 일치 확인","차량·등록 서류·광고의 VIN 비교"], ["ppsr","PPSR 검색 증명서 보관","구매 당일 또는 전날 공식 검색"], ["regoCheck","주·준주 Rego 상태 확인","등록 만료와 차량 세부정보 비교"], ["mechanic","독립 정비사 사전 검사","판매자와 무관한 정비사에게 점검"], ["history","정비·사고 이력 확인","기록의 날짜·주행거리 흐름 확인"], ["testDrive","시승과 기능 확인","브레이크·조향·경고등·냉난방 확인"],
+  ["vin","VIN 일치 확인","차량·등록 서류·광고의 VIN 비교"], ["ppsr","PPSR 검색 증명서 보관","구매 당일 또는 전날 공식 검색"], ["regoCheck","주·준주 Rego 상태 확인","등록 만료와 차량 세부정보 비교"], ["mechanic","독립 정비사 또는 차량을 잘 아는 동행인과 사전 점검","동행인의 1차 확인과 판매자에게서 독립된 전문 검사의 차이를 구분"], ["history","정비·사고 이력 확인","기록의 날짜·주행거리 흐름 확인"], ["testDrive","시승과 기능 확인","브레이크·조향·경고등·냉난방 확인"],
 ];
 
 export function VehicleComparison() {
