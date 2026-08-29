@@ -35,8 +35,6 @@ begin
 end;
 $$;
 
-set role hoju_migration_owner;
-
 alter table public.first_sale_gates
   drop constraint if exists first_sale_gates_product_code_check,
   drop constraint if exists first_sale_gates_expected_amount_cents_check;
@@ -62,6 +60,10 @@ alter table public.first_sale_gate_events
       (product_code = 'resume_pro' and expected_amount_cents = 1990)
       or (product_code = 'rental_application_pro' and expected_amount_cents = 1490)
     );
+
+-- Production keeps the gate tables owned by neondb_owner while the security-
+-- definer function boundary is owned by the non-login migration role.
+set role hoju_migration_owner;
 
 create or replace function public.claim_first_sale_reservation(
   p_product_code text,
