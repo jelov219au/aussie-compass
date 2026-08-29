@@ -117,6 +117,52 @@ export default function CasualLoadingGuidePage() {
               <a href="https://calculate.fairwork.gov.au/" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">공식 Pay and Conditions Tool</a>
             </div>
           </section>
+
+          <section className="mt-10 border-t border-navy/20 pt-10" aria-labelledby="casual-calculation-heading">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">01 · 계산 순서</p>
+            <h2 id="casual-calculation-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">Base rate에 25%를 한 번 더하면 끝나는지 확인하세요</h2>
+            <p className="mt-3 max-w-4xl text-sm leading-7 text-muted">Award마다 Casual ordinary rate, Weekend·Public holiday penalty와 Overtime을 표현하는 방식이 다를 수 있어요. 광고에 적힌 시급에서 임의로 25%를 더하기보다 적용 Award의 Pay guide 또는 PACT 결과를 사용하세요.</p>
+            <ol className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                ["01", "Award·Agreement", "실제 업종·직무와 사업장 Agreement부터 확인"],
+                ["02", "Classification", "책임·자격·업무 단계에 맞는 Level 선택"],
+                ["03", "Casual ordinary rate", "Loading 포함 여부와 표시 방식을 확인"],
+                ["04", "실제 Shift", "주말·야간·공휴일·Overtime·Allowance 추가 확인"],
+              ].map(([number, title, body]) => <li key={number} className="bg-white p-5"><span className="font-mono text-xs text-gold-ink">{number}</span><h3 className="mt-2 font-semibold text-navy">{title}</h3><p className="mt-2 text-sm leading-6 text-muted">{body}</p></li>)}
+            </ol>
+          </section>
+
+          <section className="mt-10 grid gap-5 lg:grid-cols-2" aria-labelledby="casual-rights-heading">
+            <article className="rounded-2xl border border-border bg-white p-6 sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">02 · Loading 밖의 권리</p>
+              <h2 id="casual-rights-heading" className="mt-2 text-2xl font-semibold text-navy">Casual이라고 모든 휴가·보호가 없는 것은 아니에요</h2>
+              <p className="mt-4 text-sm leading-7 text-muted">25% Loading은 일반적으로 유급 연차·유급 Personal/carer&apos;s leave, Notice와 Redundancy 등 일부 차이를 보완합니다. 하지만 Casual도 상황에 따라 아래 권리를 가질 수 있으므로 “Loading에 전부 포함됐다”는 설명만 믿지 마세요.</p>
+              <ul className="mt-5 space-y-3 text-sm leading-6 text-muted">{["Super guarantee와 안전한 근무환경", "Paid family and domestic violence leave", "Unpaid carer’s leave·Compassionate leave의 Casual 적용 범위", "Community service leave와 Long service leave의 적용 규칙", "최저임금·Penalty·Allowance·Payslip·근무기록 권리", "차별·Adverse action·부당한 해고 관련 보호의 자격 조건"].map((item) => <li key={item} className="border-l-2 border-gold pl-3">{item}</li>)}</ul>
+            </article>
+            <article className="rounded-2xl bg-navy p-6 text-white sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">03 · 실제 관계 확인</p>
+              <h2 className="mt-2 text-2xl font-semibold">매주 같은 Roster가 이어진다면</h2>
+              <p className="mt-4 text-sm leading-7 text-white/75">Casual이라는 계약 제목만으로 현재 관계가 영원히 고정되는 것은 아니에요. 실제로 더 이상 Casual 정의에 맞지 않는다고 생각하고 근속기간 등 요건을 충족하면 Employee choice pathway로 Permanent 전환 의사를 서면 통지할 수 있습니다.</p>
+              <ul className="mt-5 space-y-3 text-sm leading-6 text-white/75"><li>일반 사업장은 최소 6개월, Small business는 12개월 근속 요건 확인</li><li>최근 근무 패턴과 앞으로의 지속 근무 약속을 함께 설명</li><li>고용주는 정해진 사유와 절차에 따라 답변</li><li>전환은 자동 승격이나 모두에게 유리한 선택을 뜻하지 않음</li><li>현재 Fair Work 기준과 개인 계약을 신청 전에 다시 확인</li></ul>
+            </article>
+          </section>
+
+          <section className="mt-10 rounded-2xl border border-border bg-surface p-6 sm:p-8" aria-labelledby="casual-payslip-heading">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">04 · Payslip 검산</p>
+            <h2 id="casual-payslip-heading" className="mt-2 text-2xl font-semibold text-navy">Shift 한 번을 이렇게 나눠보세요</h2>
+            <div className="mt-5 grid gap-3 md:grid-cols-2">{["Pay period와 실제 Shift 날짜가 같은지", "Base classification과 Casual ordinary rate가 맞는지", "Saturday·Sunday·Public holiday 시간이 구분됐는지", "Overtime 시작 기준과 계산 순서가 맞는지", "Minimum engagement보다 짧게 불려간 경우 지급시간", "Unpaid break를 실제로 쉬었는지", "Uniform·Meal·Travel·Tool allowance 해당 여부", "Super·PAYG·기타 Deduction을 설명할 수 있는지"].map((item) => <p key={item} className="flex gap-3 rounded-xl border border-border bg-white p-4 text-sm leading-6 text-muted"><span aria-hidden="true" className="text-gold-ink">□</span><span>{item}</span></p>)}</div>
+          </section>
+
+          <section className="mt-10 rounded-2xl border border-navy/20 bg-white p-6 sm:p-8" aria-labelledby="casual-sources-heading">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">공식 자료 기준 · 2026.08.30 확인</p>
+            <h2 id="casual-sources-heading" className="mt-2 text-2xl font-semibold text-navy">최종 확인 출발점</h2>
+            <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+              <li><a href="https://www.fairwork.gov.au/starting-employment/types-of-employees/casual-employees" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">Fair Work Casual employees ↗</a><p className="text-sm leading-6 text-muted">Casual 정의, Loading, NES 권리와 고용 시작 정보</p></li>
+              <li><a href="https://www.fairwork.gov.au/starting-employment/types-of-employees/casual-employees/becoming-a-permanent-employee" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">Becoming a permanent employee ↗</a><p className="text-sm leading-6 text-muted">Employee choice pathway의 현재 자격과 절차</p></li>
+              <li><a href="https://www.fairwork.gov.au/pay-and-wages/minimum-wages" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">Fair Work Minimum wages ↗</a><p className="text-sm leading-6 text-muted">Award-free Rate와 별도 Minimum wage 유형</p></li>
+              <li><a href="https://calculate.fairwork.gov.au/" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">Pay and Conditions Tool ↗</a><p className="text-sm leading-6 text-muted">Award·Classification·Shift 조건별 실제 금액 계산</p></li>
+            </ul>
+          </section>
         </Container>
       </main>
       <Footer />
