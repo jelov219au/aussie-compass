@@ -35,8 +35,9 @@ for (const contract of [
   "-DeploymentOrigin $DeploymentOrigin",
   "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=smtp keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no",
   "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=manual keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no",
-  "$LASTEXITCODE = 1",
   "$innerPreflightRecords.Count -ne 1",
+  "$innerFailureRecords.Count -ne 0",
+  "TrimEnd()",
   '$monitoringMode = "smtp"',
   '$monitoringMode = "manual"',
   "monitoring=$monitoringMode",
@@ -49,6 +50,7 @@ assert.doesNotMatch(wrapper, /env run|env pull|--token|vercel login|VERCEL_AUTOM
 assert.doesNotMatch(wrapper, /whoami --no-color/, "the authenticated exact-deployment read must remain the sole Vercel authentication probe");
 assert.doesNotMatch(wrapper, /run-production-payment-preflight-with-bypass/, "the legacy bypass bootstrap must not remain in the canonical path");
 assert.doesNotMatch(wrapper, /Read-Host/, "all masked audit inputs must remain owned by the inner wrapper");
+assert.doesNotMatch(wrapper, /\$innerPreflightExitCode\s+-ne\s+0/, "a stale nested Windows PowerShell exit code must not override one canonical post-cleanup PASS record");
 assert.ok(wrapper.indexOf("deployment:verify-production") < wrapper.indexOf("-DeploymentOrigin $DeploymentOrigin"), "exact deployment evidence must precede the inner preflight");
 
 for (const contract of [

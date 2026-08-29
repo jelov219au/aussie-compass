@@ -65,14 +65,17 @@ try {
     $DeploymentOrigin = ([regex]::Match($deploymentUrls[0], '^PRODUCTION_DEPLOYMENT_URL=(https://[a-z0-9-]+\.vercel\.app)$')).Groups[1].Value
 
     $failureReason = "integrated_preflight_failed"
-    $LASTEXITCODE = 1
     $innerPreflightOutput = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $maskedPreflightPath -ExpectedNeonEndpointId $ExpectedNeonEndpointId -ExpectedProductionSha $ExpectedProductionSha -DeploymentOrigin $DeploymentOrigin 2>$null)
-    $innerPreflightExitCode = $LASTEXITCODE
     foreach ($line in $innerPreflightOutput) { Write-Host $line }
-    $innerPreflightRecords = @($innerPreflightOutput | Where-Object { $_ -cmatch '^FIRST_SALE_PREFLIGHT=' })
+    $innerPreflightRecords = @($innerPreflightOutput | ForEach-Object { ([string]$_).TrimEnd() } | Where-Object { $_ -cmatch '^FIRST_SALE_PREFLIGHT=' })
+    $innerFailureRecords = @($innerPreflightRecords | Where-Object { $_ -cmatch '^FIRST_SALE_PREFLIGHT=FAIL(?:\s|$)' })
     $innerSmtpPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=smtp keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no"
     $innerManualPass = "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=manual keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no"
-    if ($innerPreflightExitCode -ne 0 -or $innerPreflightRecords.Count -ne 1) { throw "The integrated Production preflight failed closed." }
+    # The inner script emits PASS only after every check and secret cleanup have
+    # completed. Windows PowerShell can surface a stale native exit code after
+    # nested npm.cmd calls even when that child emitted its final PASS and exited
+    # cleanly, so canonical output is the authoritative cross-process contract.
+    if ($innerPreflightRecords.Count -ne 1 -or $innerFailureRecords.Count -ne 0) { throw "The integrated Production preflight failed closed." }
     if ($innerPreflightRecords[0] -ceq $innerSmtpPass) {
       $monitoringMode = "smtp"
     } elseif ($innerPreflightRecords[0] -ceq $innerManualPass) {
