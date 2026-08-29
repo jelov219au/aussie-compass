@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { ResumeProDevicePrivacyTools } from "@/components/tools/ResumeProDevicePrivacyTools";
+
 type RestoreCodeResponse = {
   code?: string;
   expiresAt?: string;
@@ -38,7 +40,7 @@ export function ResumeProAccessTools() {
   }
 
   return (
-    <section className="mt-10 border border-navy/15 bg-white p-5 sm:p-6" aria-labelledby="resume-pro-access-heading">
+    <section id="resume-pro-access" className="mt-10 scroll-mt-24 border border-navy/15 bg-white p-5 sm:p-6" aria-labelledby="resume-pro-access-heading">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">구매 내역 다시 찾기</p>
       <h2 id="resume-pro-access-heading" className="mt-2 text-xl font-semibold text-navy">다른 기기에서 이용권 복구하기</h2>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">현재 기기의 접근 쿠키를 잃기 전에 1회용 복구 코드를 만들어 보관하세요. 코드는 30일 안에 한 번만 사용할 수 있으며 서버에는 원문이 저장되지 않습니다.</p>
@@ -55,13 +57,7 @@ export function ResumeProAccessTools() {
         </div>
       )}
       {status && <p className="mt-3 text-sm leading-6 text-muted" role="status">{status}</p>}
-      <div className="mt-6 border-t border-border pt-5">
-        <h3 className="text-sm font-semibold text-navy">공용 기기에서 이용 중인가요?</h3>
-        <p className="mt-2 text-sm leading-6 text-muted">이 기기의 Resume Pro 접근 쿠키만 제거합니다. 구매 이용권과 다른 기기의 접근은 유지됩니다.</p>
-        <form action="/api/resume-pro/access/release" method="post" className="mt-3">
-          <button type="submit" className="inline-flex min-h-11 items-center justify-center border border-navy px-4 py-2 text-sm font-semibold text-navy">이 기기 접근 해제</button>
-        </form>
-      </div>
+      <ResumeProDevicePrivacyTools requireRecoveryAcknowledgement />
     </section>
   );
 }

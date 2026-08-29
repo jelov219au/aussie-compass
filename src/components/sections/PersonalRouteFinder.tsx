@@ -50,6 +50,7 @@ const concerns: Array<{ id: ConcernId; label: string }> = [
 const tools: RouteTool[] = [
   { href: "/visa-preparation-guide", title: "비자·신체검사 준비", description: "신청 경로와 비용, 지정 병원을 공식 사이트에서 확인해요.", stages: ["prepare"], concerns: ["admin"] },
   { href: "/arrival-checklist", title: "첫 30일 정착 체크리스트", description: "전화, 교통, 은행, TFN과 의료 준비를 순서대로 챙겨요.", stages: ["prepare", "arrive"], concerns: ["admin", "safety"] },
+  { href: "/english-phrase-cards", title: "첫 생활 영어 문장", description: "숙소, 집, 은행과 직장에서 바로 쓸 확인 문장을 골라 저장해요.", stages: ["arrive"], concerns: ["admin", "home", "safety"] },
   { href: "/career-pathways", title: "직업·부족 분야 탐색", description: "실제 업무와 필요한 자격, 비자 목록의 차이를 알아봐요.", stages: ["prepare", "arrive", "live"], concerns: ["work"] },
   { href: "/resume-builder", title: "영문 이력서 만들기", description: "영문 예시를 참고해 내 경력에 맞는 이력서 초안을 만들어요.", stages: ["prepare", "arrive", "live"], concerns: ["work"] },
   { href: "/job-application-tracker", title: "구직 지원 현황 관리", description: "관심 공고와 면접 일정, 다음에 할 일을 한곳에 적어둬요.", stages: ["arrive", "live"], concerns: ["work"] },
@@ -59,13 +60,22 @@ const tools: RouteTool[] = [
   { href: "/public-transport-guide", title: "통학·생활권 비교", description: "집값뿐 아니라 실제 통학시간과 교통편도 함께 비교해요.", stages: ["prepare", "arrive", "live"], concerns: ["home"] },
   { href: "/property-inspection-checklist", title: "집 방문 체크리스트", description: "집을 보러 간 자리에서 비용과 계약 조건, 안전을 확인해요.", stages: ["prepare", "arrive", "live"], concerns: ["home", "safety"] },
   { href: "/savings-goal-calculator", title: "저축·비상금 프로젝트", description: "목표 기간과 저축액을 정하고 얼마나 모았는지 기록해요.", stages: ["prepare", "live"], concerns: ["money"] },
-  { href: "/tax-return-guide", title: "택스 리턴 준비", description: "EOFY 소득자료와 공제 증빙, 신고 일정을 한 번에 정리해요.", stages: ["live", "depart"], concerns: ["money", "admin"] },
+  { href: "/tax-prep-tracker", title: "연중 택스 리턴 기록", description: "소득·지출과 증빙 상태를 매달 조금씩 기록해 EOFY 준비를 쌓아가요.", stages: ["live"], concerns: ["money", "admin"] },
+  { href: "/tax-return-guide", title: "택스 리턴 제출 준비", description: "EOFY 소득자료와 공제 증빙, 신고 일정과 직접 신고 범위를 확인해요.", stages: ["live", "depart"], concerns: ["money", "admin"] },
   { href: "/life-admin-reminder", title: "만료일·갱신 일정", description: "비자, 여권, 렌트, Rego와 보험 날짜를 적어둬요.", stages: ["arrive", "live", "depart"], concerns: ["admin", "safety"] },
   { href: "/help-directory", title: "호주 생활 도움 연락처", description: "응급전화부터 의료, 통역, 직장 문제와 사기 신고처까지 찾아봐요.", stages: ["prepare", "arrive", "live", "depart"], concerns: ["safety"] },
   { href: "/moving-checklist", title: "이사·퇴거 준비", description: "퇴거 통지와 공과금, 주소 변경, 보증금을 빠짐없이 챙겨요.", stages: ["live", "depart"], concerns: ["home", "admin"] },
   { href: "/leaving-australia-guide", title: "귀국 준비·Super DASP", description: "퇴사와 렌트 정리부터 출국 후 Super 신청까지 순서대로 알아봐요.", stages: ["depart"], concerns: ["admin", "work", "home", "money", "safety"] },
   { href: "/service-quote-comparator", title: "생활 서비스 견적 비교", description: "가격과 함께 ABN, 면허, 보증, 작업 범위도 비교해요.", stages: ["live"], concerns: ["home", "safety"] },
+  { href: "/used-car-comparison", title: "중고차 구매처·체크리스트", description: "대표 매물 사이트에서 후보를 찾고 연락·검사·PPSR 순서를 확인해요.", stages: ["arrive", "live"], concerns: ["home", "money", "safety"] },
 ];
+
+const stagePriority: Record<StageId, string[]> = {
+  prepare: ["/visa-preparation-guide", "/arrival-checklist", "/career-pathways", "/cost-of-living-calculator", "/public-transport-guide", "/resume-builder", "/minimum-wage-guide", "/salary-calculator", "/help-directory"],
+  arrive: ["/arrival-checklist", "/english-phrase-cards", "/property-inspection-checklist", "/public-transport-guide", "/resume-builder", "/job-application-tracker", "/help-directory", "/minimum-wage-guide", "/life-admin-reminder", "/cost-of-living-calculator", "/used-car-comparison", "/salary-calculator", "/career-pathways"],
+  live: ["/tax-prep-tracker", "/job-application-tracker", "/cost-of-living-calculator", "/savings-goal-calculator", "/life-admin-reminder", "/minimum-wage-guide", "/service-quote-comparator", "/used-car-comparison", "/tax-return-guide", "/moving-checklist", "/salary-calculator", "/career-pathways", "/resume-builder", "/help-directory"],
+  depart: ["/leaving-australia-guide", "/tax-return-guide", "/moving-checklist", "/life-admin-reminder"],
+};
 
 export function PersonalRouteFinder() {
   const [stage, setStage] = useState<StageId>("prepare");
@@ -73,6 +83,7 @@ export function PersonalRouteFinder() {
   const [plan, setPlan] = useState<SavedPlan | null>(null);
   const [actionMessage, setActionMessage] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [taxSeason, setTaxSeason] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -94,6 +105,8 @@ export function PersonalRouteFinder() {
       const savedPlan = JSON.parse(localStorage.getItem(planStorageKey) ?? "null") as SavedPlan | null;
       if (savedPlan && Array.isArray(savedPlan.steps) && Array.isArray(savedPlan.completed)) setPlan(savedPlan);
     } catch { /* Invalid plan data is ignored. */ }
+    const sydneyMonth = Number(new Intl.DateTimeFormat("en-AU", { month: "numeric", timeZone: "Australia/Sydney" }).format(new Date()));
+    setTaxSeason(sydneyMonth >= 7 && sydneyMonth <= 10);
     setLoaded(true);
   }, []);
 
@@ -112,8 +125,9 @@ export function PersonalRouteFinder() {
   const recommendations = useMemo(() => tools.map((tool, index) => ({
     ...tool,
     index,
-    score: tool.concerns.includes(concern) ? 1 : 0,
-  })).filter((tool) => tool.stages.includes(stage)).sort((a, b) => b.score - a.score || a.index - b.index).slice(0, 3), [stage, concern]);
+    concernRank: tool.concerns.includes(concern) ? 0 : 1,
+    stageRank: taxSeason && stage === "live" && tool.href === "/tax-return-guide" ? -1 : stagePriority[stage].indexOf(tool.href) >= 0 ? stagePriority[stage].indexOf(tool.href) : 99,
+  })).filter((tool) => tool.stages.includes(stage)).sort((a, b) => a.concernRank - b.concernRank || a.stageRank - b.stageRank || a.index - b.index).slice(0, 3), [stage, concern, taxSeason]);
 
   const stageLabel = stages.find((item) => item.id === stage)?.label;
   const concernLabel = concerns.find((item) => item.id === concern)?.label;
@@ -177,13 +191,13 @@ export function PersonalRouteFinder() {
   return <section id="route-finder" className="scroll-mt-20 border-b border-border bg-white py-16 sm:py-24" aria-labelledby="route-finder-heading"><Container>
     <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
       <div>
-        <p className="text-sm font-semibold text-gold">내 상황에 맞춰보기</p>
+        <p className="text-sm font-semibold text-gold-ink">내 상황에 맞춰보기</p>
         <h2 id="route-finder-heading" className="mt-2 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">지금 단계와 고민을<br/>하나씩 골라보세요.</h2>
         <p className="mt-4 max-w-xl text-base leading-7 text-muted">모든 정보를 처음부터 읽지 않아도 괜찮아요. 지금 필요한 순서에 맞춰 먼저 볼 세 가지를 보여드려요.</p>
 
-        <fieldset className="mt-8"><legend className="text-sm font-semibold text-navy"><span className="mr-2 text-gold">01</span>지금 어느 단계인가요?</legend><div className="mt-3 grid gap-2 sm:grid-cols-2">{stages.map((item) => <label key={item.id} className={`cursor-pointer rounded-xl border px-4 py-3 transition ${stage === item.id ? "border-navy bg-surface" : "border-border bg-white hover:border-navy/30"}`}><input type="radio" name="route-stage" value={item.id} checked={stage === item.id} onChange={() => setStage(item.id)} className="sr-only"/><span className="block text-sm font-semibold text-navy">{item.label}</span><span className="mt-1 block text-xs text-muted">{item.detail}</span></label>)}</div></fieldset>
+        <fieldset className="mt-8"><legend className="text-sm font-semibold text-navy"><span className="mr-2 text-gold-ink">01</span>지금 어느 단계인가요?</legend><div className="mt-3 grid gap-2 sm:grid-cols-2">{stages.map((item) => <label key={item.id} className={`cursor-pointer rounded-xl border px-4 py-3 transition ${stage === item.id ? "border-navy bg-surface" : "border-border bg-white hover:border-navy/30"}`}><input type="radio" name="route-stage" value={item.id} checked={stage === item.id} onChange={() => setStage(item.id)} className="sr-only"/><span className="block text-sm font-semibold text-navy">{item.label}</span><span className="mt-1 block text-xs text-muted">{item.detail}</span></label>)}</div></fieldset>
 
-        <fieldset className="mt-7"><legend className="text-sm font-semibold text-navy"><span className="mr-2 text-gold">02</span>요즘 가장 마음 쓰이는 일은 무엇인가요?</legend><div className="mt-3 flex flex-wrap gap-2">{concerns.map((item) => <label key={item.id} className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-4 text-sm font-semibold transition ${concern === item.id ? "border-gold bg-gold/15 text-navy" : "border-border bg-white text-muted hover:border-navy/30 hover:text-navy"}`}><input type="radio" name="route-concern" value={item.id} checked={concern === item.id} onChange={() => setConcern(item.id)} className="sr-only"/>{item.label}</label>)}</div></fieldset>
+        <fieldset className="mt-7"><legend className="text-sm font-semibold text-navy"><span className="mr-2 text-gold-ink">02</span>요즘 가장 마음 쓰이는 일은 무엇인가요?</legend><div className="mt-3 flex flex-wrap gap-2">{concerns.map((item) => <label key={item.id} className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-4 text-sm font-semibold transition ${concern === item.id ? "border-gold bg-gold/15 text-navy" : "border-border bg-white text-muted hover:border-navy/30 hover:text-navy"}`}><input type="radio" name="route-concern" value={item.id} checked={concern === item.id} onChange={() => setConcern(item.id)} className="sr-only"/>{item.label}</label>)}</div></fieldset>
         <p className="mt-4 text-xs leading-5 text-muted">고른 내용은 현재 브라우저에만 저장돼요. 이름이나 연락처는 받지 않아요.</p>
       </div>
 

@@ -18,6 +18,8 @@ export type EntitlementCommand = {
   eventId: string;
   eventType: Stripe.Event.Type;
   productCode?: ProductCode;
+  currency?: string;
+  amountTotal?: number;
   checkoutSessionId?: string;
   paymentIntentId?: string;
   chargeId?: string;
@@ -45,18 +47,57 @@ export type EntitlementRecord = {
   revokedAt?: Date;
 };
 
+export type CheckoutActivationResult = {
+  outcome: "consumed" | "idempotent" | "used" | "released" | "revoked" | "review" | "missing";
+  entitlement?: EntitlementRecord;
+};
+
+export type RestoreActivationResult = {
+  outcome: "consumed" | "idempotent" | "used" | "released" | "revoked" | "review" | "missing";
+  entitlement?: EntitlementRecord;
+};
+
+export type AccessSessionInput = {
+  accessSessionHash: string;
+  accessSessionRefLast8: string;
+  expiresAt: Date;
+};
+
 export interface EntitlementStore {
   applyStripeEvent(input: {
     receipt: StripeEventReceipt;
     command: EntitlementCommand;
   }): Promise<{
-    outcome: "processed" | "duplicate" | "ignored_stale" | "ignored_unmatched";
+    outcome: "processed" | "duplicate" | "ignored_stale" | "tombstoned";
     entitlement?: EntitlementRecord;
   }>;
 
-  consumeRestoreTokenHash(tokenHash: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
+  consumeRestoreTokenHash(input: {
+    tokenHash: string;
+    productCode: ProductCode;
+    nonceHash: string;
+    accessSession: AccessSessionInput;
+  }): Promise<RestoreActivationResult>;
 
-  findByCheckoutSession(checkoutSessionId: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
+  consumeCheckoutActivation(input: {
+    checkoutSessionId: string;
+    productCode: ProductCode;
+    customerId: string;
+    nonceHash: string;
+    accessSession: AccessSessionInput;
+  }): Promise<CheckoutActivationResult>;
+
+  releaseAccessSession(input: {
+    entitlementId: string;
+    productCode: ProductCode;
+    accessSessionHash: string;
+  }): Promise<boolean>;
+
+  findActiveByAccessSession(input: {
+    entitlementId: string;
+    productCode: ProductCode;
+    accessSessionHash: string;
+  }): Promise<EntitlementRecord | null>;
 
   findActiveByCheckoutSession(checkoutSessionId: string, productCode: ProductCode): Promise<EntitlementRecord | null>;
 
@@ -100,6 +141,8 @@ function checkoutCommand(event: Stripe.Event, session: Stripe.Checkout.Session):
     eventId: event.id,
     eventType: event.type,
     productCode,
+    ...(session.currency ? { currency: session.currency.toLowerCase() } : {}),
+    ...(session.amount_total != null ? { amountTotal: session.amount_total } : {}),
     checkoutSessionId: session.id,
     paymentIntentId,
     customerId,
@@ -116,7 +159,7 @@ function refundCommand(event: Stripe.Event, refund: Stripe.Refund): EntitlementC
     paymentIntentId: expandableId(refund.payment_intent),
     chargeId: expandableId(refund.charge),
     referenceId: refund.id,
-    reason: refund.status === "succeeded" ? "refund_succeeded_requires_amount_check" : `refund_${refund.status ?? "unknown"}`,
+    reason: refund.status === "succeeded" ? "refund_succeeded_requires_amount_check" : "refund_status_requires_review",
   };
 }
 
@@ -137,17 +180,14 @@ function chargeCommand(event: Stripe.Event, charge: Stripe.Charge): EntitlementC
 
 function disputeCommand(event: Stripe.Event, dispute: Stripe.Dispute): EntitlementCommand {
   let action: EntitlementAction = "review";
-  let reason = `dispute_${dispute.status}`;
+  let reason = "dispute_status_requires_review";
 
   if (event.type === "charge.dispute.created") {
     action = "revoke";
     reason = "dispute_opened";
   } else if (event.type === "charge.dispute.funds_reinstated" || dispute.status === "won") {
-    // Funds can be reinstated while the underlying charge has separately been
-    // refunded. The dispute payload alone cannot prove that paid access should
-    // reopen, so keep access blocked until an operator verifies the charge.
-    action = "review";
-    reason = "dispute_won_or_funds_reinstated_requires_charge_check";
+    action = "grant";
+    reason = "dispute_won_or_funds_reinstated";
   } else if (event.type === "charge.dispute.closed" && dispute.status === "lost") {
     action = "revoke";
     reason = "dispute_lost";

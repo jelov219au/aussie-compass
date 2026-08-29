@@ -31,7 +31,7 @@ export function HomeTrustBar() {
       <Container>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-semibold tracking-[0.14em] text-gold">정보를 고르는 기준</p>
+            <p className="text-xs font-semibold tracking-[0.14em] text-gold-ink">정보를 고르는 기준</p>
             <h2 id="home-trust-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">어떻게 확인한 정보인지 숨기지 않아요.</h2>
           </div>
           <Link href="/editorial-policy" className="inline-flex min-h-10 items-center text-sm font-semibold text-navy">
@@ -43,7 +43,7 @@ export function HomeTrustBar() {
           {principles.map((item) => (
             <li key={item.number} className="bg-white p-5 sm:p-6">
               <div className="flex items-center justify-between gap-4">
-                <span className="font-mono text-xs text-gold">{item.number}</span>
+                <span className="font-mono text-xs text-gold-ink">{item.number}</span>
                 <Link href={item.href} className="text-xs font-semibold text-muted transition hover:text-navy">
                   {item.linkLabel} →
                 </Link>

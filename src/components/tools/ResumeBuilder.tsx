@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
+import Link from "next/link";
 import { track } from "@vercel/analytics";
-import { TrackedLink } from "@/components/analytics/TrackedLink";
+import { ResumeProCtaLink, trackResumeBuilderStarted } from "@/components/analytics/ResumeFunnelAnalytics";
+import { resumeFunnelContexts, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
+import {
+  createResumeBuilderStorageStatusController,
+  persistResumeBuilderDraft,
+  type ResumeBuilderStorageStatus,
+  type ResumeBuilderStorageStatusController,
+} from "@/lib/resumeBuilderStorage";
 
 type Experience = { id: string; role: string; company: string; period: string; details: string };
 type Education = { id: string; course: string; school: string; period: string };
@@ -76,12 +84,42 @@ function moveItem<T>(items: T[], from: number, to: number) {
 export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
   const [resume, setResume] = useState<ResumeData>(emptyResume);
   const [loaded, setLoaded] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [returnToResumeProWorkspace, setReturnToResumeProWorkspace] = useState(false);
+  const [storageStatus, setStorageStatus] = useState<ResumeBuilderStorageStatus>("idle");
   const [actionMessage, setActionMessage] = useState("");
   const [koreanDraft, setKoreanDraft] = useState("");
   const [englishSuggestion, setEnglishSuggestion] = useState("");
   const importInputRef = useRef<HTMLInputElement>(null);
   const completionTrackedRef = useRef(false);
+  const storageStatusControllerRef = useRef<ResumeBuilderStorageStatusController | null>(null);
+
+  const persistResume = useCallback((draft: ResumeData) => {
+    const controller = storageStatusControllerRef.current;
+    if (!controller) return false;
+    return persistResumeBuilderDraft(
+      () => window.localStorage,
+      STORAGE_KEY,
+      JSON.stringify(draft),
+      controller,
+    ) === "saved";
+  }, []);
+
+  useEffect(() => {
+    setReturnToResumeProWorkspace(window.location.hash === "#resume-pro-workspace-return");
+  }, []);
+
+  useEffect(() => {
+    const controller = createResumeBuilderStorageStatusController({
+      onStatusChange: setStorageStatus,
+      schedule: (callback, delayMs) => window.setTimeout(callback, delayMs),
+      cancel: (handle) => window.clearTimeout(handle as number),
+    });
+    storageStatusControllerRef.current = controller;
+    return () => {
+      controller.dispose();
+      if (storageStatusControllerRef.current === controller) storageStatusControllerRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -96,16 +134,10 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
   useEffect(() => {
     if (!loaded) return;
     const timer = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(resume));
-        setSaved(true);
-        window.setTimeout(() => setSaved(false), 1600);
-      } catch {
-        // The resume remains usable when browser storage is unavailable.
-      }
+      persistResume(resume);
     }, 500);
     return () => window.clearTimeout(timer);
-  }, [loaded, resume]);
+  }, [loaded, persistResume, resume]);
 
   const skills = useMemo(() => resume.skills.split(",").map((skill) => skill.trim()).filter(Boolean), [resume.skills]);
   const licences = useMemo(() => resume.licences.split("\n").map((item) => item.trim()).filter(Boolean), [resume.licences]);
@@ -233,17 +265,61 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
     window.print();
   };
 
+  const trackBuilderInteraction = (event: SyntheticEvent<HTMLElement>) => {
+    if (!(event.target instanceof Element)) return;
+    if (!event.target.closest("input, textarea, select, button")) return;
+    trackResumeBuilderStarted();
+  };
+
+  const updateFirstExperienceDetails = (value: string) => {
+    setResume((current) => {
+      const [firstExperience, ...remainingExperiences] = current.experiences;
+      if (!firstExperience) {
+        return {
+          ...current,
+          experiences: [{ id: makeId("experience"), role: "", company: "", period: "", details: value }],
+        };
+      }
+      return {
+        ...current,
+        experiences: [{ ...firstExperience, details: value }, ...remainingExperiences],
+      };
+    });
+  };
+
   return (
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(620px,1.1fr)]">
-      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-form-heading">
+      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-form-heading" onClickCapture={trackBuilderInteraction} onInputCapture={trackBuilderInteraction}>
         <div className="flex items-start justify-between gap-4">
           <div><h2 id="resume-form-heading" className="text-xl font-semibold text-navy">이력서 내용</h2><p className="mt-1 text-sm leading-6 text-muted">영문으로 작성하면 오른쪽에 바로 반영됩니다.</p></div>
-          <span className="min-w-16 text-right text-xs text-muted" aria-live="polite">{saved ? "저장됨" : "자동 저장"}</span>
+          <span className={`max-w-48 text-right text-xs leading-5 ${storageStatus === "failed" ? "font-semibold text-red-700" : "text-muted"}`} aria-live="polite" aria-atomic="true">
+            {storageStatus === "failed" ? "기기에 저장되지 않음 — PDF·작성본 백업 권장" : storageStatus === "saved" ? "저장됨" : "자동 저장"}
+          </span>
         </div>
+        {storageStatus === "failed" && <section data-resume-storage-status="failed" className="mt-4 border-l-4 border-red-600 bg-red-50 p-4 text-sm text-red-900" aria-labelledby="resume-storage-failure-heading">
+          <h3 id="resume-storage-failure-heading" className="font-semibold">현재 탭에서는 유지되지만 닫거나 새로고침하면 사라질 수 있어요.</h3>
+          <p className="mt-1 leading-6">지금 보이는 내용을 PDF나 Builder 작성본 백업으로 먼저 보관해 주세요.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" onClick={() => saveAsPdf("builder_actions")} className="min-h-11 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-light">PDF 저장</button>
+            <button type="button" onClick={exportDraft} className="min-h-11 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-navy hover:border-navy">작성본 백업</button>
+            <button type="button" onClick={() => persistResume(resume)} className="min-h-11 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-navy hover:border-navy">다시 저장 확인</button>
+          </div>
+        </section>}
         <div className="mt-5 rounded-xl bg-surface p-4">
           <div className="flex items-center justify-between gap-4 text-sm"><span className="font-medium text-navy">필수 내용 {completedEssentials}/7</span><button type="button" onClick={loadExample} className="min-h-11 font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">예시 불러오기</button></div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white" role="progressbar" aria-label="이력서 필수 내용 완성도" aria-valuemin={0} aria-valuemax={7} aria-valuenow={completedEssentials}><div className="h-full rounded-full bg-gold transition-[width]" style={{ width: `${(completedEssentials / 7) * 100}%` }} /></div>
         </div>
+
+        <section className="mt-4 border-l-2 border-gold bg-gold/5 p-3 sm:mt-5 sm:p-4" aria-labelledby="resume-quick-start-heading">
+          <h3 id="resume-quick-start-heading" className="text-lg font-semibold leading-7 text-navy">내 경험 한 줄부터 저장하세요.</h3>
+          <p id="resume-quick-start-help" className="mt-2 text-sm leading-6 text-muted">AI 예시 대신, 내가 한 행동과 확인 가능한 결과를 적어요. 브라우저에 자동 저장되고 아래 경력란에도 이어집니다.</p>
+          <Link href="/resources/english-resume-achievement-examples" className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+            실제 경험을 STAR로 정리하는 법 →
+          </Link>
+          <label className="mt-3 block text-sm font-medium text-navy" htmlFor="resume-quick-achievement">저장할 경험 한 줄</label>
+          <input id="resume-quick-achievement" aria-describedby="resume-quick-start-help resume-quick-start-next" className={inputClass} value={resume.experiences[0]?.details ?? ""} onChange={(event) => updateFirstExperienceDetails(event.target.value)} placeholder="[내가 한 행동] + [상황] + [확인 가능한 결과]" />
+          <p id="resume-quick-start-next" className="mt-3 text-xs leading-5 text-muted">나머지를 채우면 무료 PDF로 내보내고, 공고가 정해진 뒤에만 Pro로 이어갈 수 있어요.</p>
+        </section>
 
         <fieldset className="mt-7 rounded-xl border border-border p-4">
           <legend className="px-1 text-base font-semibold text-navy">디자인</legend>
@@ -252,7 +328,7 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
         </fieldset>
 
         <section className="mt-8 rounded-2xl border border-gold/40 bg-gold/5 p-5" aria-labelledby="writing-helper-heading">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">영문 작성 도우미</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#806515]">영문 작성 도우미</p>
           <h2 id="writing-helper-heading" className="mt-2 text-lg font-semibold text-navy">한국어 강점을 영문 초안으로</h2>
           <p className="mt-2 text-sm leading-6 text-muted">직무, 경력 연수, 강점 키워드를 한국어로 적으면 이력서용 영문 초안을 만듭니다. 내용은 외부로 전송되지 않습니다.</p>
           <label className="mt-4 block text-sm font-medium text-navy">한국어 메모<textarea className={`${inputClass} mt-1.5 min-h-24 resize-y`} value={koreanDraft} onChange={(e) => setKoreanDraft(e.target.value)} placeholder="예: 카페에서 2년 일했고 친절하며 바쁜 시간에도 빠르고 정확하게 일합니다." /></label>
@@ -320,18 +396,37 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
         <fieldset className="mt-8"><legend className="text-base font-semibold text-navy">언어 <span className="font-normal text-muted">(선택)</span></legend><label className="mt-2 block text-sm text-muted">쉼표로 구분해 입력하세요<input className={inputClass} value={resume.languages} onChange={(e) => setField("languages", e.target.value)} placeholder="Korean (Native), English (Professional)" /></label></fieldset>
         <label className="mt-6 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-border px-4 py-2 text-sm text-navy"><input type="checkbox" checked={resume.showReferences} onChange={(e) => setResume((current) => ({ ...current, showReferences: e.target.checked }))} className="h-4 w-4 accent-navy" />References available upon request 문구 포함</label>
         {resumeReady && <section className="mt-8 border border-gold/50 bg-gold/5 p-5 sm:p-6" aria-labelledby="resume-next-step-heading">
-          <p className="text-xs font-semibold tracking-[0.14em] text-gold">기본 이력서 준비 완료</p>
+          <p className="text-xs font-semibold tracking-[0.14em] text-[#806515]">기본 이력서 준비 완료</p>
           <h2 id="resume-next-step-heading" className="mt-2 text-xl font-semibold text-navy">이제 어떻게 준비할까요?</h2>
           <p className="mt-2 text-sm leading-6 text-muted">지금 만든 이력서는 무료로 저장할 수 있어요. 지원할 공고가 있다면 같은 내용을 다시 쓰지 않고 회사에 맞춰 이어서 준비할 수도 있고요.</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <button type="button" onClick={() => saveAsPdf("completion_choice")} className="flex min-h-24 flex-col items-start justify-center bg-navy px-5 py-4 text-left text-white hover:bg-navy-light">
-              <strong className="text-base">무료 PDF로 저장하기</strong>
-              <span className="mt-1 text-xs leading-5 text-white/65">인쇄 창에서 PDF 저장을 선택하세요.</span>
-            </button>
-            <TrackedLink href="/resume-pro?from=resume-builder-complete" eventName="Pro Interest" properties={{ product: "resume_pro", entry: "resume_builder_complete" }} className="flex min-h-24 flex-col items-start justify-center border border-navy bg-white px-5 py-4 text-left text-navy hover:bg-surface">
-              <strong className="text-base">{resumeProLive ? "지원할 공고에 맞게 다듬기" : "공고 맞춤 준비 방식 보기"}</strong>
-              <span className="mt-1 text-xs leading-5 text-muted">이력서·커버레터와 빠진 항목을 함께 확인해요.</span>
-            </TrackedLink>
+            <div className="grid gap-2">
+              <button type="button" onClick={() => saveAsPdf("completion_choice")} className="flex min-h-24 flex-col items-start justify-center bg-navy px-5 py-4 text-left text-white hover:bg-navy-light">
+                <strong className="text-base">무료 PDF로 저장하기</strong>
+                <span className="mt-1 text-xs leading-5 text-white/65">인쇄 창에서 PDF 저장을 선택하세요.</span>
+              </button>
+              <Link href="/resources/english-resume-achievement-examples" className="inline-flex min-h-11 items-center justify-center px-3 py-2 text-center text-sm font-semibold leading-5 text-navy underline decoration-gold decoration-2 underline-offset-4 hover:bg-white">
+                저장한 경험을 STAR로 다시 정리하기
+              </Link>
+            </div>
+            {returnToResumeProWorkspace ? (
+              <Link href="/resume-pro/workspace#resume-pro-workspace" className="flex min-h-24 flex-col items-start justify-center border border-navy bg-white px-5 py-4 text-left text-navy hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#806515]">Resume Pro 작업공간에서 이어온 작성</span>
+                <strong className="mt-1 text-base">Pro 첫 지원서 계속하기</strong>
+                <span className="mt-2 text-xs leading-5 text-muted">구매 화면을 다시 거치지 않고 저장한 이력서를 첫 회사별 지원서에 연결해요.</span>
+              </Link>
+            ) : (
+              <ResumeProCtaLink href="/resume-pro?from=resume-builder-complete" surface={resumeFunnelSurfaces.builderCompletion} context={resumeFunnelContexts.resumeBuilder} className="flex min-h-24 flex-col items-start justify-center border border-navy bg-white px-5 py-4 text-left text-navy hover:bg-surface">
+                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#806515]">이 기기의 완성본으로 바로 이어서</span>
+                <strong className="mt-1 text-base">{resumeProLive ? "이 초안을 첫 공고용 지원서 묶음으로 만들기" : "이 초안을 공고별로 쓰는 방식 보기"}</strong>
+                <span className="mt-2 text-xs leading-5 text-muted">지금 저장된 경력 {resume.experiences.filter((item) => item.role.trim() || item.company.trim() || item.details.trim()).length}개와 Skills {skills.length}개를 다시 입력하지 않고 시작해요.</span>
+                <span className="mt-3 grid gap-1 text-xs leading-5 text-navy/75">
+                  <span>✓ 공고 표현과 현재 이력서 비교</span>
+                  <span>✓ 회사별 버전과 STAR 경험 저장·재사용</span>
+                  <span>✓ 이력서 요약·커버레터·면접 메모 묶음 저장</span>
+                </span>
+              </ResumeProCtaLink>
+            )}
           </div>
           <p className="mt-4 text-xs leading-5 text-muted">무료 이력서는 그대로 이용할 수 있어요. Resume Pro는 경력을 새로 만들거나 취업 결과를 보장하는 기능이 아니에요.</p>
         </section>}
@@ -350,7 +445,7 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
         <div className="mb-3 flex items-center justify-between gap-3"><h2 className="text-lg font-semibold text-navy">미리보기</h2><p className="text-xs text-muted">A4 형식</p></div>
         <article id="resume-preview" className={`min-h-[877px] bg-white text-[#202636] shadow-lg ring-1 ring-black/5 ${resume.layoutStyle === "compact" ? "px-7 py-8 sm:px-10 sm:py-9" : "px-8 py-10 sm:px-12 sm:py-12"}`} aria-label="이력서 미리보기">
           <header className={`${resume.layoutStyle === "compact" ? "border-b pb-3" : "border-b-2 pb-5"}`} style={{ borderColor: activeAccent.colour }}>
-            <h1 className={`${resume.layoutStyle === "compact" ? "text-2xl" : "text-3xl"} font-bold tracking-tight`} style={{ color: activeAccent.colour }}>{resume.name || "Your Name"}</h1>
+            <p className={`${resume.layoutStyle === "compact" ? "text-2xl" : "text-3xl"} font-bold tracking-tight`} style={{ color: activeAccent.colour }}>{resume.name || "Your Name"}</p>
             <p className="mt-1 text-base font-semibold" style={{ color: activeAccent.secondary }}>{resume.title || "Target Role"}</p>
             <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#50586b]">{[resume.phone || "Phone", resume.email || "Email", resume.location || "City, State", resume.link].filter(Boolean).map((value, index) => <span key={index}>{value}</span>)}</p>
           </header>

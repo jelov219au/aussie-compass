@@ -39,6 +39,8 @@ export default function TaxReturnGuidePage() {
           <article className="rounded-2xl border border-border bg-white p-5"><p className="text-sm font-semibold text-gold">직접 신고 기한</p><h2 className="mt-2 text-xl font-semibold text-navy">일반적으로 10월 31일</h2><p className="mt-2 text-sm leading-6 text-muted">등록 세무사를 이용한다면 보통 이 날짜 전에 의뢰해야 하며 개인 상황에 따라 달라질 수 있어요.</p></article>
         </section>
 
+        <section className="mb-8 grid gap-5 border-y border-navy/20 bg-white p-6 sm:grid-cols-[1fr_auto] sm:items-center sm:p-8" aria-labelledby="tax-year-tracker-cta"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">7월 전에 시작하기</p><h2 id="tax-year-tracker-cta" className="mt-2 text-2xl font-semibold text-navy">한꺼번에 기억하지 말고, 매달 준비 기록을 쌓으세요</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-muted">소득·지출 후보와 증빙 위치를 현재 브라우저에 기록하고 회계연도별 CSV로 백업할 수 있어요.</p></div><Link href="/tax-prep-tracker" className="inline-flex min-h-12 shrink-0 items-center justify-center bg-gold px-5 text-sm font-semibold text-navy">연중 준비 장부 열기 &rarr;</Link></section>
+
         <TaxReturnChecklist />
 
         <section className="mt-8 border-y border-navy/20 bg-white p-6 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-8"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">다음 단계 · Pro 미리보기</p><h2 className="mt-2 text-xl font-semibold text-navy">소득·공제 증빙과 확인 질문을 한 묶음으로 정리하세요</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-muted">영수증을 업로드하지 않고 공제 후보 기록과 등록 세무사 전달용 요약을 만드는 제품 구성을 확인할 수 있습니다.</p></div><Link href="/eofy-pro" className="mt-4 inline-flex min-h-11 shrink-0 items-center bg-navy px-4 text-sm font-semibold text-white sm:mt-0">EOFY Pack 구성 보기 &rarr;</Link></section>

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import { getEntitlementCommand } from "../src/lib/entitlements.ts";
+import { matchesCheckoutProductEntitlementContract } from "../src/lib/productEntitlementContract.ts";
 
 function stripeEvent(type, object, id = `evt_${type.replaceAll(".", "_")}`) {
   return { id, type, data: { object } };
@@ -12,9 +13,12 @@ const paidSession = {
   metadata: { product_code: "resume_pro" },
   payment_intent: "pi_paid",
   customer: "cus_paid",
+  currency: "aud",
+  amount_total: 1990,
 };
 
-assert.deepEqual(getEntitlementCommand(stripeEvent("checkout.session.completed", paidSession)), {
+const resumePaidCommand = getEntitlementCommand(stripeEvent("checkout.session.completed", paidSession));
+assert.deepEqual(resumePaidCommand, {
   action: "grant",
   eventId: "evt_checkout_session_completed",
   eventType: "checkout.session.completed",
@@ -22,18 +26,23 @@ assert.deepEqual(getEntitlementCommand(stripeEvent("checkout.session.completed",
   checkoutSessionId: "cs_test_paid",
   paymentIntentId: "pi_paid",
   customerId: "cus_paid",
+  currency: "aud",
+  amountTotal: 1990,
   referenceId: "cs_test_paid",
   reason: "checkout_paid",
 });
+assert.equal(matchesCheckoutProductEntitlementContract(resumePaidCommand), true);
 
+const rentalPaidCommand = getEntitlementCommand(stripeEvent("checkout.session.completed", {
+  ...paidSession,
+  id: "cs_test_rental_paid",
+  metadata: { product_code: "rental_application_pro" },
+  payment_intent: "pi_rental_paid",
+  customer: "cus_rental_paid",
+  amount_total: 1490,
+}, "evt_rental_checkout_completed"));
 assert.deepEqual(
-  getEntitlementCommand(stripeEvent("checkout.session.completed", {
-    ...paidSession,
-    id: "cs_test_rental_paid",
-    metadata: { product_code: "rental_application_pro" },
-    payment_intent: "pi_rental_paid",
-    customer: "cus_rental_paid",
-  }, "evt_rental_checkout_completed")),
+  rentalPaidCommand,
   {
     action: "grant",
     eventId: "evt_rental_checkout_completed",
@@ -42,10 +51,29 @@ assert.deepEqual(
     checkoutSessionId: "cs_test_rental_paid",
     paymentIntentId: "pi_rental_paid",
     customerId: "cus_rental_paid",
+    currency: "aud",
+    amountTotal: 1490,
     referenceId: "cs_test_rental_paid",
     reason: "checkout_paid",
   },
   "a Rental Application purchase must receive only its own product entitlement",
+);
+assert.equal(matchesCheckoutProductEntitlementContract(rentalPaidCommand), true);
+assert.equal(
+  matchesCheckoutProductEntitlementContract(getEntitlementCommand(stripeEvent("checkout.session.completed", {
+    ...paidSession,
+    metadata: { product_code: "rental_application_pro" },
+  }))),
+  false,
+  "a Resume-priced Checkout mislabeled as Rental must never grant Rental access",
+);
+assert.equal(
+  matchesCheckoutProductEntitlementContract(getEntitlementCommand(stripeEvent("checkout.session.completed", {
+    ...paidSession,
+    amount_total: 1490,
+  }))),
+  false,
+  "a Rental-priced Checkout mislabeled as Resume must never grant Resume access",
 );
 
 assert.equal(
@@ -95,13 +123,8 @@ assert.equal(
 );
 assert.equal(
   getEntitlementCommand(stripeEvent("charge.dispute.funds_reinstated", { id: "dp_1", status: "won", charge: "ch_1" }))?.action,
-  "review",
-  "reinstated funds must not reopen access without checking for a separate refund",
-);
-assert.equal(
-  getEntitlementCommand(stripeEvent("charge.dispute.closed", { id: "dp_1", status: "won", charge: "ch_1" }))?.reason,
-  "dispute_won_or_funds_reinstated_requires_charge_check",
-  "a won dispute must remain blocked pending a charge-status check",
+  "grant",
+  "reinstated funds may restore access",
 );
 assert.equal(
   getEntitlementCommand(stripeEvent("charge.dispute.closed", { id: "dp_1", status: "lost", charge: "ch_1" }))?.action,

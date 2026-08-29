@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { RentalApplicationProCheckoutForm } from "@/components/tools/RentalApplicationProCheckoutForm";
+import { RentalApplicationProDecisionBoard } from "@/components/tools/RentalApplicationProDecisionBoard";
 import { Container } from "@/components/ui/Container";
 import { canCreateRentalApplicationTestCheckout, getRentalApplicationPaymentReadiness } from "@/lib/commerce";
 import { normalizeRentalApplicationProEntry } from "@/lib/rentalApplicationProAttribution";
@@ -57,30 +58,52 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
 
   return <>
     <RentalApplicationProVisitTracker entry={entry} checkoutAvailable={checkoutAvailable} />
-    <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "집 방문 체크리스트", path: "/property-inspection-checklist" }, { name: "Rental Pack Pro", path: "/rental-application-pro" }]} />
+    <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "집 방문 체크리스트", path: "/property-inspection-checklist" }, { name: "Rental Application Pack Pro", path: "/rental-application-pro" }]} />
     <Header />
     <main>
       <section className="border-b border-navy/15 py-12 sm:py-20">
         <Container>
           <Link href="/property-inspection-checklist" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 집 방문 체크리스트로 돌아가기</Link>
           {access === "required" && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">이 기기의 Rental Pack Pro 접근이 만료됐거나 확인되지 않았습니다. 결제 완료 화면에서 다시 열거나 이용권 복구를 사용해 주세요.</div>}
-          {access === "released" && <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">이 기기의 Rental Pack Pro 접근을 안전하게 해제했습니다. 구매 이용권은 유지됩니다.</div>}
-          {checkout === "cancelled" && <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">결제가 취소됐습니다. 청구되지 않았으며 준비가 되면 다시 시작할 수 있습니다.</div>}
+          {access === "released" && (
+            <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">
+              <p>이 기기의 Rental Pack Pro 접근을 안전하게 해제했습니다. 구매 이용권은 유지됩니다.</p>
+              <p className="mt-2 text-xs leading-5 text-muted">작성한 집 후보와 방문 점검은 이 브라우저에 남아 있습니다. 공용 기기라면 아래에서 Rental 로컬 기록도 따로 삭제하세요.</p>
+              <Link href="/data-transfer#rental-delete-heading" className="mt-3 inline-flex min-h-12 w-full items-center justify-center border border-navy px-4 py-2 font-semibold text-navy sm:w-auto">Rental 로컬 기록 삭제</Link>
+            </div>
+          )}
+          {checkout === "cancelled" && <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">Stripe 결제 창에서 돌아왔습니다. 이 주소만으로 결제 완료 여부를 판단할 수 없습니다. 완료 화면이나 영수증을 봤거나 상태가 불명확하면 다시 결제하지 말고 <Link href="/payment-help" className="font-semibold underline decoration-gold underline-offset-4">결제 상태 확인 순서</Link>를 이용하세요.</div>}
+          {entry === "property-inspection-checklist" && (
+            <section className="mt-5 border-l-2 border-gold bg-white px-5 py-4" aria-labelledby="rental-free-handoff-heading">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">무료 방문 점검 다음 단계</p>
+              <h2 id="rental-free-handoff-heading" className="mt-2 text-xl font-semibold text-navy">유효한 무료 방문 결과가 있으면 집 구분명과 점검 집계만 이어집니다.</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">현재 브라우저에 최대 24시간 보관된 결과를 Pro 작업공간에서 한 번 가져옵니다. 방문 메모와 세부 체크 결과는 옮기지 않으며, 원본 서류나 개인정보를 새로 수집하지 않습니다.</p>
+            </section>
+          )}
           <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end">
             <div className="max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Rental Pack Pro</p>
-              <h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">여러 집에 지원해도,<br /><span className="font-normal text-navy-light">준비와 연락을 놓치지 않게.</span></h1>
-              <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">신청자 프로필과 증빙 준비 상태는 재사용하고, 집별 서류·개인정보·제출일·후속 연락은 분리해 추적합니다. 영문 문구와 검토 가능한 패키지도 함께 만듭니다.</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Rental Application Pack Pro</p>
+              <h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">여러 집에 지원해도,<br /><span className="font-normal text-navy-light">준비와 후속 연락은 집마다.</span></h1>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">최대 20개 집 후보의 서류 준비율, 제출일과 다음 행동을 따로 추적하고, 공용 증빙·개인정보 점검·영문 연락·후속 기록까지 한곳에서 정리합니다.</p>
             </div>
             <aside className="border-l-2 border-gold pl-6">
-              <p className="text-sm font-semibold text-muted">{checkoutAvailable ? "1회 가격" : "검증 중인 1회 가격"}</p>
+              <p className="text-sm font-semibold text-muted">{checkoutAvailable ? "1회 가격" : "강화 버전 검증 중 · 결제 미오픈"}</p>
               <p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$14.90</p>
-              <p className="mt-2 text-sm leading-6 text-muted">구독 없이 최대 20개 집 후보를 현재 기기에서 반복 관리해요.</p>
+              <p className="mt-2 text-sm leading-6 text-muted">매달 빠져나가는 구독료 없이 한 번만 결제해요.</p>
             </aside>
           </div>
           <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 체크리스트 사용</Link>
-            <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">{checkoutAvailable ? "Pro 작업 공간 이용 가능" : "강화 버전 검증 중 · 결제 미오픈"}</span>
+            {checkoutAvailable ? (
+              <>
+                <Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 체크리스트 사용</Link>
+                <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">Pro 작업 공간 이용 가능</span>
+              </>
+            ) : (
+              <>
+                <Link href="/property-inspection-checklist#house-hunt-project" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-center text-sm font-semibold text-white hover:bg-navy-light">무료로 다음 행동 저장하기</Link>
+                <Link href="/property-inspection-checklist" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 text-center text-sm font-semibold text-navy hover:bg-surface">방문 체크리스트 사용</Link>
+              </>
+            )}
             <Link href="/rental-application-pro/restore" className="inline-flex min-h-12 items-center border border-navy px-5 text-sm font-semibold text-navy">이용권 복구</Link>
           </div>
           {checkoutAvailable && <div id="rental-pro-checkout" className="mt-5 scroll-mt-24"><RentalApplicationProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
@@ -89,7 +112,7 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
               ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다. 테스트 이용권과 결제 처리 기술 기록만 생성됩니다."
               : checkoutAvailable
                 ? "결제는 Stripe의 보안 결제 페이지에서 진행되며, 결제와 이용권 확인 뒤 작업 공간을 열 수 있어요."
-                : "현재는 가격과 결제 흐름을 검증하는 단계입니다. 실제 결제는 열리지 않았고 원본 서류도 수집하지 않습니다."}
+                : "Rental Pack 결제는 아직 열리지 않았어요. 대신 무료 집 구하기 프로젝트에서 지원·계약·입주 체크 상태와 목표일을 현재 브라우저에 저장할 수 있습니다."}
           </p>
           {!checkoutAvailable && <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-navy"><Link href="/purchase-information" className="underline decoration-gold underline-offset-4">구매·환불 안내</Link><Link href="/privacy" className="underline decoration-gold underline-offset-4">결제 데이터 처리 안내</Link></div>}
         </Container>
@@ -99,7 +122,9 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
 
       <section className="border-y border-navy/15 bg-white py-14 sm:py-20"><Container><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">집을 본 뒤 신청까지</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">네 단계로 차근차근 준비해요.</h2><ol className="mt-10 grid border-t border-navy/20 md:grid-cols-2">{features.map(([number, eyebrow, title], index) => <li key={number} className={`min-h-56 border-b border-navy/20 p-6 sm:p-8 ${index % 2 === 0 ? "md:border-r" : ""}`}><div className="flex items-center justify-between"><span className="font-mono text-sm text-gold">{number} / 04</span><span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{eyebrow}</span></div><h3 className="mt-9 text-xl font-semibold leading-8 text-navy">{title}</h3></li>)}</ol></Container></section>
 
-      <section className="py-14 sm:py-20"><Container><div className="grid gap-10 lg:grid-cols-[18rem_1fr]"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">무료 도구는 그대로</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy">집 점검은 무료로,<br />신청 정리는 Pro로.</h2><p className="mt-4 text-sm leading-6 text-muted">집 상태와 계약, 공식 정보는 계속 무료로 확인할 수 있어요.</p></div><div className="min-w-0 overflow-x-auto border-t border-navy/20"><table className="w-full border-collapse text-left text-sm"><thead><tr className="border-b border-navy/20"><th className="px-3 py-4 font-semibold text-navy sm:px-4">기능</th><th className="w-16 px-2 py-4 text-center font-semibold text-navy sm:w-28">무료</th><th className="w-16 bg-gold/10 px-2 py-4 text-center font-semibold text-navy sm:w-28">Pro</th></tr></thead><tbody>{comparison.map(([label, free, pro]) => <tr key={label} className="border-b border-border"><th className="px-3 py-4 font-medium text-navy sm:px-4">{label}</th><td className="px-2 py-4 text-center text-muted"><span className="sr-only">{free ? "포함" : "미포함"}</span><span aria-hidden="true">{free ? "✓" : "—"}</span></td><td className="bg-gold/10 px-2 py-4 text-center font-semibold text-navy"><span className="sr-only">{pro ? "포함" : "미포함"}</span><span aria-hidden="true">{pro ? "✓" : "—"}</span></td></tr>)}</tbody></table></div></div></Container></section>
+      <RentalApplicationProDecisionBoard checkoutAvailable={checkoutAvailable} />
+
+      <section id="rental-free-pro-comparison" className="scroll-mt-24 py-14 sm:py-20"><Container><div className="grid gap-10 lg:grid-cols-[18rem_1fr]"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">무료 도구는 그대로</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy">집 점검은 무료로,<br />신청 정리는 Pro로.</h2><p className="mt-4 text-sm leading-6 text-muted">집 상태와 계약, 공식 정보는 계속 무료로 확인할 수 있어요.</p></div><div className="min-w-0 overflow-x-auto border-t border-navy/20"><table className="w-full border-collapse text-left text-sm"><thead><tr className="border-b border-navy/20"><th className="px-3 py-4 font-semibold text-navy sm:px-4">기능</th><th className="w-16 px-2 py-4 text-center font-semibold text-navy sm:w-28">무료</th><th className="w-16 bg-gold/10 px-2 py-4 text-center font-semibold text-navy sm:w-28">Pro</th></tr></thead><tbody>{comparison.map(([label, free, pro]) => <tr key={label} className="border-b border-border"><th className="px-3 py-4 font-medium text-navy sm:px-4">{label}</th><td className="px-2 py-4 text-center text-muted"><span className="sr-only">{free ? "포함" : "미포함"}</span><span aria-hidden="true">{free ? "✓" : "—"}</span></td><td className="bg-gold/10 px-2 py-4 text-center font-semibold text-navy"><span className="sr-only">{pro ? "포함" : "미포함"}</span><span aria-hidden="true">{pro ? "✓" : "—"}</span></td></tr>)}</tbody></table></div></div></Container></section>
 
       <section className="border-t border-navy/15 bg-white py-14 sm:py-20"><Container><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">신청 전에 살펴본 공식 자료</p><h2 className="mt-2 text-2xl font-semibold text-navy">렌트 신청 전에 확인해 두면 좋아요</h2><ul className="mt-6 grid gap-px bg-border lg:grid-cols-3">{officialSources.map((source) => <li key={source.href} className="bg-surface"><a href={source.href} target="_blank" rel="noreferrer" className="group flex h-full min-h-64 flex-col p-6 transition hover:bg-white"><span className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">{source.name}</span><strong className="mt-3 text-xl text-navy">{source.title}</strong><span className="mt-4 text-sm leading-7 text-muted">{source.description}</span><span className="mt-auto pt-6 text-sm font-semibold text-navy">공식 원문 열기 <span className="transition group-hover:translate-x-1">↗</span></span></a></li>)}</ul></Container></section>
 

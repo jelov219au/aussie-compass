@@ -1,7 +1,13 @@
 export const resumeProEntries = [
+  "job-ad-checker",
+  "article-resume-template",
   "article-job-search-plan",
   "article-achievement-examples",
+  "article-cover-letter-checklist",
   "resume-builder-complete",
+  "home-premium",
+  "pro-finder",
+  "pro-catalog-card",
 ] as const;
 
 export type ResumeProEntry = (typeof resumeProEntries)[number] | "direct";

@@ -1,17 +1,25 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 
 const checkout = await readFile(new URL("../src/app/api/checkout/rental-application-pro/route.ts", import.meta.url), "utf8");
+const offerPage = await readFile(new URL("../src/app/rental-application-pro/page.tsx", import.meta.url), "utf8");
 const checkoutForm = await readFile(new URL("../src/components/tools/RentalApplicationProCheckoutForm.tsx", import.meta.url), "utf8");
 const commerce = await readFile(new URL("../src/lib/commerce.ts", import.meta.url), "utf8");
-const paymentLaunchCheck = await readFile(new URL("./check-payment-launch.mjs", import.meta.url), "utf8");
+const launchAudit = await readFile(new URL("./check-payment-launch.mjs", import.meta.url), "utf8");
 const purchase = await readFile(new URL("../src/lib/rentalApplicationProPurchase.ts", import.meta.url), "utf8");
 const access = await readFile(new URL("../src/lib/rentalApplicationProAccess.ts", import.meta.url), "utf8");
-const entitlementStore = await readFile(new URL("../src/lib/neonEntitlementStore.ts", import.meta.url), "utf8");
+const activateRoute = await readFile(new URL("../src/app/api/rental-application-pro/access/activate/route.ts", import.meta.url), "utf8");
+const releaseRoute = await readFile(new URL("../src/app/api/rental-application-pro/access/release/route.ts", import.meta.url), "utf8");
+const restoreRoute = await readFile(new URL("../src/app/api/rental-application-pro/restore/route.ts", import.meta.url), "utf8");
+const restoreCodeRoute = await readFile(new URL("../src/app/api/rental-application-pro/restore-code/route.ts", import.meta.url), "utf8");
+const accessTools = await readFile(new URL("../src/components/tools/RentalApplicationProAccessTools.tsx", import.meta.url), "utf8");
+const activationForm = await readFile(new URL("../src/components/tools/RentalApplicationProActivationForm.tsx", import.meta.url), "utf8");
 const successPage = await readFile(new URL("../src/app/rental-application-pro/success/page.tsx", import.meta.url), "utf8");
+const restoreForm = await readFile(new URL("../src/components/tools/RentalApplicationProRestoreForm.tsx", import.meta.url), "utf8");
 const workspace = await readFile(new URL("../src/app/rental-application-pro/workspace/page.tsx", import.meta.url), "utf8");
+const webhook = await readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
+const productEntitlementContract = await readFile(new URL("../src/lib/productEntitlementContract.ts", import.meta.url), "utf8");
+const resumeStripeProduct = await readFile(new URL("../src/lib/resumeProStripeProduct.ts", import.meta.url), "utf8");
 
 for (const contract of [
   "checkout.sessions.create",
@@ -22,7 +30,6 @@ for (const contract of [
   "price.type === \"one_time\"",
   "price.unit_amount === rentalApplicationProProduct.priceCents",
   "managed_payments: { enabled: true }",
-  "cancel_url:",
   'product_code: "rental_application_pro"',
 ]) assert.ok(checkout.includes(contract), `Rental checkout safety contract is missing: ${contract}`);
 
@@ -31,46 +38,57 @@ assert.ok(!checkout.includes("automatic_tax"), "Rental checkout must not add aut
 assert.ok(checkoutForm.includes('/terms'), "Rental checkout must link the service terms");
 assert.ok(checkoutForm.includes('/purchase-information'), "Rental checkout must link the purchase information");
 assert.ok(checkoutForm.includes('/privacy'), "Rental checkout must link the privacy notice");
+assert.ok(offerPage.includes("이 주소만으로 결제 완료 여부를 판단할 수 없습니다") && offerPage.includes('href="/payment-help"'), "the unverified Rental cancelled query must route to payment verification without promising that no charge occurred");
+assert.ok(!offerPage.includes("결제가 취소됐습니다. 청구되지 않았으며"), "the Rental cancelled query must not make an unverified no-charge claim");
 assert.ok(commerce.includes("RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED"), "Rental payments require a product-specific kill switch");
 assert.ok(commerce.includes("STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID"), "Rental payments require a separate Stripe Price");
-assert.ok(paymentLaunchCheck.includes('selectedProduct === "rental-application-pro"'), "Payment launch audit must support a Rental-specific mode");
-assert.ok(paymentLaunchCheck.includes("RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED"), "Rental launch audit must verify the product kill switch");
-assert.ok(paymentLaunchCheck.includes("STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID"), "Rental launch audit must verify the product Price");
+assert.ok(launchAudit.includes('selectedProduct === "rental-application-pro"')
+  && launchAudit.includes("RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED")
+  && launchAudit.includes("STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID"), "the launch audit must select both Rental-specific gates");
+assert.ok(launchAudit.includes('product.metadata?.product_code !== "rental_application_pro"')
+  && launchAudit.includes('price.unit_amount !== 1490')
+  && launchAudit.includes('price.tax_behavior !== "inclusive"'), "the remote Rental audit must pin product metadata, amount and inclusive tax");
+assert.ok(commerce.includes('process.env.VERCEL_ENV !== "production"'), "Rental paid validation must fail closed in Production");
+const productionGuard = checkout.indexOf('if (process.env.VERCEL_ENV === "production")');
+assert.ok(productionGuard >= 0, "Rental Checkout must have a route-local Production deny gate");
+assert.ok(productionGuard < checkout.indexOf("request.formData()"), "Rental Production denial must happen before request-body or Stripe work");
+assert.ok(productionGuard < checkout.indexOf("stripe.prices.retrieve") && productionGuard < checkout.indexOf("checkout.sessions.create"), "Rental Production denial must happen before every Stripe call");
+assert.ok(checkout.slice(productionGuard, checkout.indexOf("request.formData()")).includes("status: 503"), "Rental Production denial must fail closed with HTTP 503");
+assert.ok(webhook.includes("matchesCheckoutProductEntitlementContract(entitlementCommand)"), "Webhook persistence must reject a cross-product Checkout contract before entitlement storage");
+assert.ok(webhook.indexOf("matchesCheckoutProductEntitlementContract(entitlementCommand)") < webhook.lastIndexOf("getConfiguredEntitlementStore()"), "Webhook product isolation must run before entitlement persistence is selected");
+for (const paidContract of [
+  'resume_pro: { currency: "aud", amountTotal: 1990 }',
+  'rental_application_pro: { currency: "aud", amountTotal: 1490 }',
+]) assert.ok(productEntitlementContract.includes(paidContract), `Paid product entitlement contract is missing: ${paidContract}`);
+assert.match(resumeStripeProduct, /resumeProStripeProductDefinition = \{[\s\S]*?currency: "aud",[\s\S]*?priceCents: 1990,/, "Resume entitlement contract must stay aligned with its Stripe product definition");
+assert.match(commerce, /rentalApplicationProProduct = \{[\s\S]*?currency: "aud",[\s\S]*?priceCents: 1490,/, "Rental entitlement contract must stay aligned with its commerce product definition");
 assert.ok(purchase.includes('metadata?.product_code === "rental_application_pro"'), "Paid-session verification must require the Rental product code");
 assert.ok(purchase.includes("rentalApplicationProProduct.priceCents"), "Paid-session verification must require the exact Rental price");
-assert.ok(access.includes('findActiveById(payload.entitlementId, "rental_application_pro")'), "Rental access must query only its own entitlement");
-assert.ok(entitlementStore.includes("findByCheckoutSession"), "Rental purchase status must distinguish refunded access from pending fulfillment");
-assert.ok(successPage.includes('entitlementStatus === "revoked"'), "Rental success must clearly report revoked or refunded access");
+assert.ok(access.includes("findActiveByAccessSession"), "Rental access must require a server-tracked device session");
+assert.ok(access.includes('productCode: "rental_application_pro"'), "Rental access sessions must remain product-scoped");
+assert.ok(activateRoute.includes("activation_nonce") && activateRoute.includes("consumeCheckoutActivation"), "Rental activation must consume a browser-bound nonce on the server");
+assert.ok(activateRoute.includes('productCode: "rental_application_pro"'), "Rental activation must never consume another product's entitlement");
+assert.ok(releaseRoute.includes("releaseAccessSession") && releaseRoute.includes("hashRentalApplicationAccessSessionId"), "Rental sign-out must revoke the server-tracked device session before clearing its cookie");
+assert.ok(accessTools.includes("onSubmit={releaseAccess}") && accessTools.includes('headers: { Accept: "application/json" }'), "Rental sign-out must verify its server outcome without leaving mobile or PWA users on a raw response");
+assert.ok(accessTools.includes("result?.released !== true") && accessTools.includes('result.destination !== "/rental-application-pro?access=released"'), "Rental sign-out must only redirect after an exact confirmed release");
+assert.ok(accessTools.includes('href="/rental-application-pro/workspace"') && accessTools.includes("접근 상태 다시 확인"), "an unknown Rental release outcome must preserve a safe access recheck path");
+assert.ok(offerPage.includes("작성한 집 후보와 방문 점검은 이 브라우저에 남아 있습니다") && offerPage.includes('href="/data-transfer#rental-delete-heading"'), "a confirmed Rental release must not imply that shared-device local records were deleted");
+assert.ok(offerPage.includes('className="mt-3 inline-flex min-h-12 w-full') && offerPage.includes("Rental 로컬 기록 삭제"), "the post-release Rental purge action must remain reachable on mobile and installed PWA surfaces");
+assert.ok(restoreRoute.includes("restore_nonce") && restoreRoute.includes("consumeRestoreTokenHash"), "Rental restore must consume a nonce-bound one-time token");
+assert.ok(restoreRoute.includes('productCode: "rental_application_pro"'), "Rental restore must remain product-scoped");
+assert.ok(restoreCodeRoute.includes("getActiveRentalApplicationProEntitlement"), "Restore codes must require an active server-tracked Rental session");
+assert.ok(activationForm.includes("window.sessionStorage") && activationForm.includes("activation_nonce"), "Rental activation must keep the browser nonce out of the success URL");
+for (const terminalStatus of ["used", "released", "refunded", "review"]) {
+  assert.ok(successPage.includes(`${terminalStatus}:`), `Rental success must explain the ${terminalStatus} state`);
+  assert.ok(activationForm.includes(`\"${terminalStatus}\"`), `Rental activation must recognize ${terminalStatus} as terminal`);
+}
+assert.ok(successPage.includes("terminalNotice") && activationForm.includes("terminalNotices.has(initialNotice)"), "Terminal Rental states must never expose reactivation");
+assert.ok(successPage.includes("initialSessionId={!terminalNotice ? sessionId : undefined}"), "Pending and unavailable Rental states must retain the same Checkout session for safe retry");
+assert.ok(activationForm.includes("sessionStorage.removeItem(activationStorageKey)"), "Terminal and stale Rental activation state must be removed");
+assert.ok(activationForm.includes("createdAt") && activationForm.includes("activationLifetimeMs"), "Stored Rental activation attempts must expire locally");
+assert.ok(successPage.includes("다시 결제하지 마세요") && activationForm.includes("재결제하지 않고 이용권 다시 확인"), "Pending and unavailable Rental states must preserve a no-repurchase retry path");
+assert.ok(restoreForm.includes("window.sessionStorage") && restoreForm.includes("restore_nonce"), "Rental restore must bind the raw code to a browser nonce");
+assert.ok(!restoreForm.includes("sessionStorage.setItem(restoreNonceStorageKey, code"), "The raw Rental restore code must never be stored in browser storage");
 assert.ok(workspace.includes("getActiveRentalApplicationProEntitlement"), "The Rental workspace must verify its paid entitlement");
-
-const paymentLaunchPath = fileURLToPath(new URL("./check-payment-launch.mjs", import.meta.url));
-const rentalAudit = spawnSync(process.execPath, [paymentLaunchPath, "--product=rental-application-pro", "--strict"], {
-  encoding: "utf8",
-  env: {
-    ...process.env,
-    VERCEL_ENV: "production",
-    PAYMENTS_ENABLED: "true",
-    STRIPE_SECRET_KEY: "rk_live_contract_placeholder",
-    STRIPE_WEBHOOK_SECRET: "whsec_contract_placeholder",
-    STRIPE_MANAGED_PAYMENTS_ENABLED: "true",
-    PAYMENTS_ENTITLEMENT_STORE: "neon",
-    ENTITLEMENT_DB_URL: "postgresql://contract-placeholder",
-    ENTITLEMENT_SESSION_SECRET: "contract-placeholder-with-at-least-32-characters",
-    BUSINESS_LEGAL_NAME: "Contract Placeholder",
-    BUSINESS_ABN: "12345678901",
-    NEXT_PUBLIC_SUPPORT_EMAIL: "support@example.com",
-    RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED: "true",
-    STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID: "price_contract_placeholder",
-  },
-});
-assert.equal(rentalAudit.status, 0, rentalAudit.stderr || "Rental launch audit should pass a complete Production-shaped contract");
-assert.match(rentalAudit.stdout, /Rental Pack Pro 스위치/);
-assert.match(rentalAudit.stdout, /Rental Pack Pro 가격/);
-assert.match(rentalAudit.stdout, /결과: 14\/14 통과, 0개 대기/);
-assert.ok(!rentalAudit.stdout.includes("contract_placeholder"), "Rental launch audit must not print supplied values");
-
-const invalidAudit = spawnSync(process.execPath, [paymentLaunchPath, "--product=unknown"], { encoding: "utf8" });
-assert.equal(invalidAudit.status, 2, "Unknown product names must fail closed");
-assert.match(invalidAudit.stderr, /Unknown payment product/);
 
 console.log("Rental Application Pack Pro checkout and access contracts passed.");

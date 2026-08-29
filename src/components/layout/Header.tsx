@@ -91,6 +91,14 @@ export function Header() {
           aria-label="모바일 메뉴"
         >
           <Container className="flex flex-col gap-1 py-3">
+            <Link
+              href="/resume-builder"
+              className="mb-1 flex min-h-11 items-center justify-between rounded-lg bg-gold/15 px-3 py-2.5 text-sm font-semibold text-navy transition-colors hover:bg-gold/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
+              onClick={() => setMenuOpen(false)}
+            >
+              <span>무료 영문 이력서 빌더</span>
+              <span aria-hidden="true">→</span>
+            </Link>
             {navLinks.map((link) => (
               <Link
                 key={link.href}

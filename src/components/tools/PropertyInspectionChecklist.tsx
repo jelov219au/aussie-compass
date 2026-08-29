@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { createRentalReadyNowHandoff, rentalReadyNowHandoffStorageKey } from "@/lib/rentalReadyNowHandoff";
+import { propertyInspectionStorageKey } from "@/lib/rentalApplicationProDeviceStorage";
 
 type Mode = "share" | "rent" | "buy";
 type Status = "ok" | "concern";
@@ -61,8 +62,6 @@ const groups: Group[] = [
   ]},
 ];
 
-const storageKey = "aussie-compass-property-inspection-v1";
-
 export function PropertyInspectionChecklist() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("share");
@@ -73,8 +72,8 @@ export function PropertyInspectionChecklist() {
   const [copied, setCopied] = useState(false);
   const [handoffError, setHandoffError] = useState("");
 
-  useEffect(() => { try { const saved = localStorage.getItem(storageKey); if (saved) { const data = JSON.parse(saved); setMode(data.mode || "share"); setPropertyName(data.propertyName || ""); setStatuses(data.statuses || {}); setNotes(data.notes || ""); } } catch {} setLoaded(true); }, []);
-  useEffect(() => { if (!loaded) return; try { localStorage.setItem(storageKey, JSON.stringify({ mode, propertyName, statuses, notes })); } catch {} }, [mode, propertyName, statuses, notes, loaded]);
+  useEffect(() => { try { const saved = localStorage.getItem(propertyInspectionStorageKey); if (saved) { const data = JSON.parse(saved); setMode(data.mode || "share"); setPropertyName(data.propertyName || ""); setStatuses(data.statuses || {}); setNotes(data.notes || ""); } } catch {} setLoaded(true); }, []);
+  useEffect(() => { if (!loaded) return; try { localStorage.setItem(propertyInspectionStorageKey, JSON.stringify({ mode, propertyName, statuses, notes })); } catch {} }, [mode, propertyName, statuses, notes, loaded]);
 
   const visibleGroups = useMemo(() => groups.map((group) => ({ ...group, items: group.items.filter((item) => !item.modes || item.modes.includes(mode)) })).filter((group) => group.items.length), [mode]);
   const items = visibleGroups.flatMap((group) => group.items);

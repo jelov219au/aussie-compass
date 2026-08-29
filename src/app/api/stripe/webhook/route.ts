@@ -1,8 +1,21 @@
-import { after, NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 
 import { getEntitlementCommand } from "@/lib/entitlements";
+import { matchesCheckoutProductEntitlementContract } from "@/lib/productEntitlementContract";
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
+import { FIRST_SALE_PRODUCT_CODE } from "@/lib/firstSaleGate";
+import { FirstSalePaymentIntentContractError, verifyFirstSalePaymentIntent } from "@/lib/firstSalePaymentIntent";
+import {
+  firstSaleManualMonitoringTarget,
+  isFirstSaleMonitoredModeConfigured,
+} from "@/lib/firstSaleMonitoredMode";
+import { getConfiguredFirstSaleGate } from "@/lib/neonFirstSaleGate";
+import { getConfiguredPaymentAlertOutbox } from "@/lib/neonPaymentAlertOutbox";
+import {
+  deliverDurablePaymentOperatorAlert,
+  getPaymentOperatorAlertKind,
+} from "@/lib/paymentAlertOutbox";
 import { paymentAlertsConfigured, sendStripeOperatorAlert } from "@/lib/paymentAlerts";
 import { getStripe } from "@/lib/stripe";
 
@@ -14,6 +27,26 @@ function webhookResponse(body: Record<string, unknown>, status = 200) {
   return NextResponse.json(body, {
     status,
     headers: { "Cache-Control": "no-store" },
+  });
+}
+
+function stripeReferenceSuffix(value: string) {
+  return value.slice(-8);
+}
+
+function logFirstSaleManualMonitoring(
+  event: Stripe.Event,
+  alertKind: ReturnType<typeof getPaymentOperatorAlertKind>,
+  reason: "smtp_not_configured" | "smtp_delivery_unavailable",
+) {
+  console.warn("[payments] Manual first-sale monitoring required.", {
+    eventRef: stripeReferenceSuffix(event.id),
+    type: event.type,
+    alertKind,
+    reason,
+    monitoring: firstSaleManualMonitoringTarget,
+    durableOutbox: "pending",
+    salesGate: "single-first-sale",
   });
 }
 
@@ -58,11 +91,20 @@ export async function POST(request: NextRequest) {
   const expectsLiveEvent = process.env.VERCEL_ENV === "production";
 
   if (event.livemode !== expectsLiveEvent) {
-    console.warn("Rejected Stripe webhook from the wrong environment", { eventId: event.id, type: event.type });
+    console.warn("Rejected Stripe webhook from the wrong environment", { eventRef: stripeReferenceSuffix(event.id), type: event.type });
     return webhookResponse({ error: "Webhook environment mismatch." }, 400);
   }
 
+  if (!matchesCheckoutProductEntitlementContract(entitlementCommand)) {
+    console.warn("Rejected Stripe checkout entitlement with a product contract mismatch", {
+      eventRef: stripeReferenceSuffix(event.id),
+      type: event.type,
+    });
+    return webhookResponse({ error: "Checkout product entitlement mismatch." }, 503);
+  }
+
   const entitlementStore = getConfiguredEntitlementStore();
+  const alertOutbox = getConfiguredPaymentAlertOutbox();
 
   if (!entitlementStore) {
     // Returning a failure keeps Stripe retrying instead of silently losing a paid order.
@@ -71,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.info("Verified Stripe test webhook without persistence", {
-      eventId: event.id,
+      eventRef: stripeReferenceSuffix(event.id),
       type: event.type,
       entitlementAction: entitlementCommand.action,
       reason: entitlementCommand.reason,
@@ -79,51 +121,174 @@ export async function POST(request: NextRequest) {
     return webhookResponse({ received: true, testOnly: true, persisted: false });
   }
 
+  let entitlementPersisted = false;
+
   try {
-    const result = await entitlementStore.applyStripeEvent({
-      receipt: {
-        eventId: event.id,
-        eventType: event.type,
+    const receipt = {
+      eventId: event.id,
+      eventType: event.type,
+      livemode: event.livemode,
+      createdAt: new Date(event.created * 1000),
+    };
+    let result: { outcome: "processed" | "duplicate" | "ignored_stale" | "tombstoned" };
+
+    if (entitlementCommand.action === "grant" && entitlementCommand.productCode === FIRST_SALE_PRODUCT_CODE) {
+      const firstSaleGate = getConfiguredFirstSaleGate();
+
+      if (!firstSaleGate) {
+        return webhookResponse({ error: "First-sale fulfillment is not configured." }, 503);
+      }
+
+      if (
+        !entitlementCommand.checkoutSessionId
+        || !entitlementCommand.paymentIntentId
+        || !entitlementCommand.customerId
+        || entitlementCommand.currency !== "aud"
+        || entitlementCommand.amountTotal !== 1990
+      ) {
+        throw new FirstSalePaymentIntentContractError();
+      }
+
+      // Resolve latest_charge before the database call. The charge and
+      // PaymentIntent are then stored in the same atomic gate+grant transaction,
+      // allowing charge-only refunds/disputes to serialize with the first grant.
+      const paymentIntent = await getStripe().paymentIntents.retrieve(entitlementCommand.paymentIntentId);
+      const chargeId = verifyFirstSalePaymentIntent(paymentIntent, {
+        paymentIntentId: entitlementCommand.paymentIntentId,
+        customerId: entitlementCommand.customerId,
         livemode: event.livemode,
-        createdAt: new Date(event.created * 1000),
-      },
-      command: entitlementCommand,
-    });
+        currency: "aud",
+        amountCents: 1990,
+      });
+
+      // The paid event locks sales and grants access in one DB transaction.
+      // Refunds, disputes and stale webhooks never call the owner-only reopen path.
+      result = await firstSaleGate.applyPaidEventAndEntitlement({
+        receipt,
+        command: {
+          ...entitlementCommand,
+          action: "grant",
+          productCode: FIRST_SALE_PRODUCT_CODE,
+          checkoutSessionId: entitlementCommand.checkoutSessionId,
+          paymentIntentId: entitlementCommand.paymentIntentId,
+          chargeId,
+          customerId: entitlementCommand.customerId,
+          currency: "aud",
+          amountTotal: 1990,
+        },
+      });
+    } else {
+      result = await entitlementStore.applyStripeEvent({
+        receipt,
+        command: entitlementCommand,
+      });
+    }
 
     console.info("Persisted Stripe entitlement event", {
-      eventId: event.id,
+      eventRef: stripeReferenceSuffix(event.id),
       type: event.type,
       outcome: result.outcome,
       entitlementAction: entitlementCommand.action,
     });
+    entitlementPersisted = true;
 
-    if (result.outcome === "processed" && paymentAlertsConfigured()) {
-      after(async () => {
+    const alertKind = getPaymentOperatorAlertKind(event);
+    if (alertKind) {
+      const monitoredMode = event.livemode
+        && entitlementCommand.productCode === FIRST_SALE_PRODUCT_CODE
+        && isFirstSaleMonitoredModeConfigured();
+
+      if (!alertOutbox) {
+        if (event.livemode) throw new Error("The durable payment operator alert outbox is unavailable.");
+      } else if (!paymentAlertsConfigured()) {
+        if (monitoredMode) {
+          logFirstSaleManualMonitoring(event, alertKind, "smtp_not_configured");
+        } else if (event.livemode) {
+          throw new Error("Payment operator alert delivery is unavailable.");
+        }
+      } else {
+        let smtpDeliveryFailed = false;
         try {
-          const notification = await sendStripeOperatorAlert(event);
-          console.info("Handled Stripe operator alert", {
-            eventId: event.id,
+          const notification = await deliverDurablePaymentOperatorAlert(
+            event,
+            alertKind,
+            alertOutbox,
+            async (alertEvent, kind) => {
+              try {
+                return await sendStripeOperatorAlert(alertEvent, kind);
+              } catch {
+                smtpDeliveryFailed = true;
+                throw new Error("Payment operator alert transport failed.");
+              }
+            },
+          );
+          if (notification.outcome === "busy") {
+            throw new Error("The payment operator alert is leased by another worker.");
+          }
+          console.info("Handled durable Stripe operator alert", {
+            eventRef: stripeReferenceSuffix(event.id),
             type: event.type,
             outcome: notification.outcome,
           });
         } catch (error) {
-          // Entitlement delivery must stay independent from an operator email outage.
-          console.error("Unable to send Stripe operator alert", {
-            eventId: event.id,
-            type: event.type,
-            message: error instanceof Error ? error.message : "Unknown error",
-          });
+          // Only the SMTP transport may fall back to explicit manual monitoring.
+          // Missing/mismatched outbox evidence, leases and mark-sent failures
+          // continue to return 503 so Stripe retries the signed event.
+          if (!monitoredMode || !smtpDeliveryFailed) throw error;
+          logFirstSaleManualMonitoring(event, alertKind, "smtp_delivery_unavailable");
         }
-      });
+      }
     }
 
     return webhookResponse({ received: true, testOnly: !event.livemode, persisted: true, outcome: result.outcome });
-  } catch (error) {
-    console.error("Unable to persist Stripe entitlement event", {
-      eventId: event.id,
+  } catch {
+    console.error(entitlementPersisted
+      ? "Unable to deliver durable Stripe operator alert"
+      : "Unable to persist Stripe entitlement event", {
+      eventRef: stripeReferenceSuffix(event.id),
       type: event.type,
-      message: error instanceof Error ? error.message : "Unknown error",
+      category: entitlementPersisted ? "payment_alert_delivery" : "payment_persistence",
     });
+
+    if (
+      !entitlementPersisted
+      && entitlementCommand.action === "grant"
+      && entitlementCommand.productCode === FIRST_SALE_PRODUCT_CODE
+      && alertOutbox
+    ) {
+      try {
+        if (entitlementCommand.checkoutSessionId && entitlementCommand.paymentIntentId) {
+          await alertOutbox.enqueueFulfillmentAttention({
+            eventId: event.id,
+            eventType: event.type,
+            livemode: event.livemode,
+            productCode: FIRST_SALE_PRODUCT_CODE,
+            checkoutSessionId: entitlementCommand.checkoutSessionId,
+            paymentIntentId: entitlementCommand.paymentIntentId,
+          });
+          if (paymentAlertsConfigured()) {
+            const notification = await deliverDurablePaymentOperatorAlert(
+              event,
+              "fulfillment_attention",
+              alertOutbox,
+              sendStripeOperatorAlert,
+            );
+            if (notification.outcome === "busy") {
+              throw new Error("The fulfillment alert is leased by another worker.");
+            }
+          }
+        }
+      } catch {
+        // The response remains 503. Stripe retries the signed event; a durable
+        // pending intent, when present, is claimed again without reapplying the
+        // entitlement mutation.
+        console.error("Unable to persist or deliver fulfillment alert", {
+          eventRef: stripeReferenceSuffix(event.id),
+          type: event.type,
+        });
+      }
+    }
+
     return webhookResponse({ error: "Entitlement persistence failed." }, 503);
   }
 }

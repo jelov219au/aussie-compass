@@ -1,7 +1,16 @@
 import nodemailer from "nodemailer";
 import type Stripe from "stripe";
 
+import type { PaymentOperatorAlertKind } from "./paymentAlertOutbox";
+
 const defaultAlertEmail = "support@hojucompass.com";
+const productionSmtpHost = "smtppro.zoho.com.au";
+const productionSmtpUser = "owner@hojucompass.com";
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function normalizeEmail(value: string | undefined) {
+  return value?.trim().toLowerCase() ?? "";
+}
 
 const productLabels = {
   resume_pro: "Resume Pro",
@@ -30,9 +39,39 @@ type MailConfig = {
   to: string;
 };
 
+const paymentAlertTestAck = "SEND_ONE_MONITORED_SUPPORT_TEST";
+
+export function getPaymentAlertConfigurationStatus() {
+  const password = process.env.ZOHO_SMTP_APP_PASSWORD?.trim();
+  const user = process.env.ZOHO_SMTP_USER?.trim();
+  const host = process.env.ZOHO_SMTP_HOST?.trim().toLowerCase() || productionSmtpHost;
+  const port = Number(process.env.ZOHO_SMTP_PORT?.trim() || 465);
+  const from = process.env.PAYMENT_ALERT_FROM_EMAIL?.trim() || defaultAlertEmail;
+  const to = process.env.PAYMENT_ALERT_TO_EMAIL?.trim() || defaultAlertEmail;
+  const publicSupportEmail = normalizeEmail(process.env.NEXT_PUBLIC_SUPPORT_EMAIL) || defaultAlertEmail;
+
+  return {
+    alertsEnabled: process.env.PAYMENT_ALERTS_ENABLED?.trim().toLowerCase() === "true",
+    smtpPasswordPresent: Boolean(password),
+    smtpUserEmailValid: Boolean(user && emailPattern.test(user)),
+    smtpUserPinned: normalizeEmail(user) === productionSmtpUser,
+    smtpHostPinned: host === productionSmtpHost,
+    smtpPortPinned: port === 465,
+    fromEmailValid: emailPattern.test(from),
+    toEmailValid: emailPattern.test(to),
+    publicSupportEmailValid: emailPattern.test(publicSupportEmail),
+    fromMatchesSupport: normalizeEmail(from) === publicSupportEmail,
+    toMatchesSupport: normalizeEmail(to) === publicSupportEmail,
+  };
+}
+
 function expandableId(value: string | { id: string } | null | undefined) {
   if (!value) return undefined;
   return typeof value === "string" ? value : value.id;
+}
+
+function referenceSuffix(value: string | null | undefined) {
+  return value ? value.slice(-8) : "확인 필요";
 }
 
 function money(amount: number | null | undefined, currency: string | null | undefined) {
@@ -51,9 +90,10 @@ function money(amount: number | null | undefined, currency: string | null | unde
 function dashboardReference(event: Stripe.Event, paymentIntentId?: string) {
   const mode = event.livemode ? "live" : "test";
   return [
-    `Stripe event: ${event.id}`,
-    `Payment intent: ${paymentIntentId ?? "확인 필요"}`,
+    `Stripe event ref: ${referenceSuffix(event.id)}`,
+    `Payment intent ref: ${referenceSuffix(paymentIntentId)}`,
     `Mode: ${mode}`,
+    "Stripe Dashboard에서 전체 거래 기록을 확인하세요.",
   ].join("\n");
 }
 
@@ -64,7 +104,6 @@ function checkoutAlert(event: Stripe.Event, session: Stripe.Checkout.Session): O
   const product = productLabels[productCode];
   const amount = money(session.amount_total, session.currency);
   const paymentIntentId = expandableId(session.payment_intent);
-  const customerEmail = session.customer_details?.email ?? session.customer_email ?? "확인 필요";
 
   return {
     subject: `[Hoju Compass] 결제 완료 · ${product} · ${amount}`,
@@ -73,8 +112,7 @@ function checkoutAlert(event: Stripe.Event, session: Stripe.Checkout.Session): O
       "",
       `상품: ${product}`,
       `결제금액: ${amount}`,
-      `고객 이메일: ${customerEmail}`,
-      `Checkout session: ${session.id}`,
+      `Checkout session ref: ${referenceSuffix(session.id)}`,
       dashboardReference(event, paymentIntentId),
       "",
       "장부에는 고객 결제액(총매출), 환불, Stripe 수수료, 실제 입금액을 각각 분리해 기록하세요.",
@@ -95,10 +133,32 @@ function refundAlert(event: Stripe.Event, charge: Stripe.Charge): OperatorAlert 
       "",
       `환불금액: ${refunded}`,
       `원결제금액: ${original}`,
-      `Charge: ${charge.id}`,
+      `Charge ref: ${referenceSuffix(charge.id)}`,
       dashboardReference(event, paymentIntentId),
       "",
       "장부에서는 총매출을 삭제하지 말고 환불액을 별도 마이너스 항목으로 기록하세요.",
+    ].join("\n"),
+  };
+}
+
+function refundObjectAlert(event: Stripe.Event, refund: Stripe.Refund): OperatorAlert {
+  const paymentIntentId = expandableId(refund.payment_intent);
+  const chargeId = expandableId(refund.charge);
+  const amount = money(refund.amount, refund.currency);
+  const status = refund.status ?? "확인 필요";
+
+  return {
+    subject: `[Hoju Compass] 환불 이벤트 ${status} · ${amount}`,
+    text: [
+      "Stripe 환불 이벤트가 확인되었습니다.",
+      "",
+      `환불금액: ${amount}`,
+      `상태: ${status}`,
+      `Refund ref: ${referenceSuffix(refund.id)}`,
+      `Charge ref: ${referenceSuffix(chargeId)}`,
+      dashboardReference(event, paymentIntentId),
+      "",
+      "Stripe Dashboard에서 환불 상태와 원거래를 확인하고, 장부에는 총매출과 환불액을 분리해 기록하세요.",
     ].join("\n"),
   };
 }
@@ -115,7 +175,7 @@ function disputeAlert(event: Stripe.Event, dispute: Stripe.Dispute): OperatorAle
       `분쟁금액: ${amount}`,
       `상태: ${dispute.status}`,
       `사유: ${dispute.reason}`,
-      `Dispute: ${dispute.id}`,
+      `Dispute ref: ${referenceSuffix(dispute.id)}`,
       dashboardReference(event, paymentIntentId),
       "",
       "Stripe Dashboard에서 답변 기한과 증빙 요청을 바로 확인하세요.",
@@ -123,13 +183,35 @@ function disputeAlert(event: Stripe.Event, dispute: Stripe.Dispute): OperatorAle
   };
 }
 
-export function buildStripeOperatorAlert(event: Stripe.Event): OperatorAlert | null {
+function fulfillmentAttentionAlert(event: Stripe.Event): OperatorAlert {
+  return {
+    subject: "[Hoju Compass] 결제 처리 확인 필요",
+    text: [
+      "결제 후 접근 처리 전에 운영 확인이 필요한 상황이 발생했습니다.",
+      "",
+      dashboardReference(event),
+      "",
+      "새 결제를 시작하거나 접근을 수동 부여하지 말고 Stripe Dashboard와 first-sale gate 기록을 함께 확인하세요.",
+    ].join("\n"),
+  };
+}
+
+export function buildStripeOperatorAlert(
+  event: Stripe.Event,
+  alertKind?: PaymentOperatorAlertKind,
+): OperatorAlert | null {
+  if (alertKind === "fulfillment_attention") return fulfillmentAttentionAlert(event);
+
   switch (event.type) {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded":
       return checkoutAlert(event, event.data.object as Stripe.Checkout.Session);
     case "charge.refunded":
       return refundAlert(event, event.data.object as Stripe.Charge);
+    case "refund.created":
+    case "refund.updated":
+    case "refund.failed":
+      return refundObjectAlert(event, event.data.object as Stripe.Refund);
     case "charge.dispute.created":
     case "charge.dispute.updated":
     case "charge.dispute.closed":
@@ -144,11 +226,25 @@ function getMailConfig(): MailConfig | null {
   if (process.env.PAYMENT_ALERTS_ENABLED?.trim().toLowerCase() !== "true") return null;
 
   const password = process.env.ZOHO_SMTP_APP_PASSWORD?.trim();
-  const user = process.env.ZOHO_SMTP_USER?.trim() || defaultAlertEmail;
-  const host = process.env.ZOHO_SMTP_HOST?.trim() || "smtppro.zoho.com";
+  const user = process.env.ZOHO_SMTP_USER?.trim();
+  const host = process.env.ZOHO_SMTP_HOST?.trim().toLowerCase() || productionSmtpHost;
   const port = Number(process.env.ZOHO_SMTP_PORT?.trim() || 465);
+  const from = process.env.PAYMENT_ALERT_FROM_EMAIL?.trim() || defaultAlertEmail;
+  const to = process.env.PAYMENT_ALERT_TO_EMAIL?.trim() || defaultAlertEmail;
+  const publicSupportEmail = normalizeEmail(process.env.NEXT_PUBLIC_SUPPORT_EMAIL) || defaultAlertEmail;
 
-  if (!password || !Number.isInteger(port) || port < 1 || port > 65535) return null;
+  if (
+    !password
+    || !user
+    || host !== productionSmtpHost
+    || port !== 465
+    || !emailPattern.test(user)
+    || normalizeEmail(user) !== productionSmtpUser
+    || !emailPattern.test(from)
+    || !emailPattern.test(to)
+    || normalizeEmail(from) !== publicSupportEmail
+    || normalizeEmail(to) !== publicSupportEmail
+  ) return null;
 
   return {
     host,
@@ -156,8 +252,8 @@ function getMailConfig(): MailConfig | null {
     secure: port === 465,
     user,
     password,
-    from: process.env.PAYMENT_ALERT_FROM_EMAIL?.trim() || user,
-    to: process.env.PAYMENT_ALERT_TO_EMAIL?.trim() || defaultAlertEmail,
+    from,
+    to,
   };
 }
 
@@ -165,12 +261,8 @@ export function paymentAlertsConfigured() {
   return getMailConfig() !== null;
 }
 
-export async function sendStripeOperatorAlert(event: Stripe.Event) {
-  const alert = buildStripeOperatorAlert(event);
-  const config = getMailConfig();
-  if (!alert || !config) return { outcome: "skipped" as const };
-
-  const transporter = nodemailer.createTransport({
+function createPaymentAlertTransport(config: MailConfig) {
+  return nodemailer.createTransport({
     host: config.host,
     port: config.port,
     secure: config.secure,
@@ -179,18 +271,72 @@ export async function sendStripeOperatorAlert(event: Stripe.Event) {
     greetingTimeout: 10_000,
     socketTimeout: 15_000,
   });
+}
 
-  await transporter.sendMail({
-    from: `Hoju Compass 결제 알림 <${config.from}>`,
-    to: config.to,
-    replyTo: defaultAlertEmail,
-    subject: alert.subject,
-    text: alert.text,
-    messageId: `<stripe-${event.id}@hojucompass.com>`,
-    headers: {
-      "X-Hoju-Compass-Stripe-Event": event.id,
-    },
-  });
+export async function runPaymentAlertTransportCheck({ sendTest = false } = {}) {
+  if (process.env.VERCEL_ENV !== "production" || process.env.PAYMENTS_ENABLED !== "false") {
+    throw new Error("Payment alert delivery checks require Production settings with Checkout explicitly off.");
+  }
+
+  const config = getMailConfig();
+  if (!config) throw new Error("Payment operator alerts are not configured.");
+  if (sendTest && process.env.PAYMENT_ALERT_TEST_ACK !== paymentAlertTestAck) {
+    throw new Error("The one-message delivery test was not explicitly acknowledged.");
+  }
+
+  const transporter = createPaymentAlertTransport(config);
+  try {
+    await transporter.verify();
+
+    if (sendTest) {
+      const checkedAt = new Date();
+      await transporter.sendMail({
+        from: `Hoju Compass 결제 알림 <${config.from}>`,
+        to: config.to,
+        replyTo: defaultAlertEmail,
+        subject: "[Hoju Compass] 결제 알림 전달 테스트 — 실제 결제 아님",
+        text: [
+          "Hoju Compass 운영자가 요청한 단일 결제 알림 전달 테스트입니다.",
+          "실제 결제, 환불 또는 고객 활동이 아닙니다.",
+          "받은 편지함 도착 여부와 Reply-To가 support@hojucompass.com인지 확인하세요.",
+          `요청 시각(UTC): ${checkedAt.toISOString()}`,
+        ].join("\n"),
+        messageId: `<payment-alert-delivery-test-${checkedAt.getTime()}@hojucompass.com>`,
+      });
+    }
+
+    return { transportVerified: true as const, testSent: sendTest };
+  } finally {
+    transporter.close();
+  }
+}
+
+export async function sendStripeOperatorAlert(
+  event: Stripe.Event,
+  alertKind?: PaymentOperatorAlertKind,
+) {
+  const alert = buildStripeOperatorAlert(event, alertKind);
+  const config = getMailConfig();
+  if (!alert) throw new Error("The signed Stripe event has no allowlisted operator alert.");
+  if (!config) throw new Error("Payment operator alerts are not configured.");
+
+  const transporter = createPaymentAlertTransport(config);
+
+  try {
+    await transporter.sendMail({
+      from: `Hoju Compass 결제 알림 <${config.from}>`,
+      to: config.to,
+      replyTo: defaultAlertEmail,
+      subject: alert.subject,
+      text: alert.text,
+      messageId: `<stripe-${alertKind ?? "event"}-${referenceSuffix(event.id)}@hojucompass.com>`,
+      headers: {
+        "X-Hoju-Compass-Stripe-Event-Ref": referenceSuffix(event.id),
+      },
+    });
+  } finally {
+    transporter.close();
+  }
 
   return { outcome: "sent" as const };
 }

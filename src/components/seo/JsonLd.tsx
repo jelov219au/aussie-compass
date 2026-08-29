@@ -1,4 +1,6 @@
-import { siteName, siteUrl } from "@/lib/site";
+import { siteAlternateNames, siteDescription, siteName, siteUrl } from "@/lib/site";
+import { getPublicSellerDetails } from "@/lib/publicSeller";
+import { serializeJsonLd } from "@/lib/jsonLd";
 
 type BreadcrumbItem = {
   name: string;
@@ -10,7 +12,7 @@ function JsonLd({ data }: { data: Record<string, unknown> }) {
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(data).replace(/</g, "\\u003c"),
+        __html: serializeJsonLd(data),
       }}
     />
   );
@@ -24,24 +26,19 @@ export function SiteJsonLd() {
         "@type": "WebSite",
         "@id": `${siteUrl}/#website`,
         name: siteName,
+        alternateName: siteAlternateNames,
         url: siteUrl,
         publisher: { "@id": `${siteUrl}/#organization` },
         inLanguage: "ko",
-        description: "호주 급여, 세금, Super 계산기와 한국어 생활 가이드를 제공하는 실용 정보 사이트입니다.",
-        potentialAction: {
-          "@type": "SearchAction",
-          target: {
-            "@type": "EntryPoint",
-            urlTemplate: `${siteUrl}/search?q={search_term_string}`,
-          },
-          "query-input": "required name=search_term_string",
-        },
+        description: siteDescription,
       }}
     />
   );
 }
 
 export function OrganizationJsonLd() {
+  const { email } = getPublicSellerDetails();
+
   return (
     <JsonLd
       data={{
@@ -49,6 +46,7 @@ export function OrganizationJsonLd() {
         "@type": "Organization",
         "@id": `${siteUrl}/#organization`,
         name: siteName,
+        alternateName: siteAlternateNames,
         url: siteUrl,
         logo: {
           "@type": "ImageObject",
@@ -56,12 +54,12 @@ export function OrganizationJsonLd() {
           width: 512,
           height: 512,
         },
-        contactPoint: {
+        contactPoint: email ? {
           "@type": "ContactPoint",
           contactType: "customer support",
-          email: "support@hojucompass.com",
+          email,
           availableLanguage: ["Korean", "English"],
-        },
+        } : undefined,
       }}
     />
   );
@@ -115,6 +113,80 @@ export function ArticleJsonLd({ title, description, path, category, publishedAt,
         author: { "@type": "Organization", name: siteName, url: siteUrl },
         publisher: { "@id": `${siteUrl}/#organization` },
         citation: sources?.map((source) => source.href),
+      }}
+    />
+  );
+}
+
+type ProductJsonLdProps = {
+  name: string;
+  description: string;
+  path: `/${string}`;
+  imagePath: `/${string}`;
+  currency: string;
+  priceCents: number;
+  available: boolean;
+};
+
+export function ProductJsonLd({ name, description, path, imagePath, currency, priceCents, available }: ProductJsonLdProps) {
+  const url = `${siteUrl}${path}`;
+
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "@id": `${url}#product`,
+        name,
+        description,
+        url,
+        image: `${siteUrl}${imagePath}`,
+        brand: { "@type": "Brand", name: siteName },
+        offers: {
+          "@type": "Offer",
+          url,
+          priceCurrency: currency.toUpperCase(),
+          price: (priceCents / 100).toFixed(2),
+          availability: available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        },
+      }}
+    />
+  );
+}
+
+type WebApplicationJsonLdProps = {
+  name: string;
+  description: string;
+  path: `/${string}`;
+  applicationCategory: "BusinessApplication" | "EducationalApplication" | "UtilitiesApplication";
+  featureList: string[];
+};
+
+export function WebApplicationJsonLd({ name, description, path, applicationCategory, featureList }: WebApplicationJsonLdProps) {
+  const url = `${siteUrl}${path}`;
+
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "@id": `${url}#web-application`,
+        name,
+        description,
+        url,
+        applicationCategory,
+        operatingSystem: "Any modern web browser",
+        browserRequirements: "Requires JavaScript",
+        inLanguage: "ko",
+        isAccessibleForFree: true,
+        offers: {
+          "@type": "Offer",
+          price: 0,
+          priceCurrency: "AUD",
+          availability: "https://schema.org/InStock",
+        },
+        featureList,
+        provider: { "@id": `${siteUrl}/#organization` },
       }}
     />
   );

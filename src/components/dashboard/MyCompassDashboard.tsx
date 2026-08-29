@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory, type ReadArticleRecord } from "@/lib/articleProgress";
+import { safeInternalNavigationPath } from "@/lib/safeNavigation";
 import { ResourceReadingProgress, type ResourceSummary } from "@/components/dashboard/ResourceReadingProgress";
+import { taxPrepRecordsStorageKey } from "@/lib/taxPrepStorage";
 
 type DashboardItem = { href: string; eyebrow: string; title: string; detail: string; progress?: number; active: boolean; action: string };
 type Bookmark = { href: string; title: string; savedAt: string };
@@ -11,6 +13,17 @@ type Bookmark = { href: string; title: string; savedAt: string };
 function readJson(key: string) {
   try { const value = localStorage.getItem(key); return value ? JSON.parse(value) : null; }
   catch { return null; }
+}
+
+function safeBookmarks(value: unknown): Bookmark[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const bookmark = entry as Partial<Bookmark>;
+    const href = safeInternalNavigationPath(bookmark.href);
+    if (!href || typeof bookmark.title !== "string" || typeof bookmark.savedAt !== "string") return [];
+    return [{ href, title: bookmark.title.slice(0, 160), savedAt: bookmark.savedAt }];
+  }).slice(0, 30);
 }
 
 function projectItem(key: string, total: number, href: string, eyebrow: string, title: string): DashboardItem {
@@ -38,9 +51,14 @@ function buildItems(): DashboardItem[] {
     items.unshift({ href: "/#route-finder", eyebrow: "맞춤 경로", title: `${personalPlan.stageLabel || "나의"} 3단계 계획`, detail: completed === personalPlan.steps.length ? "추천 단계를 모두 완료했습니다." : `${completed}/${personalPlan.steps.length}개 완료${nextStep?.title ? ` · 다음: ${nextStep.title}` : ""}`, progress: Math.round(completed / personalPlan.steps.length * 100), active: true, action: completed === personalPlan.steps.length ? "새 계획 만들기" : "계속하기" });
   }
 
+  const taxRecords = readJson(taxPrepRecordsStorageKey);
+  const taxRecordCount = Array.isArray(taxRecords) ? taxRecords.length : 0;
+  const taxRecordMonths = Array.isArray(taxRecords) ? new Set(taxRecords.map((record) => typeof record?.date === "string" ? record.date.slice(0, 7) : "").filter(Boolean)).size : 0;
+  items.push({ href: "/tax-prep-tracker", eyebrow: "연중 세금 준비", title: "택스 리턴 준비 장부", detail: taxRecordCount ? `${taxRecordCount}건 · ${taxRecordMonths}개월에 걸쳐 기록` : "매달 소득·지출 후보와 증빙 상태를 조금씩 남겨보세요.", progress: Math.round(taxRecordMonths / 12 * 100), active: taxRecordCount > 0, action: taxRecordCount ? "이번 달 기록" : "장부 시작" });
+
   const tax = readJson("aussie-compass-tax-return-checklist-v1");
   const taxCount = Array.isArray(tax) ? tax.length : 0;
-  items.push({ href: "/tax-return-guide", eyebrow: "EOFY", title: "택스 리턴 준비", detail: taxCount ? `${taxCount}/12개 완료` : "아직 시작하지 않았습니다.", progress: Math.round(taxCount / 12 * 100), active: Boolean(tax), action: tax ? "계속하기" : "시작하기" });
+  items.push({ href: "/tax-return-guide", eyebrow: "EOFY", title: "택스 리턴 제출 준비", detail: taxCount ? `${taxCount}/12개 완료` : "아직 시작하지 않았습니다.", progress: Math.round(taxCount / 12 * 100), active: Boolean(tax), action: tax ? "계속하기" : "시작하기" });
 
   const jobs = readJson("aussie-compass-job-tracker-v1");
   const jobCount = Array.isArray(jobs) ? jobs.length : 0;
@@ -74,7 +92,7 @@ export function MyCompassDashboard({ resourceArticles }: { resourceArticles: Res
   const refresh = useCallback(() => {
     setItems(buildItems());
     const savedBookmarks = readJson("aussie-compass-bookmarks-v1");
-    setBookmarks(Array.isArray(savedBookmarks) ? savedBookmarks : []);
+    setBookmarks(safeBookmarks(savedBookmarks));
     setReadArticles(readArticleHistory());
     setLoaded(true);
   }, []);

@@ -3,13 +3,25 @@
 import { useMemo, useState } from "react";
 
 const issues = {
+  payment: {
+    label: "결제 완료 여부를 확인하고 싶음",
+    steps: ["추가 결제를 하지 않기", "기존 결제 완료 화면이나 영수증에서 완료 상태 확인", "상태가 불명확하면 결제 참조 마지막 8자만으로 Hoju Compass 제품 지원에 문의"],
+  },
   pending: {
     label: "결제했는데 이용권이 열리지 않음",
     steps: ["같은 결제를 다시 하지 않기", "결제 완료 탭에서 제품 열기 다시 시도", "Stripe 영수증의 결제일과 제품명 확인"],
   },
+  duplicate: {
+    label: "중복 결제가 의심됨",
+    steps: ["추가 결제를 하지 않고 서로 다른 결제 완료 화면이나 영수증이 있는지 확인", "각 결제 참조는 전체 값 대신 마지막 8자만 기록", "두 결제가 모두 완료됐다고 단정하지 말고 Hoju Compass 제품 지원에 확인 요청"],
+  },
+  document: {
+    label: "영수증·인보이스 또는 거래 지원 문의",
+    steps: ["기존 문서만 열고 문서 원문이나 링크를 첨부하지 않기", "판매자·문서 발행자·거래 지원 경로가 명확한 경우만 확인하고, 불명확하면 추정하지 않기", "문서 종류와 결제 참조 마지막 8자만으로 Hoju Compass 제품 지원에 문의"],
+  },
   access: {
     label: "이 기기의 접근이 만료되거나 사라짐",
-    steps: ["저장해 둔 1회용 복구 코드 사용", "코드가 없다면 구매 증빙으로 지원 요청", "공용 기기라면 작업 후 접근 해제"],
+    steps: ["저장해 둔 1회용 복구 코드 사용", "코드가 없다면 다시 결제하거나 영수증·인보이스 원문·링크를 보내지 말고, 결제 참조 마지막 8자와 대략적인 결제 시각·시간대로 Hoju Compass 제품 지원에 문의하기", "지원팀은 4영업시간 이내 확인 결과 또는 다음 조치를 안내하는 것을 목표로 하며, 공용 기기라면 작업 후 접근 해제"],
   },
   recovery: {
     label: "복구 코드를 분실하거나 이미 사용함",
@@ -17,11 +29,11 @@ const issues = {
   },
   refund: {
     label: "환불 또는 제품 문제 해결 요청",
-    steps: ["문제가 발생한 기능과 시각 기록", "기대했던 결과와 실제 결과를 구분해 설명", "구매 이메일·결제일·제품명과 함께 지원 요청"],
+    steps: ["환불 요청은 환불 완료가 아님을 확인", "문제가 발생한 기능·시각과 기대한 결과를 실제 결과와 구분해 설명", "구매 이메일·결제일·제품명과 함께 지원 요청"],
   },
   unknown: {
     label: "기억나지 않는 결제 또는 보안 우려",
-    steps: ["Stripe 영수증의 판매자와 금액 확인", "Hoju Compass 지원 채널에 즉시 문의", "본인 결제가 아니라면 카드 발급사에도 신속히 알리기"],
+    steps: ["Stripe 영수증에 표시된 판매자와 금액을 확인하고, 판매자가 명확하지 않으면 그 점 기록", "Hoju Compass 지원 채널에 즉시 문의", "본인 결제가 아니라면 카드 발급사에도 신속히 알리기"],
   },
 } as const;
 
@@ -36,7 +48,7 @@ type ProductKey = keyof typeof products;
 
 export function PaymentSupportHelper({ supportEmail }: { supportEmail: string | null }) {
   const [product, setProduct] = useState<ProductKey>("resume_pro");
-  const [issue, setIssue] = useState<IssueKey>("pending");
+  const [issue, setIssue] = useState<IssueKey>("payment");
   const [status, setStatus] = useState("");
   const selected = issues[issue];
   const productLabel = products[product];
@@ -46,11 +58,11 @@ export function PaymentSupportHelper({ supportEmail }: { supportEmail: string | 
     `문제 유형: ${selected.label}`,
     "결제일: [직접 입력]",
     "구매에 사용한 이메일: [직접 입력]",
-    "Stripe 영수증 또는 결제 참조: [있다면 마지막 몇 글자만 입력]",
+    "Stripe 영수증 또는 결제 참조: [있다면 각 참조의 마지막 8자만 입력]",
     "발생한 문제: [개인정보를 제외하고 설명]",
     "이미 시도한 방법: [직접 입력]",
     "",
-    "카드번호 전체, CVC, 비밀번호, 신분증 사본은 포함하지 않았습니다.",
+    "카드번호 전체·일부, CVC, 비밀번호, 영수증 전체, 신분증 사본은 포함하지 않았습니다.",
   ].join("\n"), [productLabel, selected]);
 
   async function copyTemplate() {
@@ -78,7 +90,7 @@ export function PaymentSupportHelper({ supportEmail }: { supportEmail: string | 
       <select id="payment-issue" value={issue} onChange={(event) => setIssue(event.target.value as IssueKey)} className="mt-2 min-h-12 w-full border border-border bg-surface px-3 text-sm text-navy outline-none focus:border-gold">
         {Object.entries(issues).map(([value, item]) => <option key={value} value={value}>{item.label}</option>)}
       </select>
-      <ol className="mt-5 space-y-3">
+      <ol className="mt-5 space-y-3" aria-live="polite" aria-atomic="true" aria-label={`${selected.label} 확인 순서`}>
         {selected.steps.map((step, index) => <li key={step} className="flex gap-3 text-sm leading-6 text-muted"><span className="font-mono text-gold">0{index + 1}</span><span>{step}</span></li>)}
       </ol>
       <label className="mt-6 block text-sm font-semibold text-navy" htmlFor="support-template">복사할 문의 템플릿</label>

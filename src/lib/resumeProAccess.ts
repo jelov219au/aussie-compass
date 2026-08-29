@@ -7,8 +7,12 @@ import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import {
   createResumeProRestoreCode,
   decodeResumeProAccessToken,
+  deriveResumeProAccessSessionId,
+  deriveResumeProRestoreSourceHash,
   encodeResumeProAccessToken,
   hashResumeProRestoreCode,
+  hashResumeProRestoreNonce,
+  hashResumeProAccessSessionId,
   resumeProAccessLifetimeSeconds,
 } from "@/lib/resumeProTokens";
 
@@ -24,19 +28,19 @@ export function isEntitlementSessionConfigured() {
   return Boolean(getSessionSecret());
 }
 
-function encodeAccessToken(entitlement: EntitlementRecord) {
+function encodeAccessToken(entitlement: EntitlementRecord, accessSessionId: string) {
   const secret = getSessionSecret();
   if (!secret) throw new Error("Resume Pro access sessions are not configured.");
-  return encodeResumeProAccessToken(entitlement, secret);
+  return encodeResumeProAccessToken(entitlement, accessSessionId, secret);
 }
 
 function decodeAccessToken(value: string | undefined) {
   return decodeResumeProAccessToken(value, getSessionSecret());
 }
 
-export async function setResumeProAccessCookie(entitlement: EntitlementRecord) {
+export async function setResumeProAccessCookie(entitlement: EntitlementRecord, accessSessionId: string) {
   const cookieStore = await cookies();
-  cookieStore.set(accessCookieName, encodeAccessToken(entitlement), {
+  cookieStore.set(accessCookieName, encodeAccessToken(entitlement, accessSessionId), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
@@ -59,14 +63,42 @@ export async function clearResumeProAccessCookie() {
   });
 }
 
+export async function getResumeProAccessPayload() {
+  const cookieStore = await cookies();
+  return decodeAccessToken(cookieStore.get(accessCookieName)?.value);
+}
+
 export async function getActiveResumeProEntitlement() {
   const store = getConfiguredEntitlementStore();
   if (!store) return null;
 
-  const cookieStore = await cookies();
-  const payload = decodeAccessToken(cookieStore.get(accessCookieName)?.value);
+  const payload = await getResumeProAccessPayload();
   if (!payload) return null;
-  return store.findActiveById(payload.entitlementId, "resume_pro");
+  try {
+    return await store.findActiveByAccessSession({
+      entitlementId: payload.entitlementId,
+      productCode: "resume_pro",
+      accessSessionHash: hashResumeProAccessSessionId(payload.accessSessionId),
+    });
+  } catch {
+    return null;
+  }
+}
+
+export function createAccessSession(source: "activation" | "restore", sourceHash: string) {
+  const secret = getSessionSecret();
+  if (!secret) throw new Error("Resume Pro access sessions are not configured.");
+  const accessSessionId = deriveResumeProAccessSessionId(source, sourceHash, secret);
+  return {
+    accessSessionId,
+    accessSessionHash: hashResumeProAccessSessionId(accessSessionId),
+    accessSessionRefLast8: accessSessionId.slice(-8),
+    expiresAt: new Date(Date.now() + resumeProAccessLifetimeSeconds * 1000),
+  };
+}
+
+export function hashAccessSessionId(accessSessionId: string) {
+  return hashResumeProAccessSessionId(accessSessionId);
 }
 
 export function createRestoreCode() {
@@ -75,4 +107,10 @@ export function createRestoreCode() {
 
 export function hashRestoreCode(token: string) {
   return hashResumeProRestoreCode(token);
+}
+
+export function createRestoreAccessSession(tokenHash: string, nonce: string) {
+  const nonceHash = hashResumeProRestoreNonce(nonce);
+  const sourceHash = deriveResumeProRestoreSourceHash(tokenHash, nonceHash);
+  return { nonceHash, accessSession: createAccessSession("restore", sourceHash) };
 }

@@ -7,8 +7,8 @@ import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "호주 생활 무료 도구 | Hoju Compass",
-  description: "호주 급여, 생활비 계산기와 영문 이력서 빌더를 한곳에서 이용하세요.",
+  title: "호주 워홀·정착 무료 도구 | Hoju Compass",
+  description: "워홀 출국 준비, 첫 30일 정착, 집·중고차 찾기, 취업과 연중 택스 준비 도구를 한곳에서 이용하세요.",
   path: "/tools",
 });
 
@@ -50,6 +50,15 @@ const availableTools: DirectoryTool[] = [
     categories: ["arrival", "home", "money"],
   },
   {
+    href: "/rail-work-alerts",
+    eyebrow: "출발 전 다시 확인",
+    title: "철도 작업 확인 지역 저장",
+    description: "자주 쓰는 동네·역을 이 브라우저에 저장하고 지도 위치, 공식 작업 공지와 출발 전 체크리스트를 반복해서 확인해요.",
+    features: ["최대 5곳 로컬 저장", "NSW·VIC·QLD 공식 링크", "날짜·대체교통 체크"],
+    cta: "확인 지역 저장하기",
+    categories: ["arrival", "home"],
+  },
+  {
     href: "/overseas-driver-licence-guide",
     eyebrow: "한국 면허로 운전하기",
     title: "주별 해외면허·면허 전환 가이드",
@@ -75,7 +84,6 @@ const availableTools: DirectoryTool[] = [
     features: ["2025–26·2026–27 세율", "Resident·워홀 유형", "급여 비교"],
     cta: "급여 계산하기",
     categories: ["arrival", "work", "money"],
-    featured: true,
   },
   {
     href: "/cost-of-living-calculator",
@@ -93,6 +101,15 @@ const availableTools: DirectoryTool[] = [
     description: "한국어로 적은 강점을 자연스러운 영문 초안으로 바꾸고, 원하는 디자인의 이력서를 만들 수 있어요.",
     features: ["영문 문장 도우미", "실시간 A4 미리보기", "PDF·백업 저장"],
     cta: "이력서 만들기",
+    categories: ["work"],
+  },
+  {
+    href: "/resume-job-ad-checker",
+    eyebrow: "실제 공고가 생겼을 때",
+    title: "이력서·Job Ad 공고 맞춤 점검기",
+    description: "이력서와 채용 공고를 서버 전송 없이 비교하고, 같은 문구와 실제 경력을 먼저 확인할 항목을 구분해요.",
+    features: ["로컬 텍스트 비교", "ATS 점수·합격 예측 없음", "무료 Builder 연결"],
+    cta: "공고 맞춤 근거 확인하기",
     categories: ["work"],
   },
   {
@@ -123,6 +140,15 @@ const availableTools: DirectoryTool[] = [
     categories: ["arrival", "work"],
   },
   {
+    href: "/tax-prep-tracker",
+    eyebrow: "매달 10분 EOFY 준비",
+    title: "연중 택스 리턴 준비 장부",
+    description: "7월에 몰아서 준비하지 않도록 소득, 업무 관련 지출 후보와 증빙 상태를 현재 브라우저에 조금씩 쌓아두세요.",
+    features: ["회계연도별 로컬 기록", "증빙 누락 확인", "CSV 백업"],
+    cta: "이번 달 기록 남기기",
+    categories: ["money", "annual"],
+  },
+  {
     href: "/tax-return-guide",
     eyebrow: "EOFY 준비",
     title: "택스 리턴 준비 허브",
@@ -151,11 +177,11 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/used-car-comparison",
-    eyebrow: "차량 구매",
-    title: "중고차 구매 비교표",
-    description: "차값뿐 아니라 Rego와 보험, 정비, 연료비까지 더해 최대 3대의 실제 부담을 비교할 수 있어요.",
-    features: ["첫 1년 비용", "PPSR 확인", "최대 3대 비교"],
-    cta: "차량 비교하기",
+    eyebrow: "호주에서 첫 차 찾기",
+    title: "중고차 구매처·체크리스트",
+    description: "Facebook Marketplace, Gumtree, Carsales에서 후보를 찾고 연락·사기 예방·PPSR·차량 검사를 거쳐 비교할 수 있어요.",
+    features: ["대표 구매처 3곳", "첫 연락 영문", "구매 순서·비용 비교"],
+    cta: "중고차 찾는 법 보기",
     categories: ["home", "money"],
   },
   {
@@ -214,7 +240,7 @@ export default function ToolsPage() {
         <Container>
           <Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">&larr; 홈으로 돌아가기</Link>
           <div className="mt-8 grid gap-8 border-b border-navy/20 pb-10 lg:grid-cols-[1fr_15rem] lg:items-end">
-            <div className="max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold">필요한 순간에 꺼내 쓰는 도구</p><h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">호주 생활에서<br/><span className="font-normal text-navy-light">막막한 순간을 위해.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">급여가 맞는지 궁금할 때, 집이나 일을 준비할 때, 귀국을 앞두고 있을 때. 지금 필요한 도구부터 편하게 골라보세요.</p></div>
+            <div className="max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold">필요한 순간에 꺼내 쓰는 도구</p><h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">호주 생활에서<br/><span className="font-normal text-navy-light">막막한 순간을 위해.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">출국을 준비할 때, 처음 도착해 집과 일을 찾을 때, 생활비와 세금 기록을 관리할 때. 지금 단계에 맞는 도구부터 골라보세요.</p></div>
             <div className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted"><strong className="block text-navy">계정을 만들 필요 없어요.</strong>별도 안내가 없는 한 입력한 내용은 지금 사용하는 브라우저에만 저장돼요.</div>
           </div>
 

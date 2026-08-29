@@ -7,6 +7,7 @@ Hoju Compass uses Vercel Web Analytics for aggregate product decisions without a
 - Every page-view URL has its query string and fragment removed before transmission.
 - A homepage search sends only a predefined topic such as `tax`, `pay`, `housing`, or `other`.
 - Search text, calculator inputs, resume content, email addresses, payment IDs, local storage, and checklist details are never included in custom events.
+- Resume funnel events use only an allowlisted `surface`, anonymous page `context` or fixed acquisition `entry`. The entry is selected from a code-defined list rather than copied from an arbitrary query. Names, STAR text, company names, search terms, full URLs and URL queries are never read or sent.
 - Navigation events contain only an allowlisted internal destination and a homepage section or route category.
 - Share, save, install, and checkout events contain only a broad content or product category and the completed action. They never contain document content, page titles, payment values, or identifiers.
 
@@ -19,12 +20,22 @@ Hoju Compass uses Vercel Web Analytics for aggregate product decisions without a
 | `Route Plan Saved` | `stage`, `concern` | Which situations most often become a saved plan |
 | `Route Recommendation Opened` | `destination`, `route` | Which recommendations work for each broad situation |
 | `Pro Interest` | `product`, `entry` | Which homepage offer earns enough interest to improve next |
-| `Page Shared` | `content`, `method` | Whether readers find resource guides useful enough to share |
+| `Page Shared` | `content`, `method` | Whether readers find a resource guide or the Job Ad checker useful enough to share; checker shares use the fixed `resume_job_ad_checker` value and never include pasted text |
 | `Page Saved` | `content`, `action` | Whether readers use the local return-visit workflow |
 | `App Install` | `entry`, `outcome` | Whether the install page leads to a prompt or manual instructions |
-| `Checkout Started` | `product`, `mode` | Whether product interest becomes a Stripe checkout attempt |
+| `Resume Builder Started` | `surface`, `context` | Whether a visitor begins interacting with the free resume builder |
+| `Resume Template Downloaded` | `entry`, `format` | Whether the fixed article or builder entry produces an ATS-friendly DOCX download; no resume content, URL, filename or local storage is read |
+| `Resume Job Ad Viewed` | `surface`, `context` | Whether a visitor reaches the free local-only Job Ad checker |
+| `Resume Job Ad Sample Viewed` | `surface`, `context` | Whether a visitor opens the fixed fictional example result before using their own text |
+| `Resume Job Ad Checked` | `surface`, `context` | Whether a visitor completes the local-only resume and Job Ad comparison |
+| `Resume Pro CTA Clicked` | `surface`, `context` | Which fixed, anonymous page surface sends interest to Resume Pro |
+| `Resume Pro Viewed` | `entry`, `checkout` | Which fixed entry reaches the offer and whether checkout was available |
+| `Resume Pro Free Proof Opened` | `entry` | Whether a visitor starts the local-only Job Ad proof step from the offer; the fixed acquisition entry is used instead of resume or Job Ad text |
+| `Resume Pro Launch Interest` | `entry`, `method` | Which fixed entry opens a launch-notice email draft or copies the fixed request text while checkout is closed; `method` is only `mailto` or `copy` and does not prove the message was sent |
+| `Checkout Started` | `product`, `entry` | Whether product interest becomes a Stripe checkout attempt |
 
 The properties are deliberately limited to two per event so their meaning stays stable and compatible with the standard Vercel custom-event limits.
+The shared resume funnel events also fire at most once per fixed event, surface and context during the current client session. Analytics failures are ignored so editing and navigation continue normally.
 
 ## Activation and review
 

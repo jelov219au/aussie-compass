@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Container } from "@/components/ui/Container";
 import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory } from "@/lib/articleProgress";
+import { RAIL_WORK_ALERT_STORAGE_KEY } from "@/lib/railWorkAlerts";
+import { taxPrepRecordsStorageKey } from "@/lib/taxPrepStorage";
 
 const progressKeys = [
   "visa-preparation-project",
@@ -12,11 +14,13 @@ const progressKeys = [
   "moving-project",
   "leaving-australia-project",
   "aussie-compass-tax-return-checklist-v1",
+  taxPrepRecordsStorageKey,
   "aussie-compass-job-tracker-v1",
   "aussie-compass-savings-goal-v1",
   "aussie-compass-resume-v1",
   "aussie-compass-salary-calculation",
   "aussie-compass-living-budget-v1",
+  RAIL_WORK_ALERT_STORAGE_KEY,
   "aussie-compass-life-reminders-v1",
   "hoju-compass-personal-plan-v1",
 ];
@@ -54,7 +58,7 @@ export function ReturnVisitSection() {
       <Container>
         <div className="grid gap-5 rounded-2xl border border-border bg-white px-5 py-5 sm:grid-cols-[1fr_auto] sm:items-center sm:px-6">
           <div className="flex gap-4">
-            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-sm text-gold" aria-hidden="true">↗</span>
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-sm text-gold-ink" aria-hidden="true">↗</span>
             <div>
               <p className="font-semibold text-navy">
                 {count && count > 0 ? `전에 보던 ${count}개의 기록이 이 기기에 남아 있어요.` : "오늘 시작한 일은 다음에 다시 이어볼 수 있어요."}

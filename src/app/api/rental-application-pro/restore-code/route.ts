@@ -10,7 +10,7 @@ import { validateSameOriginMutation } from "@/lib/requestSecurity";
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const requestCheck = validateSameOriginMutation(request, { maxBodyBytes: 1024 });
+  const requestCheck = await validateSameOriginMutation(request, { maxBodyBytes: 1024 });
   if (!requestCheck.ok) {
     return NextResponse.json({ error: requestCheck.error }, {
       status: requestCheck.status,

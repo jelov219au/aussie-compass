@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { safeExternalHttpUrl } from "@/lib/safeNavigation";
 
 type Status = "saved" | "applied" | "interview" | "offer" | "closed";
 type Application = { id: string; company: string; role: string; status: Status; appliedDate: string; nextDate: string; link: string; notes: string; createdAt: string };
@@ -13,6 +14,27 @@ const inputClass = "mt-1.5 min-h-11 w-full rounded-lg border border-border bg-wh
 
 function formatDate(value: string) { return value ? new Date(`${value}T00:00:00`).toLocaleDateString("ko-KR", { month: "short", day: "numeric" }) : "–"; }
 
+function safeApplications(value: unknown): Application[] {
+  if (!Array.isArray(value)) return [];
+  const statuses = new Set<Status>(["saved", "applied", "interview", "offer", "closed"]);
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const item = entry as Partial<Application>;
+    if (typeof item.id !== "string" || typeof item.company !== "string" || typeof item.role !== "string" || !statuses.has(item.status as Status)) return [];
+    return [{
+      id: item.id.slice(0, 120),
+      company: item.company.slice(0, 160),
+      role: item.role.slice(0, 160),
+      status: item.status as Status,
+      appliedDate: typeof item.appliedDate === "string" ? item.appliedDate.slice(0, 10) : "",
+      nextDate: typeof item.nextDate === "string" ? item.nextDate.slice(0, 10) : "",
+      link: safeExternalHttpUrl(item.link) ?? "",
+      notes: typeof item.notes === "string" ? item.notes.slice(0, 4000) : "",
+      createdAt: typeof item.createdAt === "string" ? item.createdAt : "",
+    }];
+  }).slice(0, 200);
+}
+
 export function JobApplicationTracker() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [form, setForm] = useState(blankForm);
@@ -21,7 +43,7 @@ export function JobApplicationTracker() {
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => { try { const stored = localStorage.getItem(STORAGE_KEY); if (stored) setApplications(JSON.parse(stored)); } catch {} setLoaded(true); }, []);
+  useEffect(() => { try { const stored = localStorage.getItem(STORAGE_KEY); if (stored) setApplications(safeApplications(JSON.parse(stored))); } catch {} setLoaded(true); }, []);
   useEffect(() => { if (!loaded) return; const timer = window.setTimeout(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(applications)); setSaved(true); window.setTimeout(() => setSaved(false), 1400); } catch {} }, 400); return () => window.clearTimeout(timer); }, [applications, loaded]);
 
   const visible = useMemo(() => applications.filter((item) => filter === "all" || item.status === filter).sort((a, b) => (b.appliedDate || b.createdAt).localeCompare(a.appliedDate || a.createdAt)), [applications, filter]);
@@ -31,8 +53,12 @@ export function JobApplicationTracker() {
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!form.company.trim() || !form.role.trim()) return;
-    if (editingId) setApplications((items) => items.map((item) => item.id === editingId ? { ...item, ...form } : item));
-    else setApplications((items) => [{ id: `job-${Date.now()}`, ...form, createdAt: new Date().toISOString() }, ...items]);
+    const normalizedLink = form.link.trim() ? safeExternalHttpUrl(form.link) : null;
+    if (form.link.trim() && !normalizedLink) return;
+    const link = normalizedLink ?? "";
+    const safeForm = { ...form, link };
+    if (editingId) setApplications((items) => items.map((item) => item.id === editingId ? { ...item, ...safeForm } : item));
+    else setApplications((items) => [{ id: `job-${Date.now()}`, ...safeForm, createdAt: new Date().toISOString() }, ...items]);
     setForm(blankForm); setEditingId(null);
   };
 
@@ -50,7 +76,7 @@ export function JobApplicationTracker() {
           <label className="text-sm font-medium text-navy">진행 상태<select className={inputClass} value={form.status} onChange={(e) => setForm((current) => ({ ...current, status: e.target.value as Status }))}>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label className="text-sm font-medium text-navy">지원일<input className={inputClass} type="date" value={form.appliedDate} onChange={(e) => setForm((current) => ({ ...current, appliedDate: e.target.value }))} /></label>
           <label className="text-sm font-medium text-navy">다음 일정<input className={inputClass} type="date" value={form.nextDate} onChange={(e) => setForm((current) => ({ ...current, nextDate: e.target.value }))} /></label>
-          <label className="text-sm font-medium text-navy sm:col-span-2">공고 링크<input className={inputClass} type="url" value={form.link} onChange={(e) => setForm((current) => ({ ...current, link: e.target.value }))} placeholder="https://..." /></label>
+          <label className="text-sm font-medium text-navy sm:col-span-2">공고 링크<input className={inputClass} type="url" pattern="https?://.+" title="http:// 또는 https:// 주소를 입력하세요." value={form.link} onChange={(e) => setForm((current) => ({ ...current, link: e.target.value }))} placeholder="https://..." /></label>
           <label className="text-sm font-medium text-navy sm:col-span-2 lg:col-span-4">메모<textarea className={`${inputClass} min-h-24 resize-y`} value={form.notes} onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))} placeholder="담당자, 면접 준비 사항, 후속 연락 내용 등을 기록하세요." /></label>
           <div className="flex flex-wrap gap-3 sm:col-span-2 lg:col-span-4"><button type="submit" className="min-h-11 rounded-lg bg-navy px-5 py-2 text-sm font-semibold text-white hover:bg-navy-light">{editingId ? "수정 저장" : "지원 기록 추가"}</button>{editingId && <button type="button" onClick={() => { setEditingId(null); setForm(blankForm); }} className="min-h-11 rounded-lg border border-border px-4 py-2 text-sm text-navy">취소</button>}<button type="button" onClick={exportBackup} disabled={!applications.length} className="min-h-11 rounded-lg border border-border px-4 py-2 text-sm text-navy disabled:opacity-40">기록 백업</button></div>
         </form>

@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ResumeProCtaLink } from "@/components/analytics/ResumeFunnelAnalytics";
+import { ResumeProProofLink } from "@/components/analytics/ResumeProProofLink";
+import { resumeFunnelContexts, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
 
 type Situation = "job" | "home" | "pay" | "tax" | "leave";
 
@@ -14,7 +17,7 @@ const options: { id: Situation; label: string; detail: string }[] = [
 ];
 
 const recommendations = {
-  job: { href: "/resume-pro", name: "Resume Pro", price: "A$19.90", description: "지원하고 싶은 공고가 생겼을 때, 내 실제 경력을 회사별 이력서와 커버레터로 정리해요.", cta: "이 공고에 맞춰 지원 준비하기", freeHref: "/resume-builder", freeLabel: "이력서가 없다면 무료로 먼저 만들기" },
+  job: { href: "/resume-pro", name: "Resume Pro", price: "A$19.90", description: "지원하고 싶은 공고가 생겼을 때, 내 실제 경력을 회사별 이력서와 커버레터로 정리해요.", cta: "이 공고에 맞춰 지원 준비하기", freeHref: "/resume-job-ad-checker", freeLabel: "결제 전에 내 공고로 무료 점검하기" },
   home: { href: "/rental-application-pro?from=pro-hub", name: "Rental Pack Pro", price: "A$14.90", description: "마음에 드는 집을 찾았을 때 서류와 연락이 늦어지지 않도록 집별 신청 준비를 관리해요.", cta: "렌트 신청 준비 방식 보기", freeHref: "/property-inspection-checklist", freeLabel: "집을 보기 전 무료로 점검하기" },
   pay: { href: "/pay-evidence-pro", name: "Pay Evidence Pro", price: "A$9.90", description: "급여가 이상하다는 느낌을 근무시간, Payslip, 입금액과 영문 문의문으로 정리해요.", cta: "급여 차이를 기록하는 방법 보기", freeHref: "/underpayment-guide", freeLabel: "무료 대응 순서부터 확인하기" },
   tax: { href: "/eofy-pro", name: "EOFY Pack Pro", price: "A$9.90", description: "흩어진 소득 자료와 공제 증빙, 세무사에게 물어볼 내용을 신고 전 요약으로 모아요.", cta: "택스 리턴 준비 방식 보기", freeHref: "/tax-return-guide", freeLabel: "무료 체크리스트부터 사용하기" },
@@ -25,9 +28,22 @@ export function ProProductFinder({ resumeProLive }: { resumeProLive: boolean }) 
   const [situation, setSituation] = useState<Situation>("job");
   const product = recommendations[situation];
   const selectedProductLive = situation === "job" && resumeProLive;
+  const unavailableJobActions = (
+    <>
+      <ResumeProProofLink entry="pro-finder" className="flex min-h-12 items-center justify-between bg-gold px-5 text-sm font-semibold text-navy">
+        <span>{recommendations.job.freeLabel}</span><span aria-hidden="true">→</span>
+      </ResumeProProofLink>
+      <Link href="/resume-builder" className="flex min-h-12 items-center justify-between border border-white/25 px-5 text-sm font-semibold text-white">
+        <span>이력서 초안이 없다면 무료 Builder부터</span><span aria-hidden="true">→</span>
+      </Link>
+      <ResumeProCtaLink href="/resume-pro?from=pro-finder" surface={resumeFunnelSurfaces.proFinder} context={resumeFunnelContexts.proCatalog} className="inline-flex min-h-11 items-center text-sm font-semibold text-white/75 underline decoration-gold underline-offset-4 hover:text-white">
+        회사별 저장·재사용 방식 미리 보기 →
+      </ResumeProCtaLink>
+    </>
+  );
 
   return <section className="grid gap-px bg-border lg:grid-cols-[1fr_0.82fr]" aria-labelledby="pro-finder-heading">
-    <div className="bg-white p-5 sm:p-8"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">내 상황에 맞는 Pro 찾기</p><h2 id="pro-finder-heading" className="mt-2 text-2xl font-semibold text-navy">요즘 가장 손이 많이 가는 일은 무엇인가요?</h2><div className="mt-6 grid gap-2">{options.map((option) => <button key={option.id} type="button" onClick={() => setSituation(option.id)} aria-pressed={situation === option.id} className={`grid min-h-16 grid-cols-[1fr_auto] items-center border px-4 py-3 text-left transition ${situation === option.id ? "border-navy bg-navy text-white" : "border-border bg-surface text-navy hover:border-gold"}`}><span><strong className="block text-sm">{option.label}</strong><span className={`mt-1 block text-xs ${situation === option.id ? "text-white/60" : "text-muted"}`}>{option.detail}</span></span><span className="font-mono text-xs" aria-hidden="true">{situation === option.id ? "선택됨" : "→"}</span></button>)}</div></div>
-    <div className="flex flex-col bg-navy p-6 text-white sm:p-8" aria-live="polite"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">지금 필요한 결과물</p><h3 className="mt-3 text-3xl font-semibold">{product.name}</h3><p className="mt-3 text-2xl font-semibold text-gold">{product.price}</p><p className="mt-6 text-sm leading-7 text-white/70">{product.description}</p><div className="mt-auto space-y-3 pt-10"><Link href={product.href} className="flex min-h-12 items-center justify-between bg-gold px-5 text-sm font-semibold text-navy"><span>{product.cta}</span><span aria-hidden="true">→</span></Link><Link href={product.freeHref} className="flex min-h-12 items-center justify-between border border-white/25 px-5 text-sm font-semibold text-white"><span>{product.freeLabel}</span><span aria-hidden="true">→</span></Link></div><p className="mt-5 text-xs leading-5 text-white/50">{selectedProductLive ? "Resume Pro는 A$19.90 한 번만 결제하면 돼요. 구독은 없어요." : "표시 가격은 검토 중이며 이 제품은 현재 결제되지 않아요."}</p></div>
+    <div className="bg-white p-5 sm:p-8"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">내 상황에 맞는 Pro 찾기</p><h2 id="pro-finder-heading" className="mt-2 text-2xl font-semibold text-navy">요즘 가장 손이 많이 가는 일은 무엇인가요?</h2><div className="mt-6 grid gap-2">{options.map((option) => <button key={option.id} type="button" onClick={() => setSituation(option.id)} aria-pressed={situation === option.id} className={`grid min-h-16 grid-cols-[1fr_auto] items-center border px-4 py-3 text-left transition ${situation === option.id ? "border-navy bg-navy text-white" : "border-border bg-surface text-navy hover:border-gold"}`}><span><strong className="block text-sm">{option.label}</strong><span className={`mt-1 block text-xs ${situation === option.id ? "text-white/60" : "text-muted"}`}>{option.detail}</span></span><span className="font-mono text-xs" aria-hidden="true">{situation === option.id ? "선택됨" : "→"}</span></button>)}</div></div>
+    <div className="flex flex-col bg-navy p-6 text-white sm:p-8" aria-live="polite"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">지금 필요한 결과물</p><h3 className="mt-3 text-3xl font-semibold">{product.name}</h3><p className="mt-3 text-2xl font-semibold text-gold">{product.price}</p><p className="mt-6 text-sm leading-7 text-white/70">{product.description}</p><div className="mt-auto space-y-3 pt-10">{situation === "job" ? selectedProductLive ? <><ResumeProCtaLink href="/resume-pro?from=pro-finder" surface={resumeFunnelSurfaces.proFinder} context={resumeFunnelContexts.proCatalog} className="flex min-h-12 items-center justify-between bg-gold px-5 text-sm font-semibold text-navy"><span>{product.cta}</span><span aria-hidden="true">→</span></ResumeProCtaLink><ResumeProProofLink entry="pro-finder" className="flex min-h-12 items-center justify-between border border-white/25 px-5 text-sm font-semibold text-white"><span>{product.freeLabel}</span><span aria-hidden="true">→</span></ResumeProProofLink><Link href="/resume-builder" className="inline-flex min-h-11 items-center text-sm font-semibold text-white/75 underline decoration-gold underline-offset-4 hover:text-white">이력서 초안이 없다면 무료 Builder부터 →</Link></> : unavailableJobActions : <><Link href={product.href} className="flex min-h-12 items-center justify-between bg-gold px-5 text-sm font-semibold text-white"><span>{product.cta}</span><span aria-hidden="true">→</span></Link><Link href={product.freeHref} className="flex min-h-12 items-center justify-between border border-white/25 px-5 text-sm font-semibold text-white"><span>{product.freeLabel}</span><span aria-hidden="true">→</span></Link></>}</div><p className="mt-5 text-xs leading-5 text-white/50">{situation === "job" ? selectedProductLive ? "Resume Pro는 A$19.90 한 번만 결제하면 돼요. 구독은 없어요." : "Resume Pro 가격은 A$19.90 1회 결제이며, 현재는 결제·이용 복구 안전 확인 중이라 판매하지 않아요." : "표시 가격은 검토 중이며 이 제품은 현재 결제되지 않아요."}</p></div>
   </section>;
 }

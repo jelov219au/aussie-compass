@@ -6,14 +6,28 @@ import nodemailer from "nodemailer";
 import { jobMoveSurveyQuestions, type JobMoveSurveyAnswers } from "@/lib/jobMoveSurvey";
 
 const defaultEmail = "support@hojucompass.com";
+const productionSmtpHost = "smtppro.zoho.com.au";
+const productionSmtpUser = "owner@hojucompass.com";
 
 function mailConfig() {
-  const password = process.env.ZOHO_SMTP_APP_PASSWORD?.trim();
-  const user = process.env.ZOHO_SMTP_USER?.trim() || defaultEmail;
-  const host = process.env.ZOHO_SMTP_HOST?.trim() || "smtppro.zoho.com";
-  const port = Number(process.env.ZOHO_SMTP_PORT?.trim() || 465);
+  if (process.env.RESEARCH_SURVEY_EMAIL_ENABLED?.trim().toLowerCase() !== "true") return null;
 
-  if (!password || !Number.isInteger(port) || port < 1 || port > 65535) return null;
+  const password = process.env.ZOHO_SMTP_APP_PASSWORD?.trim();
+  const user = process.env.ZOHO_SMTP_USER?.trim();
+  const host = process.env.ZOHO_SMTP_HOST?.trim().toLowerCase() || productionSmtpHost;
+  const port = Number(process.env.ZOHO_SMTP_PORT?.trim() || 465);
+  const from = process.env.PAYMENT_ALERT_FROM_EMAIL?.trim() || defaultEmail;
+  const to = process.env.PAYMENT_ALERT_TO_EMAIL?.trim() || defaultEmail;
+
+  if (
+    !password
+    || !user
+    || user.toLowerCase() !== productionSmtpUser
+    || host !== productionSmtpHost
+    || port !== 465
+    || from.toLowerCase() !== defaultEmail
+    || to.toLowerCase() !== defaultEmail
+  ) return null;
 
   return {
     host,
@@ -21,8 +35,8 @@ function mailConfig() {
     secure: port === 465,
     user,
     password,
-    from: process.env.PAYMENT_ALERT_FROM_EMAIL?.trim() || user,
-    to: process.env.PAYMENT_ALERT_TO_EMAIL?.trim() || defaultEmail,
+    from,
+    to,
   };
 }
 

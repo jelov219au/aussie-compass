@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   canCreateRentalApplicationTestCheckout,
-  getRentalApplicationPaymentReadiness,
   rentalApplicationProProduct,
   rentalApplicationProPurchaseTermsVersion,
 } from "@/lib/commerce";
@@ -27,7 +26,7 @@ function createIntegrationIdentifier() {
 }
 
 export async function POST(request: NextRequest) {
-  const requestCheck = validateSameOriginMutation(request, {
+  const requestCheck = await validateSameOriginMutation(request, {
     maxBodyBytes: 4 * 1024,
     allowedContentTypes: checkoutRequestContentTypes,
   });
@@ -35,6 +34,15 @@ export async function POST(request: NextRequest) {
   if (!requestCheck.ok) {
     return NextResponse.json({ error: requestCheck.error }, {
       status: requestCheck.status,
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
+
+  // Rental Pack is a Preview-only validation product. Keep this endpoint
+  // independently fail-closed even when the shared Resume Pro switch opens.
+  if (process.env.VERCEL_ENV === "production") {
+    return NextResponse.json({ error: "Rental Application Pack Pro payments are not available in Production." }, {
+      status: 503,
       headers: { "Cache-Control": "no-store" },
     });
   }
@@ -59,10 +67,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const readiness = getRentalApplicationPaymentReadiness();
-  const allowed = process.env.VERCEL_ENV === "production"
-    ? readiness.ready
-    : canCreateRentalApplicationTestCheckout();
+  const allowed = canCreateRentalApplicationTestCheckout();
 
   if (!allowed) {
     return NextResponse.json({ error: "Rental Application Pack Pro payments are not ready in this environment." }, {

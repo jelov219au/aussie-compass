@@ -44,7 +44,7 @@ const validBackup = {
   activeId: "candidate-1",
   applications: [{
     id: "candidate-1", propertyLabel: "Carlton candidate", suburb: "Carlton", jurisdiction: "VIC", weeklyRent: "620", agentName: "", moveDate: "", leaseTerm: "12 months", stage: "preparing", applicationDate: "", nextActionDate: "", notes: "",
-    statuses: { identity: "ready" }, privacyChecks: { "no-tfn": true }, messages: { application: "Draft", inspection: "", followUp: "" }, followUps: [],
+    statuses: { identity: "ready" }, privacyChecks: { "no-tfn": true }, messages: { application: "Draft", inspection: "", followUp: "" }, followUps: [], inspectionReceipt: null,
   }],
 };
 assert.equal(isRentalWorkspaceBackup(validBackup), true, "an exported Rental workspace shape must restore");

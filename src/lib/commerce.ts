@@ -1,15 +1,18 @@
 import "server-only";
 
 import { getEntitlementDatabaseUrl } from "@/lib/entitlementConfig";
+import { isFirstSaleMonitoredModeConfigured } from "@/lib/firstSaleMonitoredMode";
 import { isEntitlementSessionConfigured } from "@/lib/resumeProAccess";
+import { paymentAlertsConfigured } from "@/lib/paymentAlerts";
+import { hasResumeProStripeProductConfig, resumeProStripeProductDefinition } from "@/lib/resumeProStripeProduct";
 import { siteName } from "@/lib/site";
 import { getStripeSecretMode } from "@/lib/stripe";
 
 export const resumeProProduct = {
   id: "resume-pro",
   name: "Resume Pro",
-  currency: "aud",
-  priceCents: 1990,
+  currency: resumeProStripeProductDefinition.currency,
+  priceCents: resumeProStripeProductDefinition.priceCents,
   billing: "one_time",
 } as const;
 
@@ -27,12 +30,17 @@ export const rentalApplicationProPurchaseTermsVersion = "2026-08-22";
 export type PaymentReadiness = {
   enabled: boolean;
   stripeConfigured: boolean;
+  stripeProductContractConfigured: boolean;
   managedPaymentsConfigured: boolean;
   webhookConfigured: boolean;
   entitlementStoreConfigured: boolean;
+  firstSaleGateConfigured: boolean;
   accessDeliveryImplemented: boolean;
   sellerDetailsConfigured: boolean;
   supportConfigured: boolean;
+  operatorAlertsConfigured: boolean;
+  firstSaleMonitoredModeConfigured: boolean;
+  operatorMonitoringConfigured: boolean;
   ready: boolean;
 };
 
@@ -47,12 +55,14 @@ export function getPaymentReadiness(): PaymentReadiness {
   const enabled = process.env.PAYMENTS_ENABLED === "true";
   const stripeMode = getStripeSecretMode();
   const expectedStripeMode = process.env.VERCEL_ENV === "production" ? "live" : "test";
-  const stripePriceConfigured = Boolean(process.env.STRIPE_RESUME_PRO_PRICE_ID?.trim().startsWith("price_"));
-  const stripeConfigured = stripeMode === expectedStripeMode && stripePriceConfigured;
+  const stripeProductContractConfigured = hasResumeProStripeProductConfig();
+  const stripeConfigured = stripeMode === expectedStripeMode && stripeProductContractConfigured;
   const managedPaymentsConfigured = process.env.STRIPE_MANAGED_PAYMENTS_ENABLED === "true";
   const webhookConfigured = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim().startsWith("whsec_"));
   const entitlementStoreConfigured = process.env.PAYMENTS_ENTITLEMENT_STORE === "neon"
     && Boolean(getEntitlementDatabaseUrl()?.match(/^postgres(?:ql)?:\/\//));
+  const firstSaleGateConfigured = process.env.FIRST_SALE_GATE_ENABLED === "true"
+    && entitlementStoreConfigured;
   const accessDeliveryImplemented = entitlementStoreConfigured && isEntitlementSessionConfigured();
   const tradingName = process.env.BUSINESS_TRADING_NAME?.trim() || siteName;
   const legalName = process.env.BUSINESS_LEGAL_NAME?.trim();
@@ -66,7 +76,10 @@ export function getPaymentReadiness(): PaymentReadiness {
     && /^\d{11}$/.test(abnDigits),
   );
   const supportConfigured = Boolean(supportEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(supportEmail));
-  const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && accessDeliveryImplemented && sellerDetailsConfigured && supportConfigured;
+  const operatorAlertsConfigured = paymentAlertsConfigured();
+  const firstSaleMonitoredModeConfigured = isFirstSaleMonitoredModeConfigured();
+  const operatorMonitoringConfigured = operatorAlertsConfigured || firstSaleMonitoredModeConfigured;
+  const ready = enabled && stripeConfigured && managedPaymentsConfigured && webhookConfigured && entitlementStoreConfigured && firstSaleGateConfigured && accessDeliveryImplemented && sellerDetailsConfigured && supportConfigured && operatorMonitoringConfigured;
 
   if (
     enabled
@@ -78,18 +91,22 @@ export function getPaymentReadiness(): PaymentReadiness {
     console.warn("[payments] Production readiness is incomplete.", {
       stripeMode,
       expectedStripeMode,
-      stripePriceConfigured,
+      stripeProductContractConfigured,
       stripeConfigured,
       managedPaymentsConfigured,
       webhookConfigured,
       entitlementStoreConfigured,
+      firstSaleGateConfigured,
       accessDeliveryImplemented,
       sellerDetailsConfigured,
       supportConfigured,
+      operatorAlertsConfigured,
+      firstSaleMonitoredModeConfigured,
+      operatorMonitoringConfigured,
     });
   }
 
-  return { enabled, stripeConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, ready };
+  return { enabled, stripeConfigured, stripeProductContractConfigured, managedPaymentsConfigured, webhookConfigured, entitlementStoreConfigured, firstSaleGateConfigured, accessDeliveryImplemented, sellerDetailsConfigured, supportConfigured, operatorAlertsConfigured, firstSaleMonitoredModeConfigured, operatorMonitoringConfigured, ready };
 }
 
 export function canCreateTestCheckout() {
@@ -97,7 +114,8 @@ export function canCreateTestCheckout() {
   return process.env.VERCEL_ENV !== "production"
     && readiness.enabled
     && readiness.stripeConfigured
-    && readiness.managedPaymentsConfigured;
+    && readiness.managedPaymentsConfigured
+    && readiness.firstSaleGateConfigured;
 }
 
 export function getRentalApplicationPaymentReadiness(): ProductPaymentReadiness {
@@ -105,7 +123,12 @@ export function getRentalApplicationPaymentReadiness(): ProductPaymentReadiness 
   const productEnabled = process.env.RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED === "true";
   const productPriceConfigured = Boolean(process.env.STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID?.trim().startsWith("price_"));
   const stripeConfigured = base.stripeConfigured && productPriceConfigured;
-  const ready = base.ready && productEnabled && productPriceConfigured;
+  // Rental Pack remains a Preview-only validation surface until it has the
+  // same product identity, atomic sale and server-tracked access controls as Resume Pro.
+  const ready = process.env.VERCEL_ENV !== "production"
+    && base.ready
+    && productEnabled
+    && productPriceConfigured;
 
   return {
     ...base,

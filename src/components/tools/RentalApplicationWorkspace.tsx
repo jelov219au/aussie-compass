@@ -7,7 +7,18 @@ import {
   rentalJurisdictions,
   type RentalJurisdictionCode,
 } from "@/data/rentalJurisdictions";
-import { clearRentalReadyNowHandoff, readRentalReadyNowHandoff } from "@/lib/rentalReadyNowHandoff";
+import {
+  clearRentalReadyNowHandoff,
+  createRentalReadyNowImportReceipt,
+  readRentalReadyNowHandoff,
+  readRentalReadyNowSavedFlag,
+  rentalReadyNowReceiptMatches,
+  type RentalReadyNowImportReceipt,
+} from "@/lib/rentalReadyNowHandoff";
+import {
+  rentalApplicationProFirstSuccessStorageKey,
+  rentalApplicationProWorkspaceStorageKey,
+} from "@/lib/rentalApplicationProDeviceStorage";
 import { isRentalWorkspaceBackup } from "@/lib/rentalWorkspaceBackup";
 
 type DocumentStatus = "todo" | "review" | "ready";
@@ -21,16 +32,18 @@ type RentalApplication = {
   moveDate: string; leaseTerm: string; stage: ApplicationStage; applicationDate: string;
   nextActionDate: string; notes: string; statuses: Record<string, DocumentStatus>;
   privacyChecks: Record<string, boolean>; messages: Record<MessageType, string>; followUps: FollowUpEntry[];
+  inspectionReceipt: RentalReadyNowImportReceipt | null;
 };
 type WorkspaceState = { version: 3; profile: ApplicantProfile; evidenceLibrary: Record<string, ReusableEvidence>; activeId: string; applications: RentalApplication[] };
 type DocumentItem = { id: string; group: string; title: string; detail: string; caution?: string };
 
-const STORAGE_KEY = "hoju-compass-rental-application-pro-v1";
+const STORAGE_KEY = rentalApplicationProWorkspaceStorageKey;
+const FIRST_SUCCESS_KEY = rentalApplicationProFirstSuccessStorageKey;
 const MAX_APPLICATIONS = 20;
 const initialProfile: ApplicantProfile = { householdSize: "1", employmentSummary: "", rentalSummary: "", petSummary: "No pets", strengths: "" };
 
 function createApplication(id: string, propertyLabel = ""): RentalApplication {
-  return { id, propertyLabel, suburb: "", jurisdiction: "", weeklyRent: "", agentName: "", moveDate: "", leaseTerm: "12 months", stage: "shortlist", applicationDate: "", nextActionDate: "", notes: "", statuses: {}, privacyChecks: {}, messages: { application: "", inspection: "", followUp: "" }, followUps: [] };
+  return { id, propertyLabel, suburb: "", jurisdiction: "", weeklyRent: "", agentName: "", moveDate: "", leaseTerm: "12 months", stage: "shortlist", applicationDate: "", nextActionDate: "", notes: "", statuses: {}, privacyChecks: {}, messages: { application: "", inspection: "", followUp: "" }, followUps: [], inspectionReceipt: null };
 }
 
 const documents: DocumentItem[] = [
@@ -84,19 +97,63 @@ function nextActionStatus(value: string, stage: ApplicationStage) {
   return { label: formatDate(value), tone: "normal" as const };
 }
 
+function normaliseInspectionReceipt(value: unknown): RentalReadyNowImportReceipt | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const receipt = value as Partial<RentalReadyNowImportReceipt>;
+  return (receipt.mode === "share" || receipt.mode === "rent")
+    && typeof receipt.reviewedCount === "number" && Number.isFinite(receipt.reviewedCount)
+    && typeof receipt.concernCount === "number" && Number.isFinite(receipt.concernCount)
+    && (receipt.sourceCreatedAt === undefined || typeof receipt.sourceCreatedAt === "number" && Number.isSafeInteger(receipt.sourceCreatedAt))
+    ? {
+        ...(receipt.sourceCreatedAt === undefined ? {} : { sourceCreatedAt: receipt.sourceCreatedAt }),
+        mode: receipt.mode,
+        reviewedCount: Math.max(0, Math.min(100, Math.trunc(receipt.reviewedCount))),
+        concernCount: Math.max(0, Math.min(100, Math.trunc(receipt.concernCount))),
+      }
+    : null;
+}
+
 function normaliseApplication(candidate: Partial<RentalApplication>, fallbackId: string): RentalApplication {
   const base = createApplication(typeof candidate.id === "string" && candidate.id ? candidate.id : fallbackId);
   const followUps = Array.isArray(candidate.followUps) ? candidate.followUps.filter((entry) => entry && typeof entry.id === "string" && typeof entry.date === "string" && typeof entry.summary === "string" && ["email", "phone", "portal", "inspection"].includes(entry.channel) && ["sent", "received"].includes(entry.direction)).slice(-50) : [];
-  return { ...base, ...candidate, id: base.id, jurisdiction: rentalJurisdictionCodes.includes(candidate.jurisdiction as RentalJurisdictionCode) ? candidate.jurisdiction as RentalJurisdictionCode : "", stage: stageOptions.some((option) => option.value === candidate.stage) ? candidate.stage as ApplicationStage : base.stage, statuses: candidate.statuses && typeof candidate.statuses === "object" ? candidate.statuses : {}, privacyChecks: candidate.privacyChecks && typeof candidate.privacyChecks === "object" ? candidate.privacyChecks : {}, messages: { ...base.messages, ...(candidate.messages && typeof candidate.messages === "object" ? candidate.messages : {}) }, followUps };
+  return { ...base, ...candidate, id: base.id, jurisdiction: rentalJurisdictionCodes.includes(candidate.jurisdiction as RentalJurisdictionCode) ? candidate.jurisdiction as RentalJurisdictionCode : "", stage: stageOptions.some((option) => option.value === candidate.stage) ? candidate.stage as ApplicationStage : base.stage, statuses: candidate.statuses && typeof candidate.statuses === "object" ? candidate.statuses : {}, privacyChecks: candidate.privacyChecks && typeof candidate.privacyChecks === "object" ? candidate.privacyChecks : {}, messages: { ...base.messages, ...(candidate.messages && typeof candidate.messages === "object" ? candidate.messages : {}) }, followUps, inspectionReceipt: normaliseInspectionReceipt(candidate.inspectionReceipt) };
 }
 
 function parseWorkspace(saved: string): WorkspaceState {
-  const parsed = JSON.parse(saved) as { version?: number; profile?: Partial<ApplicantProfile>; evidenceLibrary?: Record<string, Partial<ReusableEvidence>>; activeId?: string; applications?: Partial<RentalApplication>[]; propertyLabel?: string; moveDate?: string; leaseTerm?: string; statuses?: Record<string, DocumentStatus>; coverNote?: string; householdSize?: string; employmentSummary?: string; rentalSummary?: string; petSummary?: string; strengths?: string };
+  type LegacyPack = { id?: string; propertyLabel?: string; moveDate?: string; leaseTerm?: string; householdSize?: string; employmentSummary?: string; rentalSummary?: string; petSummary?: string; strengths?: string; statuses?: Record<string, DocumentStatus>; coverNote?: string; inspectionSummary?: RentalReadyNowImportReceipt | null; contactStatus?: string; followUpDate?: string };
+  const parsed = JSON.parse(saved) as { version?: number; profile?: Partial<ApplicantProfile>; evidenceLibrary?: Record<string, Partial<ReusableEvidence>>; activeId?: string; applications?: Partial<RentalApplication>[]; packs?: LegacyPack[]; propertyLabel?: string; moveDate?: string; leaseTerm?: string; statuses?: Record<string, DocumentStatus>; coverNote?: string; householdSize?: string; employmentSummary?: string; rentalSummary?: string; petSummary?: string; strengths?: string };
   if ((parsed.version === 2 || parsed.version === 3) && Array.isArray(parsed.applications) && parsed.applications.length) {
     const applications = parsed.applications.slice(0, MAX_APPLICATIONS).map((item, index) => normaliseApplication(item, `restored-${index + 1}`));
     const storedEvidence = parsed.evidenceLibrary && typeof parsed.evidenceLibrary === "object" ? parsed.evidenceLibrary : createEvidenceLibrary(applications[0].statuses);
     const evidenceLibrary = Object.fromEntries(reusableDocumentIds.map((id) => { const evidence = storedEvidence[id]; const status = evidence?.status; return [id, { status: status === "review" || status === "ready" ? status : "todo", checkedOn: typeof evidence?.checkedOn === "string" ? evidence.checkedOn : "" }]; })) as Record<string, ReusableEvidence>;
     return { version: 3, profile: { ...initialProfile, ...(parsed.profile ?? {}) }, evidenceLibrary, activeId: applications.some((item) => item.id === parsed.activeId) ? parsed.activeId as string : applications[0].id, applications };
+  }
+  if (parsed.version === 2 && Array.isArray(parsed.packs) && parsed.packs.length) {
+    const legacyPacks = parsed.packs.slice(0, MAX_APPLICATIONS);
+    const applications = legacyPacks.map((pack, index) => {
+      const application = createApplication(typeof pack.id === "string" && pack.id ? pack.id : `migrated-${index + 1}`);
+      application.propertyLabel = typeof pack.propertyLabel === "string" ? pack.propertyLabel : "";
+      application.moveDate = typeof pack.moveDate === "string" ? pack.moveDate : "";
+      application.leaseTerm = typeof pack.leaseTerm === "string" ? pack.leaseTerm : "12 months";
+      application.nextActionDate = typeof pack.followUpDate === "string" ? pack.followUpDate : "";
+      application.statuses = pack.statuses && typeof pack.statuses === "object" ? pack.statuses : {};
+      application.messages.application = typeof pack.coverNote === "string" ? pack.coverNote : "";
+      application.inspectionReceipt = normaliseInspectionReceipt(pack.inspectionSummary);
+      application.stage = pack.contactStatus === "drafting" ? "preparing"
+        : pack.contactStatus === "sent" ? "submitted"
+        : pack.contactStatus === "follow-up" || pack.contactStatus === "closed" ? "follow_up"
+        : "shortlist";
+      return application;
+    });
+    const profileSource = legacyPacks.find((pack) => pack.id === parsed.activeId) ?? legacyPacks[0];
+    const profile = {
+      householdSize: typeof profileSource.householdSize === "string" ? profileSource.householdSize : "1",
+      employmentSummary: typeof profileSource.employmentSummary === "string" ? profileSource.employmentSummary : "",
+      rentalSummary: typeof profileSource.rentalSummary === "string" ? profileSource.rentalSummary : "",
+      petSummary: typeof profileSource.petSummary === "string" ? profileSource.petSummary : "No pets",
+      strengths: typeof profileSource.strengths === "string" ? profileSource.strengths : "",
+    };
+    return { version: 3, profile, evidenceLibrary: createEvidenceLibrary(profileSource.statuses), activeId: applications.some((item) => item.id === parsed.activeId) ? parsed.activeId as string : applications[0].id, applications };
   }
   const migrated = createApplication("migrated");
   migrated.propertyLabel = typeof parsed.propertyLabel === "string" ? parsed.propertyLabel : "";
@@ -111,6 +168,8 @@ export function RentalApplicationWorkspace() {
   const [workspace, setWorkspace] = useState<WorkspaceState>(initialWorkspace);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
+  const [firstCandidateSaved, setFirstCandidateSaved] = useState(false);
+  const [firstCandidateMessage, setFirstCandidateMessage] = useState("");
   const [activeMessageType, setActiveMessageType] = useState<MessageType>("application");
   const [followUpDraft, setFollowUpDraft] = useState({ date: "", channel: "email" as FollowUpEntry["channel"], direction: "sent" as FollowUpEntry["direction"], summary: "" });
   const backupInputRef = useRef<HTMLInputElement>(null);
@@ -125,22 +184,38 @@ export function RentalApplicationWorkspace() {
       const handoff = readRentalReadyNowHandoff(window.localStorage);
       if (handoff) {
         const contextNote = `무료 집 방문 체크에서 ${handoff.reviewedCount}개 항목 확인 · 다시 확인 ${handoff.concernCount}개. 방문 메모와 세부 체크 결과는 개인정보 보호를 위해 가져오지 않았습니다.`;
+        const receipt = createRentalReadyNowImportReceipt(handoff);
+        const handoffAlreadyImported = nextWorkspace.applications.some((item) => rentalReadyNowReceiptMatches(item.inspectionReceipt, handoff));
         const activeApplication = nextWorkspace.applications.find((item) => item.id === nextWorkspace.activeId) ?? nextWorkspace.applications[0];
         const activeIsBlank = !activeApplication.propertyLabel && !activeApplication.notes && Object.keys(activeApplication.statuses).length === 0 && activeApplication.followUps.length === 0;
-        if (activeIsBlank) {
-          nextWorkspace = { ...nextWorkspace, applications: nextWorkspace.applications.map((item) => item.id === activeApplication.id ? { ...item, propertyLabel: handoff.propertyLabel, stage: "inspected", notes: contextNote } : item) };
-          clearRentalReadyNowHandoff(window.localStorage);
+        let importedHandoff = false;
+        if (handoffAlreadyImported) {
+          try { clearRentalReadyNowHandoff(window.localStorage); } catch {}
+          setMessage("무료 집 방문 결과는 이미 가져왔습니다. 같은 후보를 다시 만들지 않았습니다.");
+        } else if (activeIsBlank) {
+          nextWorkspace = { ...nextWorkspace, applications: nextWorkspace.applications.map((item) => item.id === activeApplication.id ? { ...item, propertyLabel: handoff.propertyLabel, stage: "inspected", notes: contextNote, inspectionReceipt: receipt } : item) };
+          importedHandoff = true;
           setMessage("무료 집 방문 결과의 최소 정보만 현재 집 후보로 가져왔습니다.");
         } else if (nextWorkspace.applications.length < MAX_APPLICATIONS) {
           const imported = createApplication(createId(), handoff.propertyLabel || `집 후보 ${nextWorkspace.applications.length + 1}`);
-          imported.stage = "inspected"; imported.notes = contextNote;
+          imported.stage = "inspected"; imported.notes = contextNote; imported.inspectionReceipt = receipt;
           nextWorkspace = { ...nextWorkspace, activeId: imported.id, applications: [...nextWorkspace.applications, imported] };
-          clearRentalReadyNowHandoff(window.localStorage);
+          importedHandoff = true;
           setMessage("무료 집 방문 결과의 최소 정보만 새 집 후보로 가져왔습니다.");
+        }
+        if (importedHandoff) {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextWorkspace));
+          try { window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved"); } catch {}
+          try { clearRentalReadyNowHandoff(window.localStorage); } catch {
+            // The persisted import receipt makes a later retry idempotent.
+          }
         }
       }
       setWorkspace(nextWorkspace);
-    } catch {}
+      setFirstCandidateSaved(readRentalReadyNowSavedFlag(window.localStorage, FIRST_SUCCESS_KEY) || nextWorkspace.applications.some((item) => Boolean(item.propertyLabel.trim())));
+    } catch {
+      setMessage("브라우저 저장소를 사용할 수 없어 무료 방문 결과를 가져오지 못했습니다. 무료 방문 결과 원본은 삭제하지 않았습니다.");
+    }
     setLoaded(true);
   }, []);
   useEffect(() => { if (!loaded) return; const timer = window.setTimeout(() => { try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace)); } catch {} }, 400); return () => window.clearTimeout(timer); }, [workspace, loaded]);
@@ -160,6 +235,21 @@ export function RentalApplicationWorkspace() {
   const updateProfile = <K extends keyof ApplicantProfile>(field: K, value: ApplicantProfile[K]) => setWorkspace((current) => ({ ...current, profile: { ...current.profile, [field]: value } }));
   const updateEvidence = (id: string, patch: Partial<ReusableEvidence>) => setWorkspace((current) => ({ ...current, evidenceLibrary: { ...current.evidenceLibrary, [id]: { ...current.evidenceLibrary[id], ...patch } } }));
   const updateActive = (patch: Partial<RentalApplication>) => setWorkspace((current) => ({ ...current, applications: current.applications.map((item) => item.id === current.activeId ? { ...item, ...patch } : item) }));
+  const saveFirstCandidate = () => {
+    const label = active.propertyLabel.trim();
+    if (!label) return setFirstCandidateMessage("정확한 주소 대신 알아볼 수 있는 별칭을 입력해 주세요.");
+    const nextWorkspace = { ...workspace, applications: workspace.applications.map((item) => item.id === workspace.activeId ? { ...item, propertyLabel: label } : item) };
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextWorkspace));
+      window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved");
+    } catch {
+      setFirstCandidateMessage("브라우저 저장소를 사용할 수 없어 첫 후보 저장을 확인하지 못했습니다.");
+      return;
+    }
+    setWorkspace(nextWorkspace);
+    setFirstCandidateSaved(true);
+    setFirstCandidateMessage(`“${label}”을 첫 집 후보로 저장했습니다.`);
+  };
   const addApplication = () => {
     if (workspace.applications.length >= MAX_APPLICATIONS) return setMessage(`한 기기에서 최대 ${MAX_APPLICATIONS}개 후보를 관리할 수 있습니다.`);
     const next = createApplication(createId(), `집 후보 ${workspace.applications.length + 1}`);
@@ -242,6 +332,7 @@ export function RentalApplicationWorkspace() {
   };
 
   return <div className="space-y-8">
+    {!firstCandidateSaved ? <form className="border-l-4 border-gold bg-gold/10 p-5 sm:p-6" onSubmit={(event) => { event.preventDefault(); saveFirstCandidate(); }} aria-labelledby="rental-first-candidate-heading"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">구매 후 첫 1분</p><h2 id="rental-first-candidate-heading" className="mt-2 text-xl font-semibold text-navy">첫 집 후보 하나를 먼저 저장하세요.</h2><p className="mt-2 text-sm leading-6 text-muted">정확한 주소는 적지 말고 “Carlton 후보 1”처럼 나만 알아볼 별칭을 사용하세요.</p><div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end"><label className="flex-1 text-sm font-semibold text-navy">첫 집 후보 별칭<input id="rental-first-candidate-label" autoComplete="off" maxLength={80} value={active.propertyLabel} onChange={(event) => updateActive({ propertyLabel: event.target.value })} className="mt-2 min-h-12 w-full border border-border bg-white px-3 text-sm font-normal text-navy outline-none focus:border-navy focus:ring-2 focus:ring-navy/15" /></label><button type="submit" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white">첫 후보 저장</button></div><p className="mt-3 min-h-5 text-sm leading-5 text-red-800" role="status" aria-live="polite">{firstCandidateMessage}</p></form> : <div className="border-l-4 border-emerald-600 bg-emerald-50 p-5 sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-6" role="status"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-800">첫 후보 저장 완료</p><h2 className="mt-2 text-xl font-semibold text-navy">{firstCandidateMessage || "첫 집 후보가 이 브라우저에 저장되어 있어요."}</h2><p className="mt-2 text-sm leading-6 text-muted">이 후보의 증빙 상태, 개인정보 확인과 다음 행동을 집별로 이어서 관리할 수 있어요.</p></div><a href="#rental-document-readiness" className="mt-4 inline-flex min-h-12 shrink-0 items-center justify-center bg-navy px-5 text-sm font-semibold text-white sm:mt-0">8개 증빙 상태 시작</a></div>}
     <section className="border-y border-navy/20 bg-white py-6" aria-labelledby="rental-dashboard-heading">
       <div className="flex flex-wrap items-end justify-between gap-4 px-5 sm:px-7"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Application dashboard</p><h2 id="rental-dashboard-heading" className="mt-2 text-2xl font-semibold text-navy">집 후보와 신청 진행 상황</h2></div><div className="flex flex-wrap gap-2"><input ref={backupInputRef} type="file" accept="application/json,.json" className="sr-only" onChange={(event) => void restoreBackup(event.target.files?.[0])} /><button type="button" onClick={() => backupInputRef.current?.click()} className="min-h-11 border border-border px-4 text-sm font-semibold text-navy">백업 복원</button><button type="button" onClick={downloadBackup} className="min-h-11 border border-border px-4 text-sm font-semibold text-navy">전체 백업</button><button type="button" onClick={addApplication} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">+ 새 집 후보</button></div></div>
       <div className="mt-6 grid gap-px bg-border sm:grid-cols-3"><div className="bg-surface px-6 py-4"><p className="text-xs text-muted">관리 중</p><p className="font-mono text-2xl text-navy">{workspace.applications.length}</p></div><div className="bg-surface px-6 py-4"><p className="text-xs text-muted">제출</p><p className="font-mono text-2xl text-navy">{submittedCount}</p></div><div className="bg-surface px-6 py-4"><p className="text-xs text-muted">승인</p><p className="font-mono text-2xl text-navy">{approvedCount}</p></div></div>
@@ -268,7 +359,7 @@ export function RentalApplicationWorkspace() {
       <section className="border border-border bg-white p-5 sm:p-7"><div className="flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Privacy guard</p><h2 className="mt-2 text-xl font-semibold text-navy">제출 전 개인정보 점검</h2></div><p className="font-mono text-2xl text-navy">{privacyProgress}%</p></div><div className="mt-5 h-1.5 bg-surface"><div className="h-full bg-gold" style={{ width: `${privacyProgress}%` }} /></div><ul className="mt-5 divide-y divide-border">{privacyChecks.map(([id, title, detail]) => <li key={id} className="py-4"><label className="flex cursor-pointer gap-3"><input type="checkbox" className="mt-1 size-4 accent-[#1a2744]" checked={Boolean(active.privacyChecks[id])} onChange={(e) => updateActive({ privacyChecks: { ...active.privacyChecks, [id]: e.target.checked } })} /><span><strong className="block text-sm text-navy">{title}</strong><span className="mt-1 block text-xs leading-5 text-muted">{detail}</span></span></label></li>)}</ul></section>
     </div>
 
-    <div className="space-y-8"><section className="border border-border bg-white p-5 shadow-sm sm:p-7"><div className="flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Document readiness</p><h2 className="mt-2 text-xl font-semibold text-navy">서류 준비 현황</h2></div><div className="text-right"><p className="font-mono text-3xl text-navy">{progress}%</p><p className="text-xs text-muted">{readyCount} / {documents.length}</p></div></div><div className="mt-5 h-1.5 bg-surface"><div className="h-full bg-gold" style={{ width: `${progress}%` }} /></div><ol className="mt-6 divide-y divide-border border-y border-navy/20">{documents.map((item, index) => { const status = active.statuses[item.id] ?? "todo"; return <li key={item.id} className="py-5"><div className="grid gap-3 sm:grid-cols-[2rem_1fr_8rem]"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{item.group}</p><h3 className="mt-1 font-semibold text-navy">{item.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{item.detail}</p>{item.caution && status === "review" ? <p className="mt-2 border-l-2 border-gold pl-3 text-xs text-[#755b20]">{item.caution}</p> : null}</div><label className="text-xs text-muted">상태<select className="mt-1 min-h-11 w-full border border-border bg-white px-2 text-sm text-navy" value={status} onChange={(e) => updateActive({ statuses: { ...active.statuses, [item.id]: e.target.value as DocumentStatus } })}><option value="todo">준비 전</option><option value="review">확인 필요</option><option value="ready">준비 완료</option></select></label></div></li>; })}</ol></section>
+    <div className="space-y-8"><section id="rental-document-readiness" className="scroll-mt-24 border border-border bg-white p-5 shadow-sm sm:p-7"><div className="flex items-end justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Document readiness</p><h2 className="mt-2 text-xl font-semibold text-navy">서류 준비 현황</h2></div><div className="text-right"><p className="font-mono text-3xl text-navy">{progress}%</p><p className="text-xs text-muted">{readyCount} / {documents.length}</p></div></div><div className="mt-5 h-1.5 bg-surface"><div className="h-full bg-gold" style={{ width: `${progress}%` }} /></div><ol className="mt-6 divide-y divide-border border-y border-navy/20">{documents.map((item, index) => { const status = active.statuses[item.id] ?? "todo"; return <li key={item.id} className="py-5"><div className="grid gap-3 sm:grid-cols-[2rem_1fr_8rem]"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{item.group}</p><h3 className="mt-1 font-semibold text-navy">{item.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{item.detail}</p>{item.caution && status === "review" ? <p className="mt-2 border-l-2 border-gold pl-3 text-xs text-[#755b20]">{item.caution}</p> : null}</div><label className="text-xs text-muted">상태<select className="mt-1 min-h-11 w-full border border-border bg-white px-2 text-sm text-navy" value={status} onChange={(e) => updateActive({ statuses: { ...active.statuses, [item.id]: e.target.value as DocumentStatus } })}><option value="todo">준비 전</option><option value="review">확인 필요</option><option value="ready">준비 완료</option></select></label></div></li>; })}</ol></section>
 
       <section className="border border-border bg-white p-5 shadow-sm sm:p-7"><div className="flex flex-wrap justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Message studio</p><h2 className="mt-2 text-xl font-semibold text-navy">상황별 영문 문구 3종</h2></div><button type="button" onClick={createMessages} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">문구 새로 만들기</button></div><div className="mt-5 flex flex-wrap gap-2" role="tablist">{messageOptions.map((option) => <button key={option.value} type="button" role="tab" aria-selected={activeMessageType === option.value} onClick={() => setActiveMessageType(option.value)} className={`min-h-11 px-3 text-sm font-semibold ${activeMessageType === option.value ? "bg-gold text-navy" : "border border-border text-muted"}`}>{option.label}</button>)}</div><textarea aria-label="선택한 영문 문구" className={`${inputClass} mt-5 min-h-80 resize-y font-serif leading-7`} value={active.messages[activeMessageType]} onChange={(e) => updateActive({ messages: { ...active.messages, [activeMessageType]: e.target.value } })} placeholder="프로필과 집 조건을 입력한 뒤 문구를 만드세요." /><div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={copyMessage} disabled={!active.messages[activeMessageType]} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy disabled:opacity-35">선택 문구 복사</button><button type="button" onClick={downloadSummary} className="min-h-11 border border-border px-4 text-sm font-semibold text-navy">현재 패키지 TXT</button><button type="button" onClick={downloadPropertyPackage} className="min-h-11 border border-border px-4 text-sm font-semibold text-navy">집별 비공개 JSON</button><button type="button" onClick={() => window.print()} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">PDF로 저장 / 인쇄</button></div><p className="mt-3 text-xs leading-5 text-muted">TXT와 PDF는 검토·제출 준비용이며, JSON은 집별 기록을 구조화해 보관하는 비공개 묶음입니다. 세 파일 모두 원본 증빙을 포함하지 않습니다.</p><p className="mt-4 min-h-6 text-sm text-muted" aria-live="polite">{message}</p></section>
     </div></div>

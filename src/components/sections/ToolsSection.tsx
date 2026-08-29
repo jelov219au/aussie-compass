@@ -4,15 +4,15 @@ import { Container } from "@/components/ui/Container";
 import { sectionIds } from "@/lib/utils";
 
 const essentials = [
-  { number: "01", href: "/salary-calculator", eyebrow: "일과 급여", title: "통합 급여 계산기", description: "시급이나 연봉을 넣으면 세전·세후 급여와 Super를 함께 볼 수 있어요." },
-  { number: "02", href: "/arrival-checklist", eyebrow: "호주 도착", title: "첫 30일 정착", description: "전화와 교통부터 은행, TFN, 첫 직장 준비까지 순서대로 챙겨보세요." },
+  { number: "01", href: "/arrival-checklist", eyebrow: "호주 도착", title: "첫 30일 정착", description: "전화와 교통부터 은행, TFN, 첫 직장 준비까지 순서대로 챙겨보세요." },
+  { number: "02", href: "/visa-preparation-guide", eyebrow: "출국 준비", title: "비자·신체검사 준비", description: "신청 경로와 비용, 지정 병원을 공식 사이트에서 확인하는 순서를 알아보세요." },
   { number: "03", href: "/property-inspection-checklist", eyebrow: "집 구하기", title: "집 방문 체크리스트", description: "집을 보러 간 자리에서 상태와 비용, 계약 조건을 하나씩 확인할 수 있어요." },
-  { number: "04", href: "/resume-builder", eyebrow: "취업 준비", title: "영문 이력서 빌더", description: "막막한 영문 문장은 예시를 참고하고, 내게 맞는 디자인으로 정리해보세요." },
+  { number: "04", href: "/resume-builder", eyebrow: "취업 준비", title: "영문 이력서 빌더", description: "내 실제 경험을 브라우저에 저장하고, PDF와 백업 파일로 내보내 다음 지원에도 다시 사용하세요." },
 ];
 
 export function ToolsSection() {
   return <section id={sectionIds.tools} className="scroll-mt-20 bg-background py-16 sm:py-24" aria-labelledby="essential-tools-heading"><Container>
-    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold text-gold">바로 써볼 수 있어요</p><h2 id="essential-tools-heading" className="mt-2 text-3xl font-semibold tracking-[-0.025em] text-navy sm:text-4xl">많이 쓰는 도구</h2><p className="mt-3 text-sm leading-6 text-muted sm:text-base">처음 오셨다면 지금 필요한 것부터 편하게 써보세요.</p></div><Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy">전체 도구 보기 →</Link></div>
+    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold text-gold-ink">바로 써볼 수 있어요</p><h2 id="essential-tools-heading" className="mt-2 text-3xl font-semibold tracking-[-0.025em] text-navy sm:text-4xl">처음이라면 여기부터</h2><p className="mt-3 text-sm leading-6 text-muted sm:text-base">도착과 정착, 집, 일자리 준비처럼 지금 필요한 순서부터 편하게 시작하세요.</p></div><Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy">전체 도구 보기 →</Link></div>
 
     <TrackedLink href="/english-phrase-cards" eventName="Home Navigation" properties={{ section: "english_phrase_preview", destination: "english-phrase-cards" }} className="group relative mt-8 block overflow-hidden rounded-2xl bg-navy text-white transition hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(26,39,68,0.14)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
       <span className="absolute -right-12 -top-20 h-64 w-64 rounded-full border border-white/10" aria-hidden="true" />
@@ -30,6 +30,14 @@ export function ToolsSection() {
       </span>
     </TrackedLink>
 
-    <ol className="mt-8 grid gap-4 sm:grid-cols-2">{essentials.map((tool)=><li key={tool.href}><TrackedLink href={tool.href} eventName="Home Navigation" properties={{ section: "essential_tools", destination: tool.href.slice(1) }} className="group grid h-full min-h-52 grid-rows-[auto_1fr_auto] rounded-2xl border border-border bg-white p-6 transition hover:-translate-y-0.5 hover:border-navy/25 hover:shadow-[0_12px_30px_rgba(26,39,68,0.06)] sm:p-7"><div className="flex items-center justify-between"><span className="text-xs text-muted">{tool.number}</span><span className="text-xs font-semibold text-gold">{tool.eyebrow}</span></div><div className="self-center py-7"><h3 className="text-2xl font-semibold tracking-tight text-navy">{tool.title}</h3><p className="mt-3 max-w-md text-sm leading-6 text-muted">{tool.description}</p></div><span className="flex items-center justify-between text-sm font-semibold text-navy"><span>바로 써보기</span><span className="text-xl transition group-hover:translate-x-1" aria-hidden="true">→</span></span></TrackedLink></li>)}</ol>
+    <ol className="mt-8 grid gap-4 sm:grid-cols-2">{essentials.map((tool)=><li key={tool.href}><TrackedLink href={tool.href} eventName="Home Navigation" properties={{ section: "essential_tools", destination: tool.href.slice(1) }} className="group grid h-full min-h-52 grid-rows-[auto_1fr_auto] rounded-2xl border border-border bg-white p-6 transition hover:-translate-y-0.5 hover:border-navy/25 hover:shadow-[0_12px_30px_rgba(26,39,68,0.06)] sm:p-7"><div className="flex items-center justify-between"><span className="text-xs text-muted">{tool.number}</span><span className="text-xs font-semibold text-gold-ink">{tool.eyebrow}</span></div><div className="self-center py-7"><h3 className="text-2xl font-semibold tracking-tight text-navy">{tool.title}</h3><p className="mt-3 max-w-md text-sm leading-6 text-muted">{tool.description}</p></div><span className="flex items-center justify-between text-sm font-semibold text-navy"><span>바로 써보기</span><span className="text-xl transition group-hover:translate-x-1" aria-hidden="true">→</span></span></TrackedLink></li>)}</ol>
+
+    <TrackedLink href="/resume-job-ad-checker" eventName="Home Navigation" properties={{ section: "resume_job_ad_evidence", destination: "resume-job-ad-checker" }} className="group mt-4 block border border-navy/20 bg-surface transition hover:border-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
+      <span className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[11rem_1fr_auto] lg:items-center">
+        <span><span className="block text-xs font-semibold uppercase tracking-[0.16em] text-gold-ink">지원할 Job Ad가 있다면</span><span className="mt-2 block text-xs leading-5 text-muted">입력 원문 서버 전송 없음</span></span>
+        <span><strong className="block text-lg text-navy sm:text-xl">키워드를 넣기 전에 실제 경험 근거부터 확인하세요</strong><span className="mt-2 block text-sm leading-6 text-muted">현재 이력서와 공고 문구를 로컬에서 비교하고, 다음에 답할 근거 질문을 최대 3개로 좁혀 드립니다.</span></span>
+        <span className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white transition group-hover:bg-gold group-hover:text-navy">무료 공고 맞춤 점검 <span className="ml-2 transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
+      </span>
+    </TrackedLink>
   </Container></section>;
 }

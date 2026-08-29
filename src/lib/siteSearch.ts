@@ -1,0 +1,103 @@
+export type SearchItem = {
+  href: string;
+  type: "도구" | "가이드" | "자료";
+  title: string;
+  description: string;
+  keywords: string[];
+};
+
+export type SiteSearchIntent = "default" | "resume" | "resume-pro-direct";
+
+const resumeIntentAliases = new Set([
+  "이력서",
+  "resume",
+  "cv",
+  "star예시",
+  "starexamples",
+  "selectioncriteria",
+  "coverletter",
+  "커버레터",
+  "이력서양식",
+  "resumetemplate",
+  "ats",
+  "ats이력서",
+  "공고맞춤",
+  "이력서공고맞춤",
+  "jobad",
+  "jobadchecker",
+  "호주취업이력서",
+]);
+
+const resumeDiscoveryPriority = new Map([
+  ["/resume-builder", 5],
+  ["/resources/australia-resume-template-submission-checklist", 4],
+  ["/resume-job-ad-checker", 3],
+  ["/resources/english-resume-achievement-examples", 2],
+  ["/resume-pro", 1],
+]);
+
+const jobAdCheckerAliases = new Set(["ats", "ats이력서", "공고맞춤", "이력서공고맞춤", "jobad", "jobadchecker"]);
+const jobAdCheckerDiscoveryPriority = new Map([
+  ["/resume-job-ad-checker", 5],
+  ["/resume-builder", 4],
+  ["/resources/australia-resume-template-submission-checklist", 3],
+  ["/resources/english-resume-achievement-examples", 2],
+  ["/resume-pro", 1],
+]);
+
+const coverLetterDiscoveryPriority = new Map([
+  ["/resume-builder", 4],
+  ["/resources/australia-cover-letter-job-ad-checklist", 3],
+  ["/resume-pro", 2],
+  ["/resources/english-resume-achievement-examples", 1],
+]);
+
+export const normalizeSiteSearchText = (value: string) => value
+  .toLocaleLowerCase("ko-KR")
+  .replace(/\s+/g, "")
+  .replace(/[·/–—-]/g, "");
+
+export function getSiteSearchIntent(query: string): SiteSearchIntent {
+  const normalized = normalizeSiteSearchText(query.trim());
+  if (normalized === "resumepro") return "resume-pro-direct";
+  return resumeIntentAliases.has(normalized) ? "resume" : "default";
+}
+
+function textRelevance(item: SearchItem, normalizedQuery: string) {
+  if (normalizeSiteSearchText(item.title).includes(normalizedQuery)) return 3;
+  if (item.keywords.some((keyword) => normalizeSiteSearchText(keyword).includes(normalizedQuery))) return 2;
+  return 1;
+}
+
+export function rankSiteSearchItems(items: SearchItem[], query: string) {
+  const normalizedQuery = normalizeSiteSearchText(query.trim());
+  if (!normalizedQuery) return items;
+
+  const intent = getSiteSearchIntent(query);
+  const discoveryPriority = normalizedQuery === "coverletter" || normalizedQuery === "커버레터"
+    ? coverLetterDiscoveryPriority
+    : jobAdCheckerAliases.has(normalizedQuery)
+      ? jobAdCheckerDiscoveryPriority
+      : resumeDiscoveryPriority;
+  const indexed = items.map((item, index) => ({ item, index }));
+  const paid = (item: SearchItem) => item.href === "/pro" || item.href.includes("-pro");
+  const searchable = (item: SearchItem) => normalizeSiteSearchText([item.title, item.description, ...item.keywords].join(" "));
+
+  return indexed
+    .filter(({ item }) => searchable(item).includes(normalizedQuery) || (intent === "resume" && discoveryPriority.has(item.href)))
+    .sort((left, right) => {
+      const priority = (entry: typeof left) => {
+        if (intent === "resume-pro-direct" && entry.item.href === "/resume-pro") return 10_000;
+        if (intent === "resume") {
+          const itemPriority = discoveryPriority.get(entry.item.href);
+          if (itemPriority) return 5_000 + itemPriority;
+        }
+        return textRelevance(entry.item, normalizedQuery) * 10 - Number(paid(entry.item)) * 2;
+      };
+
+      return priority(right) - priority(left)
+        || left.index - right.index
+        || left.item.href.localeCompare(right.item.href, "ko-KR");
+    })
+    .map(({ item }) => item);
+}

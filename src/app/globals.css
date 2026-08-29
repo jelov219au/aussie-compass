@@ -6,6 +6,7 @@
   --color-navy: #1a2744;
   --color-navy-light: #2a3a5c;
   --color-gold: #c4a035;
+  --color-gold-ink: #806515;
   --color-muted: #5c6478;
   --color-border: #ddd8ce;
 
@@ -37,6 +38,21 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Keep keyboard focus visible on both light surfaces and navy controls.
+   The light inner outline separates the navy outer ring from dark controls. */
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--color-background);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--color-navy);
+}
+
+@media (forced-colors: active) {
+  :where(a, button, input, select, textarea, summary):focus-visible {
+    outline: 3px solid ButtonText;
+    box-shadow: none;
+  }
 }
 
 /* Keep Korean words and short phrases together instead of splitting syllables

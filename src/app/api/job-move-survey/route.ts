@@ -8,7 +8,7 @@ const minimumCompletionTimeMs = 4_000;
 const maximumCompletionTimeMs = 24 * 60 * 60 * 1_000;
 
 export async function POST(request: NextRequest) {
-  const security = validateSameOriginMutation(request, {
+  const security = await validateSameOriginMutation(request, {
     maxBodyBytes: 6_000,
     allowedContentTypes: ["application/json"],
   });

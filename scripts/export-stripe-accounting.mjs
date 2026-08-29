@@ -1,7 +1,12 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import Stripe from "stripe";
+import { accountingLedgerHeader } from "./accounting-ledger-schema.mjs";
+import {
+  createStripeAccountingClient,
+  getStripeAccountingConfig,
+  safeStripeAccountingError,
+} from "./stripe-accounting-access.mjs";
 
 function argumentValue(name) {
   const index = process.argv.indexOf(name);
@@ -37,55 +42,38 @@ const to = parseDate(toText, "--to");
 
 if (to <= from) throw new Error("--to must be later than --from. The end date is exclusive.");
 
-const accountingKey = process.env.STRIPE_ACCOUNTING_KEY?.trim();
-if (!accountingKey?.startsWith("rk_test_") && !accountingKey?.startsWith("rk_live_")) {
-  throw new Error("STRIPE_ACCOUNTING_KEY must be a dedicated restricted Stripe key (rk_). Do not use the checkout key.");
-}
-
-const mode = accountingKey.startsWith("rk_live_") ? "live" : "test";
+const { key, mode } = getStripeAccountingConfig();
 const outputRoot = path.resolve("private", "accounting");
 const outputPath = path.join(outputRoot, `stripe-balance-${mode}-${fromText}-to-${toText}-exclusive.csv`);
 
-const stripe = new Stripe(accountingKey, {
-  appInfo: { name: "Hoju Compass accounting export", version: "0.1.0" },
-  maxNetworkRetries: 2,
-  timeout: 20_000,
-  telemetry: false,
-});
+const stripe = createStripeAccountingClient(key, "Hoju Compass accounting export");
 
-const header = [
-  "created_utc",
-  "available_on_utc",
-  "currency",
-  "reporting_category",
-  "gross_amount",
-  "fee_amount",
-  "net_amount",
-  "status",
-  "source_id",
-  "balance_transaction_id",
-];
-const rows = [header];
+const rows = [accountingLedgerHeader];
 
-for await (const transaction of stripe.balanceTransactions.list({
-  created: {
-    gte: Math.floor(from.getTime() / 1000),
-    lt: Math.floor(to.getTime() / 1000),
-  },
-  limit: 100,
-})) {
-  rows.push([
-    new Date(transaction.created * 1000).toISOString(),
-    new Date(transaction.available_on * 1000).toISOString(),
-    transaction.currency.toUpperCase(),
-    transaction.reporting_category,
-    (transaction.amount / 100).toFixed(2),
-    (transaction.fee / 100).toFixed(2),
-    (transaction.net / 100).toFixed(2),
-    transaction.status,
-    objectId(transaction.source),
-    transaction.id,
-  ]);
+try {
+  for await (const transaction of stripe.balanceTransactions.list({
+    created: {
+      gte: Math.floor(from.getTime() / 1000),
+      lt: Math.floor(to.getTime() / 1000),
+    },
+    limit: 100,
+  })) {
+    rows.push([
+      mode,
+      new Date(transaction.created * 1000).toISOString(),
+      new Date(transaction.available_on * 1000).toISOString(),
+      transaction.currency.toUpperCase(),
+      transaction.reporting_category,
+      (transaction.amount / 100).toFixed(2),
+      (transaction.fee / 100).toFixed(2),
+      (transaction.net / 100).toFixed(2),
+      transaction.status,
+      objectId(transaction.source),
+      transaction.id,
+    ]);
+  }
+} catch (error) {
+  throw safeStripeAccountingError(error, "export");
 }
 
 await mkdir(outputRoot, { recursive: true });

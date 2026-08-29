@@ -20,6 +20,9 @@ const topics = [
   { id: "payslip", stage: "일", title: "첫 Payslip에서 확인할 5가지", path: "/payslip-guide", campaign: "first-payslip" },
   { id: "public-holiday-pay", stage: "일", title: "공휴일 근무수당 확인 순서", path: "/resources/australia-public-holiday-work-pay-guide", campaign: "public-holiday-pay" },
   { id: "resume", stage: "구직", title: "호주식 영문 이력서 시작하기", path: "/resume-builder", campaign: "resume-starter" },
+  { id: "resume-template", stage: "구직", title: "호주 이력서 양식·제출 전 점검", path: "/resources/australia-resume-template-submission-checklist", campaign: "resume-template-free-pdf" },
+  { id: "resume-job-ad-check", stage: "구직", title: "이력서·Job Ad 공고 맞춤 근거 점검", path: "/resume-job-ad-checker", campaign: "resume-job-ad-evidence-check" },
+  { id: "cover-letter", stage: "구직", title: "호주 커버레터 제출 전 점검", path: "/resources/australia-cover-letter-job-ad-checklist", campaign: "cover-letter-job-ad-checklist" },
   { id: "rent", stage: "집", title: "쉐어하우스 방문 체크리스트", path: "/property-inspection-checklist", campaign: "rental-check" },
   { id: "transport", stage: "이동", title: "차 없이 통학·출근 생활권 고르기", path: "/public-transport-guide", campaign: "commute-planning" },
   { id: "salary", stage: "돈", title: "시급·세후 급여·Super 함께 보기", path: "/salary-calculator", campaign: "salary-check" },
@@ -90,6 +93,126 @@ const englishPhrasePublishingPack = [
   },
 ] as const;
 
+const coverLetterPublishingPack = [
+  {
+    channel: "instagram",
+    format: "card",
+    hook: "호주 커버레터, 첫 문장보다 먼저 볼 게 있습니다.",
+    caption: `호주 커버레터, 첫 문장보다 먼저 볼 게 있습니다.
+
+먼저 Job ad가 cover letter를 요구하는지, 별도 질문이나 글자 수가 있는지 확인하세요. 그다음 공고의 표현을 내가 실제로 해본 경험에만 연결해야 합니다.
+
+제출 전에는 담당자·회사명·직무명, 한 페이지 분량, 사실 여부와 PDF·DOCX 형식을 다시 확인하세요.
+
+문장을 대신 만들어 주는 자료가 아니라, 공고 지시와 내 사실을 빠뜨리지 않게 확인하는 무료 체크리스트를 준비했습니다. 프로필 링크에서 확인하세요.`,
+    hashtags: "#호주커버레터 #호주이력서 #호주취업 #호주워홀 #호주유학 #CoverLetter #HojuCompass",
+  },
+  {
+    channel: "naver",
+    format: "post",
+    hook: "커버레터를 무조건 쓰기 전에 공고 지시부터 확인하세요.",
+    caption: `호주 구직에서 cover letter를 준비할 때 가장 먼저 볼 것은 예쁜 첫 문장이 아니라 해당 Job ad의 제출 지시입니다.
+
+공고가 커버레터를 요구하는지, resume 외에 selection criteria나 별도 질문이 있는지, 파일 형식과 분량은 무엇인지부터 적어두세요. 공고의 키워드는 내가 실제로 가진 기술과 경험에만 사용하고, 확인할 수 없는 수치·자격·성과는 넣지 않습니다.
+
+Hoju Compass의 무료 체크리스트에는 수신자, 직무명, 3~4개 문단·한 페이지 구성, 사실·맞춤법·파일 형식 확인 순서를 모았습니다. 실제 공고를 옆에 두고 제출 전에 한 번씩 체크해 보세요.`,
+    hashtags: "#호주취업 #호주커버레터 #영문이력서 #호주워홀준비 #호주유학생활 #HojuCompass",
+  },
+  {
+    channel: "youtube",
+    format: "reel",
+    hook: "커버레터 제출 전 10초: 회사명, 직무명, 실제 경험.",
+    caption: `커버레터 제출 버튼을 누르기 전 세 가지만 먼저 보세요.
+
+1. 이전 지원서의 회사명이나 직무명이 남아 있지 않은가
+2. 공고 표현을 실제로 해본 경험에만 연결했는가
+3. 공고가 요구한 분량과 파일 형식이 맞는가
+
+전체 제출 전 점검표는 Hoju Compass 무료 커버레터 가이드에서 확인할 수 있어요.`,
+    hashtags: "#호주취업 #CoverLetter #호주이력서 #취업준비 #HojuCompass",
+  },
+] as const;
+
+const resumeTemplatePublishingPack = [
+  {
+    channel: "naver",
+    format: "post",
+    hook: "호주 이력서 양식, 예쁜 디자인보다 읽히는 순서가 먼저입니다.",
+    caption: `호주 이력서를 처음 만들 때는 장식보다 이름·연락처, 관련 기술, 최근 경력, 학력·자격이 빠르게 읽히는 순서가 중요합니다.
+
+무료 Resume Builder에서 실제 경력 한 건부터 입력하고 PDF로 저장한 뒤 파일을 다시 열어 연락처, 줄바꿈과 두 번째 페이지를 확인하세요. 지원할 공고가 생기면 그 공고의 키워드를 내가 실제로 가진 경험에만 연결합니다.
+
+공식 Workforce Australia 기준으로 정리한 무료 양식과 제출 전 체크리스트를 Hoju Compass에서 바로 사용할 수 있어요.`,
+    hashtags: "#호주이력서 #호주이력서양식 #영문이력서 #호주취업 #호주워홀준비 #ResumeTemplate #HojuCompass",
+  },
+  {
+    channel: "instagram",
+    format: "card",
+    hook: "호주 이력서 제출 전, 이 5가지만 다시 보세요.",
+    caption: `호주 이력서 제출 전 5가지:
+
+1. 이름·전화·이메일이 첫 페이지에 정확한가
+2. 최근 경력부터 역순으로 정리했는가
+3. 공고 키워드를 실제 경험에만 사용했는가
+4. 모든 날짜·자격·수치가 사실인가
+5. PDF를 다시 열었을 때 글자가 잘리지 않는가
+
+무료 Builder와 전체 체크리스트는 프로필 링크에서 확인하세요. 입력 내용은 현재 브라우저에 저장됩니다.`,
+    hashtags: "#호주취업 #호주이력서 #영문이력서양식 #호주워홀 #취업준비 #HojuCompass",
+  },
+  {
+    channel: "youtube",
+    format: "reel",
+    hook: "이력서에 넣지 말아야 할 것: TFN, 여권번호, 만든 성과.",
+    caption: `호주 이력서에는 TFN, 여권번호, 은행정보와 전체 집 주소를 넣지 마세요.
+
+추천인 연락처는 먼저 허락을 받고, AI가 만든 숫자·직책·자격은 모두 지워야 합니다. 경력이 적다면 실제 봉사·프로젝트 경험을 범위에 맞게 적으세요.
+
+무료 이력서 양식과 제출 전 점검표는 Hoju Compass에서 확인할 수 있어요.`,
+    hashtags: "#호주이력서 #ResumeTips #호주취업 #개인정보보호 #호주생활 #HojuCompass",
+  },
+] as const;
+
+const resumeJobAdPublishingPack = [
+  {
+    channel: "naver",
+    format: "post",
+    hook: "호주 Job Ad 키워드, 이력서에 그대로 복사하면 안 되는 이유",
+    caption: `호주 채용 공고에서 반복되는 키워드를 찾는 것보다 먼저 할 일이 있습니다.
+
+그 표현을 내가 실제로 언제, 어떻게 사용했는지 설명할 수 있는지 확인해야 합니다. 이력서에 같은 문구가 없다고 바로 추가하면 면접에서 근거를 설명하지 못하거나 사실과 다른 내용이 될 수 있어요.
+
+Hoju Compass의 무료 공고 맞춤 근거 점검기는 이력서와 Job Ad를 현재 화면에서만 비교합니다. 점수나 합격 가능성을 만들지 않고, 같은 문구와 실제 경험을 더 확인할 항목을 구분해 보여줘요.`,
+    hashtags: "#호주이력서 #호주취업 #JobAd #영문이력서 #ATS이력서 #호주워홀준비 #HojuCompass",
+  },
+  {
+    channel: "instagram",
+    format: "card",
+    hook: "공고 키워드가 이력서에 없을 때: 추가 말고 근거 확인.",
+    caption: `Job Ad 표현이 내 이력서에서 보이지 않을 때 세 단계:
+
+1. 내가 실제로 해본 일인가
+2. 언제, 어떤 행동과 결과가 있었나
+3. 면접에서 같은 사실을 설명할 수 있나
+
+세 질문에 답할 수 있을 때만 내 말로 이력서에 연결하세요. 공고 문구를 복사하거나 AI로 경험을 만들지 않습니다.
+
+무료 로컬 비교 도구는 프로필 링크에서 사용할 수 있어요.`,
+    hashtags: "#호주취업 #호주이력서 #ResumeTips #JobApplication #호주워홀 #HojuCompass",
+  },
+  {
+    channel: "youtube",
+    format: "reel",
+    hook: "ATS 점수보다 중요한 10초 질문: 이 경험을 면접에서 설명할 수 있나요?",
+    caption: `공고와 이력서를 비교하는 도구가 80점을 보여줘도 채용을 보장하지 않습니다.
+
+같은 키워드가 있는지 확인한 뒤, 실제 상황·내 행동·결과를 설명할 수 있는지 먼저 물어보세요. 근거가 없다면 추가하지 않는 것이 맞습니다.
+
+Hoju Compass의 무료 점검기는 텍스트를 서버로 보내거나 저장하지 않아요.`,
+    hashtags: "#ATS이력서 #호주취업 #영문이력서 #면접준비 #ResumeChecker #HojuCompass",
+  },
+] as const;
+
 function cleanTag(value: string) { return value.trim().toLocaleLowerCase("ko-KR").replace(/\s+/g, "-").replace(/[^a-z0-9가-힣_-]/g, "").replace(/-+/g, "-").slice(0, 64); }
 function dateOffset(offset: number) { const date = new Date(); date.setDate(date.getDate() + offset); return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`; }
 function displayDate(value: string) { return new Intl.DateTimeFormat("ko-KR", { month: "short", day: "numeric", weekday: "short" }).format(new Date(`${value}T12:00:00`)); }
@@ -155,6 +278,48 @@ export function ContentPublishingPlanner() {
     });
     setMessage(campaignEntries.length ? `생활 영어 4일 발행팩을 추가했습니다. ${campaignEntries.length}개 게시물이 바로 발행 가능한 상태예요.` : "기존 생활 영어 일정에 캡션과 해시태그를 채웠습니다.");
   };
+  const loadCoverLetterCampaign = () => {
+    if (entries.some((entry) => entry.topicId === "cover-letter")) {
+      setMessage("커버레터 캠페인이 이미 발행 일정에 있습니다.");
+      return;
+    }
+    const item = topics.find((topic) => topic.id === "cover-letter") ?? topics[0];
+    const campaignEntries = coverLetterPublishingPack.map((pack, index): Entry => ({
+      id: crypto.randomUUID(), topicId: item.id, title: item.title, path: item.path, date: dateOffset(index + 1),
+      channel: pack.channel, format: pack.format, campaign: item.campaign, status: "ready", hook: pack.hook,
+      caption: pack.caption, hashtags: pack.hashtags, createdAt: new Date().toISOString(),
+    }));
+    setEntries((current) => [...current, ...campaignEntries].slice(-60));
+    setMessage("커버레터 3일 발행팩을 추가했습니다. 세 게시물이 바로 발행 가능한 상태예요.");
+  };
+  const loadResumeTemplateCampaign = () => {
+    if (entries.some((entry) => entry.topicId === "resume-template")) {
+      setMessage("이력서 양식 캠페인이 이미 발행 일정에 있습니다.");
+      return;
+    }
+    const item = topics.find((topic) => topic.id === "resume-template") ?? topics[0];
+    const campaignEntries = resumeTemplatePublishingPack.map((pack, index): Entry => ({
+      id: crypto.randomUUID(), topicId: item.id, title: item.title, path: item.path, date: dateOffset(index + 1),
+      channel: pack.channel, format: pack.format, campaign: item.campaign, status: "ready", hook: pack.hook,
+      caption: pack.caption, hashtags: pack.hashtags, createdAt: new Date().toISOString(),
+    }));
+    setEntries((current) => [...current, ...campaignEntries].slice(-60));
+    setMessage("이력서 양식 3일 발행팩을 추가했습니다. 세 게시물이 바로 발행 가능한 상태예요.");
+  };
+  const loadResumeJobAdCampaign = () => {
+    if (entries.some((entry) => entry.topicId === "resume-job-ad-check")) {
+      setMessage("공고 맞춤 점검 캠페인이 이미 발행 일정에 있습니다.");
+      return;
+    }
+    const item = topics.find((topic) => topic.id === "resume-job-ad-check") ?? topics[0];
+    const campaignEntries = resumeJobAdPublishingPack.map((pack, index): Entry => ({
+      id: crypto.randomUUID(), topicId: item.id, title: item.title, path: item.path, date: dateOffset(index + 1),
+      channel: pack.channel, format: pack.format, campaign: item.campaign, status: "ready", hook: pack.hook,
+      caption: pack.caption, hashtags: pack.hashtags, createdAt: new Date().toISOString(),
+    }));
+    setEntries((current) => [...current, ...campaignEntries].slice(-60));
+    setMessage("공고 맞춤 점검 3일 발행팩을 추가했습니다. 세 게시물이 바로 발행 가능한 상태예요.");
+  };
   const copyPublishingText = async (item: Entry) => {
     try { await navigator.clipboard.writeText([item.caption, item.hashtags].filter(Boolean).join("\n\n")); setCopiedEntryId(item.id); }
     catch { setMessage("자동 복사가 되지 않았어요. 게시 문구를 직접 선택해 복사해 주세요."); }
@@ -171,7 +336,7 @@ export function ContentPublishingPlanner() {
     <section className="min-w-0 border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="content-entry-heading">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Plan one useful post</p><h2 id="content-entry-heading" className="mt-2 text-2xl font-semibold text-navy">다음 게시물 정하기</h2><p className="mt-3 text-sm leading-6 text-muted">사람이 실제로 다음 행동을 할 수 있는 Hoju Compass 페이지 한 곳을 연결합니다.</p>
       <div className="mt-6 space-y-4"><label className="block text-sm font-medium text-navy">주제<select className="mt-1.5 min-h-11 w-full border border-border bg-white px-3" value={topicId} onChange={(event) => changeTopic(event.target.value)}>{topics.map((item) => <option key={item.id} value={item.id}>{item.stage} · {item.title}</option>)}</select></label><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1"><label className="text-sm font-medium text-navy">발행일<input type="date" className="mt-1.5 min-h-11 w-full border border-border px-3" value={date} onChange={(event) => setDate(event.target.value)} /></label><label className="text-sm font-medium text-navy">채널<select className="mt-1.5 min-h-11 w-full border border-border bg-white px-3" value={channel} onChange={(event) => setChannel(event.target.value)}>{channels.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label></div><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1"><label className="text-sm font-medium text-navy">형식<select className="mt-1.5 min-h-11 w-full border border-border bg-white px-3" value={format} onChange={(event) => setFormat(event.target.value)}>{formats.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></label><label className="text-sm font-medium text-navy">캠페인 이름<input className="mt-1.5 min-h-11 w-full border border-border px-3" value={campaign} onChange={(event) => setCampaign(event.target.value)} /></label></div><label className="block text-sm font-medium text-navy">첫 문장 메모 <span className="font-normal text-muted">선택</span><textarea rows={3} maxLength={140} className="mt-1.5 w-full resize-y border border-border p-3 text-sm" value={hook} onChange={(event) => setHook(event.target.value)} placeholder="예: 첫 Payslip, 입금액만 보면 놓치는 게 있습니다." /></label></div>
-      <button type="button" onClick={addEntry} className="mt-5 min-h-12 w-full bg-navy px-4 text-sm font-semibold text-white">발행 계획에 추가</button><button type="button" onClick={loadEnglishPhraseCampaign} className="mt-2 min-h-11 w-full border border-gold bg-gold/10 px-4 text-sm font-semibold text-navy">생활 영어 4일 발행팩 불러오기</button><button type="button" onClick={loadSampleWeek} className="mt-2 min-h-11 w-full border border-border px-4 text-sm font-semibold text-navy">5일 샘플 불러오기</button><p className="mt-3 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{message}</p>
+      <button type="button" onClick={addEntry} className="mt-5 min-h-12 w-full bg-navy px-4 text-sm font-semibold text-white">발행 계획에 추가</button><button type="button" onClick={loadResumeJobAdCampaign} className="mt-2 min-h-11 w-full border border-gold bg-gold/10 px-4 text-sm font-semibold text-navy">공고 맞춤 점검 3일 발행팩 불러오기</button><button type="button" onClick={loadResumeTemplateCampaign} className="mt-2 min-h-11 w-full border border-gold bg-gold/10 px-4 text-sm font-semibold text-navy">이력서 양식 3일 발행팩 불러오기</button><button type="button" onClick={loadCoverLetterCampaign} className="mt-2 min-h-11 w-full border border-gold bg-gold/10 px-4 text-sm font-semibold text-navy">커버레터 3일 발행팩 불러오기</button><button type="button" onClick={loadEnglishPhraseCampaign} className="mt-2 min-h-11 w-full border border-gold bg-gold/10 px-4 text-sm font-semibold text-navy">생활 영어 4일 발행팩 불러오기</button><button type="button" onClick={loadSampleWeek} className="mt-2 min-h-11 w-full border border-border px-4 text-sm font-semibold text-navy">5일 샘플 불러오기</button><p className="mt-3 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{message}</p>
     </section>
 
     <section className="min-w-0" aria-labelledby="publishing-plan-heading">

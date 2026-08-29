@@ -1,5 +1,7 @@
 import { requireLocalOperatorAccess } from "@/lib/operatorOnly";
 import { saveLocalOperatorConnection } from "@/lib/localOperatorConnection";
+import { validateSameOriginMutation } from "@/lib/requestSecurity";
+import { isVercelProjectId } from "@/lib/vercelProjectId";
 
 function isLoopback(hostname: string) {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
@@ -13,33 +15,45 @@ export async function POST(request: Request) {
   requireLocalOperatorAccess();
 
   const requestUrl = new URL(request.url);
-  const originText = request.headers.get("origin");
-  if (!isLoopback(requestUrl.hostname) || !originText) return new Response("Forbidden", { status: 403 });
+  if (!isLoopback(requestUrl.hostname)) return new Response("Forbidden", { status: 403 });
 
-  const origin = new URL(originText);
-  if (origin.origin !== requestUrl.origin || !isLoopback(origin.hostname)) {
-    return new Response("Forbidden", { status: 403 });
+  const security = await validateSameOriginMutation(request, {
+    maxBodyBytes: 4 * 1024,
+    allowedContentTypes: ["application/x-www-form-urlencoded", "multipart/form-data"],
+  });
+  if (!security.ok) {
+    return new Response(security.error, {
+      status: security.status,
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   const form = await request.formData();
   const vercelToken = String(form.get("vercel_token") ?? "").trim();
+  const rawVercelProjectId = String(form.get("vercel_project_id") ?? "");
+  const vercelProjectId = rawVercelProjectId.trim();
   const vercelTeamId = String(form.get("vercel_team_id") ?? "").trim();
-  const stripeAccountingKey = String(form.get("stripe_accounting_key") ?? "").trim();
+  const stripePerformanceKey = String(form.get("stripe_performance_key") ?? "").trim();
 
   const hasVercelToken = vercelToken.length > 0;
+  const hasVercelProjectId = vercelProjectId.length > 0;
   const hasVercelTeamId = vercelTeamId.length > 0;
-  const hasStripeKey = stripeAccountingKey.length > 0;
+  const hasStripeKey = stripePerformanceKey.length > 0;
   const invalidVercelToken = hasVercelToken && !isSafeToken(vercelToken);
+  const invalidVercelProjectId = hasVercelProjectId && (
+    rawVercelProjectId !== vercelProjectId || !isVercelProjectId(vercelProjectId)
+  );
   const invalidVercelTeamId = hasVercelTeamId && !/^team_[A-Za-z0-9]+$/.test(vercelTeamId);
-  const invalidStripeKey = hasStripeKey && !/^rk_(?:test|live)_[A-Za-z0-9]+$/.test(stripeAccountingKey);
-  if ((!hasVercelToken && !hasVercelTeamId && !hasStripeKey) || invalidVercelToken || invalidVercelTeamId || invalidStripeKey) {
+  const invalidStripeKey = hasStripeKey && !/^rk_(?:test|live)_[A-Za-z0-9]+$/.test(stripePerformanceKey);
+  if ((!hasVercelToken && !hasVercelProjectId && !hasVercelTeamId && !hasStripeKey) || invalidVercelToken || invalidVercelProjectId || invalidVercelTeamId || invalidStripeKey) {
     return Response.redirect(new URL("/resume-pro-performance?connection=invalid", requestUrl), 303);
   }
 
   await saveLocalOperatorConnection({
     vercelToken: hasVercelToken ? vercelToken : undefined,
+    vercelProjectId: hasVercelProjectId ? vercelProjectId : undefined,
     vercelTeamId: hasVercelTeamId ? vercelTeamId : undefined,
-    stripeAccountingKey: hasStripeKey ? stripeAccountingKey : undefined,
+    stripePerformanceKey: hasStripeKey ? stripePerformanceKey : undefined,
   });
   return Response.redirect(new URL("/resume-pro-performance?connection=saved", requestUrl), 303);
 }

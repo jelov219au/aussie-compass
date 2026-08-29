@@ -24,6 +24,14 @@ function isMessages(value: unknown) {
     && messageTypes.every((messageType) => typeof value[messageType] === "string");
 }
 
+function isInspectionReceipt(value: unknown) {
+  return value === null || isRecord(value)
+    && (value.mode === "share" || value.mode === "rent")
+    && typeof value.reviewedCount === "number" && Number.isFinite(value.reviewedCount)
+    && typeof value.concernCount === "number" && Number.isFinite(value.concernCount)
+    && (value.sourceCreatedAt === undefined || typeof value.sourceCreatedAt === "number" && Number.isSafeInteger(value.sourceCreatedAt));
+}
+
 function isApplication(value: unknown, version: 2 | 3) {
   if (!isRecord(value) || typeof value.id !== "string" || value.id.trim() === "") return false;
   if (!stringApplicationFields.every((field) => value[field] === undefined || typeof value[field] === "string")) return false;
@@ -33,6 +41,7 @@ function isApplication(value: unknown, version: 2 | 3) {
   if (value.statuses !== undefined && !hasOnlyValues(value.statuses, (status) => typeof status === "string" && documentStatuses.has(status))) return false;
   if (value.privacyChecks !== undefined && !hasOnlyValues(value.privacyChecks, (checked) => typeof checked === "boolean")) return false;
   if (value.messages !== undefined && !isMessages(value.messages)) return false;
+  if (value.inspectionReceipt !== undefined && !isInspectionReceipt(value.inspectionReceipt)) return false;
   if (value.followUps !== undefined && (!Array.isArray(value.followUps) || !value.followUps.every((entry) => isRecord(entry)
     && typeof entry.id === "string" && entry.id.trim() !== ""
     && typeof entry.date === "string"
@@ -40,6 +49,7 @@ function isApplication(value: unknown, version: 2 | 3) {
     && typeof entry.channel === "string" && followUpChannels.has(entry.channel)
     && typeof entry.direction === "string" && followUpDirections.has(entry.direction)))) return false;
   if (version === 3 && (value.statuses === undefined || value.privacyChecks === undefined || value.messages === undefined || value.followUps === undefined
+    || value.inspectionReceipt === undefined
     || typeof value.jurisdiction !== "string" || typeof value.stage !== "string")) return false;
   return true;
 }

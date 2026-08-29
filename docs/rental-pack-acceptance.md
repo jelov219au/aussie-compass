@@ -124,3 +124,21 @@ Checkout was not opened, and no live Checkout Session, charge, refund or entitle
 After the checkout-off deployment, `origin/main` was fetched at `97c8b5c`. The release branch and `main` have diverged substantially: `main` has 223 unique commits and the Rental branch has 4, with merge base `7910525`. A dry merge exposed overlapping changes across payment environment contracts, entitlement storage and guarded event functions, webhook handling, access-session and restore flows, Rental access code, rollout documentation and shared UI tokens.
 
 Do not merge this branch blindly, enable Rental checkout or use this checkout-off deployment as the basis for a real charge. Reconcile or replay the Rental changes onto current `main` while preserving `main`'s newer first-sale, accounting-isolation, tombstone and access-session safeguards; then rerun the full Rental contract suite, TypeScript, targeted lint, build, secret scan and strict Production audit. Production currently serves source commit `e687904` with Rental checkout closed, but any later automatic `main` deployment can replace it and must be checked again immediately before a controlled live test.
+
+## Main reconciliation completed — 29 August 2026
+
+The owner approved reconciliation, and `origin/main` at `c2025ff` was merged into the preserved Rental worktree without creating another worktree or changing Production. Conflicting payment, webhook, entitlement, access-session, restore and first-sale files use current `main` as their security baseline. Rental-specific work was then reapplied only to the workspace, public product copy, local backup and handoff boundaries, jurisdiction guidance, print output and the product-aware launch audit.
+
+The reconciliation exposed and resolved a user-data migration gap. Current `main` stores the Rental workspace as `version: 2` with a `packs` array, while the expanded workspace uses `version: 3` with `applications`, a reusable profile and an evidence library. The reconciled loader now maps every retained candidate's alias, move date, lease term, document states, introduction, follow-up date, contact stage and privacy-minimised inspection receipt into the new model, derives the reusable profile and evidence state, preserves the active candidate, and caps the result at 20. Persisted inspection receipts also make a failed one-time handoff cleanup idempotent instead of duplicating a candidate after reload.
+
+The product-aware launch audit now extends rather than replaces `main`'s fail-closed preflight. `--product=rental-application-pro` adds the dedicated Rental Price and switch checks; when remote Stripe verification is explicitly requested it pins live/test mode, active one-time AUD 14.90 inclusive pricing, active Product state and the exact `product_code` and `billing_model` metadata. Unknown products still fail with the documented usage error, and the command never prints supplied values.
+
+Reconciled verification:
+
+- Rental checkout/access, access-token, acquisition, offer handoff, ready-now, 20-candidate workspace, validated backup, entitlement ordering and paid-product isolation contracts passed.
+- The complete current-main payment launch preflight, Vercel protected-runtime preflight and Production runtime preflight contracts passed.
+- `npx tsc --noEmit --pretty false`, targeted ESLint and the repository-wide `npm run lint` passed with zero warnings; the earlier public-boundary lint failure is superseded by current `main`.
+- `npm run build` compiled, completed TypeScript validation and generated 122 pages, including all Rental checkout, activation, restore, success and workspace routes.
+- The secret scan passed across 456 tracked and untracked source files, and `git diff --check` passed.
+
+No Stripe, Neon, Vercel, Production, payment switch, Checkout Session, charge, refund or entitlement state changed during reconciliation. The last explicitly verified checkout-off Production source remains `e687904`; the reconciled branch requires a new collision check and separate preparation-deployment approval before it replaces any Production source. A real A$14.90 purchase and refund remain a later action-time approval.
