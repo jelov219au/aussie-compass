@@ -10,7 +10,7 @@ The Windows computer name cannot safely be used by Vercel CLI 59.5.0 as an HTTP 
 npx --yes --package=vercel@59.5.0 -- node .\scripts\invoke-vercel-cli-with-ascii-hostname.mjs login --no-color
 ```
 
-Confirm the OAuth device request's location, time and account in the browser. The repository wrapper never starts login, accepts `--token`, reads a token or writes a token/environment file. Do not use `vercel env pull`, a token argument or a hand-written `.env` file.
+Confirm the OAuth device request's location, time and account in the browser. The repository wrapper never starts login, accepts `--token`, reads a token or writes a token/environment file. It does not run a second standalone `whoami` probe: the exact-deployment verifier performs authenticated protected reads through the same pinned ASCII-hostname launcher with `VERCEL_TOKEN` removed, which proves both the login and the deployment identity before any masked secret prompt. This avoids a Windows PowerShell false-negative that previously stopped the wrapper even when those authenticated reads passed. Do not use `vercel env pull`, a token argument or a hand-written `.env` file.
 
 ## Integrated read-only run
 

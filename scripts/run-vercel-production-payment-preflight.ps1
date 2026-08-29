@@ -7,10 +7,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$launcherPath = Join-Path $PSScriptRoot "invoke-vercel-cli-with-ascii-hostname.mjs"
 $maskedPreflightPath = Join-Path $PSScriptRoot "run-production-payment-preflight.ps1"
 $environmentExamplePath = Join-Path $projectRoot ".env.example"
-$vercelPackage = "vercel@59.5.0"
 $exitCode = 1
 $failureReason = "input_or_runtime_error"
 $monitoringMode = "unverified"
@@ -25,8 +23,6 @@ try {
   if ($ExpectedNeonEndpointId -cnotmatch '^ep-[a-z0-9-]+$') { throw "ExpectedNeonEndpointId must be separately approved." }
   $failureReason = "invalid_expected_production_sha"
   if ($ExpectedProductionSha -cnotmatch '^[a-f0-9]{40}$') { throw "ExpectedProductionSha must be the full approved SHA." }
-  $failureReason = "operator_launcher_unavailable"
-  if (-not (Test-Path -LiteralPath $launcherPath -PathType Leaf)) { throw "The pinned Vercel launcher is unavailable." }
   $failureReason = "masked_preflight_unavailable"
   if (-not (Test-Path -LiteralPath $maskedPreflightPath -PathType Leaf)) { throw "The masked Production preflight is unavailable." }
   $failureReason = "environment_contract_unavailable"
@@ -54,25 +50,12 @@ try {
     if (Test-Path -LiteralPath ("Env:" + $variableName)) { throw "Start from a clean operator process." }
   }
 
-  $failureReason = "vercel_cli_auth_required"
-  $vercelWhoAmIExitCode = 1
-  $npxCommand = Get-Command npx.cmd -CommandType Application -ErrorAction Stop
-  $previousErrorActionPreference = $ErrorActionPreference
-  try {
-    # Windows PowerShell 5.1 converts a native process' stderr into an error
-    # record. Vercel writes its normal version banner there, so temporarily
-    # keep that informational output from tripping the fail-closed wrapper.
-    $ErrorActionPreference = "Continue"
-    $LASTEXITCODE = 1
-    & $npxCommand.Source --yes --package=$vercelPackage -- node $launcherPath whoami --no-color *> $null
-    $vercelWhoAmIExitCode = $LASTEXITCODE
-  } finally {
-    $ErrorActionPreference = $previousErrorActionPreference
-  }
-  if ($vercelWhoAmIExitCode -ne 0) { throw "Authenticate separately with the pinned launcher." }
-
   Push-Location -LiteralPath $projectRoot
   try {
+    # deployment:verify-production performs authenticated protected reads with
+    # the pinned ASCII-hostname launcher while explicitly removing VERCEL_TOKEN.
+    # This is stronger evidence than a separate `whoami` probe and avoids a
+    # Windows PowerShell false-negative before the masked operator prompts.
     $failureReason = "production_deployment_evidence_failed"
     $deploymentEvidence = @(& npm.cmd run deployment:verify-production -- --expected-sha $ExpectedProductionSha 2>$null)
     if ($LASTEXITCODE -ne 0) { throw "Production deployment evidence failed closed." }

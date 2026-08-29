@@ -24,8 +24,6 @@ for (const contract of [
 for (const contract of [
   '[string]$ExpectedNeonEndpointId',
   '[string]$ExpectedProductionSha',
-  '"vercel@59.5.0"',
-  "whoami --no-color *> $null",
   'Join-Path $projectRoot ".env.example"',
   "Get-Content -LiteralPath $environmentExamplePath",
   '"VERCEL_TOKEN"',
@@ -33,11 +31,11 @@ for (const contract of [
   'npm.cmd run deployment:verify-production -- --expected-sha $ExpectedProductionSha',
   "PRODUCTION_DEPLOYMENT_EVIDENCE=PASS",
   "PRODUCTION_DEPLOYMENT_URL=",
+  "deployment:verify-production performs authenticated protected reads",
   "-DeploymentOrigin $DeploymentOrigin",
   "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=smtp keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no",
   "FIRST_SALE_PREFLIGHT=PASS mode=live payments_off=yes monitoring=manual keys=three-distinct-rk-live required_reads=verified checkout_create=not-exercised database=strict-pass secrets_printed=no",
   "$LASTEXITCODE = 1",
-  "Get-Command npx.cmd -CommandType Application",
   "$innerPreflightRecords.Count -ne 1",
   '$monitoringMode = "smtp"',
   '$monitoringMode = "manual"',
@@ -48,6 +46,7 @@ for (const contract of [
 ]) assert.ok(wrapper.includes(contract), `Production operator wrapper is missing: ${contract}`);
 
 assert.doesNotMatch(wrapper, /env run|env pull|--token|vercel login|VERCEL_AUTOMATION_BYPASS_SECRET.*Read-Host/i, "the outer wrapper must not download Sensitive values, accept tokens, start login or prompt for bypass secrets");
+assert.doesNotMatch(wrapper, /whoami --no-color/, "the authenticated exact-deployment read must remain the sole Vercel authentication probe");
 assert.doesNotMatch(wrapper, /run-production-payment-preflight-with-bypass/, "the legacy bypass bootstrap must not remain in the canonical path");
 assert.doesNotMatch(wrapper, /Read-Host/, "all masked audit inputs must remain owned by the inner wrapper");
 assert.ok(wrapper.indexOf("deployment:verify-production") < wrapper.indexOf("-DeploymentOrigin $DeploymentOrigin"), "exact deployment evidence must precede the inner preflight");
