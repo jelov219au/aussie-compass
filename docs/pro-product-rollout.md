@@ -107,6 +107,42 @@ difference, malformed file, hand-written result or interrupted command remains
 switch remains off. This accounting PASS does not enable the product, set a
 price, make a sale, issue a refund or decide tax treatment.
 
+## Paid-product testing cost boundary
+
+Live self-purchase followed by refund is not the default acceptance test for this
+or any later paid tool. Stripe can return the customer's payment while retaining
+the original transaction processing fees, and Managed Payments can also retain
+and remit tax in jurisdictions where the original tax is not reversible. A
+repeatable release gate must therefore prove the product without intentionally
+creating a refundable live charge.
+
+Use this order for every paid product:
+
+1. Run local contract, type, lint and build checks without Stripe network writes.
+2. In a Stripe sandbox, exercise successful payment, decline, 3DS where
+   applicable, signed webhook delivery and replay, entitlement grant, restore,
+   refund and entitlement revocation. Sandbox objects and test cards must never
+   be accepted by the Production runtime.
+3. With Production checkout off, run the exact-SHA read-only runtime, Stripe,
+   database, accounting and monitoring preflights. This stage must prove that a
+   valid Checkout POST fails closed before Stripe Session creation.
+4. If the hosted live Checkout itself needs a final smoke check, create at most
+   one unpaid Session under explicit owner approval, inspect its exact product,
+   amount, currency, tax liability, mode and return URLs, and then expire it.
+   Never enter real payment details for this check. An unpaid Session is not
+   purchase, refund, entitlement or first-sale evidence.
+5. Open Production sales only for real customers after the sandbox and
+   payment-off gates pass. A live self-purchase/refund is exceptional expenditure
+   that requires a separate owner decision acknowledging that the processing fee
+   might not be returned; it is never required merely because code or a new paid
+   tool was deployed.
+
+Do not replace these gates with a zero-value coupon, a partial live refund or an
+authorization-only workaround: those flows do not prove the settled paid-product
+contract and can create different webhook, tax or accounting behaviour. Record
+the sandbox identity, exact Production source, switch state and any unpaid live
+Session cleanup in the product acceptance file.
+
 ## Later products
 
 - Pay Evidence Pack Pro needs an additional employment-information review so the tool does not present an entered difference as a legal underpayment finding.

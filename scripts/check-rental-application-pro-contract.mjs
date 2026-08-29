@@ -22,6 +22,8 @@ const workspace = await readFile(new URL("../src/app/rental-application-pro/work
 const webhook = await readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
 const productEntitlementContract = await readFile(new URL("../src/lib/productEntitlementContract.ts", import.meta.url), "utf8");
 const resumeStripeProduct = await readFile(new URL("../src/lib/resumeProStripeProduct.ts", import.meta.url), "utf8");
+const productRollout = await readFile(new URL("../docs/pro-product-rollout.md", import.meta.url), "utf8");
+const normalizedProductRollout = productRollout.replace(/\s+/g, " ");
 
 for (const contract of [
   "checkout.sessions.create",
@@ -111,5 +113,13 @@ assert.ok(successPage.includes("다시 결제하지 마세요") && activationFor
 assert.ok(restoreForm.includes("window.sessionStorage") && restoreForm.includes("restore_nonce"), "Rental restore must bind the raw code to a browser nonce");
 assert.ok(!restoreForm.includes("sessionStorage.setItem(restoreNonceStorageKey, code"), "The raw Rental restore code must never be stored in browser storage");
 assert.ok(workspace.includes("getActiveRentalApplicationProEntitlement"), "The Rental workspace must verify its paid entitlement");
+for (const costBoundary of [
+  "Live self-purchase followed by refund is not the default acceptance test",
+  "In a Stripe sandbox, exercise successful payment, decline, 3DS",
+  "With Production checkout off",
+  "create at most one unpaid Session under explicit owner approval",
+  "Never enter real payment details for this check",
+  "requires a separate owner decision acknowledging that the processing fee might not be returned",
+]) assert.ok(normalizedProductRollout.includes(costBoundary), `Paid-product test cost boundary is missing: ${costBoundary}`);
 
 console.log("Rental Application Pack Pro checkout and access contracts passed.");

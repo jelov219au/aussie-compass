@@ -176,3 +176,35 @@ After focused owner approval, additive migration `20260829_rental_first_sale_gat
 The first integrated exact-SHA Production preflight stopped before dependency checks and therefore before the Neon audit-URL prompt. Vercel's protected runtime log identified the configuration mismatch without exposing secrets: the existing deployment reported `PAYMENTS_ENABLED=true`, while the checkout-off audit deliberately requires `false`; Stripe, schema, database and SMTP checks were all `not-run`. Public Rental and exact-deployment pages remained visibly closed because the dedicated Rental switch was still `false`, and no Checkout Session, charge, refund or entitlement was created.
 
 Production `PAYMENTS_ENABLED` was then restored to `false` and exact source `564c941007d5f6faad8f1f04696b207846cdbcb6` was redeployed without build cache. Replacement Production deployment `B1n5xyFzjQM2y2oqT5n7YzRDbA5s` reached `Ready`, was assigned to `hojucompass.com`, and retained the dedicated Rental switch as `false`. The next step is to complete the integrated preflight against this replacement deployment, confirm zero open Sessions and the Neon audit role/endpoint, and only then activate the required switches for the single approved A$14.90 purchase/refund exercise.
+
+## Fee-safe live smoke containment — 30 August 2026
+
+The least-privilege runtime readiness mismatch was corrected in
+`b3a029dcdd7aa26b8fdcb94c9c2f968b2b9634a8`: runtime readiness no longer reads
+the private migration ledger that the application role is intentionally denied,
+while the dedicated operator audit continues to verify every migration entry.
+Rental/Stripe contracts, database operations, TypeScript, targeted lint and the
+122-page Production build passed. The integrated Production run then reported
+runtime payment preflight, operator audit, accounting preflight, first-sale
+preflight and Vercel Production preflight PASS with the exact source, zero open
+Sessions and the migrated Rental gate.
+
+After the approved temporary activation, one live Rental Checkout Session was
+created and its hosted page showed the exact one-time A$14.90 offer. Stripe read
+evidence showed `livemode=true`, Managed Payments, inclusive automatic tax with
+Stripe liability, exact Rental metadata, `status=open`, `payment_status=unpaid`
+and no PaymentIntent. The owner stopped before the final payment after confirming
+that a customer refund would not generally return the original processing fee.
+Consequently no charge, customer refund, entitlement or revocation was created
+and no payment-processing cost was incurred.
+
+The owner adopted the repository-wide fee-safe testing boundary in
+`docs/pro-product-rollout.md`. Both Production sale switches were restored to
+`false`. Concurrent `main` activity had already advanced the public source, so
+the environment-triggered Production deployment was inspected rather than
+replaced: deployment `dpl_DMDac17QZnhn1dMh3kJvyWx5myaH` is Ready on
+`hojucompass.com` from `main` commit `48f4f45`, and a same-origin Rental Checkout
+POST returns HTTP 503 with `Cache-Control: no-store`. No Rental candidate was
+promoted over that concurrent source. The sole unpaid Session is scheduled to
+expire at 30 August 2026 00:52:17 AEST; confirm Stripe reports it expired before
+closing this record.
