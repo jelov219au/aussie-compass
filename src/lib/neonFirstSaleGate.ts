@@ -59,10 +59,6 @@ export async function isPaymentRuntimeSchemaReady() {
         and to_regclass('public.payment_operator_alert_outbox') is not null
         and to_regprocedure('public.payment_operator_alert_from_receipt()') is not null
         and exists (
-          select 1 from public.schema_migrations
-          where version = '20260829_rental_first_sale_gate_v1'
-        )
-        and exists (
           select 1 from pg_constraint
           where conrelid = 'public.first_sale_gates'::regclass
             and contype = 'c'

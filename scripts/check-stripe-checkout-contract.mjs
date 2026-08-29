@@ -126,6 +126,11 @@ for (const migrationBoundary of [
   "readOnly: true",
   "AbortSignal.timeout(5_000)",
 ]) assert.ok(firstSaleGate.includes(migrationBoundary), `runtime migration readiness is missing: ${migrationBoundary}`);
+assert.doesNotMatch(
+  firstSaleGate,
+  /schema_migrations/,
+  "the least-privilege runtime schema check must prove deployed objects without reading the migration ledger",
+);
 assert.ok(
   checkout.indexOf("getActiveResumeProEntitlement()") < checkout.indexOf("stripe.prices.retrieve")
     && checkout.indexOf("getActiveResumeProEntitlement()") < checkout.indexOf("checkout.sessions.create"),
