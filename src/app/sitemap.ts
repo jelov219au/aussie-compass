@@ -60,7 +60,7 @@ const routes = [
 const acquisitionRouteUpdates: Record<string, string> = {
   "": "2026-08-29",
   "/tools": "2026-08-29",
-  "/used-car-comparison": "2026-08-29",
+  "/used-car-comparison": "2026-08-30",
   "/tax-prep-tracker": "2026-08-29",
   "/tax-return-guide": "2026-08-29",
   "/resume-builder": "2026-08-24",
