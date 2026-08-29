@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 const PERMANENT_HOURLY_RATE = 26.44;
+const PERMANENT_38_HOUR_WEEKLY_RATE = 1004.9;
 const CASUAL_HOURLY_RATE = 33.05;
 const DEFAULT_WEEKLY_HOURS = "38";
 
@@ -32,7 +33,8 @@ export function MinimumWageCalculator() {
         : "";
 
   const hourlyRate = employmentType === "casual" ? CASUAL_HOURLY_RATE : PERMANENT_HOURLY_RATE;
-  const weeklyPay = error ? 0 : hourlyRate * hours;
+  const usesOfficialPermanentWeeklyRate = employmentType === "permanent" && hours === 38;
+  const weeklyPay = error ? 0 : usesOfficialPermanentWeeklyRate ? PERMANENT_38_HOUR_WEEKLY_RATE : hourlyRate * hours;
   const annualPay = weeklyPay * 52;
 
   const results = [
@@ -109,6 +111,11 @@ export function MinimumWageCalculator() {
         <p className="mt-2 text-sm leading-relaxed text-white/70">
           세전 금액이며 일반 성인 award-free 근로자 기준입니다.
         </p>
+        {usesOfficialPermanentWeeklyRate ? (
+          <p className="mt-3 border-l-2 border-gold pl-3 text-xs leading-6 text-white/70">
+            38시간 주급은 Fair Work가 공표한 A$1,004.90을 사용합니다. 표시 시급은 센트 단위로 반올림되어 단순 곱셈과 소액 차이가 날 수 있어요.
+          </p>
+        ) : null}
 
         {error ? (
           <div className="mt-7 rounded-xl bg-white/10 p-5 text-sm leading-relaxed">
