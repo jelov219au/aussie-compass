@@ -96,11 +96,11 @@ begin
     or p_currency is null
     or p_currency is distinct from 'aud'
     or p_expected_amount_cents is null
-    or p_expected_amount_cents is distinct from case p_product_code
+    or p_expected_amount_cents is distinct from (case p_product_code
       when 'resume_pro' then 1990
       when 'rental_application_pro' then 1490
       else null
-    end
+    end)
     or p_reservation_expires_at < now() + interval '30 minutes'
     or p_reservation_expires_at > now() + interval '35 minutes'
   then
@@ -567,11 +567,11 @@ begin
     or p_currency is null
     or p_currency is distinct from 'aud'
     or p_amount_total is null
-    or p_amount_total is distinct from case p_product_code
+    or p_amount_total is distinct from (case p_product_code
       when 'resume_pro' then 1990
       when 'rental_application_pro' then 1490
       else null
-    end
+    end)
     or p_checkout_session_id is null
     or p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
     or p_payment_intent_id is null

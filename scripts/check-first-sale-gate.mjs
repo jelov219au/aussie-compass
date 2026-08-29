@@ -150,7 +150,7 @@ for (const contract of [
   "p_currency is null",
   "p_currency is distinct from 'aud'",
   "p_amount_total is null",
-  "p_amount_total is distinct from case p_product_code",
+  "p_amount_total is distinct from (case p_product_code",
   "p_charge_id is null",
   "p_charge_id !~ '^ch_[A-Za-z0-9]+$'",
   "is distinct from p_checkout_session_id",
