@@ -6,7 +6,7 @@ import Link from "next/link";
 type EvidenceStatus = "missing" | "review" | "ready";
 type RequestType = "first" | "followup";
 type ShiftEntry = { id: string; date: string; start: string; end: string; breakMinutes: string; rateLabel: string; hourlyRate: string; allowance: string; note: string };
-type PayPeriod = { id: string; label: string; hours: string; expectedGross: string; payslipGross: string; bankNet: string; note: string; shifts: ShiftEntry[] };
+type PayPeriod = { id: string; label: string; hours: string; expectedGross: string; payslipGross: string; payslipNet: string; bankNet: string; note: string; shifts: ShiftEntry[] };
 type PayDraft = { employerLabel: string; employmentType: string; sourceNote: string; periods: PayPeriod[]; evidence: Record<string, EvidenceStatus>; requestType: RequestType; requestDraft: string };
 
 const STORAGE_KEY = "hoju-compass-pay-evidence-pro-v1";
@@ -23,7 +23,7 @@ const statusLabels: Record<EvidenceStatus, string> = { missing: "없음·확인 
 const inputClass = "mt-1.5 min-h-11 w-full border border-border bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy focus:ring-2 focus:ring-navy/15";
 
 function newShift(): ShiftEntry { return { id: crypto.randomUUID(), date: "", start: "", end: "", breakMinutes: "", rateLabel: "", hourlyRate: "", allowance: "", note: "" }; }
-function newPeriod(): PayPeriod { return { id: crypto.randomUUID(), label: "", hours: "", expectedGross: "", payslipGross: "", bankNet: "", note: "", shifts: [] }; }
+function newPeriod(): PayPeriod { return { id: crypto.randomUUID(), label: "", hours: "", expectedGross: "", payslipGross: "", payslipNet: "", bankNet: "", note: "", shifts: [] }; }
 function safeNumber(value: string) { const number = Number(value); return Number.isFinite(number) && number >= 0 ? number : 0; }
 function minutesFromTime(value: string) { const [hours, minutes] = value.split(":").map(Number); return Number.isFinite(hours) && Number.isFinite(minutes) ? hours * 60 + minutes : null; }
 function shiftHours(shift: ShiftEntry) {
@@ -36,6 +36,16 @@ function shiftExpectedGross(shift: ShiftEntry) { return shiftHours(shift) * safe
 function periodHours(period: PayPeriod) { return period.shifts.length ? period.shifts.reduce((sum, shift) => sum + shiftHours(shift), 0) : safeNumber(period.hours); }
 function periodExpectedGross(period: PayPeriod) { return period.shifts.length ? period.shifts.reduce((sum, shift) => sum + shiftExpectedGross(shift), 0) : safeNumber(period.expectedGross); }
 function difference(period: PayPeriod) { return periodExpectedGross(period) - safeNumber(period.payslipGross); }
+function hasAmount(value: string) { return value.trim() !== ""; }
+function netDifference(period: PayPeriod) { return safeNumber(period.payslipNet) - safeNumber(period.bankNet); }
+function netComparisonLabel(period: PayPeriod) {
+  if (!hasAmount(period.payslipNet) || !hasAmount(period.bankNet)) return "Payslip Net과 실제 입금 Net을 모두 입력하세요.";
+  const amount = netDifference(period);
+  if (Math.abs(amount) < 0.01) return "Payslip Net과 실제 입금 Net이 일치합니다.";
+  return amount > 0 ? `실제 입금이 Payslip Net보다 A$${amount.toFixed(2)} 적습니다.` : `실제 입금이 Payslip Net보다 A$${Math.abs(amount).toFixed(2)} 많습니다.`;
+}
+function netDifferenceExport(period: PayPeriod) { return hasAmount(period.payslipNet) && hasAmount(period.bankNet) ? netDifference(period).toFixed(2) : "Not comparable"; }
+function recordedAmount(value: string) { return hasAmount(value) ? safeNumber(value).toFixed(2) : "Not recorded"; }
 function safeFileName(value: string) { return value.trim().replace(/[^a-z0-9가-힣]+/gi, "-").replace(/^-|-$/g, "").slice(0, 42) || "pay-evidence"; }
 function csvCell(value: string | number) { return `"${String(value).replaceAll('"', '""')}"`; }
 
@@ -67,7 +77,13 @@ export function PayEvidenceWorkspace() {
   const evidenceReady = evidenceItems.filter((item) => draft.evidence[item.id] === "ready").length;
   const reviewCount = evidenceItems.filter((item) => draft.evidence[item.id] === "review").length;
   const estimatedDifference = useMemo(() => draft.periods.reduce((sum, period) => sum + Math.max(0, difference(period)), 0), [draft.periods]);
-  const netMismatchCount = useMemo(() => draft.periods.filter((period) => period.bankNet && safeNumber(period.bankNet) > safeNumber(period.payslipGross) && !period.note.trim()).length, [draft.periods]);
+  const { netMismatchCount, incompleteNetCount } = useMemo(() => draft.periods.reduce((counts, period) => {
+    const hasPayslipNet = hasAmount(period.payslipNet);
+    const hasBankNet = hasAmount(period.bankNet);
+    if (hasPayslipNet !== hasBankNet) counts.incompleteNetCount += 1;
+    if (hasPayslipNet && hasBankNet && Math.abs(netDifference(period)) >= 0.01) counts.netMismatchCount += 1;
+    return counts;
+  }, { netMismatchCount: 0, incompleteNetCount: 0 }), [draft.periods]);
   const shiftCount = useMemo(() => draft.periods.reduce((sum, period) => sum + period.shifts.length, 0), [draft.periods]);
   const calculatedHours = useMemo(() => draft.periods.reduce((sum, period) => sum + periodHours(period), 0), [draft.periods]);
   const incompleteShiftCount = useMemo(() => draft.periods.flatMap((period) => period.shifts).filter((shift) => !shift.date || !shift.start || !shift.end || safeNumber(shift.hourlyRate) <= 0).length, [draft.periods]);
@@ -100,7 +116,7 @@ export function PayEvidenceWorkspace() {
       "",
       "PAY PERIODS",
       ...(draft.periods.length ? draft.periods.flatMap((period) => [
-        `- ${period.label || "Untitled"} | Hours ${periodHours(period).toFixed(2)} | Expected gross A$${periodExpectedGross(period).toFixed(2)} | Payslip gross A$${safeNumber(period.payslipGross).toFixed(2)} | Bank net A$${safeNumber(period.bankNet).toFixed(2)} | Gross difference A$${difference(period).toFixed(2)}`,
+        `- ${period.label || "Untitled"} | Hours ${periodHours(period).toFixed(2)} | Expected gross A$${periodExpectedGross(period).toFixed(2)} | Payslip gross A$${safeNumber(period.payslipGross).toFixed(2)} | Payslip net ${recordedAmount(period.payslipNet)} | Bank net ${recordedAmount(period.bankNet)} | User-entered gross comparison A$${difference(period).toFixed(2)} | Payslip-to-bank net difference ${netDifferenceExport(period)}`,
         ...period.shifts.map((shift) => `  Shift ${shift.date || "Date not set"} ${shift.start || "--:--"}–${shift.end || "--:--"} | Break ${safeNumber(shift.breakMinutes)} min | Hours ${shiftHours(shift).toFixed(2)} | ${shift.rateLabel || "Rate"} A$${safeNumber(shift.hourlyRate).toFixed(2)}/h | Allowance A$${safeNumber(shift.allowance).toFixed(2)} | Expected A$${shiftExpectedGross(shift).toFixed(2)} | ${shift.note || "No note"}`),
         `  Note: ${period.note || "None"}`,
       ]) : ["- None recorded"]),
@@ -117,10 +133,10 @@ export function PayEvidenceWorkspace() {
     setMessage("급여기간별 기록과 증빙 상태를 텍스트 파일로 저장했습니다.");
   };
   const downloadCsv = () => {
-    const header = ["Pay period", "Shift date", "Start", "End", "Unpaid break minutes", "Calculated hours", "Rate label", "Hourly rate AUD", "Allowance AUD", "Expected shift gross AUD", "Payslip period gross AUD", "Bank net AUD", "Period gross difference AUD", "Shift note", "Period note"];
+    const header = ["Pay period", "Shift date", "Start", "End", "Unpaid break minutes", "Calculated hours", "Rate label", "Hourly rate AUD", "Allowance AUD", "Expected shift gross AUD", "Payslip period gross AUD", "Payslip period net AUD", "Bank net AUD", "User-entered gross comparison AUD", "Payslip-to-bank net difference AUD", "Shift note", "Period note"];
     const rows = draft.periods.flatMap((period) => period.shifts.length
-      ? period.shifts.map((shift) => [period.label, shift.date, shift.start, shift.end, safeNumber(shift.breakMinutes), shiftHours(shift).toFixed(2), shift.rateLabel, safeNumber(shift.hourlyRate).toFixed(2), safeNumber(shift.allowance).toFixed(2), shiftExpectedGross(shift).toFixed(2), safeNumber(period.payslipGross).toFixed(2), safeNumber(period.bankNet).toFixed(2), difference(period).toFixed(2), shift.note, period.note])
-      : [[period.label, "", "", "", "", periodHours(period).toFixed(2), "Manual period total", "", "", periodExpectedGross(period).toFixed(2), safeNumber(period.payslipGross).toFixed(2), safeNumber(period.bankNet).toFixed(2), difference(period).toFixed(2), "", period.note]]);
+      ? period.shifts.map((shift) => [period.label, shift.date, shift.start, shift.end, safeNumber(shift.breakMinutes), shiftHours(shift).toFixed(2), shift.rateLabel, safeNumber(shift.hourlyRate).toFixed(2), safeNumber(shift.allowance).toFixed(2), shiftExpectedGross(shift).toFixed(2), safeNumber(period.payslipGross).toFixed(2), hasAmount(period.payslipNet) ? safeNumber(period.payslipNet).toFixed(2) : "", hasAmount(period.bankNet) ? safeNumber(period.bankNet).toFixed(2) : "", difference(period).toFixed(2), netDifferenceExport(period), shift.note, period.note])
+      : [[period.label, "", "", "", "", periodHours(period).toFixed(2), "Manual period total", "", "", periodExpectedGross(period).toFixed(2), safeNumber(period.payslipGross).toFixed(2), hasAmount(period.payslipNet) ? safeNumber(period.payslipNet).toFixed(2) : "", hasAmount(period.bankNet) ? safeNumber(period.bankNet).toFixed(2) : "", difference(period).toFixed(2), netDifferenceExport(period), "", period.note]]);
     const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\r\n");
     saveFile(`\uFEFF${csv}`, `${safeFileName(draft.employerLabel)}-pay-periods.csv`, "text/csv;charset=utf-8");
     setMessage("급여기간과 Shift 계산표를 CSV 파일로 저장했습니다.");
@@ -147,11 +163,13 @@ export function PayEvidenceWorkspace() {
         <div className="mt-5 space-y-5">
           {draft.periods.map((period, index) => <article key={period.id} className="border border-border p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3"><div><p className="font-mono text-xs text-gold">PERIOD {String(index + 1).padStart(2, "0")}</p><p className="mt-1 text-xs text-muted">{period.shifts.length ? `${period.shifts.length}개 Shift 자동 계산` : "총액 직접 입력도 가능"}</p></div><button type="button" onClick={() => setDraft((current) => ({ ...current, periods: current.periods.filter((item) => item.id !== period.id) }))} className="min-h-9 text-xs font-medium text-muted hover:text-red-700">기간 삭제</button></div>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <label className="text-xs font-medium text-navy sm:col-span-2">급여기간 별칭<input className={inputClass} value={period.label} onChange={(event) => updatePeriod(period.id, "label", event.target.value)} placeholder="예: 7월 1–14일" /></label>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <label className="text-xs font-medium text-navy sm:col-span-2 lg:col-span-3">급여기간 별칭<input className={inputClass} value={period.label} onChange={(event) => updatePeriod(period.id, "label", event.target.value)} placeholder="예: 7월 1–14일" /></label>
               {!period.shifts.length && <><label className="text-xs font-medium text-navy">총 근무시간 직접 입력<input type="number" min="0" step="0.25" className={inputClass} value={period.hours} onChange={(event) => updatePeriod(period.id, "hours", event.target.value)} /></label><label className="text-xs font-medium text-navy">기대 Gross 직접 입력 A$<input type="number" min="0" step="0.01" className={inputClass} value={period.expectedGross} onChange={(event) => updatePeriod(period.id, "expectedGross", event.target.value)} /></label></>}
               <label className="text-xs font-medium text-navy">Payslip Gross A$<input type="number" min="0" step="0.01" className={inputClass} value={period.payslipGross} onChange={(event) => updatePeriod(period.id, "payslipGross", event.target.value)} /></label>
+              <label className="text-xs font-medium text-navy">Payslip Net A$<input type="number" min="0" step="0.01" className={inputClass} value={period.payslipNet} onChange={(event) => updatePeriod(period.id, "payslipNet", event.target.value)} /></label>
               <label className="text-xs font-medium text-navy">은행 입금 Net A$<input type="number" min="0" step="0.01" className={inputClass} value={period.bankNet} onChange={(event) => updatePeriod(period.id, "bankNet", event.target.value)} /></label>
+              <p aria-live="polite" className={`text-xs leading-5 sm:col-span-2 lg:col-span-3 ${hasAmount(period.payslipNet) && hasAmount(period.bankNet) && Math.abs(netDifference(period)) >= 0.01 ? "text-red-700" : "text-muted"}`}>{netComparisonLabel(period)}</p>
             </div>
 
             <div className="mt-5 border-t border-border pt-4">
@@ -190,7 +208,7 @@ export function PayEvidenceWorkspace() {
         <p className="mt-2 text-xs leading-5 text-muted">원본 Payslip·은행자료·TFN은 파일에 포함하지 않습니다.</p><p className="mt-4 min-h-5 text-xs leading-5 text-muted" aria-live="polite">{message}</p>
       </section>
 
-      <section className="bg-navy p-5 text-white sm:p-7" aria-labelledby="pay-review-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Review before sharing</p><h2 id="pay-review-heading" className="mt-2 text-xl font-semibold">보내기 전 마지막 확인</h2><p className="mt-4 text-sm leading-6 text-white/70">증빙 확인 필요 {reviewCount}개 · 급여기간 {draft.periods.length}개 · 입력 보완 Shift {incompleteShiftCount}개 · Net 차이 메모 필요 {netMismatchCount}개</p><p className="mt-3 text-xs leading-5 text-white/55">이 도구의 차이는 미지급액 판정이 아닙니다. Award·Agreement·Classification과 해당 시점의 요율은 Fair Work PACT 또는 전문가에게 확인하세요.</p></section>
+      <section className="bg-navy p-5 text-white sm:p-7" aria-labelledby="pay-review-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Review before sharing</p><h2 id="pay-review-heading" className="mt-2 text-xl font-semibold">보내기 전 마지막 확인</h2><p className="mt-4 text-sm leading-6 text-white/70">증빙 확인 필요 {reviewCount}개 · 급여기간 {draft.periods.length}개 · 입력 보완 Shift {incompleteShiftCount}개 · Net 불일치 {netMismatchCount}개 · Net 입력 미완성 {incompleteNetCount}개</p><p className="mt-3 text-xs leading-5 text-white/55">Gross 비교값은 미지급액 판정이 아니며, Net 불일치는 Payslip Net과 실제 입금액의 기록 차이만 보여줍니다. Award·Agreement·Classification과 해당 시점의 요율은 Fair Work PACT 또는 전문가에게 확인하세요.</p></section>
     </div>
     </div>
   </div>;

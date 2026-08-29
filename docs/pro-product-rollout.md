@@ -149,4 +149,9 @@ Session cleanup in the product acceptance file.
 - EOFY Pack Pro needs an additional tax-information review so it remains preparation support and does not calculate deductions or promise a refund.
 - Leaving Australia Pack Pro needs an additional migration, tax and Super review so it does not determine visa, residency or DASP eligibility.
 
+### Pay Evidence Pack Pro review progress
+
+- 2026-08-30: the pay-period workspace now keeps the user-entered Gross comparison separate from the Net payment reconciliation. It records Payslip Net explicitly, compares it only with the actual bank Net, identifies missing or mismatched Net pairs, and carries both values into TXT and CSV exports. Existing local v1 drafts remain readable with the new field defaulted safely. This closes the Gross/Net comparison gap but does not complete the employment-information review or authorise payment, checkout, entitlement or public workspace access.
+- Next review outcome: require and export a dated Award, Agreement or other rate-basis record before presenting a user-entered Gross comparison as ready to share.
+
 Until each product passes the same checkout, entitlement, recovery and refund gates as Resume Pro, its production workspace remains inaccessible and its displayed amount remains a proposed price rather than a chargeable offer.
