@@ -73,6 +73,10 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
             </div>
           )}
           {checkout === "cancelled" && <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">Stripe 결제 창에서 돌아왔습니다. 이 주소만으로 결제 완료 여부를 판단할 수 없습니다. 완료 화면이나 영수증을 봤거나 상태가 불명확하면 다시 결제하지 말고 <Link href="/payment-help" className="font-semibold underline decoration-gold underline-offset-4">결제 상태 확인 순서</Link>를 이용하세요.</div>}
+          {checkout === "checkout_already_purchased" && <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">이 기기의 Rental Pack Pro 이용권을 확인했습니다. 다시 결제하지 말고 <Link href="/rental-application-pro/workspace" className="font-semibold underline decoration-gold underline-offset-4">작업공간에서 계속해 주세요</Link>.</div>}
+          {checkout === "checkout_retry_later" && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">다른 결제 확인이 진행 중입니다. 새 결제를 시작하지 말고 잠시 뒤 다시 확인해 주세요.</div>}
+          {checkout === "checkout_sales_closed" && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">통제된 첫 결제가 완료되어 새 결제를 잠시 닫았습니다. 다시 결제하지 말고 <Link href="/payment-help" className="font-semibold underline decoration-gold underline-offset-4">결제 상태 확인 순서</Link>를 이용하세요.</div>}
+          {(checkout === "checkout_unavailable" || checkout === "checkout_support_required" || checkout === "checkout_failed") && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">현재 결제를 안전하게 시작할 수 없습니다. 카드 정보가 입력되지 않았다면 잠시 뒤 다시 시도하고, Stripe 화면을 이미 봤다면 재결제하지 말고 <Link href="/payment-help" className="font-semibold underline decoration-gold underline-offset-4">결제 상태 확인 순서</Link>를 이용하세요.</div>}
           {entry === "property-inspection-checklist" && (
             <section className="mt-5 border-l-2 border-gold bg-white px-5 py-4" aria-labelledby="rental-free-handoff-heading">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">무료 방문 점검 다음 단계</p>

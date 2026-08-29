@@ -19,7 +19,7 @@ export function verifyFirstSalePaymentIntent(
     customerId: string;
     livemode: boolean;
     currency: "aud";
-    amountCents: 1990;
+    amountCents: 1990 | 1490;
   },
 ) {
   const customerId = expandableId(paymentIntent.customer);

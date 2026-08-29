@@ -5,6 +5,10 @@ import { createHash, randomBytes } from "node:crypto";
 import type { EntitlementCommand, StripeEventReceipt } from "@/lib/entitlements";
 
 export const FIRST_SALE_PRODUCT_CODE = "resume_pro" as const;
+export const RENTAL_FIRST_SALE_PRODUCT_CODE = "rental_application_pro" as const;
+export type FirstSaleProductCode =
+  | typeof FIRST_SALE_PRODUCT_CODE
+  | typeof RENTAL_FIRST_SALE_PRODUCT_CODE;
 export const STRIPE_CHECKOUT_MINIMUM_TTL_SECONDS = 30 * 60;
 export const FIRST_SALE_CLOCK_SKEW_BUFFER_SECONDS = 60;
 export const FIRST_SALE_RESERVATION_TTL_SECONDS =
@@ -35,7 +39,7 @@ export type FirstSaleClaimResult =
 
 export interface FirstSaleGateStore {
   claimReservation(input: {
-    productCode: typeof FIRST_SALE_PRODUCT_CODE;
+    productCode: FirstSaleProductCode;
     claimTokenHash: string;
     expiresAt: Date;
     environment: "live" | "test";
@@ -44,7 +48,7 @@ export interface FirstSaleGateStore {
   }): Promise<FirstSaleClaimResult>;
 
   attachCheckoutSession(input: {
-    productCode: typeof FIRST_SALE_PRODUCT_CODE;
+    productCode: FirstSaleProductCode;
     generation: number;
     claimTokenHash: string;
     checkoutSessionId: string;
@@ -52,14 +56,14 @@ export interface FirstSaleGateStore {
   }): Promise<boolean>;
 
   releaseFailedReservation(input: {
-    productCode: typeof FIRST_SALE_PRODUCT_CODE;
+    productCode: FirstSaleProductCode;
     generation: number;
     claimTokenHash: string;
     reason: "stripe_rejected_before_session";
   }): Promise<boolean>;
 
   releaseVerifiedAbandoned(input: {
-    productCode: typeof FIRST_SALE_PRODUCT_CODE;
+    productCode: FirstSaleProductCode;
     generation: number;
     checkoutSessionId: string;
   }): Promise<boolean>;
@@ -68,13 +72,13 @@ export interface FirstSaleGateStore {
     receipt: StripeEventReceipt;
     command: EntitlementCommand & {
       action: "grant";
-      productCode: typeof FIRST_SALE_PRODUCT_CODE;
+      productCode: FirstSaleProductCode;
       checkoutSessionId: string;
       paymentIntentId: string;
       chargeId: string;
       customerId: string;
       currency: "aud";
-      amountTotal: 1990;
+      amountTotal: 1990 | 1490;
     };
   }): Promise<{ outcome: "processed" | "duplicate" | "ignored_stale" }>;
 }
@@ -83,7 +87,10 @@ function sha256(value: string) {
   return createHash("sha256").update(value).digest("hex");
 }
 
-export function createFirstSaleReservation(now = new Date()) {
+export function createFirstSaleReservation(
+  productCode: FirstSaleProductCode = FIRST_SALE_PRODUCT_CODE,
+  now = new Date(),
+) {
   const claimTokenHash = sha256(randomBytes(32).toString("hex"));
   const expiresAt = new Date(now.getTime() + FIRST_SALE_RESERVATION_TTL_SECONDS * 1000);
 
@@ -92,7 +99,7 @@ export function createFirstSaleReservation(now = new Date()) {
     expiresAt,
     // Stripe retries the same logical create call with this key. Only the hash,
     // never the raw random material, leaves this process.
-    idempotencyKey: `resume_pro_first_sale_${claimTokenHash}`,
+    idempotencyKey: `${productCode}_first_sale_${claimTokenHash}`,
   };
 }
 

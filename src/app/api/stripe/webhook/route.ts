@@ -4,7 +4,11 @@ import type Stripe from "stripe";
 import { getEntitlementCommand } from "@/lib/entitlements";
 import { matchesCheckoutProductEntitlementContract } from "@/lib/productEntitlementContract";
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
-import { FIRST_SALE_PRODUCT_CODE } from "@/lib/firstSaleGate";
+import {
+  FIRST_SALE_PRODUCT_CODE,
+  RENTAL_FIRST_SALE_PRODUCT_CODE,
+  type FirstSaleProductCode,
+} from "@/lib/firstSaleGate";
 import { FirstSalePaymentIntentContractError, verifyFirstSalePaymentIntent } from "@/lib/firstSalePaymentIntent";
 import {
   firstSaleManualMonitoringTarget,
@@ -22,6 +26,15 @@ import { getStripe } from "@/lib/stripe";
 export const runtime = "nodejs";
 
 const maxWebhookPayloadBytes = 1024 * 1024;
+const firstSaleProductContracts: Record<FirstSaleProductCode, { currency: "aud"; amountCents: 1990 | 1490 }> = {
+  [FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: 1990 },
+  [RENTAL_FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: 1490 },
+};
+
+function getFirstSaleProductContract(productCode: string | undefined) {
+  if (!productCode) return undefined;
+  return firstSaleProductContracts[productCode as FirstSaleProductCode];
+}
 
 function webhookResponse(body: Record<string, unknown>, status = 200) {
   return NextResponse.json(body, {
@@ -132,7 +145,11 @@ export async function POST(request: NextRequest) {
     };
     let result: { outcome: "processed" | "duplicate" | "ignored_stale" | "tombstoned" };
 
-    if (entitlementCommand.action === "grant" && entitlementCommand.productCode === FIRST_SALE_PRODUCT_CODE) {
+    const firstSaleContract = entitlementCommand.action === "grant"
+      ? getFirstSaleProductContract(entitlementCommand.productCode)
+      : undefined;
+
+    if (entitlementCommand.action === "grant" && firstSaleContract) {
       const firstSaleGate = getConfiguredFirstSaleGate();
 
       if (!firstSaleGate) {
@@ -143,8 +160,8 @@ export async function POST(request: NextRequest) {
         !entitlementCommand.checkoutSessionId
         || !entitlementCommand.paymentIntentId
         || !entitlementCommand.customerId
-        || entitlementCommand.currency !== "aud"
-        || entitlementCommand.amountTotal !== 1990
+        || entitlementCommand.currency !== firstSaleContract.currency
+        || entitlementCommand.amountTotal !== firstSaleContract.amountCents
       ) {
         throw new FirstSalePaymentIntentContractError();
       }
@@ -157,8 +174,8 @@ export async function POST(request: NextRequest) {
         paymentIntentId: entitlementCommand.paymentIntentId,
         customerId: entitlementCommand.customerId,
         livemode: event.livemode,
-        currency: "aud",
-        amountCents: 1990,
+        currency: firstSaleContract.currency,
+        amountCents: firstSaleContract.amountCents,
       });
 
       // The paid event locks sales and grants access in one DB transaction.
@@ -168,13 +185,13 @@ export async function POST(request: NextRequest) {
         command: {
           ...entitlementCommand,
           action: "grant",
-          productCode: FIRST_SALE_PRODUCT_CODE,
+          productCode: entitlementCommand.productCode as FirstSaleProductCode,
           checkoutSessionId: entitlementCommand.checkoutSessionId,
           paymentIntentId: entitlementCommand.paymentIntentId,
           chargeId,
           customerId: entitlementCommand.customerId,
-          currency: "aud",
-          amountTotal: 1990,
+          currency: firstSaleContract.currency,
+          amountTotal: firstSaleContract.amountCents,
         },
       });
     } else {
@@ -195,7 +212,7 @@ export async function POST(request: NextRequest) {
     const alertKind = getPaymentOperatorAlertKind(event);
     if (alertKind) {
       const monitoredMode = event.livemode
-        && entitlementCommand.productCode === FIRST_SALE_PRODUCT_CODE
+        && Boolean(getFirstSaleProductContract(entitlementCommand.productCode))
         && isFirstSaleMonitoredModeConfigured();
 
       if (!alertOutbox) {
@@ -253,7 +270,7 @@ export async function POST(request: NextRequest) {
     if (
       !entitlementPersisted
       && entitlementCommand.action === "grant"
-      && entitlementCommand.productCode === FIRST_SALE_PRODUCT_CODE
+      && Boolean(getFirstSaleProductContract(entitlementCommand.productCode))
       && alertOutbox
     ) {
       try {
@@ -262,7 +279,7 @@ export async function POST(request: NextRequest) {
             eventId: event.id,
             eventType: event.type,
             livemode: event.livemode,
-            productCode: FIRST_SALE_PRODUCT_CODE,
+            productCode: entitlementCommand.productCode as FirstSaleProductCode,
             checkoutSessionId: entitlementCommand.checkoutSessionId,
             paymentIntentId: entitlementCommand.paymentIntentId,
           });

@@ -1,10 +1,10 @@
-# Resume Pro first-sale gate runbook
+# Paid-product first-sale gate runbook
 
 This is a deployment HOLD document. It does not authorize a database migration, live Stripe request, Checkout, refund, environment change or sale reopening.
 
 ## Purpose and invariant
 
-The gate admits one Resume Pro Checkout at a time. The persisted lifecycle is `OPEN → RESERVED → SOLD → LOCKED`; `SOLD` and `LOCKED` are appended in the same database transaction as the entitlement grant. A refund, dispute, access revocation, data deletion, server restart, deployment or timeout never reopens a locked sale.
+The product-scoped gate admits one Resume Pro or Rental Application Pack Pro Checkout at a time. Each product has its own persisted `OPEN → RESERVED → SOLD → LOCKED` lifecycle; `SOLD` and `LOCKED` are appended in the same database transaction as that product's entitlement grant. A refund, dispute, access revocation, data deletion, server restart, deployment or timeout never reopens a locked sale.
 
 The application fails closed when `FIRST_SALE_GATE_ENABLED=true`, the Neon entitlement store or its PostgreSQL URL is absent, or the migration is missing. Production and Preview/Test use separate databases and Stripe modes. Never point a Preview deployment at Production data.
 
@@ -21,10 +21,11 @@ The application fails closed when `FIRST_SALE_GATE_ENABLED=true`, the Neon entit
 9. Revoke runtime `EXECUTE` on the original `apply_entitlement_event` and all direct `SELECT/INSERT/UPDATE/DELETE` on `payment_webhook_events`, `purchase_entitlements`, `purchase_restore_tokens`, `purchase_checkout_activations`, `purchase_access_sessions`, `purchase_restore_activations`, `entitlement_event_tombstones`, `stripe_payment_object_links`, `payment_operator_alert_outbox`, `first_sale_gates` and `first_sale_gate_events`. Existing grants from the baseline entitlement rollout must be explicitly removed. Confirm the tombstone trigger rejects update/delete.
 10. Grant the application role only the adapter-called wrappers: `claim_first_sale_reservation`, `attach_first_sale_checkout`, both verified reservation release functions, `apply_first_sale_paid_event`, `apply_guarded_entitlement_event`, six-argument restore consume and restore create, seven-argument `consume_checkout_activation`, `release_purchase_access_session`, the access-session validator, both limited active-entitlement read wrappers, and the four external alert-outbox wrappers (`enqueue…`, `claim…`, `mark…`, `release…`). Do not grant the old activation release function, receipt trigger function, internal alert enqueue function, original entitlement function, private lock helper or owner reopen function.
 11. Apply `docs/migrations/20260824_entitlement_link_conflict_v1.sql`. It replaces the ambiguous PaymentIntent/Charge `ON CONFLICT` column list with the named primary-key constraint and records `20260824_entitlement_link_conflict_v1`. A paid-event rehearsal that still raises SQLSTATE `42702`, or a missing version row, keeps payments off.
-12. Grant `approve_next_first_sale` only to a separate owner-controlled operator role after access review. Do **not** grant it `approve_next_first_sale` through the application runtime role. `PUBLIC` is explicitly revoked in the migration.
-13. In the matching Stripe mode, prove there are **zero existing open Checkout Sessions** for Resume Pro. Explicitly expire any pre-gate Session and retain its non-sensitive expiry evidence. An old URL must not remain payable when the gate opens.
-14. Query the PostgreSQL catalog and effective privileges, not only role DDL. Both historical `apply_first_sale_paid_event` signatures must resolve to NULL; runtime must report false for public-schema CREATE, protected-table DML, original entitlement function execution and owner reopen execution, and true only for the 12-argument paid-event wrapper and other allowlisted wrappers. Attach this non-secret PASS/MISSING/FAIL matrix to the release ticket.
-15. Set `FIRST_SALE_GATE_ENABLED=true` only after the contract test, role matrix and signed-webhook sandbox scenarios pass. Role placeholders in the SQL file are comments, so live remains **HOLD** until an owner-approved migration ticket replaces them and the effective-privilege query passes. Keep `PAYMENTS_ENABLED=false` until the complete launch checklist passes.
+12. Before Rental's controlled live payment, apply `docs/migrations/20260829_rental_first_sale_gate_v1.sql` with Checkout off. It requires `neondb_owner` on `neondb`, refuses an in-flight `RESERVED` sale, uses bounded statement/lock timeouts, widens only the product/amount checks to `resume_pro` A$19.90 and `rental_application_pro` A$14.90, and replaces the existing same-signature gate functions so grants for both products use the atomic gate+entitlement transaction. Require its postflight and `schema_migrations.version=20260829_rental_first_sale_gate_v1` before deployment can report ready.
+13. Grant `approve_next_first_sale` only to a separate owner-controlled operator role after access review. Do **not** grant it `approve_next_first_sale` through the application runtime role. `PUBLIC` is explicitly revoked in the migration.
+14. In the matching Stripe mode, prove there are **zero existing open Checkout Sessions** for both paid products. Explicitly expire any pre-gate Session and retain its non-sensitive expiry evidence. An old URL must not remain payable when either product gate opens.
+15. Query the PostgreSQL catalog and effective privileges, not only role DDL. Both historical `apply_first_sale_paid_event` signatures must resolve to NULL; runtime must report false for public-schema CREATE, protected-table DML, original entitlement function execution and owner reopen execution, and true only for the 12-argument paid-event wrapper and other allowlisted wrappers. Attach this non-secret PASS/MISSING/FAIL matrix to the release ticket.
+16. Set `FIRST_SALE_GATE_ENABLED=true` only after the contract test, role matrix and signed-webhook sandbox scenarios pass. Role placeholders in the SQL file are comments, so live remains **HOLD** until an owner-approved migration ticket replaces them and the effective-privilege query passes. Keep `PAYMENTS_ENABLED=false` until the complete launch checklist passes.
 
 ### Runtime effective-privilege matrix
 
@@ -33,7 +34,7 @@ Do not reduce this to a count such as “10 checks” or “4 true”; every nam
 | Object group | Runtime `EXECUTE` | Direct table `SELECT/INSERT/UPDATE/DELETE` |
 | --- | --- | --- |
 | reservation claim, attach, failed-release, verified-abandoned-release | `true` for all four | first-sale tables: all `false` |
-| 12-argument paid-event and guarded non-Resume-Pro event wrappers | `true` for both | webhook/entitlement/tombstone/link tables: all `false` |
+| 12-argument paid-event and guarded non-grant event wrappers | `true` for both | webhook/entitlement/tombstone/link tables: all `false` |
 | restore consume-with-nonce-session/create | `true` for both | restore-token, restore-binding and access-session tables: all `false` |
 | activation consume, access-session validation/release and limited active lookup by checkout/id | `true` for all five | activation, access-session and entitlement tables: all `false` |
 | outbox enqueue-failure, claim, mark-sent, release-claim | `true` for all four | outbox table: all `false` |

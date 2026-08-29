@@ -60,7 +60,7 @@ async function claimFirstSale(
   environment: "live" | "test",
 ) {
   const reserve = () => {
-    const reservation = createFirstSaleReservation();
+    const reservation = createFirstSaleReservation(FIRST_SALE_PRODUCT_CODE);
     return gate.claimReservation({
       productCode: FIRST_SALE_PRODUCT_CODE,
       ...reservation,

@@ -123,10 +123,10 @@ export function getRentalApplicationPaymentReadiness(): ProductPaymentReadiness 
   const productEnabled = process.env.RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED === "true";
   const productPriceConfigured = Boolean(process.env.STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID?.trim().startsWith("price_"));
   const stripeConfigured = base.stripeConfigured && productPriceConfigured;
-  // Rental Pack remains a Preview-only validation surface until it has the
-  // same product identity, atomic sale and server-tracked access controls as Resume Pro.
-  const ready = process.env.VERCEL_ENV !== "production"
-    && base.ready
+  // Production still requires every shared payment safeguard plus the
+  // product-specific switch and Price. Preview keeps its separate relaxed
+  // test-only helper below.
+  const ready = base.ready
     && productEnabled
     && productPriceConfigured;
 

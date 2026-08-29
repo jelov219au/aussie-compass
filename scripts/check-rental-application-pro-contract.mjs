@@ -6,6 +6,8 @@ const offerPage = await readFile(new URL("../src/app/rental-application-pro/page
 const checkoutForm = await readFile(new URL("../src/components/tools/RentalApplicationProCheckoutForm.tsx", import.meta.url), "utf8");
 const commerce = await readFile(new URL("../src/lib/commerce.ts", import.meta.url), "utf8");
 const launchAudit = await readFile(new URL("./check-payment-launch.mjs", import.meta.url), "utf8");
+const firstSaleGate = await readFile(new URL("../src/lib/firstSaleGate.ts", import.meta.url), "utf8");
+const rentalGateMigration = await readFile(new URL("../docs/migrations/20260829_rental_first_sale_gate_v1.sql", import.meta.url), "utf8");
 const purchase = await readFile(new URL("../src/lib/rentalApplicationProPurchase.ts", import.meta.url), "utf8");
 const access = await readFile(new URL("../src/lib/rentalApplicationProAccess.ts", import.meta.url), "utf8");
 const activateRoute = await readFile(new URL("../src/app/api/rental-application-pro/access/activate/route.ts", import.meta.url), "utf8");
@@ -30,7 +32,7 @@ for (const contract of [
   "price.type === \"one_time\"",
   "price.unit_amount === rentalApplicationProProduct.priceCents",
   "managed_payments: { enabled: true }",
-  'product_code: "rental_application_pro"',
+  "product_code: RENTAL_FIRST_SALE_PRODUCT_CODE",
 ]) assert.ok(checkout.includes(contract), `Rental checkout safety contract is missing: ${contract}`);
 
 assert.ok(!checkout.includes("payment_method_types"), "Rental checkout must keep Stripe dynamic payment methods enabled");
@@ -48,14 +50,33 @@ assert.ok(launchAudit.includes('selectedProduct === "rental-application-pro"')
 assert.ok(launchAudit.includes('product.metadata?.product_code !== "rental_application_pro"')
   && launchAudit.includes('price.unit_amount !== 1490')
   && launchAudit.includes('price.tax_behavior !== "inclusive"'), "the remote Rental audit must pin product metadata, amount and inclusive tax");
-assert.ok(commerce.includes('process.env.VERCEL_ENV !== "production"'), "Rental paid validation must fail closed in Production");
-const productionGuard = checkout.indexOf('if (process.env.VERCEL_ENV === "production")');
-assert.ok(productionGuard >= 0, "Rental Checkout must have a route-local Production deny gate");
-assert.ok(productionGuard < checkout.indexOf("request.formData()"), "Rental Production denial must happen before request-body or Stripe work");
-assert.ok(productionGuard < checkout.indexOf("stripe.prices.retrieve") && productionGuard < checkout.indexOf("checkout.sessions.create"), "Rental Production denial must happen before every Stripe call");
-assert.ok(checkout.slice(productionGuard, checkout.indexOf("request.formData()")).includes("status: 503"), "Rental Production denial must fail closed with HTTP 503");
+assert.match(commerce, /const ready = base\.ready[\s\S]*productEnabled[\s\S]*productPriceConfigured/, "Rental Production readiness must require the complete shared gate plus its product switch and Price");
+assert.ok(checkout.includes('process.env.VERCEL_ENV === "production"\n    ? readiness.ready\n    : canCreateRentalApplicationTestCheckout()'), "Rental Checkout must use full readiness in Production and keep the relaxed path Preview-only");
+assert.ok(checkout.indexOf("isPaymentRuntimeSchemaReady()") < checkout.indexOf("stripe.prices.retrieve"), "Rental Checkout must verify the runtime schema before Stripe work");
+assert.ok(checkout.includes("getActiveRentalApplicationProEntitlement()"), "Rental Checkout must block an active buyer before creating another Session");
+for (const gateContract of [
+  "claimFirstRentalSale",
+  "createFirstSaleReservation(RENTAL_FIRST_SALE_PRODUCT_CODE)",
+  "attachCheckoutSession",
+  "releaseFailedReservation",
+  "isVerifiedAbandonedCheckout",
+  "idempotencyKey: claim.idempotencyKey",
+  "expires_at: Math.floor(claim.expiresAt.getTime() / 1000)",
+]) assert.ok(checkout.includes(gateContract), `Rental Checkout first-sale safety is missing: ${gateContract}`);
+assert.ok(firstSaleGate.includes('RENTAL_FIRST_SALE_PRODUCT_CODE = "rental_application_pro"'), "the shared first-sale type must include Rental");
+for (const gateMigrationContract of [
+  "20260829_rental_first_sale_gate_v1",
+  "current_user is distinct from 'neondb_owner'",
+  "state = 'RESERVED'",
+  "set local statement_timeout = '10s'",
+  "set local lock_timeout = '2s'",
+  "product_code in ('resume_pro', 'rental_application_pro')",
+  "product_code = 'rental_application_pro' and expected_amount_cents = 1490",
+  "Paid-product grant requires apply_first_sale_paid_event",
+]) assert.ok(rentalGateMigration.includes(gateMigrationContract), `Rental first-sale migration is missing: ${gateMigrationContract}`);
 assert.ok(webhook.includes("matchesCheckoutProductEntitlementContract(entitlementCommand)"), "Webhook persistence must reject a cross-product Checkout contract before entitlement storage");
 assert.ok(webhook.indexOf("matchesCheckoutProductEntitlementContract(entitlementCommand)") < webhook.lastIndexOf("getConfiguredEntitlementStore()"), "Webhook product isolation must run before entitlement persistence is selected");
+assert.ok(webhook.includes("RENTAL_FIRST_SALE_PRODUCT_CODE") && webhook.includes("getFirstSaleProductContract"), "Rental grants must use the same atomic gate+entitlement webhook path as Resume Pro");
 for (const paidContract of [
   'resume_pro: { currency: "aud", amountTotal: 1990 }',
   'rental_application_pro: { currency: "aud", amountTotal: 1490 }',

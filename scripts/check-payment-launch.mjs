@@ -376,7 +376,7 @@ if (verifyDatabase && databaseRemoteBoundaryReady) {
           from blocked_functions blocked
         ) as audit_cannot_execute_payment_functions,
         (
-          select count(distinct version) = 7
+          select count(distinct version) = 8
           from public.schema_migrations
           where version = any(array[
             '20260823_first_sale_gate_charge_link_v2',
@@ -385,9 +385,21 @@ if (verifyDatabase && databaseRemoteBoundaryReady) {
             '20260823_purchase_access_sessions_v1',
             '20260823_restore_activation_nonce_v1',
             '20260823_payment_least_privilege_roles_v1',
-            '20260824_entitlement_link_conflict_v1'
+            '20260824_entitlement_link_conflict_v1',
+            '20260829_rental_first_sale_gate_v1'
           ])
         ) as required_migrations_present,
+        exists (
+          select 1 from pg_constraint
+          where conrelid = 'public.first_sale_gates'::regclass
+            and contype = 'c'
+            and position('rental_application_pro' in pg_get_constraintdef(oid)) > 0
+        ) and exists (
+          select 1 from pg_constraint
+          where conrelid = 'public.first_sale_gate_events'::regclass
+            and contype = 'c'
+            and position('rental_application_pro' in pg_get_constraintdef(oid)) > 0
+        ) as rental_first_sale_gate_contract_active,
         position(
           'on conflict on constraint stripe_payment_object_links_pkey do nothing'
           in lower((select definition from target_function))

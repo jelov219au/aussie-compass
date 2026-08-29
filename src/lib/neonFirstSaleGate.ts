@@ -58,6 +58,22 @@ export async function isPaymentRuntimeSchemaReady() {
         ), false)
         and to_regclass('public.payment_operator_alert_outbox') is not null
         and to_regprocedure('public.payment_operator_alert_from_receipt()') is not null
+        and exists (
+          select 1 from public.schema_migrations
+          where version = '20260829_rental_first_sale_gate_v1'
+        )
+        and exists (
+          select 1 from pg_constraint
+          where conrelid = 'public.first_sale_gates'::regclass
+            and contype = 'c'
+            and position('rental_application_pro' in pg_get_constraintdef(oid)) > 0
+        )
+        and exists (
+          select 1 from pg_constraint
+          where conrelid = 'public.first_sale_gate_events'::regclass
+            and contype = 'c'
+            and position('rental_application_pro' in pg_get_constraintdef(oid)) > 0
+        )
         and coalesce(position(
           'on conflict on constraint stripe_payment_object_links_pkey do nothing'
           in lower(pg_get_functiondef(to_regprocedure(
@@ -94,7 +110,7 @@ async function claimReservation(
       outcome: "claimed",
       generation: Number(row.generation),
       claimTokenHash: input.claimTokenHash,
-      idempotencyKey: `resume_pro_first_sale_${input.claimTokenHash}`,
+      idempotencyKey: `${input.productCode}_first_sale_${input.claimTokenHash}`,
       expiresAt: input.expiresAt,
     };
   }

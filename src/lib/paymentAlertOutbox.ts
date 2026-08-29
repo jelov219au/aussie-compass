@@ -35,7 +35,7 @@ export interface PaymentOperatorAlertOutboxStore {
     eventId: string;
     eventType: string;
     livemode: boolean;
-    productCode: "resume_pro";
+    productCode: "resume_pro" | "rental_application_pro";
     checkoutSessionId: string;
     paymentIntentId: string;
   }): Promise<void>;

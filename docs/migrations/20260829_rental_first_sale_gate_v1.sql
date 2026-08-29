@@ -1,83 +1,67 @@
--- Hoju Compass paid-product first-sale concurrency gate.
--- Provider-neutral PostgreSQL DDL. Do not apply without an owner-approved backup window.
--- The application can reserve, attach, release verified failures/expiry and lock on paid events.
--- Only a separate operator role may execute approve_next_first_sale.
+-- Add Rental Application Pack Pro to the existing product-scoped first-sale gate.
+-- This migration widens only the exact product/amount contract; all state,
+-- append-only audit, reservation and atomic entitlement boundaries stay intact.
+-- Apply only in an owner-approved Production migration window while Checkout is off.
 
 begin;
 
-create table if not exists public.schema_migrations (
-  version text primary key,
-  applied_at timestamptz not null default now()
-);
+set local statement_timeout = '10s';
+set local lock_timeout = '2s';
 
-create table if not exists public.first_sale_gates (
-  product_code text primary key check (product_code in ('resume_pro', 'rental_application_pro')),
-  state text not null default 'OPEN' check (state in ('OPEN', 'RESERVED', 'LOCKED')),
-  generation bigint not null default 0 check (generation >= 0),
-  environment text not null check (environment in ('live', 'test')),
-  currency text not null check (currency = 'aud'),
-  expected_amount_cents integer not null check (
-    (product_code = 'resume_pro' and expected_amount_cents = 1990)
-    or (product_code = 'rental_application_pro' and expected_amount_cents = 1490)
-  ),
-  claim_token_hash text,
-  reservation_expires_at timestamptz,
-  stripe_checkout_session_id text unique,
-  sold_at timestamptz,
-  sold_event_ref_last8 text,
-  updated_at timestamptz not null default now(),
-  check (claim_token_hash is null or claim_token_hash ~ '^[a-f0-9]{64}$'),
-  check (
-    (state = 'OPEN' and claim_token_hash is null and reservation_expires_at is null and stripe_checkout_session_id is null)
-    or (state = 'RESERVED' and claim_token_hash is not null and reservation_expires_at is not null)
-    or (state = 'LOCKED' and claim_token_hash is null and reservation_expires_at is null and sold_at is not null)
-  )
-);
-
-create table if not exists public.first_sale_gate_events (
-  id bigint generated always as identity primary key,
-  dedupe_key text not null unique,
-  gate_version text not null,
-  product_code text not null check (product_code in ('resume_pro', 'rental_application_pro')),
-  generation bigint not null,
-  from_state text not null check (from_state in ('OPEN', 'RESERVED', 'SOLD', 'LOCKED')),
-  to_state text not null check (to_state in ('OPEN', 'RESERVED', 'SOLD', 'LOCKED')),
-  occurred_at timestamptz not null default now(),
-  operating_date date not null,
-  environment text not null check (environment in ('live', 'test')),
-  currency text not null check (currency = 'aud'),
-  expected_amount_cents integer not null check (
-    (product_code = 'resume_pro' and expected_amount_cents = 1990)
-    or (product_code = 'rental_application_pro' and expected_amount_cents = 1490)
-  ),
-  actor_type text not null check (actor_type in ('system', 'webhook', 'owner')),
-  reason_code text not null,
-  reservation_expires_at timestamptz,
-  stripe_reference_last8 text,
-  approval_reference text,
-  evidence_status text check (evidence_status in ('PASS', 'MISSING', 'FAIL')),
-  cash_difference_cents integer,
-  payout_status text check (payout_status in ('pending', 'matched')),
-  schema_version text not null,
-  check (stripe_reference_last8 is null or length(stripe_reference_last8) <= 8),
-  check (approval_reference is null or length(approval_reference) <= 120)
-);
-
-create or replace function public.prevent_first_sale_gate_event_mutation()
-returns trigger
-language plpgsql
-security definer
-set search_path = public, pg_temp
-as $$
+do $$
 begin
-  raise exception 'first_sale_gate_events is append-only';
+  if current_database() is distinct from 'neondb'
+    or current_user is distinct from 'neondb_owner'
+  then
+    raise exception 'Rental first-sale gate migration requires neondb_owner on neondb';
+  end if;
+
+  if exists (
+    select 1 from public.schema_migrations
+    where version = '20260829_rental_first_sale_gate_v1'
+  ) then
+    raise exception '20260829_rental_first_sale_gate_v1 is already applied';
+  end if;
+
+  if to_regclass('public.first_sale_gates') is null
+    or to_regclass('public.first_sale_gate_events') is null
+  then
+    raise exception 'The existing first-sale gate schema is required';
+  end if;
+
+  if exists (select 1 from public.first_sale_gates where state = 'RESERVED') then
+    raise exception 'A first-sale reservation is in flight';
+  end if;
 end;
 $$;
 
-drop trigger if exists first_sale_gate_events_append_only on public.first_sale_gate_events;
-create trigger first_sale_gate_events_append_only
-before update or delete on public.first_sale_gate_events
-for each row execute function public.prevent_first_sale_gate_event_mutation();
+set role hoju_migration_owner;
+
+alter table public.first_sale_gates
+  drop constraint if exists first_sale_gates_product_code_check,
+  drop constraint if exists first_sale_gates_expected_amount_cents_check;
+
+alter table public.first_sale_gates
+  add constraint first_sale_gates_product_code_check
+    check (product_code in ('resume_pro', 'rental_application_pro')),
+  add constraint first_sale_gates_expected_amount_cents_check
+    check (
+      (product_code = 'resume_pro' and expected_amount_cents = 1990)
+      or (product_code = 'rental_application_pro' and expected_amount_cents = 1490)
+    );
+
+alter table public.first_sale_gate_events
+  drop constraint if exists first_sale_gate_events_product_code_check,
+  drop constraint if exists first_sale_gate_events_expected_amount_cents_check;
+
+alter table public.first_sale_gate_events
+  add constraint first_sale_gate_events_product_code_check
+    check (product_code in ('resume_pro', 'rental_application_pro')),
+  add constraint first_sale_gate_events_expected_amount_cents_check
+    check (
+      (product_code = 'resume_pro' and expected_amount_cents = 1990)
+      or (product_code = 'rental_application_pro' and expected_amount_cents = 1490)
+    );
 
 create or replace function public.claim_first_sale_reservation(
   p_product_code text,
@@ -686,181 +670,49 @@ begin
 end;
 $$;
 
-create or replace function public.consume_entitlement_restore_token(
-  p_token_hash text,
-  p_product_code text
-)
-returns table (
-  id bigint,
-  product_code text,
-  status text,
-  stripe_checkout_session_id text,
-  stripe_payment_intent_id text,
-  stripe_charge_id text,
-  stripe_customer_id text,
-  granted_at timestamptz,
-  revoked_at timestamptz
-)
-language plpgsql
-security definer
-set search_path = public, pg_temp
-as $$
+do $$
 begin
-  if p_token_hash is null
-    or p_token_hash !~ '^[a-fA-F0-9]{64}$'
-    or p_product_code is null
-    or p_product_code not in ('resume_pro', 'rental_application_pro')
-  then
-    raise exception 'Invalid restore-token consumption contract';
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.first_sale_gates'::regclass
+      and contype = 'c'
+      and position('rental_application_pro' in pg_get_constraintdef(oid)) > 0
+  ) or not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.first_sale_gate_events'::regclass
+      and contype = 'c'
+      and position('rental_application_pro' in pg_get_constraintdef(oid)) > 0
+  ) or exists (
+    select 1 from pg_constraint
+    where conrelid in (
+      'public.first_sale_gates'::regclass,
+      'public.first_sale_gate_events'::regclass
+    )
+      and contype = 'c'
+      and (
+        position('product_code' in pg_get_constraintdef(oid)) > 0
+        or position('expected_amount_cents' in pg_get_constraintdef(oid)) > 0
+      )
+      and position('rental_application_pro' in pg_get_constraintdef(oid)) = 0
+  ) or position(
+    'rental_application_pro'
+    in pg_get_functiondef(to_regprocedure(
+      'public.claim_first_sale_reservation(text,text,timestamptz,text,text,integer)'
+    ))
+  ) = 0 or position(
+    'rental_application_pro'
+    in pg_get_functiondef(to_regprocedure(
+      'public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)'
+    ))
+  ) = 0 then
+    raise exception 'Rental first-sale gate migration postflight failed';
   end if;
-
-  return query
-  with active_entitlement as materialized (
-    select entitlement.id
-    from public.purchase_entitlements entitlement
-    where entitlement.product_code = p_product_code
-      and entitlement.status = 'active'
-    for update
-  ), consumed as (
-    update public.purchase_restore_tokens
-    set used_at = now()
-    where token_hash = lower(p_token_hash)
-      and p_token_hash ~ '^[a-fA-F0-9]{64}$'
-      and used_at is null
-      and expires_at > now()
-      and entitlement_id in (select id from active_entitlement)
-    returning entitlement_id
-  )
-  select
-    entitlement.id,
-    entitlement.product_code,
-    entitlement.status,
-    entitlement.stripe_checkout_session_id,
-    entitlement.stripe_payment_intent_id,
-    entitlement.stripe_charge_id,
-    entitlement.stripe_customer_id,
-    entitlement.granted_at,
-    entitlement.revoked_at
-  from public.purchase_entitlements entitlement
-  join consumed on consumed.entitlement_id = entitlement.id
-  join active_entitlement on active_entitlement.id = entitlement.id
-  where entitlement.status = 'active';
 end;
 $$;
 
-create or replace function public.create_entitlement_restore_token(
-  p_entitlement_id bigint,
-  p_product_code text,
-  p_token_hash text,
-  p_expires_at timestamptz
-)
-returns boolean
-language plpgsql
-security definer
-set search_path = public, pg_temp
-as $$
-declare
-  v_inserted text;
-  v_active_entitlement_id bigint;
-begin
-  if p_entitlement_id is null
-    or p_entitlement_id < 1
-    or p_product_code is null
-    or p_product_code not in ('resume_pro', 'rental_application_pro')
-    or p_token_hash is null
-    or p_token_hash !~ '^[a-fA-F0-9]{64}$'
-    or p_expires_at is null
-    or p_expires_at <= now()
-    or p_expires_at > now() + interval '30 days'
-  then
-    raise exception 'Invalid restore-token contract';
-  end if;
-
-  perform pg_advisory_xact_lock(hashtext('restore-token:' || p_entitlement_id::text));
-
-  select entitlement.id into v_active_entitlement_id
-  from public.purchase_entitlements entitlement
-  where entitlement.id = p_entitlement_id
-    and entitlement.product_code = p_product_code
-    and entitlement.status = 'active'
-  for update;
-
-  if v_active_entitlement_id is null then
-    return false;
-  end if;
-
-  update public.purchase_restore_tokens
-  set used_at = now()
-  where entitlement_id = v_active_entitlement_id
-    and used_at is null;
-
-  insert into public.purchase_restore_tokens (token_hash, entitlement_id, expires_at)
-  values (lower(p_token_hash), v_active_entitlement_id, p_expires_at)
-  returning token_hash into v_inserted;
-
-  return v_inserted is not null;
-end;
-$$;
-
--- Least-privilege boundary. The migration owner must be a non-login role that
--- owns these SECURITY DEFINER functions. Replace the role placeholders in the
--- deployment ticket only; do not paste a live role name into this repository.
-revoke create on schema public from public;
-revoke all on table public.first_sale_gates, public.first_sale_gate_events from public;
-revoke select, insert, update, delete on table public.payment_webhook_events, public.purchase_entitlements, public.purchase_restore_tokens, public.purchase_checkout_activations, public.purchase_access_sessions, public.purchase_restore_activations, public.entitlement_event_tombstones, public.stripe_payment_object_links, public.payment_operator_alert_outbox from public;
-revoke all on function public.apply_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) from public;
-revoke all on function public.claim_first_sale_reservation(text, text, timestamptz, text, text, integer) from public;
-revoke all on function public.attach_first_sale_checkout(text, bigint, text, text, timestamptz) from public;
-revoke all on function public.release_failed_first_sale_reservation(text, bigint, text, text) from public;
-revoke all on function public.release_verified_abandoned_first_sale(text, bigint, text) from public;
-revoke all on function public.lock_first_sale_from_paid_event(text, text, text, boolean, timestamptz) from public;
-revoke all on function public.apply_first_sale_paid_event(text, text, boolean, timestamptz, text, text, integer, text, text, text, text, text) from public;
-revoke all on function public.apply_guarded_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) from public;
-revoke all on function public.consume_entitlement_restore_token(text, text) from public;
-revoke all on function public.create_entitlement_restore_token(bigint, text, text, timestamptz) from public;
-revoke all on function public.approve_next_first_sale(text, text, text, integer, text) from public;
-revoke all on function public.prevent_first_sale_gate_event_mutation() from public;
-revoke all on function public.prevent_entitlement_tombstone_mutation() from public;
-revoke all on function public.record_payment_operator_alert_intent(text, text, boolean, text) from public;
-revoke all on function public.enqueue_payment_operator_alert_failure(text, text, boolean, text, text, text) from public;
-revoke all on function public.claim_payment_operator_alert_intent(text, text, text) from public;
-revoke all on function public.mark_payment_operator_alert_sent(text, text, text) from public;
-revoke all on function public.release_payment_operator_alert_claim(text, text, text) from public;
-revoke all on function public.consume_checkout_activation(text, text, text, text) from public;
-revoke all on function public.release_checkout_activation(bigint, text) from public;
-revoke all on function public.find_active_purchase_entitlement_by_checkout(text, text) from public;
-revoke all on function public.find_active_purchase_entitlement_by_id(bigint, text) from public;
-
--- Owner-approved deployment template (intentionally comments):
--- revoke create on schema public from hoju_app_runtime;
--- revoke all on public.first_sale_gates, public.first_sale_gate_events from hoju_app_runtime;
--- revoke all on table public.payment_webhook_events, public.purchase_entitlements, public.purchase_restore_tokens, public.purchase_checkout_activations, public.purchase_access_sessions, public.purchase_restore_activations, public.entitlement_event_tombstones, public.stripe_payment_object_links, public.payment_operator_alert_outbox from hoju_app_runtime;
--- revoke execute on function public.apply_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) from hoju_app_runtime;
--- grant execute on function public.claim_first_sale_reservation(text, text, timestamptz, text, text, integer) to hoju_app_runtime;
--- grant execute on function public.attach_first_sale_checkout(text, bigint, text, text, timestamptz) to hoju_app_runtime;
--- grant execute on function public.release_failed_first_sale_reservation(text, bigint, text, text) to hoju_app_runtime;
--- grant execute on function public.release_verified_abandoned_first_sale(text, bigint, text) to hoju_app_runtime;
--- grant execute on function public.apply_first_sale_paid_event(text, text, boolean, timestamptz, text, text, integer, text, text, text, text, text) to hoju_app_runtime;
--- grant execute on function public.apply_guarded_entitlement_event(text, text, boolean, timestamptz, text, text, text, text, text, text, text) to hoju_app_runtime;
--- grant execute on function public.consume_entitlement_restore_token(text, text, text, text, text, timestamptz) to hoju_app_runtime;
--- grant execute on function public.create_entitlement_restore_token(bigint, text, text, timestamptz) to hoju_app_runtime;
--- grant execute on function public.enqueue_payment_operator_alert_failure(text, text, boolean, text, text, text) to hoju_app_runtime;
--- grant execute on function public.claim_payment_operator_alert_intent(text, text, text) to hoju_app_runtime;
--- grant execute on function public.mark_payment_operator_alert_sent(text, text, text) to hoju_app_runtime;
--- grant execute on function public.release_payment_operator_alert_claim(text, text, text) to hoju_app_runtime;
--- grant execute on function public.consume_checkout_activation(text, text, text, text, text, text, timestamptz) to hoju_app_runtime;
--- grant execute on function public.release_purchase_access_session(bigint, text, text) to hoju_app_runtime;
--- grant execute on function public.find_active_purchase_entitlement_by_access_session(bigint, text, text) to hoju_app_runtime;
--- grant execute on function public.find_active_purchase_entitlement_by_checkout(text, text) to hoju_app_runtime;
--- grant execute on function public.find_active_purchase_entitlement_by_id(bigint, text) to hoju_app_runtime;
--- grant execute on function public.approve_next_first_sale(text, text, text, integer, text) to hoju_owner_operator;
+reset role;
 
 insert into public.schema_migrations (version)
-values ('20260823_first_sale_gate_v1')
-on conflict (version) do nothing;
-
-insert into public.schema_migrations (version)
-values ('20260823_first_sale_gate_charge_link_v2')
-on conflict (version) do nothing;
+values ('20260829_rental_first_sale_gate_v1');
 
 commit;
