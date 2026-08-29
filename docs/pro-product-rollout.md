@@ -31,7 +31,7 @@ Before public sale:
 7. Verify test purchase, duplicate and out-of-order webhooks, recovery-code single use, full refund and immediate access revocation.
 8. Complete one controlled live purchase and full refund before changing the public status to available.
 
-Checkout-off Production preparation completed on 29 August 2026 with the Rental switch set to `false`. The preserved release work was subsequently reconciled with `main` at `c2025ff`; payment, webhook, entitlement, access-session and first-sale conflicts retain `main`'s newer security architecture. The reconciled branch passed Rental contracts, current-main payment preflight contracts, TypeScript, full lint, build and secret scanning, but has not been deployed to Production. Recheck concurrent deployments and obtain a new preparation-deployment approval before promoting it. Checkout activation and a controlled charge still require separate action-time approval.
+Checkout-off Production preparation completed on 29 August 2026 with the Rental switch set to `false`. The preserved release work was subsequently reconciled with `main` at `c2025ff` in merge commit `40d0b76`; payment, webhook, entitlement, access-session and first-sale conflicts retain `main`'s newer security architecture. The reconciled branch passed Rental contracts, current-main payment preflight contracts, TypeScript, full lint, build and secret scanning, but has not been deployed to Production. Recheck concurrent deployments and obtain a new preparation-deployment approval before promoting it. Checkout activation and a controlled charge still require separate action-time approval.
 
 ### Rental accounting isolation gate
 
