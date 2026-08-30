@@ -12,7 +12,7 @@ const [section, homePage, catalogPage, finder, proPage, checkerPage, builderPage
 ]);
 
 assert.ok(homePage.includes("<PremiumToolsSection />"), "the ready-now path must be rendered on the public home page");
-assert.ok(catalogPage.includes("<ProProductFinder resumeProLive={resumeProLive} />"), "the public Pro catalog must render the checkout-aware product finder");
+assert.ok(catalogPage.includes("<ProProductFinder resumeProLive={resumeProLive} rentalProLive={rentalProLive} />"), "the public Pro catalog must render the checkout-aware product finder");
 assert.ok(checkerPage.includes("<ResumeJobAdChecker />"), "the primary free path must open the working local comparison tool");
 assert.ok(builderPage.includes("<ResumeBuilder resumeProLive={resumeProLive} />"), "the secondary free path must open the working saved-draft Builder");
 
