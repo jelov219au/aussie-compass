@@ -42,6 +42,8 @@
     "test:pay-evidence-pro-contract": "node scripts/check-pay-evidence-pro-contract.mjs",
     "test:pay-evidence-pro-tokens": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-pay-evidence-pro-tokens.mjs",
     "payments:pay-evidence-readiness": "node scripts/check-pay-evidence-launch-readiness.mjs",
+    "payments:pay-evidence-migrate": "node scripts/apply-pay-evidence-migrations.mjs",
+    "payments:pay-evidence-catalog": "node scripts/ensure-pay-evidence-stripe-catalog.mjs",
     "test:search-intent": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-site-search-resume-intent.mjs",
     "test:ai-discovery": "node scripts/check-ai-discovery-contract.mjs",
     "test:cover-letter-acquisition": "node scripts/check-cover-letter-acquisition-loop.mjs",
