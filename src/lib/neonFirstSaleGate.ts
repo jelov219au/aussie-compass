@@ -21,7 +21,7 @@ function getConnectionString() {
   return value;
 }
 
-export async function isPaymentRuntimeSchemaReady(requiredProductCode: "rental_application_pro" | "pay_evidence_pro" | "eofy_pro" = "rental_application_pro") {
+export async function isPaymentRuntimeSchemaReady(requiredProductCode: "rental_application_pro" | "pay_evidence_pro" | "eofy_pro" | "leaving_australia_pro" = "rental_application_pro") {
   try {
     const sql = neon(getConnectionString(), {
       readOnly: true,

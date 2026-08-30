@@ -5,6 +5,7 @@ const checkoutProductContracts: Record<ProductCode, { currency: string; amountTo
   rental_application_pro: { currency: "aud", amountTotal: 1490 },
   pay_evidence_pro: { currency: "aud", amountTotal: 990 },
   eofy_pro: { currency: "aud", amountTotal: 990 },
+  leaving_australia_pro: { currency: "aud", amountTotal: 1290 },
 };
 
 export function matchesCheckoutProductEntitlementContract(command: EntitlementCommand | null) {

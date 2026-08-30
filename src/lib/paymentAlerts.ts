@@ -17,6 +17,7 @@ const productLabels = {
   rental_application_pro: "Rental Application Pack Pro",
   pay_evidence_pro: "Pay Evidence Pro",
   eofy_pro: "EOFY Pack Pro",
+  leaving_australia_pro: "Leaving Australia Pack Pro",
 } as const;
 
 type AlertProductCode = keyof typeof productLabels;

@@ -8,11 +8,13 @@ export const FIRST_SALE_PRODUCT_CODE = "resume_pro" as const;
 export const RENTAL_FIRST_SALE_PRODUCT_CODE = "rental_application_pro" as const;
 export const PAY_EVIDENCE_FIRST_SALE_PRODUCT_CODE = "pay_evidence_pro" as const;
 export const EOFY_FIRST_SALE_PRODUCT_CODE = "eofy_pro" as const;
+export const LEAVING_AUSTRALIA_FIRST_SALE_PRODUCT_CODE = "leaving_australia_pro" as const;
 export type FirstSaleProductCode =
   | typeof FIRST_SALE_PRODUCT_CODE
   | typeof RENTAL_FIRST_SALE_PRODUCT_CODE
   | typeof PAY_EVIDENCE_FIRST_SALE_PRODUCT_CODE
-  | typeof EOFY_FIRST_SALE_PRODUCT_CODE;
+  | typeof EOFY_FIRST_SALE_PRODUCT_CODE
+  | typeof LEAVING_AUSTRALIA_FIRST_SALE_PRODUCT_CODE;
 export const STRIPE_CHECKOUT_MINIMUM_TTL_SECONDS = 30 * 60;
 export const FIRST_SALE_CLOCK_SKEW_BUFFER_SECONDS = 60;
 export const FIRST_SALE_RESERVATION_TTL_SECONDS =
@@ -82,7 +84,7 @@ export interface FirstSaleGateStore {
       chargeId: string;
       customerId: string;
       currency: "aud";
-      amountTotal: 1990 | 1490 | 990;
+      amountTotal: 1990 | 1490 | 1290 | 990;
     };
   }): Promise<{ outcome: "processed" | "duplicate" | "ignored_stale" }>;
 }

@@ -40,10 +40,19 @@ export const eofyProProduct = {
   billing: "one_time",
 } as const;
 
+export const leavingAustraliaProProduct = {
+  id: "leaving-australia-pro",
+  name: "Leaving Australia Pack Pro",
+  currency: "aud",
+  priceCents: 1290,
+  billing: "one_time",
+} as const;
+
 export const resumeProPurchaseTermsVersion = "2026-08-19";
 export const rentalApplicationProPurchaseTermsVersion = "2026-08-22";
 export const payEvidenceProPurchaseTermsVersion = "2026-08-30";
 export const eofyProPurchaseTermsVersion = "2026-08-30";
+export const leavingAustraliaProPurchaseTermsVersion = "2026-08-30";
 
 export type PaymentReadiness = {
   enabled: boolean;
@@ -214,6 +223,33 @@ export function getEofyPaymentReadiness(): ProductPaymentReadiness {
 
 export function canCreateEofyTestCheckout() {
   const readiness = getEofyPaymentReadiness();
+  return process.env.VERCEL_ENV !== "production"
+    && readiness.enabled
+    && readiness.stripeConfigured
+    && readiness.managedPaymentsConfigured;
+}
+
+export function getLeavingAustraliaPaymentReadiness(): ProductPaymentReadiness {
+  const base = getPaymentReadiness();
+  const productEnabled = process.env.LEAVING_AUSTRALIA_PRO_PAYMENTS_ENABLED === "true";
+  const productPriceConfigured = Boolean(process.env.STRIPE_LEAVING_AUSTRALIA_PRO_PRICE_ID?.trim().startsWith("price_"));
+  const stripeConfigured = base.stripeConfigured && productPriceConfigured;
+  const ready = base.ready
+    && productEnabled
+    && productPriceConfigured;
+
+  return {
+    ...base,
+    enabled: base.enabled && productEnabled,
+    stripeConfigured,
+    productEnabled,
+    productPriceConfigured,
+    ready,
+  };
+}
+
+export function canCreateLeavingAustraliaTestCheckout() {
+  const readiness = getLeavingAustraliaPaymentReadiness();
   return process.env.VERCEL_ENV !== "production"
     && readiness.enabled
     && readiness.stripeConfigured

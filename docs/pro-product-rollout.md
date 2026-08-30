@@ -10,7 +10,7 @@ This document keeps public product labels aligned with the checkout and access s
 | Rental Pack Pro | Controlled release readiness | Expanded 20-candidate local workspace reconciled with current `main`; protected by its own entitlement in deployed builds | Checkout, success, recovery and release code complete; live Product and Price exist, and the product-specific switch remains off |
 | Pay Evidence Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
 | EOFY Pack Pro | Local paid-access preparation | A$9.90 Checkout, entitlement isolation, activation, recovery and workspace gate implemented locally | Migrations unapplied; no Stripe/Vercel configuration or public Checkout |
-| Leaving Australia Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
+| Leaving Australia Pack Pro | Local paid-access preparation | A$12.90 Checkout, entitlement isolation, activation, recovery and workspace gate implemented locally | Migrations unapplied; no Stripe/Vercel configuration or public Checkout |
 
 The homepage and Pro catalogue must derive Resume Pro's live label from the production payment-readiness contract. They must never infer availability from a hard-coded date or price.
 
@@ -155,7 +155,14 @@ Session cleanup in the product acceptance file.
 - The local paid-access contract pins `eofy_pro` to AUD 9.90, one-time billing, its own disabled product switch and Price variable.
 - Checkout, signed-webhook entitlement, first-sale reservation, activation, access release and one-time recovery are product-scoped and fail closed.
 - The two dated SQL migrations and catalog/migration/readiness operators are preparation artifacts only. They have not been applied or run against external services.
-- Leaving Australia Pack Pro needs an additional migration, tax and Super review so it does not determine visa, residency or DASP eligibility.
+
+### Leaving Australia Pack Pro review progress
+
+- The workspace remains preparation-only: it records ordered departure tasks, pending settlements, questions and closure dependencies without deciding bank closure, visa status, tax treatment, Super or DASP eligibility.
+- The local paid-access contract pins `leaving_australia_pro` to AUD 12.90, one-time billing, its own disabled product switch and Price variable.
+- Checkout, signed-webhook entitlement, first-sale reservation, activation, access release and one-time recovery are product-scoped and fail closed.
+- Shared-device deletion targets only `hoju-compass-leaving-pro-v1`; browser/PWA storage is device-specific and another device requires a one-time recovery code.
+- The two dated SQL migrations and catalog/migration/readiness operators are preparation artifacts only. They have not been applied or run against external services.
 
 ### Pay Evidence Pack Pro review progress
 

@@ -1,4 +1,5 @@
--- Hoju Compass paid-product entitlement storage contract.
+-- Add Leaving Australia Pack Pro to the paid-product entitlement and access contract.
+-- Prepared locally; apply only in an owner-approved migration window while Checkout is off.
 -- This is provider-neutral PostgreSQL DDL and is not connected to any live database.
 -- Apply a Stripe event and its entitlement change in one database transaction.
 
@@ -26,7 +27,7 @@ create table if not exists payment_webhook_events (
 -- runtime allowlist still permits new grants for Resume Pro and Rental Pro only.
 create table if not exists purchase_entitlements (
   id bigint generated always as identity primary key,
-  product_code text not null check (product_code in ('resume_pro', 'rental_application_pro')),
+  product_code text not null check (product_code in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro', 'eofy_pro', 'leaving_australia_pro')),
   status text not null check (status in ('active', 'revoked', 'review')),
   stripe_checkout_session_id text unique,
   stripe_payment_intent_id text unique,
@@ -108,7 +109,7 @@ create table if not exists purchase_access_sessions (
   access_session_hash text not null unique check (access_session_hash ~ '^[a-f0-9]{64}$'),
   access_session_ref_last8 text not null check (access_session_ref_last8 ~ '^[A-Za-z0-9_-]{8}$'),
   entitlement_id bigint not null references purchase_entitlements(id) on delete restrict,
-  product_code text not null check (product_code in ('resume_pro', 'rental_application_pro')),
+  product_code text not null check (product_code in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro', 'eofy_pro', 'leaving_australia_pro')),
   session_source text not null check (session_source in ('activation', 'restore')),
   activation_entitlement_id bigint references purchase_checkout_activations(entitlement_id) on delete restrict,
   created_at timestamptz not null default now(),
@@ -130,6 +131,12 @@ create table if not exists purchase_restore_activations (
   access_session_id bigint not null unique references purchase_access_sessions(id) on delete restrict,
   created_at timestamptz not null default now()
 );
+
+alter table public.purchase_access_sessions
+  drop constraint if exists purchase_access_sessions_product_code_check;
+alter table public.purchase_access_sessions
+  add constraint purchase_access_sessions_product_code_check
+  check (product_code in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro', 'eofy_pro', 'leaving_australia_pro'));
 
 alter table public.purchase_checkout_activations
   add column if not exists activation_nonce_hash text;
@@ -169,7 +176,7 @@ begin
   if p_checkout_session_id is null
     or p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
     or p_product_code is null
-    or p_product_code not in ('resume_pro', 'rental_application_pro')
+    or p_product_code not in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro', 'eofy_pro', 'leaving_australia_pro')
     or p_customer_id is null
     or p_customer_id !~ '^cus_[A-Za-z0-9]+$'
     or p_activation_nonce_hash is null
@@ -256,7 +263,7 @@ as $$
 begin
   if p_entitlement_id is null
     or p_product_code is null
-    or p_product_code not in ('resume_pro', 'rental_application_pro')
+    or p_product_code not in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro', 'eofy_pro', 'leaving_australia_pro')
   then
     raise exception 'Invalid checkout activation release input';
   end if;
@@ -279,7 +286,7 @@ returns table (id bigint, product_code text, status text, granted_at timestamptz
 language plpgsql stable security definer set search_path = public, pg_temp as $$
 begin
   if p_checkout_session_id is null or p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$'
-    or p_product_code is null or p_product_code not in ('resume_pro', 'rental_application_pro') then
+    or p_product_code is null or p_product_code not in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro', 'eofy_pro', 'leaving_australia_pro') then
     raise exception 'Invalid entitlement lookup input';
   end if;
   return query select entitlement.id, entitlement.product_code, entitlement.status,
@@ -299,7 +306,7 @@ returns table (id bigint, product_code text, status text, granted_at timestamptz
 language plpgsql stable security definer set search_path = public, pg_temp as $$
 begin
   if p_entitlement_id is null or p_product_code is null
-    or p_product_code not in ('resume_pro', 'rental_application_pro') then
+    or p_product_code not in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro', 'eofy_pro', 'leaving_australia_pro') then
     raise exception 'Invalid entitlement lookup input';
   end if;
   return query select entitlement.id, entitlement.product_code, entitlement.status,
@@ -337,7 +344,7 @@ create table if not exists payment_operator_alert_outbox (
   event_type text not null,
   event_ref_last8 text not null check (event_ref_last8 ~ '^[A-Za-z0-9_]{1,8}$'),
   livemode boolean not null,
-  product_code text check (product_code in ('resume_pro', 'rental_application_pro')),
+  product_code text check (product_code in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro', 'eofy_pro', 'leaving_australia_pro')),
   checkout_ref_last8 text check (checkout_ref_last8 ~ '^[A-Za-z0-9_]{1,8}$'),
   payment_intent_ref_last8 text check (payment_intent_ref_last8 ~ '^[A-Za-z0-9_]{1,8}$'),
   charge_ref_last8 text check (charge_ref_last8 ~ '^[A-Za-z0-9_]{1,8}$'),
@@ -369,6 +376,12 @@ create table if not exists payment_operator_alert_outbox (
     or (status = 'sent' and sent_at is not null and lease_token_hash is null and lease_expires_at is null)
   )
 );
+
+alter table public.payment_operator_alert_outbox
+  drop constraint if exists payment_operator_alert_outbox_product_code_check;
+alter table public.payment_operator_alert_outbox
+  add constraint payment_operator_alert_outbox_product_code_check
+  check (product_code in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro', 'eofy_pro', 'leaving_australia_pro'));
 
 drop function if exists record_payment_operator_alert_intent(text, text, boolean);
 
@@ -654,7 +667,7 @@ begin
       'dispute_lost',
       'dispute_status_requires_review'
     )
-    or (p_product_code is not null and p_product_code not in ('resume_pro', 'rental_application_pro'))
+    or (p_product_code is not null and p_product_code not in ('resume_pro', 'rental_application_pro', 'pay_evidence_pro', 'eofy_pro', 'leaving_australia_pro'))
     or (p_checkout_session_id is not null and p_checkout_session_id !~ '^cs_(test|live)_[A-Za-z0-9]+$')
     or (p_checkout_session_id is not null and p_livemode and p_checkout_session_id !~ '^cs_live_')
     or (p_checkout_session_id is not null and not p_livemode and p_checkout_session_id !~ '^cs_test_')
@@ -1099,6 +1112,10 @@ on conflict (version) do nothing;
 
 insert into schema_migrations (version)
 values ('20260823_restore_activation_nonce_v1')
+on conflict (version) do nothing;
+
+insert into schema_migrations (version)
+values ('20260830_leaving_australia_entitlement_v1')
 on conflict (version) do nothing;
 
 commit;
