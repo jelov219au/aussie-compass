@@ -6,6 +6,7 @@ import { matchesCheckoutProductEntitlementContract } from "@/lib/productEntitlem
 import { getConfiguredEntitlementStore } from "@/lib/neonEntitlementStore";
 import {
   FIRST_SALE_PRODUCT_CODE,
+  PAY_EVIDENCE_FIRST_SALE_PRODUCT_CODE,
   RENTAL_FIRST_SALE_PRODUCT_CODE,
   type FirstSaleProductCode,
 } from "@/lib/firstSaleGate";
@@ -26,9 +27,10 @@ import { getStripe } from "@/lib/stripe";
 export const runtime = "nodejs";
 
 const maxWebhookPayloadBytes = 1024 * 1024;
-const firstSaleProductContracts: Record<FirstSaleProductCode, { currency: "aud"; amountCents: 1990 | 1490 }> = {
+const firstSaleProductContracts: Record<FirstSaleProductCode, { currency: "aud"; amountCents: 1990 | 1490 | 990 }> = {
   [FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: 1990 },
   [RENTAL_FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: 1490 },
+  [PAY_EVIDENCE_FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: 990 },
 };
 
 function getFirstSaleProductContract(productCode: string | undefined) {

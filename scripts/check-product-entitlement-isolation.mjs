@@ -32,12 +32,12 @@ const productLookupFixture = [
 assert.equal(hasGuardedProductLookups(productLookupFixture), true, "LF product guards must be recognized");
 assert.equal(hasGuardedProductLookups(productLookupFixture.replaceAll("\n", "\r\n")), true, "CRLF product guards must be recognized");
 
-for (const productCode of ["resume_pro", "rental_application_pro"]) {
+for (const productCode of ["resume_pro", "rental_application_pro", "pay_evidence_pro"]) {
   assert.ok(entitlements.includes(`"${productCode}"`), `Supported product code is missing: ${productCode}`);
   assert.ok(storageContract.includes(`'${productCode}'`), `Database product constraint is missing: ${productCode}`);
 }
 
-for (const legacyProductCode of ["car_buy_pro", "eofy_pro", "pay_evidence_pro"]) {
+for (const legacyProductCode of ["car_buy_pro", "eofy_pro"]) {
   assert.ok(
     storageContract.includes(`'${legacyProductCode}'`),
     `Historical entitlement evidence must remain storage-compatible: ${legacyProductCode}`,

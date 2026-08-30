@@ -76,6 +76,26 @@ assert.equal(
   "a Rental-priced Checkout mislabeled as Resume must never grant Resume access",
 );
 
+const payEvidencePaidCommand = getEntitlementCommand(stripeEvent("checkout.session.completed", {
+  ...paidSession,
+  id: "cs_test_pay_evidence_paid",
+  metadata: { product_code: "pay_evidence_pro" },
+  payment_intent: "pi_pay_evidence_paid",
+  customer: "cus_pay_evidence_paid",
+  amount_total: 990,
+}, "evt_pay_evidence_checkout_completed"));
+assert.equal(payEvidencePaidCommand?.productCode, "pay_evidence_pro");
+assert.equal(payEvidencePaidCommand?.amountTotal, 990);
+assert.equal(matchesCheckoutProductEntitlementContract(payEvidencePaidCommand), true);
+assert.equal(
+  matchesCheckoutProductEntitlementContract(getEntitlementCommand(stripeEvent("checkout.session.completed", {
+    ...paidSession,
+    metadata: { product_code: "pay_evidence_pro" },
+  }))),
+  false,
+  "a Resume-priced Checkout mislabeled as Pay Evidence must never grant Pay Evidence access",
+);
+
 assert.equal(
   getEntitlementCommand(stripeEvent("checkout.session.completed", { ...paidSession, metadata: { product_code: "other" } })),
   null,
