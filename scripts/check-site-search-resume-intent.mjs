@@ -118,7 +118,7 @@ for (const href of ["/arrival-checklist", "/visa-preparation-guide", "/property-
 }
 assert.doesNotMatch(essentialTools, /\/salary-calculator/, "the salary calculator must remain a downstream discovery tool instead of a primary home card");
 assert.ok(homePage.indexOf("<ToolsSection />") < homePage.indexOf("<PersonalRouteFinder />"), "the first-step tools must lead into the personalized route");
-assert.ok(homePage.indexOf("<PersonalRouteFinder />") < homePage.indexOf("<HomeTransportAlertsSection />"), "the broad newcomer route must precede the niche transport alert section");
+assert.ok(homePage.indexOf("<PersonalRouteFinder />") < homePage.indexOf("<ReturnVisitSection />"), "the broad newcomer route must precede resumable local work");
 assert.ok(homeSearch.indexOf('router.push("/search")') > homeSearch.indexOf("sessionStorage.setItem"), "queryless navigation must still occur after the storage attempt");
 assert.doesNotMatch(homeSearch, /action=["']\/search|method=["']get|name=["']q|\/search\?q=|href=\{?`?\/search\?|URLSearchParams|window\.location/, "home search must not put raw terms in a form GET, link, URL or navigation request");
 assert.match(searchComponent, /sessionStorage\.getItem\(SEARCH_TRANSFER_STORAGE_KEY\)/);

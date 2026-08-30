@@ -10,7 +10,9 @@ const [
   layout,
   serviceWorker,
   homePage,
-  homeTransportSection,
+  toolsSection,
+  toolsPage,
+  returnVisitSection,
   railRegistry,
   deviceTransfer,
   packageSource,
@@ -21,7 +23,9 @@ const [
   read("src/app/layout.tsx"),
   read("public/sw.js"),
   read("src/app/page.tsx"),
-  read("src/components/sections/HomeTransportAlertsSection.tsx"),
+  read("src/components/sections/ToolsSection.tsx"),
+  read("src/app/tools/page.tsx"),
+  read("src/components/sections/ReturnVisitSection.tsx"),
   read("src/lib/railWorkAlerts.ts"),
   read("src/components/tools/DeviceDataTransfer.tsx"),
   read("package.json"),
@@ -43,11 +47,12 @@ for (const boundary of ["데스크톱 웹", "모바일 웹", "설치형 PWA", "�
 assert.match(policy, /공용 라우트·컴포넌트·출처 registry/, "the contract must require one canonical implementation");
 assert.match(policy, /사용되지 않는 컴포넌트 문자열은 완료 근거가 아니다/, "a dead component must not count as homepage delivery");
 
-assert.match(homePage, /import \{ HomeTransportAlertsSection \}/, "the homepage must import the shared transport entry");
-assert.match(homePage, /<HomeTransportAlertsSection \/>/, "the homepage must mount the transport entry");
-assert.match(homeTransportSection, /RAIL_WORK_ALERT_SOURCES/, "the homepage must consume the shared official-source registry");
-assert.match(homeTransportSection, /href=\{RAIL_WORK_ALERT_ROUTE\}/, "web and installed PWA must open the same canonical route");
-assert.doesNotMatch(homeTransportSection, /display-mode|standalone\)\.matches/, "the feature must not be hidden from either surface");
+assert.match(homePage, /<ToolsSection \/>/, "the homepage must expose the public tools directory");
+assert.match(homePage, /<ReturnVisitSection \/>/, "the homepage must expose resumable local work");
+assert.match(toolsSection, /href="\/tools"/, "web and installed PWA must share the same tools-directory entry");
+assert.match(toolsPage, /href: "\/rail-work-alerts"/, "the tools directory must expose the canonical rail route");
+assert.match(returnVisitSection, /RAIL_WORK_ALERT_STORAGE_KEY/, "saved rail areas must remain resumable from the homepage");
+assert.doesNotMatch(`${toolsSection}\n${toolsPage}\n${returnVisitSection}`, /display-mode|standalone\)\.matches/, "the feature must not be hidden from either surface");
 assert.match(railRegistry, /RAIL_WORK_ALERT_ROUTE = "\/rail-work-alerts"/, "the canonical transport route must remain explicit");
 assert.match(deviceTransfer, /RAIL_WORK_ALERT_STORAGE_KEY/, "browser and installed-PWA storage must have an explicit manual transfer path");
 assert.match(deviceTransfer, /resumeProStarStoriesStorageKey[\s\S]*Resume Pro STAR 경험 보관함[\s\S]*sensitive: true/, "Resume Pro STAR stories used by application-kit exports must transfer with company snapshots across web and installed-PWA storage");

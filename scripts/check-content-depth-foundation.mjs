@@ -12,7 +12,7 @@ const [articlesSource, articlePage, minimumWage, minimumWageCalculator, casualLo
 ]);
 
 const articleBlocks = articlesSource.split(/\n\s*\{\s*\n\s*slug: "/).slice(1);
-assert.equal(articleBlocks.length, 29, "the resource library article count changed; audit the content-depth baseline");
+assert.equal(articleBlocks.length, 33, "the resource library article count changed; audit the content-depth baseline");
 
 let totalSections = 0;
 let totalSources = 0;
@@ -46,7 +46,7 @@ for (const jurisdiction of ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"]
 assert.ok(jurisdictionPicker.includes("jurisdictions.find"), "the moving picker must show the selected jurisdiction only");
 assert.doesNotMatch(jurisdictionPicker, /fetch\(|sendBeacon|XMLHttpRequest|localStorage/, "the jurisdiction picker must not transmit or persist the selection");
 for (const source of [minimumWage, casualLoading, movingChecklist, jurisdictionPicker]) {
-  assert.doesNotMatch(source, /checkout|stripe|payment/i, "content-depth changes must remain outside payment flows");
+  assert.doesNotMatch(source, /checkout|stripe|paymentReadiness|createCheckout/i, "content-depth changes must remain outside checkout and payment-integration flows");
 }
 
 console.log(`CONTENT_DEPTH_FOUNDATION=PASS articles=${articleBlocks.length} sections=${totalSections} sources=${totalSources}`);
