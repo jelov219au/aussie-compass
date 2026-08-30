@@ -12,6 +12,7 @@ import { TopicIcon } from "@/components/ui/TopicIcon";
 import { HealthComplaintJurisdictionPicker } from "@/components/tools/HealthComplaintJurisdictionPicker";
 import { RentalRepairJurisdictionPicker } from "@/components/tools/RentalRepairJurisdictionPicker";
 import { RentalBondJurisdictionPicker } from "@/components/tools/RentalBondJurisdictionPicker";
+import { WorkersCompJurisdictionPicker } from "@/components/tools/WorkersCompJurisdictionPicker";
 import { actionClass } from "@/components/ui/actionStyles";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import {
@@ -156,6 +157,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             {article.slug === "australia-gp-hospital-pharmacy-guide" && <HealthComplaintJurisdictionPicker />}
             {article.slug === "australia-rental-repairs-maintenance-guide" && <RentalRepairJurisdictionPicker />}
             {article.slug === "australia-rental-moving-out-bond-refund-guide" && <RentalBondJurisdictionPicker />}
+            {article.slug === "australia-workplace-injury-workers-compensation-guide" && <WorkersCompJurisdictionPicker />}
 
             {article.sources && (
               <section className="mt-14 rounded-2xl border-2 border-navy/10 bg-white px-5 py-7 shadow-[0_8px_24px_rgba(26,39,68,0.04)] sm:px-8 sm:py-9" aria-labelledby="article-sources">

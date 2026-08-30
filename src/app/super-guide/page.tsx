@@ -17,6 +17,20 @@ const checkItems = [
   "myGov에 로그인한 뒤 ATO → Super 메뉴에서 계좌와 잔액 확인",
 ];
 
+const unpaidSteps = [
+  ["Payslip과 실제 입금 비교", "급여명세서의 Super 표시만 보지 말고 fund 거래내역에서 받은 날짜·금액·고용주명을 확인합니다."],
+  ["기간과 고용 정보 정리", "근무 시작·종료일, 급여일, ordinary hours, payslip, 고용주 ABN과 선택한 fund 정보를 모읍니다."],
+  ["고용주·Fund에 서면 확인", "어느 급여기간의 얼마를 언제 어떤 fund로 보냈는지 묻고 답변을 보관합니다."],
+  ["ATO 신고 여부 판단", "미납·지연·잘못된 fund 납부가 확인되면 ATO의 unpaid super 절차에서 자격 확인 후 신고합니다."],
+];
+
+const copyQuestions = [
+  ["Please confirm the super amount, payment date and fund for each pay period.", "각 급여기간별 Super 금액, 지급일과 납부한 fund를 확인해 주세요."],
+  ["My payslip shows super, but I cannot see the contribution in my fund account.", "급여명세서에는 Super가 표시되지만 제 fund 계좌에는 입금이 보이지 않습니다."],
+  ["Please provide the transaction reference and the member details used for the payment.", "납부 거래번호와 납부에 사용한 회원정보를 제공해 주세요."],
+  ["Please confirm whether any contribution was rejected or returned by the fund.", "fund에서 거절되거나 반환된 납부가 있는지 확인해 주세요."],
+];
+
 export default function SuperGuidePage() {
   return (
     <>
@@ -32,8 +46,9 @@ export default function SuperGuidePage() {
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">급여 가이드</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">Super 쉽게 이해하기</h1>
             <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">
-              급여와 함께 보이는 Super 12%가 무엇인지, 내 통장에 들어오는 돈과 어떻게 다른지 알아보세요.
+              급여와 함께 보이는 Super 12%가 무엇인지, 실제 입금을 어떻게 확인하고 누락됐을 때 어떤 순서로 대응하는지 알아보세요.
             </p>
+            <p className="mt-3 text-sm font-medium text-muted">공식 정보 재확인: 2026년 8월</p>
           </div>
 
           <section className="rounded-2xl bg-navy p-6 text-white shadow-sm sm:p-8" aria-labelledby="super-example-heading">
@@ -110,6 +125,22 @@ export default function SuperGuidePage() {
               <a href="https://softwaredevelopers.ato.gov.au/PaydaySuper" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO Payday Super 안내</a>
               <a href="https://my.gov.au/en/about/help/mygov-website/link-services-to-your-account/link-the-australian-taxation-office" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">myGov에서 ATO 연결하기</a>
             </div>
+          </section>
+
+          <section className="mt-8 border-y border-navy/20 py-8 sm:py-10" aria-labelledby="unpaid-super-heading">
+            <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr]">
+              <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Missing contribution</p><h2 id="unpaid-super-heading" className="mt-2 text-2xl font-semibold leading-tight text-navy sm:text-3xl">Payslip에는 있는데<br />계좌에 없다면</h2><p className="mt-4 text-sm leading-7 text-muted">단순 지연인지, 잘못된 회원정보인지, 실제 미납인지 증거를 나눠 확인하세요. 퇴사한 직장도 같은 방식으로 확인할 수 있습니다.</p></div>
+              <ol className="grid gap-px bg-border sm:grid-cols-2">{unpaidSteps.map(([title, description], index) => <li key={title} className="bg-white p-5"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><h3 className="mt-2 font-semibold text-navy">{title}</h3><p className="mt-2 text-sm leading-6 text-muted">{description}</p></li>)}</ol>
+            </div>
+            <a href="https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/getting-your-super-started-and-growing/check-your-super/unpaid-super-from-my-employer" target="_blank" rel="noreferrer" className="mt-6 inline-flex min-h-12 items-center bg-navy px-5 text-sm font-semibold text-white">ATO Unpaid super 절차 ↗</a>
+          </section>
+
+          <section className="mt-8 bg-surface p-6 sm:p-8" aria-labelledby="super-copy-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Copy & ask</p><h2 id="super-copy-heading" className="mt-2 text-2xl font-semibold leading-tight text-navy">고용주·Payroll에 복사해 물어볼 문장</h2><ul className="mt-6 grid gap-3">{copyQuestions.map(([english, korean], index) => <li key={english} className="border border-border bg-white p-4"><div className="flex gap-4"><span className="font-mono text-sm text-gold">{index + 1}</span><p className="font-medium leading-7 text-navy">{english}<span className="mt-1 block text-sm font-normal leading-6 text-muted">({korean})</span></p></div></li>)}</ul></section>
+
+          <section className="mt-8 grid gap-px bg-border md:grid-cols-3" aria-label="Super 계좌 관리 주의점">
+            <article className="bg-white p-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Compare</p><h2 className="mt-2 text-xl font-semibold leading-snug text-navy">Fund는 순위 하나로 고르지 않기</h2><p className="mt-3 text-sm leading-6 text-muted">비슷한 투자옵션의 장기 성과, 총수수료, 보험료·보장·제외사항과 서비스를 함께 비교합니다. 과거 수익률은 미래 수익을 보장하지 않습니다.</p><a href="https://moneysmart.gov.au/how-super-works/choosing-a-super-fund" target="_blank" rel="noreferrer" className="mt-4 inline-flex min-h-11 items-center border-b-2 border-gold text-sm font-semibold text-navy">Moneysmart 선택 가이드 ↗</a></article>
+            <article className="bg-white p-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Consolidate</p><h2 className="mt-2 text-xl font-semibold leading-snug text-navy">합치기 전에 보험부터 확인</h2><p className="mt-3 text-sm leading-6 text-muted">계좌를 닫거나 합치면 life·TPD·income protection 보험이 종료될 수 있습니다. 기존 질환, 직업 위험, 대기기간과 새 보험 승인 여부를 먼저 확인하세요.</p><a href="https://moneysmart.gov.au/how-life-insurance-works/insurance-through-super" target="_blank" rel="noreferrer" className="mt-4 inline-flex min-h-11 items-center border-b-2 border-gold text-sm font-semibold text-navy">Super 보험 확인 ↗</a></article>
+            <article className="bg-white p-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Protect</p><h2 className="mt-2 text-xl font-semibold leading-snug text-navy">전화 권유·조기 인출 경계</h2><p className="mt-3 text-sm leading-6 text-muted">고수익, 즉시 전환, 비밀번호·인증번호 공유, 쉬운 조기 인출을 압박하면 멈추세요. 링크를 누르지 말고 fund와 ATO 공식 주소로 직접 접속합니다.</p></article>
           </section>
 
           <aside className="mt-8 rounded-xl border border-gold/40 bg-gold/10 p-5 text-sm leading-6 text-muted">

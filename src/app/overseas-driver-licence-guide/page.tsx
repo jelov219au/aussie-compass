@@ -19,6 +19,23 @@ const steps = [
   ["04", "렌터카·보험 조건을 따로 확인", "도로교통상 운전 자격과 렌터카 회사 또는 보험사의 운전자 조건은 별개입니다."],
 ];
 
+const bookingQuestions = [
+  ["Could you confirm the last date I can legally drive on my overseas licence?", "제 해외면허로 합법적으로 운전할 수 있는 마지막 날짜를 확인해 주시겠어요?"],
+  ["Is my Korean licence treated as recognised or non-recognised for this application?", "이번 신청에서 제 한국 면허는 인정 또는 비인정 면허 중 어느 쪽인가요?"],
+  ["Which translation or International Driving Permit will you accept?", "어떤 번역본 또는 국제운전면허증을 인정하나요?"],
+  ["Which tests do I need, and what happens to my driving authority if I do not pass?", "어떤 시험이 필요하며 불합격하면 제 운전 권한은 어떻게 되나요?"],
+  ["Can you confirm every original document I need to bring to the appointment?", "예약일에 가져갈 모든 원본 서류를 확인해 주시겠어요?"],
+];
+
+const conversionChecklist = [
+  ["기준 날짜", "입국일, 해당 주에서 생활하기 시작한 날, 영주 비자 발급일을 각각 기록합니다."],
+  ["현재 면허", "면허 등급, 발급일, 만료일, 제한조건과 실제 운전 경력을 확인합니다."],
+  ["영문 서류", "IDP 또는 번역본만 두지 말고 유효한 한국 면허 원본과 함께 준비합니다."],
+  ["신원·주소", "여권, 비자 상태, 주소 증빙의 이름·주소 표기가 서로 일치하는지 확인합니다."],
+  ["시험 순서", "이론·위험인지·실기 중 필요한 항목, 예약 순서, 재시험과 불합격 영향을 확인합니다."],
+  ["차량 준비", "실기시험 차량, 등록, 보험, 도로주행 가능 상태와 동행 운전자 조건을 확인합니다."],
+];
+
 export default function OverseasDriverLicenceGuidePage() {
   return <>
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "무료 도구", path: "/tools" }, { name: "해외면허 전환 가이드", path: "/overseas-driver-licence-guide" }]} />
@@ -35,10 +52,30 @@ export default function OverseasDriverLicenceGuidePage() {
 
         <DriverLicenceGuide />
 
+        <section className="mt-10 border-y border-navy/20 py-8 sm:py-10">
+          <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr]">
+            <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Conversion file</p><h2 className="mt-2 text-2xl font-semibold leading-tight text-navy sm:text-3xl">신청 전에 한 폴더로<br />정리할 것</h2><p className="mt-4 text-sm leading-7 text-muted">면허기관에 연락하기 전에 기준 날짜와 서류를 모으면, 같은 질문을 여러 번 반복하는 일을 줄일 수 있습니다.</p></div>
+            <ol className="grid gap-px bg-border sm:grid-cols-2">{conversionChecklist.map(([title, description], index) => <li key={title} className="bg-white p-5"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><h3 className="mt-2 font-semibold text-navy">{title}</h3><p className="mt-2 text-sm leading-6 text-muted">{description}</p></li>)}</ol>
+          </div>
+        </section>
+
+        <section className="mt-10 bg-surface p-6 sm:p-8">
+          <div className="max-w-3xl"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Copy & ask</p><h2 className="mt-2 text-2xl font-semibold leading-tight text-navy sm:text-3xl">면허기관에 복사해 물어볼 핵심 문장</h2><p className="mt-3 text-sm leading-7 text-muted">온라인 정보만으로 본인 조건이 명확하지 않을 때 그대로 복사해 보내세요. 답변 날짜와 담당 기관을 함께 보관합니다.</p></div>
+          <ul className="mt-6 grid gap-3">{bookingQuestions.map(([english, korean], index) => <li key={english} className="border border-border bg-white p-4 sm:p-5"><div className="flex gap-4"><span className="font-mono text-sm text-gold">{index + 1}</span><p className="font-medium leading-7 text-navy">{english}<span className="mt-1 block text-sm font-normal leading-6 text-muted">({korean})</span></p></div></li>)}</ul>
+        </section>
+
         <section className="mt-10 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
           <article className="border border-border bg-white p-6 sm:p-8"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Before you drive</p><h2 className="mt-2 text-2xl font-semibold text-navy">운전대를 잡기 전 최종 체크</h2><ul className="mt-5 grid gap-3 text-sm leading-6 text-muted sm:grid-cols-2"><li className="border-l-2 border-gold pl-3">면허와 번역본을 실제 운전할 때 휴대</li><li className="border-l-2 border-gold pl-3">차량 등록과 의무보험 상태 확인</li><li className="border-l-2 border-gold pl-3">주별 속도·주차·휴대폰 도로규칙 확인</li><li className="border-l-2 border-gold pl-3">렌터카·자동차보험 운전자 조건 확인</li><li className="border-l-2 border-gold pl-3">면허 전환 마감일을 캘린더에 저장</li><li className="border-l-2 border-gold pl-3">실기시험 전 해외면허 효력 변화 확인</li></ul><div className="mt-6 flex flex-wrap gap-3"><Link href="/life-admin-reminder" className="inline-flex min-h-11 items-center bg-navy px-4 text-sm font-semibold text-white">전환일 리마인더 만들기</Link><Link href="/used-car-comparison" className="inline-flex min-h-11 items-center border border-navy px-4 text-sm font-semibold text-navy">중고차 비교로 이동</Link></div></article>
           <aside className="bg-navy p-6 text-white sm:p-8"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Common mistake</p><h2 className="mt-2 text-2xl font-semibold">IDP만 들고 운전하지 마세요.</h2><p className="mt-4 text-sm leading-7 text-white/70">국제운전면허증은 일반적으로 원래 면허의 번역·보조 문서입니다. 한국 운전면허 원본, 유효한 비자 상태와 각 주가 요구하는 영문 서류를 함께 확인하세요.</p><a href="https://austroads.com.au/drivers-and-vehicles/overseas-drivers" target="_blank" rel="noreferrer" className="mt-6 inline-flex min-h-11 items-center border-b-2 border-gold text-sm font-semibold">Austroads 해외운전자 안내 ↗</a></aside>
         </section>
+
+        <section className="mt-8 grid gap-px bg-border md:grid-cols-3">
+          <article className="bg-white p-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Licence</p><h2 className="mt-2 text-xl font-semibold leading-snug text-navy">도로에서 운전할 자격</h2><p className="mt-3 text-sm leading-6 text-muted">해외면허가 유효한지, 해당 주의 사용 기한이 지나지 않았는지, 면허 등급과 제한조건이 차량에 맞는지 확인합니다.</p></article>
+          <article className="bg-white p-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Rental & policy</p><h2 className="mt-2 text-xl font-semibold leading-snug text-navy">대여·보험 계약의 조건</h2><p className="mt-3 text-sm leading-6 text-muted">법적으로 운전 가능해도 렌터카 회사나 보험사가 나이, 면허 보유기간, 추가 운전자 등록, 번역 형식을 별도로 제한할 수 있습니다.</p></article>
+          <article className="bg-white p-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Cover</p><h2 className="mt-2 text-xl font-semibold leading-snug text-navy">CTP와 차량 손해 보장</h2><p className="mt-3 text-sm leading-6 text-muted">등록에 붙는 의무 대인보험이 내 차·상대 차량·재산 손해까지 보장한다는 뜻은 아닙니다. 가입한 보험의 운전자와 제외 조건을 따로 읽으세요.</p><a href="https://moneysmart.gov.au/car-insurance" target="_blank" rel="noreferrer" className="mt-4 inline-flex min-h-11 items-center border-b-2 border-gold text-sm font-semibold text-navy">Moneysmart 자동차보험 안내 ↗</a></article>
+        </section>
+
+        <section className="mt-8 border border-border bg-white p-6 sm:p-8"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">If something changes</p><h2 className="mt-2 text-2xl font-semibold leading-tight text-navy">예약일까지 기다리지 말고 다시 확인할 때</h2><ul className="mt-5 grid gap-3 text-sm leading-6 text-muted sm:grid-cols-2"><li className="border-l-2 border-gold pl-3">비자 종류나 영주권 상태가 바뀐 날</li><li className="border-l-2 border-gold pl-3">다른 주·준주로 이사한 날</li><li className="border-l-2 border-gold pl-3">한국 면허가 만료·정지·재발급된 경우</li><li className="border-l-2 border-gold pl-3">면허 전환 시험을 예약하거나 불합격한 경우</li><li className="border-l-2 border-gold pl-3">렌터카·보험 계약의 운전자를 바꾼 경우</li><li className="border-l-2 border-gold pl-3">의료 상태나 면허 제한조건이 바뀐 경우</li></ul></section>
 
         <section className="mt-8 border border-amber-300 bg-amber-50 p-6 text-sm leading-7 text-amber-950"><h2 className="font-semibold">중요 안내</h2><p className="mt-1">이 페이지는 일반적인 준비 정보이며 법률 자문이나 운전 자격 판정이 아닙니다. 방문자·거주자 판단, 비자 효력, 면허 종류와 개인 경력에 따라 결과가 달라질 수 있습니다. 운전 또는 신청 전에 거주 주의 면허기관에서 본인 조건을 확인하세요.</p></section>
       </Container>

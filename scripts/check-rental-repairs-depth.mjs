@@ -46,7 +46,7 @@ assert.ok(picker.includes("jurisdictions.find"), "picker must show only the sele
 assert.doesNotMatch(picker, /fetch\(|sendBeacon|XMLHttpRequest|localStorage|sessionStorage/, "picker must not transmit or persist the rental selection");
 assert.ok(inspectionPage.includes('id="rental-repairs-guide"'), "inspection page must expose the repair handoff");
 assert.ok(inspectionPage.includes('href="/resources/australia-rental-repairs-maintenance-guide"'), "inspection page must reach the detailed repair guide");
-assert.ok(depthContract.includes("articleBlocks.length, 33"), "content-depth baseline must include the new audited guide");
+assert.ok(depthContract.includes("articleBlocks.length, 36"), "content-depth baseline must include the new audited guide");
 
 const inspectionRepairStart = inspectionPage.indexOf('id="rental-repairs-guide"');
 const inspectionRepairEnd = inspectionPage.indexOf("</section>", inspectionRepairStart);

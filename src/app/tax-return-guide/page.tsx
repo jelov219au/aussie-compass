@@ -18,6 +18,17 @@ const officialLinks = [
   { href: "https://www.ato.gov.au/individuals-and-families/your-tax-return/in-detail/pre-fill-availability", title: "myTax Pre-fill 확인", source: "Australian Taxation Office", summary: "고용주, 은행, 정부기관 등이 ATO에 보낸 소득 자료가 언제 myTax에 채워지는지 확인할 수 있습니다. Pre-fill은 편리한 시작점이지만 자동 입력된 금액의 정확성과 누락 여부를 최종 확인할 책임은 신고자에게 있습니다." },
   { href: "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim", title: "공제 가능 항목", source: "Australian Taxation Office", summary: "업무 관련 비용 등 공제 항목별 기본 조건과 필요한 기록으로 이동하는 공식 허브입니다. 돈을 지출했다는 사실만으로 공제되는 것은 아니며, 소득을 얻는 일과의 관련성·개인 사용분 제외·증빙 보관을 함께 확인해야 합니다." },
   { href: "https://www.tpb.gov.au/registrations_search", title: "등록 세무사 검색", source: "Tax Practitioners Board", summary: "유료로 Tax agent 서비스를 제공하는 사람이 현재 TPB에 등록되어 있는지 이름이나 등록번호로 확인하는 공식 검색입니다. 등록 상태와 조건을 확인한 뒤 서비스 범위, 수수료와 제출 전 검토 절차도 서면으로 물어보세요." },
+  { href: "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/your-tax-residency", title: "세법상 거주자 판단", source: "Australian Taxation Office", summary: "시민권·비자 이름만으로 Tax residency를 정하지 않고 생활·가족·자산·체류 사정을 기준으로 현재 적용되는 거주자 테스트를 확인하는 출발점입니다." },
+  { href: "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/foreign-and-worldwide-income", title: "해외·전 세계 소득", source: "Australian Taxation Office", summary: "한국 계좌 이자, 배당, 임대, 근로·사업·연금처럼 해외에서 생긴 금액을 어떤 경우 신고하는지 확인합니다. 해외에서 세금을 냈다는 이유만으로 자동 제외하지 않습니다." },
+  { href: "https://www.ato.gov.au/individuals-and-families/your-tax-return/amend-your-tax-return", title: "제출 후 수정", source: "Australian Taxation Office", summary: "제출 뒤 누락이나 오류를 발견했을 때 myTax 등으로 Amendment를 요청하는 현재 절차와 적용 가능한 기간을 확인합니다." },
+];
+
+const taxQuestions = [
+  ["Could you explain why I am being treated as an Australian resident or foreign resident for tax purposes?", "제가 세법상 호주 거주자 또는 외국 거주자로 판단되는 이유를 설명해 주시겠어요?"],
+  ["Which Australian and overseas income records do you need from me?", "제게 필요한 호주 및 해외 소득 자료가 무엇인가요?"],
+  ["Please show me each deduction and the record supporting it before lodgment.", "제출 전에 각 공제 항목과 그 근거 자료를 보여주세요."],
+  ["Please confirm your total fee, any extra charges and who will lodge the return.", "총 수수료, 추가 비용과 누가 신고서를 제출하는지 확인해 주세요."],
+  ["Please send me the final return and Notice of Assessment for my records.", "기록 보관을 위해 최종 신고서와 Notice of Assessment를 보내주세요."],
 ];
 
 export default function TaxReturnGuidePage() {
@@ -66,6 +77,14 @@ export default function TaxReturnGuidePage() {
             </ul>
           </aside>
         </section>
+
+        <section className="mt-8 grid gap-px bg-border md:grid-cols-3" aria-label="택스 리턴에서 따로 판단할 세 가지">
+          <article className="bg-white p-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Residency</p><h2 className="mt-2 text-xl font-semibold leading-snug text-navy">비자와 Tax residency는 같은 말이 아니에요</h2><p className="mt-3 text-sm leading-6 text-muted">워홀·학생·영주 비자 이름만으로 세법상 거주자를 확정하지 않습니다. 체류·생활 관계와 해당 회계연도의 변화 날짜를 기준으로 ATO 테스트를 확인하세요.</p></article>
+          <article className="bg-white p-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Result</p><h2 className="mt-2 text-xl font-semibold leading-snug text-navy">세금을 뗐어도 환급은 보장되지 않아요</h2><p className="mt-3 text-sm leading-6 text-muted">PAYG withholding은 미리 낸 금액입니다. 전체 소득·공제·Offset과 이미 낸 세금을 정산한 결과에 따라 환급, 납부 또는 0이 될 수 있습니다.</p></article>
+          <article className="bg-white p-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">After lodge</p><h2 className="mt-2 text-xl font-semibold leading-snug text-navy">제출이 끝이 아니라 결과를 대조해요</h2><p className="mt-3 text-sm leading-6 text-muted">제출본과 Receipt를 저장하고 Notice of Assessment의 소득·세액·환급 또는 납부일을 확인합니다. 오류를 발견하면 무시하거나 다음 해로 넘기지 말고 Amendment 경로를 확인하세요.</p></article>
+        </section>
+
+        <section className="mt-8 bg-surface p-6 sm:p-8" aria-labelledby="tax-copy-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Copy & ask</p><h2 id="tax-copy-heading" className="mt-2 text-2xl font-semibold leading-tight text-navy">등록 세무사에게 복사해 물어볼 문장</h2><p className="mt-3 max-w-3xl text-sm leading-7 text-muted">답을 듣기 전에 TPB 등록 상태와 실제 신고를 담당하는 사람을 확인하고, 제출 전 최종 숫자를 직접 검토하세요.</p><ul className="mt-6 grid gap-3">{taxQuestions.map(([english, korean], index) => <li key={english} className="border border-border bg-white p-4"><div className="flex gap-4"><span className="font-mono text-sm text-gold">{index + 1}</span><p className="font-medium leading-7 text-navy">{english}<span className="mt-1 block text-sm font-normal leading-6 text-muted">({korean})</span></p></div></li>)}</ul></section>
 
         <section className="mt-10" aria-labelledby="official-tax-links">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">공식 자료도 함께 살펴봤어요</p>
