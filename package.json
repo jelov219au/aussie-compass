@@ -102,6 +102,7 @@
     "test:marketplace-depth": "node scripts/check-marketplace-depth.mjs",
     "test:driver-licence-depth": "node scripts/check-driver-licence-depth.mjs",
     "test:super-guide-depth": "node scripts/check-super-guide-depth.mjs",
+    "test:help-directory-depth": "node scripts/check-help-directory-depth.mjs",
     "test:visual-hierarchy": "node scripts/check-visual-hierarchy-foundation.mjs",
     "test:public-data-trust": "node scripts/check-public-data-trust.mjs",
     "test:nsw-planning-data": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-nsw-planning-data.mjs",
