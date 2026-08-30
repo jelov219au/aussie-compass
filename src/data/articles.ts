@@ -13,6 +13,7 @@ export type Article = {
   quickSummary: string[];
   toolHref: string;
   toolLabel: string;
+  relatedSlugs?: string[];
   sections: Array<{ heading: string; paragraphs?: string[]; bullets?: string[] }>;
   sources?: Array<{ label: string; href: string; summary: string }>;
 };
@@ -292,6 +293,38 @@ export const articles: Article[] = [
     ],
   },
   {
+    slug: "rental-application-privacy-australia",
+    title: "호주 렌트 신청, 신분증과 개인정보는 어디까지 내야 할까",
+    seoTitle: "호주 렌트 신청 개인정보 체크리스트: 신분증·Payslip·은행자료",
+    socialTitle: "Share only what a verified rental application needs",
+    description: "집을 놓칠까 불안해 서류부터 보내기 전에, 누가 왜 수집하는지 확인하고 필요한 범위만 제출하는 순서를 정리했어요.",
+    category: "집 구하기",
+    region: "australia",
+    contentType: "official",
+    readingTime: "11분",
+    publishedAt: "2026-08-30",
+    updatedAt: "2026-08-30",
+    quickSummary: ["신분증을 보내기 전에 광고·에이전트·제출 경로를 서로 독립적으로 확인하기", "요청 자료마다 수집 목적·공개 대상·보관 기간과 대체 자료 가능 여부를 묻기", "TFN·은행 로그인·카드 정보처럼 임대 심사에 필요하지 않은 정보는 보내지 않기"],
+    toolHref: "/rental-application-pro",
+    toolLabel: "집별 신청 준비와 개인정보 점검 보기",
+    relatedSlugs: ["australia-rental-scam-red-flags", "rental-condition-report-bond-first-week-australia"],
+    sections: [
+      { heading: "서류 목록보다 먼저 ‘누가, 왜, 어디에’ 받는지 확인하세요", paragraphs: ["정상적인 렌트 신청에서도 신원, 임대료 지불 능력과 임대 이력을 확인하기 위한 자료를 요청할 수 있어요. 하지만 실제 광고가 존재한다는 사실과 그 연락자가 집을 빌려줄 권한이 있다는 사실은 달라요.", "광고 속 링크를 바로 누르기보다 에이전시 공식 웹사이트에서 같은 매물과 담당자를 다시 찾고, 공식 대표번호로 제출 주소나 포털을 확인하세요. 개인 집주인이나 Head-tenant라면 계약상 지위, 소유자·에이전트의 동의가 필요한지와 Bond 처리 주체를 글로 확인하세요."] },
+      { heading: "모든 사업자에게 같은 개인정보 규칙이 적용된다고 단정할 수는 없어요", paragraphs: ["OAIC는 Privacy Act가 적용되는 부동산 에이전트라면 업무에 합리적으로 필요한 개인정보만 수집할 수 있고, 수집 목적·일반적인 공개 대상·접근과 불만 제기 방법을 알려야 한다고 안내해요. 다만 소규모 사업자 예외 등으로 Privacy Act 적용 여부가 달라질 수 있어요.", "주·준주 임대법이 별도 신청서와 개인정보 규칙을 둘 수도 있어요. 예를 들어 Queensland는 현재 표준 Rental application form과 제출 방법, 요청 가능한 정보, 보관·파기 규칙을 정하고 있어요. 전국 공통이라고 가정하지 말고 거주할 주의 공식 안내도 함께 확인하세요."] },
+      { heading: "요청받은 자료를 목적별로 나눠보세요", bullets: ["신원 확인: 이름과 본인 여부를 확인하는 데 필요한 최소 자료인지", "지불 능력: 소득 또는 임대료 부담 능력을 보여주는 자료인지", "임대 이력: 이전 임대인·에이전트나 Rental ledger처럼 관련 있는 자료인지", "Reference: 연락할 사람에게 무엇을 물을지와 사전 동의를 받았는지", "Tenancy database: 어떤 데이터베이스를 언제 조회하는지", "제3자 플랫폼: 에이전트 외 누가 자료를 받고 어디에 저장하는지"], paragraphs: ["한 자료가 여러 목적을 한꺼번에 충족한다면 같은 정보를 중복 제출할 필요가 있는지 물어보세요. NSW Fair Trading의 현재 모범 안내도 임대료 지불 능력과 집을 관리할 가능성에 관련된, 합리적으로 필요한 정보만 사용하라고 설명해요."] },
+      { heading: "원본 전체보다 덜 노출되는 대안을 먼저 물어보세요", bullets: ["신분증 사본 보관 대신 원본을 보여주고 확인만 받을 수 있는지", "은행 거래내역 전체 대신 잔액·소득을 확인할 다른 문서가 가능한지", "Payslip에서 임대 심사와 무관한 직원번호·계좌정보를 가릴 수 있는지", "여러 신분증 대신 필요한 확인 점수를 충족하는 최소 조합이 무엇인지", "불합격 신청자의 자료가 언제 삭제되는지", "유료 신원·신용 조회 없이 제출할 다른 방법이 있는지"], paragraphs: ["임의로 문서를 수정해 오해를 만들지는 말고, 가림 처리나 대체 자료를 받는지 먼저 서면으로 확인하세요. Queensland 공식 양식은 요청 자료가 없을 때 다른 적절한 자료가 가능한지 Property manager 또는 Owner와 논의하라고 안내해요."] },
+      { heading: "이 정보는 렌트 신청에 보내지 마세요", bullets: ["TFN 전체 번호", "은행·myGov·이메일 로그인 비밀번호", "카드번호 전체, PIN, CVV와 일회용 인증번호", "임대 심사와 무관한 은행 거래내역 전체", "요청 이유를 설명하지 않은 여권·운전면허증 전체 사본", "검증되지 않은 메신저·개인 이메일이 요구하는 신분증 묶음"], paragraphs: ["TFN이나 계정 인증정보를 요구한다면 제출을 멈추고 공식 번호로 다시 확인하세요. 신분증이 실제로 필요한 경우에도 안전한 공식 경로인지, 누가 열람하는지, 사본을 보관하는지 확인한 뒤 보내세요."] },
+      { heading: "제출 직전에는 이 여섯 문장을 복사해 물어보세요", bullets: ["Why is each document required for this application? — 각 서류가 이 신청에 왜 필요한가요?", "Who will receive or access my information? — 제 정보를 누가 받거나 열람하나요?", "How long will you keep an unsuccessful applicant’s documents? — 불합격한 신청자의 서류는 얼마나 보관하나요?", "Can I show my ID without you retaining a copy? — 신분증 사본을 보관하지 않고 확인만 받을 수 있나요?", "Is there another way to apply without using this third-party platform or paying a fee? — 이 제3자 플랫폼이나 비용 없이 신청할 다른 방법이 있나요?", "How can I access, correct or complain about information you hold about me? — 보유한 제 정보를 열람·수정하거나 문제를 제기하려면 어떻게 하나요?"] },
+      { heading: "이미 보냈다면 삭제 요청과 계정 보호를 분리해서 진행하세요", paragraphs: ["신청을 철회했거나 불합격했다면 수집자에게 어떤 자료를 보유하고 있는지, 언제 삭제하는지와 삭제 완료를 글로 확인해 달라고 요청할 수 있어요. 잘못된 정보가 있다면 접근·수정 방법도 물어보세요.", "검증되지 않은 상대에게 신분증이나 금융자료를 보냈다면 단순 삭제 요청만으로 끝내지 마세요. 이메일과 금융 계정 보안을 점검하고, 신분증 오용이 걱정되면 발급기관·IDCARE 안내를 확인하세요. 돈까지 보냈다면 은행에 즉시 연락하고 Scamwatch에 신고하는 흐름으로 넘어가세요."] },
+    ],
+    sources: [
+      { label: "OAIC — Tenancy", href: "https://www.oaic.gov.au/privacy/your-privacy-rights/more-privacy-rights/tenancy", summary: "Privacy Act가 적용되는 에이전트의 합리적으로 필요한 정보 수집, 수집 통지, 공개 대상, 정부 식별정보와 개인정보 불만 절차를 확인하는 공식 출발점이에요." },
+      { label: "NSW Fair Trading — When a prospective tenant applies", href: "https://www.nsw.gov.au/housing-and-construction/rental-forms-surveys-and-data/resources/fair-trading-commissioners-guidance/when-a-prospective-tenant-applies-for-a-property", summary: "신원·지불 능력·집 관리 가능성을 확인할 때 필요한 범위, 과도한 서류 수집을 줄이는 방법, 제3자 플랫폼과 수집 통지를 설명하는 현재 모범 안내예요." },
+      { label: "Queensland RTA — Rental application Form 22", href: "https://www.rta.qld.gov.au/forms-resources/forms/rental-application-form-22", summary: "Queensland 표준 신청서, 두 가지 제출 방법, 요청 가능한 정보와 신분 확인 사본·보관 규칙을 확인할 수 있어요." },
+      { label: "Consumer Affairs Victoria — Protecting a renter’s personal information", href: "https://www.consumer.vic.gov.au/housing/renting/legal-and-dispute-support/protecting-a-renters-personal-information-your-responsibilities-as-a-rental-provider-or-agent", summary: "Victoria에서 Rental provider와 Agent가 신청자·Renter 정보를 수집, 사용, 보관·파기할 때 지켜야 할 현재 안내를 확인할 수 있어요." },
+    ],
+  },
+  {
     slug: "australia-rental-scam-red-flags",
     title: "집도 못 봤는데 보증금부터 보내라고 한다면",
     seoTitle: "호주 렌트·쉐어하우스 사기 신호 9가지와 계약 전 확인 방법",
@@ -304,19 +337,22 @@ export const articles: Article[] = [
     quickSummary: ["집을 보여주지 않은 채 돈부터 요구하면 일단 멈추기", "주소와 사진, 게시자 이름, 입금 계좌 명의를 따로 확인하기", "주세·공과금·Bond·퇴거 조건을 글로 받은 뒤 송금하기"],
     toolHref: "/property-inspection-checklist",
     toolLabel: "집 방문 체크리스트 열기",
+    relatedSlugs: ["rental-application-privacy-australia", "rental-condition-report-bond-first-week-australia"],
     sections: [
       { heading: "입주가 급해도 집을 보기 전에는 송금하지 마세요", paragraphs: ["마음에 드는 집이 귀하고 입주 날짜가 가까우면 ‘지금 보내야 잡을 수 있다’는 말에 흔들리기 쉬워요. 그래도 실제 주소가 있다는 이유만으로 상대가 그 집을 빌려줄 권한까지 있다고 믿어서는 안 돼요. 직접 방문하거나 최소한 실시간 영상으로 내부와 열쇠 접근을 확인하세요."] },
       { heading: "이런 말을 들으면 한 번 더 의심해보세요", bullets: ["집을 보여줄 수 없다면서 보증금부터 보내라고 한다", "주변 시세보다 훨씬 싼데 오늘 안에 결정하라고 재촉한다", "해외에 있다며 열쇠는 돈을 받은 뒤 택배로 보내겠다고 한다", "계약하는 사람과 입금 계좌의 이름이 다르다", "주소나 사진을 검색하니 가격과 연락처가 다른 광고가 나온다", "계약서 없이 현금이나 특정 송금 서비스만 고집한다", "상대 확인 전부터 여권 전체 사본이나 은행 정보를 요구한다", "수리비·공과금·Bond를 누가 부담하는지 글로 남기지 않는다", "구체적인 질문은 피하면서 대화를 다른 메신저로 옮기려고 한다"] },
       { heading: "송금하기 전, 이 순서대로 확인하세요", bullets: ["가능하면 직접 방문해 집 안과 열쇠 접근 여부 보기", "주소, 게시자 이름, 이메일과 사진을 각각 검색하기", "임대인·에이전트·기존 세입자 중 누구와 계약하는지 묻기", "주세와 공과금, Bond, 최소 거주기간, 퇴거 통지 조건을 글로 받기", "거주할 주의 공식 Bond 납부·등록 절차와 영수증 확인하기", "마지막 송금 화면에서 계약 상대와 계좌 명의를 다시 맞춰보기"] },
+      { heading: "신분증 제출과 돈 송금은 같은 검증을 두 번 통과해야 해요", paragraphs: ["Inspection 전에 신분증을 요구하거나, 계약서를 받은 직후 다른 계좌로 송금하라고 하면 각각 멈추고 다시 확인하세요. 광고 속 연락처나 상대가 보내준 링크가 아니라 에이전시 공식 사이트에서 직접 찾은 번호로 담당자, 제출 경로와 계좌 명의를 확인합니다.", "Scamwatch의 현재 Buying and selling scams 안내는 렌트 사기에서 집을 볼 수 없다는 핑계, 선불 Bond·Rent 요구와 여권·면허증 요청을 주요 신호로 설명해요. 집을 실제로 봤더라도 담당자와 결제 지시가 진짜인지 별도로 확인해야 합니다."] },
       { heading: "Inspection에 참석했다고 상대 확인이 끝난 것은 아니에요", paragraphs: ["실제 집을 봤더라도 사기범이 단기 숙소나 공개 Inspection을 이용하거나 진짜 에이전트를 사칭할 수 있어요. Inspection에서 만난 이름, 이후 연락한 이메일 도메인, 계약서의 사업자명과 입금 계좌를 한 흐름으로 대조하세요."], bullets: ["에이전트 회사 공식 사이트에서 지점 전화번호를 다시 찾기", "메시지 속 번호가 아니라 공식 번호로 담당자와 계좌 정보 확인", "주정부 등록 검색에서 부동산 사업자·에이전트 확인 가능 여부 보기", "계약서 주소·주세·Bond·시작일과 광고 내용 맞추기", "계좌 변경 이메일이 오면 송금 전에 기존 공식 번호로 재확인"] },
       { heading: "Bond 규칙은 주·준주 공식 기관에서 확인하세요", paragraphs: ["호주 전체에 하나의 Bond 포털이나 기한이 있는 것은 아니에요. 일반 임대, Subletting, Rooming accommodation에 따라 절차도 달라질 수 있어요. 계약 상대가 보내준 검색광고 링크를 누르기보다 거주 주의 Consumer affairs 또는 Tenancy regulator 사이트에서 직접 시작하세요.", "공식 접수 알림, Bond number와 내 이름·금액이 맞는지 확인하고, 공동 임차인이나 기존 세입자에게 보낸 돈이 공식 Bond 이전으로 처리되는지도 물어보세요."] },
       { heading: "피해를 알아챘다면 첫 시간에 할 일을 나누세요", paragraphs: ["송금 회수, 계정 보호, 신분증 오용 대응과 신고는 서로 다른 일이라 동시에 시작하는 편이 좋아요. Scamwatch는 은행에 즉시 연락하고, 광고 플랫폼과 관련 기관에 신고하며, 신분정보가 넘어갔다면 별도 지원을 받으라고 안내해요."], bullets: ["은행·카드사·송금서비스에 scam transaction이라고 알리고 중지·회수 가능성 문의", "플랫폼에 광고·계정·대화 링크 보존 후 신고", "이메일·myGov·은행 비밀번호를 서로 다른 강한 값으로 변경하고 MFA 확인", "여권·운전면허증 사본을 보냈다면 발급기관과 IDCARE 대응 확인", "Scamwatch에 신고하고 경찰 신고가 필요한지 은행·지원기관에 문의"] },
       { heading: "여권 사본도 상대를 확인한 뒤에 보내세요", paragraphs: ["렌트 신청에 신분 확인 자료가 필요할 수는 있어요. 하지만 상대와 절차를 확인하기 전에 여권 전체처럼 민감한 문서를 보내지는 마세요. TFN, 은행 비밀번호, 카드 보안번호는 주거 계약에 필요하지 않아요. 이미 돈을 보냈거나 개인정보를 넘긴 뒤 이상함을 느꼈다면 기다리지 말고 은행이나 결제기관에 먼저 연락하고 Scamwatch에도 신고하세요."] },
     ],
     sources: [
-      { label: "Scamwatch — Looking for rental properties online?", href: "https://www.scamwatch.gov.au/about-us/news-and-alerts/looking-for-rental-properties-online-watch-out-for-scams", summary: "실제 주소와 사진을 도용한 렌트 사기가 어떻게 접근하는지 보여주는 Scamwatch 안내예요. 집을 직접 보고, 주소·이름·이메일을 검색하고, 돈을 보내기 전에 상대를 확인하라는 대응 방법도 함께 나와요." },
+      { label: "Scamwatch — Buying and selling scams", href: "https://www.scamwatch.gov.au/types-of-scams/buying-and-selling-scams", summary: "현재 Scamwatch의 Rental scams 항목에서 가짜 집주인·광고, Inspection 회피, 선불 Bond·Rent와 신분증 요구를 확인하고 피해 시 은행 연락과 신고 순서를 볼 수 있어요." },
       { label: "Scamwatch — Rental scams targeting more Australians", href: "https://www.scamwatch.gov.au/about-us/news-and-alerts/rental-scams-targeting-more-australians-during-pandemic", summary: "실제 부동산·에이전트 사칭, 가짜 Inspection과 신분증 수집 사례를 설명하고, 공식 연락처로 담당자와 계좌를 독립적으로 확인하라고 안내해요." },
       { label: "ACCC — Where to go for consumer help", href: "https://www.accc.gov.au/consumers/problem-with-a-product-or-service-you-bought/where-to-go-for-consumer-help", summary: "임대·Bond 규칙을 확인할 때 연결해야 하는 각 주·준주의 Consumer protection 또는 Tenancy regulator 출발점을 안내해요." },
+      { label: "OAIC — Tenancy", href: "https://www.oaic.gov.au/privacy/your-privacy-rights/more-privacy-rights/tenancy", summary: "검증된 렌트 신청에서도 개인정보 수집 목적과 공개 대상, 접근·수정·불만 절차를 확인해야 하는 이유를 설명해요." },
     ],
   },
   {
@@ -629,19 +665,22 @@ export const articles: Article[] = [
     quickSummary: ["내가 사는 주의 제출 기한을 먼저 확인하고 늦기 전에 Condition Report 돌려보내기", "사진은 방 이름·위치·날짜를 알 수 있게 찍고 원본과 제출본을 함께 보관하기", "Bond는 현금 영수증만 믿지 말고 주정부 공식 시스템에 접수됐는지 확인하기"],
     toolHref: "/property-inspection-checklist",
     toolLabel: "입주·Inspection 체크리스트 열기",
+    relatedSlugs: ["rental-application-privacy-australia", "australia-rental-scam-red-flags"],
     sections: [
       { heading: "Condition Report는 퇴거할 때 내 Bond를 지키는 기준이 돼요", paragraphs: ["Condition Report는 입주 당시 집의 청결 상태, 손상과 설비 작동 여부를 기록하는 문서예요. 퇴거할 때 새로 생긴 손상인지 원래 있던 흔적인지를 비교하는 중요한 증거가 돼요.", "에이전트가 모든 칸에 Clean·Undamaged·Working이라고 표시했더라도 실제 상태와 다르면 그대로 동의할 필요는 없어요. 직접 방을 돌며 의견을 추가하고, 서명한 제출본과 사진을 함께 보관하세요."] },
       { heading: "제출 기한은 주마다 다르니 열쇠를 받은 날 바로 확인하세요", paragraphs: ["호주 전체에 하나의 제출 기한이 있는 것은 아니에요. 예를 들어 현재 공식 안내는 Victoria 5 business days, Queensland와 NSW 7 days, Tasmania 2 days처럼 서로 달라요. 같은 주에서도 일반 임대와 Rooming accommodation의 양식이 다를 수 있어요.", "인터넷 게시물의 숫자를 그대로 따르지 말고 계약서에 적힌 주, 주정부 임대기관의 최신 안내와 받은 양식을 먼저 확인하세요. 기한이 촉박하면 입주 전에 빈 문서를 살펴보고 열쇠를 받는 날 촬영을 시작하는 편이 안전해요."] },
+      { heading: "첫 24시간에는 안전·작동·증거를 따로 나누세요", bullets: ["즉시 안전 문제: 전기 불꽃·가스 냄새·잠기지 않는 외부문·심한 누수", "조기 수리 문제: 온수·오븐·에어컨·창문·제공 가전의 고장", "상태 증거: 흠집·얼룩·곰팡이·청소 상태·누락된 가구", "인수 기록: 모든 열쇠·리모컨·출입카드 개수", "비용 기준: 전기·가스·수도 계량기 수치와 촬영 시각"], paragraphs: ["Condition Report는 상태 증거를 남기는 문서이지 긴급 수리를 대신하는 신고서가 아니에요. 위험하거나 생활에 영향을 주는 문제는 보고서에 쓰는 동시에 에이전트·집주인의 공식 수리 채널로 보내고 접수 시각과 답변을 보관하세요."] },
       { heading: "방마다 ‘보인다’가 아니라 ‘어디에 무엇이 있다’고 적으세요", bullets: ["현관문 안쪽 아래: 페인트 벗겨짐 약 3cm", "거실 창문 왼쪽 잠금장치: 닫히지만 고정되지 않음", "침실 1 카펫 창가 쪽: 원형 얼룩 2곳", "주방 오븐 내부: 기름때와 트레이 누락", "욕실 세면대 아래: 물 사용 뒤 습기와 누수 흔적", "베란다 난간·벽·바닥과 제공된 가구의 긁힘", "전구, Powerpoint, 에어컨, 팬, Smoke alarm처럼 작동 여부를 확인할 항목"], paragraphs: ["‘오래됨’이나 ‘조금 더러움’처럼 해석이 달라질 표현보다 위치, 크기, 개수와 작동 상태를 적으세요. 안전상 위험하거나 수리가 필요한 문제는 Condition Report에만 남기지 말고 별도 이메일로 수리를 요청해 접수 기록을 만드세요."] },
       { heading: "사진과 영상은 나중에 다시 찾을 수 있게 정리하세요", paragraphs: ["방 전체를 한 장 찍은 뒤 흠집을 가까이에서 찍으면 위치와 세부 상태를 함께 설명할 수 있어요. 촬영 날짜가 남은 원본을 보관하고, 파일 이름에 방과 위치를 적으면 몇 달 뒤에도 찾기 쉬워요."], bullets: ["각 방의 네 벽·바닥·천장과 창문을 넓게 촬영", "기존 손상은 전체 위치와 확대 사진을 한 쌍으로 촬영", "수도·온수·오븐·에어컨 등은 작동 영상도 보관", "계량기 수치와 열쇠·리모컨 개수를 입주일에 기록", "이메일이나 임대 포털에 올린 파일과 전송 완료 화면 보관", "사진에 여권·계약 상대의 개인정보가 함께 찍히지 않게 주의" ] },
       { heading: "Bond는 주정부 공식 보관기관 접수 기록까지 확인하세요", paragraphs: ["Bond 처리 방식과 포털 이름은 주마다 달라요. NSW Rental Bonds Online, Victoria RTBA, Queensland RTA, Tasmania MyBond처럼 공식 기관이 관리하는 절차가 있어요. 집주인이나 기존 세입자에게 돈을 보냈다는 사실만으로 공식 접수가 끝난 것은 아닐 수 있어요.", "공식 이메일·SMS·Bond number 또는 포털 기록을 받지 못했다면 계약 상대에게 묻고 주정부 기관에 직접 확인하세요. 검색 광고나 메신저 링크 대신 정부 웹사이트에서 포털로 들어가는 편이 안전해요."], bullets: ["입금액, 날짜와 수취인 기록", "공식 Bond 접수 알림과 Bond number", "공동 임차인 이름과 각자 부담액", "중간에 사람이 바뀔 때 필요한 Transfer 절차", "퇴거 전 환급 신청 방법과 분쟁 접수기관"] },
       { heading: "Share house라면 공식 임대관계인지부터 구분하세요", paragraphs: ["Head-tenant에게 방을 빌리는 Subletting, 집주인과 모두 계약한 Co-tenancy, Rooming accommodation은 권리와 양식이 다를 수 있어요. ‘Bond’라는 같은 말을 써도 누가 보관하고 누구와 퇴거 상태를 비교하는지가 달라져요.", "계약 상대의 이름, 본인의 계약상 지위, Bond가 어디에 접수되는지, 공과금 분담과 퇴거 통지기간을 글로 확인하세요. 불확실하면 해당 주의 공식 임대기관이나 Tenant advice service에서 본인의 계약 형태를 먼저 설명하는 편이 좋아요."] },
+      { heading: "의견이 다르면 빈칸으로 두지 말고 내 기록을 제출하세요", paragraphs: ["에이전트의 Clean·Undamaged·Working 표시와 실제 상태가 다르면 내 의견, 정확한 위치와 사진 파일명을 적으세요. 수정본을 기한 안에 정해진 채널로 보내고, 전송 완료 화면과 상대가 돌려준 최종 사본을 보관합니다.", "수정을 거절하거나 Bond 접수 알림이 오지 않는다면 말로만 반복하지 말고 날짜와 요청 내용을 서면으로 남기세요. 그다음 거주 주의 공식 임대기관 또는 Tenant advice service에서 해당 계약 유형과 분쟁 절차를 확인하세요. Hoju Compass 도구의 주·준주 선택기는 8개 지역의 공식 출발점을 한 곳에서 보여줘요."] },
       { heading: "서명한 뒤에는 한 폴더에 모아두세요", bullets: ["서명된 Lease와 Condition Report 전체 페이지", "원본 사진·영상과 제출한 파일", "Bond 접수 알림과 납부 기록", "열쇠·리모컨·가구 목록", "수리 요청 이메일과 에이전트 답변", "Rent 영수증 또는 계좌이체 기록"], paragraphs: ["휴대폰을 바꾸거나 임대 포털 접근이 끝나도 볼 수 있도록 개인 저장공간에 사본을 두세요. Hoju Compass 체크리스트에는 여권번호, 계좌번호와 계약 상대의 민감한 개인정보를 입력하지 않는 편이 안전해요."] },
     ],
     sources: [
       { label: "Consumer Affairs Victoria — Condition reports", href: "https://www.consumer.vic.gov.au/housing/renting/rent-bond-bills-and-condition-reports/condition-reports", summary: "Victoria의 Condition Report 작성, 5 business days 제출, 사진 첨부와 Bond 분쟁에서의 증거 역할을 설명해요." },
       { label: "Queensland RTA — Entry condition report", href: "https://www.rta.qld.gov.au/starting-a-tenancy/entry-condition-report", summary: "Queensland 일반 임대와 Rooming accommodation 양식, 7일 제출기한, 방별 작동 상태와 사진·영상 기록 항목을 안내해요." },
-      { label: "NSW Fair Trading — Starting a tenancy", href: "https://www.fairtrading.nsw.gov.au/__data/assets/pdf_file/0011/370010/Starting_a_tenancy_information_for_tenants.pdf", summary: "NSW에서 Condition Report를 7일 안에 돌려보내고 Rental Bonds Online 접수 알림과 입주 사진을 보관하라는 공식 안내예요." },
+      { label: "NSW Government — Rental property condition reports", href: "https://www.nsw.gov.au/housing-and-construction/rules/rental-property-condition-reports", summary: "NSW에서 Condition Report를 7일 안에 돌려보내고, 작은 손상과 작동 상태를 자세히 적으며 날짜가 표시된 사진을 증거로 보관하라는 현재 공식 안내예요." },
       { label: "Tasmania CBOS — Condition reports", href: "https://cbos.tas.gov.au/topics/housing/renting/beginning-tenancy/condition-reports", summary: "Tasmania의 2일 제출기한, 누락된 손상·청결 상태 추가와 날짜가 표시된 사진의 증거 활용을 설명해요." },
     ],
   },
@@ -930,8 +969,12 @@ export function getRelatedArticles(slug: string, limit = 2) {
 
   const currentTopic = getArticleTopic(current.category);
   const candidates = articles.filter((article) => article.slug !== slug);
-  const sameTopic = candidates.filter((article) => getArticleTopic(article.category) === currentTopic);
-  const otherTopics = candidates.filter((article) => getArticleTopic(article.category) !== currentTopic);
+  const explicitRelated = (current.relatedSlugs ?? [])
+    .map((relatedSlug) => getArticle(relatedSlug))
+    .filter((article): article is Article => Boolean(article));
+  const explicitSlugs = new Set(explicitRelated.map((article) => article.slug));
+  const sameTopic = candidates.filter((article) => !explicitSlugs.has(article.slug) && getArticleTopic(article.category) === currentTopic);
+  const otherTopics = candidates.filter((article) => !explicitSlugs.has(article.slug) && getArticleTopic(article.category) !== currentTopic);
 
-  return [...sameTopic, ...otherTopics].slice(0, limit);
+  return [...explicitRelated, ...sameTopic, ...otherTopics].slice(0, limit);
 }

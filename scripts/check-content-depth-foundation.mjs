@@ -12,7 +12,7 @@ const [articlesSource, articlePage, minimumWage, minimumWageCalculator, casualLo
 ]);
 
 const articleBlocks = articlesSource.split(/\n\s*\{\s*\n\s*slug: "/).slice(1);
-assert.equal(articleBlocks.length, 29, "the resource library article count changed; audit the content-depth baseline");
+assert.equal(articleBlocks.length, 30, "the resource library article count changed; audit the content-depth baseline");
 
 let totalSections = 0;
 let totalSources = 0;
