@@ -96,6 +96,7 @@
     "test:rental-repairs-depth": "node scripts/check-rental-repairs-depth.mjs",
     "test:rental-bond-exit-depth": "node scripts/check-rental-bond-exit-depth.mjs",
     "test:workplace-injury-depth": "node scripts/check-workplace-injury-depth.mjs",
+    "test:leave-guide-depth": "node scripts/check-leave-guide-depth.mjs",
     "test:visual-hierarchy": "node scripts/check-visual-hierarchy-foundation.mjs",
     "test:public-data-trust": "node scripts/check-public-data-trust.mjs",
     "test:nsw-planning-data": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-nsw-planning-data.mjs",
