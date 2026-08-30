@@ -9,6 +9,7 @@ const applicationStorage = readFileSync(resolve("src/lib/resumeProApplicationSto
 const deviceStorage = readFileSync(resolve("src/lib/resumeProDeviceStorage.ts"), "utf8");
 const articlePage = readFileSync(resolve("src/app/resources/[slug]/page.tsx"), "utf8");
 const articleNextStep = readFileSync(resolve("src/components/resources/ArticleNextStep.tsx"), "utf8");
+const actionStyles = readFileSync(resolve("src/components/ui/actionStyles.ts"), "utf8");
 const articles = readFileSync(resolve("src/data/articles.ts"), "utf8");
 const searchPage = readFileSync(resolve("src/app/search/page.tsx"), "utf8");
 const builderPage = readFileSync(resolve("src/app/resume-builder/page.tsx"), "utf8");
@@ -39,7 +40,7 @@ const checks = [
   [builder.includes("persistResumeBuilderDraft") && builderStorage.includes("getStorage().setItem") && builder.includes("window.print()"), "무료 Builder의 브라우저 저장과 PDF 안내는 실제 기능과 일치해야 합니다."],
   [workspace.includes("persistResumeProApplicationStore") && applicationStorage.includes("items.slice(0, maximumApplications)") && applicationStorage.includes("maximumApplications = 30") && workspace.includes("downloadApplicationKit") && workspace.includes("resumeProStarStoriesStorageKey"), "회사별 지원서·STAR·지원서 묶음 Pro 설명은 실제 기능과 일치해야 합니다."],
   [!page.includes("Compass Cafe") && !page.includes("150 coffee") && !page.includes("150잔") && page.includes("[실제 근무처]") && page.includes("[verified result]"), "구매 전 예시에는 확인되지 않은 회사명이나 성과 수치를 넣지 않아야 합니다."],
-  [articleMobileCta >= 0 && articleShare >= 0 && articleMobileCta < articleShare && articlePage.includes("inline-flex min-h-12"), "STAR 글의 무료 CTA는 모바일에서도 공유 버튼보다 먼저 보여야 합니다."],
+  [articleMobileCta >= 0 && articleShare >= 0 && articleMobileCta < articleShare && articlePage.includes('className={actionClass("primary")}') && actionStyles.includes("inline-flex min-h-12"), "STAR 글의 무료 CTA는 모바일에서도 공유 버튼보다 먼저 보여야 합니다."],
   [articleNextStep.includes("무료 Builder에 성과 문장을 저장하고 PDF로 내보내세요") && articleNextStep.includes("STAR 면접 메모와 회사별 지원서 묶음"), "글의 무료·Pro 다음 단계가 실제 제품 경계와 일치해야 합니다."],
   [articles.includes('seoTitle: "호주 이력서 STAR 성과 문장 작성법과 실제 경험 예시"') && articlePage.includes("article.seoTitle ?? article.title"), "STAR 글의 검색 제목이 동적 메타데이터에 연결되어야 합니다."],
   [articlePage.includes("<ArticleJsonLd") && articlePage.includes("title={article.title}") && articlePage.includes("description={article.description}") && searchPage.includes("title: article.title") && searchPage.includes("description: article.description"), "검색 결과와 Article 구조화 데이터는 갱신된 제목·설명을 사용해야 합니다."],
