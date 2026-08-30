@@ -25,7 +25,9 @@ for (const value of [
 ]) assert.ok(freePage.includes(value), `the free-to-Pro difference is missing: ${value}`);
 assert.ok(!freePage.includes("방문 결과 저장·후보 비교·다음 행동"), "the free route must not imply multi-property storage in the single-visit checklist");
 
-assert.ok(freePage.includes("이 무료 페이지에서는 결제를 시작하지 않습니다") && freePage.includes("판매 준비가 끝나기 전에는 제품 페이지에서도 결제가 열리지 않아요"), "the public interest path must stay introduction-only without hardcoding a temporary switch state");
+assert.ok(freePage.includes("getRentalApplicationPaymentReadiness") && freePage.includes("rentalProLive"), "the public Rental introduction must derive availability from the server-side readiness contract");
+assert.ok(freePage.includes("이 무료 페이지에서는 결제를 시작하지 않습니다") && freePage.includes("제품 페이지에서 현재 이용 가능 여부"), "the public interest path must stay introduction-only while describing the live product check accurately");
+assert.ok(!freePage.includes("유료 검증 준비 중"), "the launched Rental product must not keep the stale validation-preparation label");
 assert.ok(!freePage.includes("/api/checkout/rental-application-pro"), "the free route must never submit directly to Rental checkout");
 assert.ok(offerPage.includes("{checkoutAvailable &&") && offerPage.includes("<RentalApplicationProCheckoutForm"), "the offer must keep checkout behind readiness");
 assert.ok(commerce.includes('process.env.VERCEL_ENV !== "production"') && commerce.includes("RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED"), "Rental checkout must remain fail-closed behind the product switch");
