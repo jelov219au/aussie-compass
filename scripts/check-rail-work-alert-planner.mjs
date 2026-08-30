@@ -5,7 +5,7 @@ const registry = readFileSync(new URL("../src/lib/railWorkAlerts.ts", import.met
 const component = readFileSync(new URL("../src/components/tools/RailWorkAlertPlanner.tsx", import.meta.url), "utf8");
 const page = readFileSync(new URL("../src/app/rail-work-alerts/page.tsx", import.meta.url), "utf8");
 const homePage = readFileSync(new URL("../src/app/page.tsx", import.meta.url), "utf8");
-const homeSection = readFileSync(new URL("../src/components/sections/HomeTransportAlertsSection.tsx", import.meta.url), "utf8");
+const homeTools = readFileSync(new URL("../src/components/sections/ToolsSection.tsx", import.meta.url), "utf8");
 const returnVisit = readFileSync(new URL("../src/components/sections/ReturnVisitSection.tsx", import.meta.url), "utf8");
 const deviceTransfer = readFileSync(new URL("../src/components/tools/DeviceDataTransfer.tsx", import.meta.url), "utf8");
 const transportPage = readFileSync(new URL("../src/app/public-transport-guide/page.tsx", import.meta.url), "utf8");
@@ -53,19 +53,9 @@ assert.ok(
   "Rental checkout-off state must retain its free saved-project fallback",
 );
 assert.match(transportPage, /href="\/rail-work-alerts"/, "the planner needs an entry from the existing transport journey");
-assert.match(homePage, /import \{ HomeTransportAlertsSection \}/, "the public homepage must import the transport alert entry section");
-assert.match(homePage, /<HomeSearch \/>[\s\S]*<HomeTransportAlertsSection \/>[\s\S]*<ToolsSection \/>/, "the transport alert entry must be visible near the top of the public homepage");
-assert.match(homeSection, /RAIL_WORK_ALERT_STATE_ORDER\.map/, "the homepage must render states from the shared registry");
-assert.match(homeSection, /RAIL_WORK_ALERT_SOURCES\[state\]/, "the homepage must render official sources from the same registry as the planner");
-assert.match(homeSection, /href=\{RAIL_WORK_ALERT_ROUTE\}/, "the web and installed experience must open the same rail route");
-assert.match(homeSection, /href=\{NATIONAL_ROADWORKS_MAP\.href\}/, "the homepage must expose the shared federal roadworks map");
-assert.match(homeSection, /관심 지역 최대 \{RAIL_WORK_ALERT_MAX_AREAS\}곳/, "the homepage must state the implemented local save limit");
-assert.match(homeSection, /웹·홈 화면 앱 공용/, "the homepage must explain the shared web and installed-app surface");
-assert.match(homeSection, /실시간 자동 알림이 아닙니다/, "the homepage must not imply push or live monitoring");
-assert.match(homeSection, /저장과 체크는 현재 브라우저 안에서 처리되며[\s\S]*인터넷에 연결해 공식 원문에서 다시 확인/, "the homepage must explain the offline and online boundary");
-assert.match(homeSection, /aria-labelledby="home-transport-alerts-heading"/, "the homepage section must expose an accessible heading relationship");
-assert.match(homeSection, /min-h-12/, "the mobile-first entry actions must retain a touch-sized target");
-assert.doesNotMatch(homeSection, /["']use client["']|fetch\(|XMLHttpRequest|useEffect|window\.|navigator\./, "the homepage entry must remain a static, network-free Server Component");
+assert.match(homePage, /<ToolsSection \/>[\s\S]*<PersonalRouteFinder \/>[\s\S]*<ReturnVisitSection \/>/, "the homepage must lead from broad tools to a personal route and resumable local work");
+assert.match(homeTools, /href="\/tools"/, "the homepage tools section must expose the shared tools directory");
+assert.match(toolsPage, /href: "\/rail-work-alerts"/, "the public tools directory must expose the canonical rail route");
 assert.match(registry, /RAIL_WORK_ALERT_ROUTE = "\/rail-work-alerts"/, "all surfaces must keep one canonical tool route");
 assert.match(manifest, /start_url: "\/"[\s\S]*scope: "\/"[\s\S]*display: "standalone"/, "the installed PWA must start on the same homepage and route scope as the website");
 assert.match(serviceWorker, /fetch\(event\.request\)\.catch\(\(\) => caches\.match\(OFFLINE_URL\)\)/, "offline navigation must retain the existing safe fallback");
