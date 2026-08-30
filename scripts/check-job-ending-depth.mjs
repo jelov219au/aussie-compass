@@ -38,7 +38,7 @@ for (const question of [
 assert.ok((article.match(/\{ heading:/g) ?? []).length >= 20, "job ending guide needs the complete final-pay and deadline workflow");
 assert.ok((article.match(/\{ label:/g) ?? []).length >= 12, "job ending guide needs verified official sources");
 assert.ok(guides.includes('href: "/resources/australia-job-ending-final-pay-dismissal-guide"'), "pay guide index must expose the job ending guide");
-assert.ok(depthContract.includes("articleBlocks.length, 35"), "content-depth baseline must include the audited job ending guide");
+assert.ok(depthContract.includes("articleBlocks.length, 36"), "content-depth baseline must include the audited job ending guide");
 assert.doesNotMatch(article, /createCheckout|stripe\.checkout|PAYMENTS_ENABLED|paymentReadiness/i, "job ending content changes must remain outside payment flows");
 
 console.log("JOB_ENDING_DEPTH=PASS sections>=20 sources>=12 copy-questions=5");
