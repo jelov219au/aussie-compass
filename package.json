@@ -92,6 +92,7 @@
     "test:rail-work-alert-planner": "node scripts/check-rail-work-alert-planner.mjs",
     "test:cross-surface-content": "node scripts/check-cross-surface-content.mjs",
     "test:content-depth": "node scripts/check-content-depth-foundation.mjs",
+    "test:healthcare-depth": "node scripts/check-healthcare-first-visit-depth.mjs",
     "test:visual-hierarchy": "node scripts/check-visual-hierarchy-foundation.mjs",
     "test:public-data-trust": "node scripts/check-public-data-trust.mjs",
     "test:nsw-planning-data": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-nsw-planning-data.mjs",
