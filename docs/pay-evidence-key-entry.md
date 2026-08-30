@@ -53,3 +53,25 @@ PAY_EVIDENCE_EXTERNAL_KEY_WINDOW=PASS input=external-powershell child=pass secre
 ```
 
 This proves the existing Account Read key, Balance Transactions Read key and least-privilege `hoju_payment_auditor` URL are ready for the later Pay Evidence runtime preflight. It does not yet prove separation from the non-readable Vercel runtime key; that remains gated on the exact deployed SHA and challenge HMAC.
+
+## Product-scoped Production runtime preflight
+
+The generic first-launch preflight deliberately requires the shared `PAYMENTS_ENABLED=false` state. Do not reuse it for Pay Evidence now that Resume Pro and Rental Pack Pro operate behind that shared gate. The Pay Evidence route instead requires `PAYMENTS_ENABLED=true` and only `PAY_EVIDENCE_PRO_PAYMENTS_ENABLED=false`.
+
+After a separately approved exact-SHA payment-off deployment exists, run the product-scoped operator from this repository. The command opens a separate visible Windows PowerShell window; enter all three values only into its masked prompts:
+
+```powershell
+npm.cmd run payments:pay-evidence-runtime-preflight -- -ExpectedNeonEndpointId ep-curly-wave-a78bktnq -ExpectedProductionSha <40-character-sha> -DeploymentOrigin https://<exact-deployment>.vercel.app
+```
+
+The parent and child both prove the local Stripe and Neon dependencies load before any prompt opens. The runtime call pins the exact protected deployment host and SHA, proves the live runtime Stripe key differs from the Account Read and Balance Transactions Read keys through one-time challenge HMACs, verifies the Pay Evidence A$9.90 inclusive one-time Product/Price, fails if any open Pay Evidence Session exists, checks the Pay Evidence runtime schema and least-privilege Neon endpoint, and verifies monitoring without sending mail. It never submits raw keys or the database URL to the deployment, creates no Checkout Session, sends no email, makes no transaction and changes no Vercel, Stripe or Neon setting.
+
+Only these fixed lines together are acceptable evidence:
+
+```text
+PAY_EVIDENCE_PRODUCTION_RUNTIME_PREFLIGHT=PASS environment=production source_sha=exact shared_payments=on pay_evidence=off managed_payments=configured config=verified stripe=read-only-pass open_pay_evidence_sessions=zero database=runtime-schema-pass ... email_sent=no secrets_printed=no
+PAY_EVIDENCE_FIRST_SALE_PREFLIGHT=PASS mode=live shared_payments=on pay_evidence=off runtime=exact-sha stripe_roles=three-distinct database=runtime+audit-role-pass monitoring=verified persisted=no transactions=none secrets_printed=no
+PAY_EVIDENCE_EXTERNAL_RUNTIME_WINDOW=PASS input=external-powershell child=pass secrets_printed=no
+```
+
+Any other result is `NO-GO`. This preflight does not authorise a deployment, switch change, unpaid live Session or payment.
