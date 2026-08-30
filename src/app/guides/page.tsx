@@ -19,6 +19,7 @@ const guides = [
   { href: "/underpayment-guide", title: "급여가 적게 들어왔다면", description: "기록과 Payslip을 비교하고 차액을 문의하는 순서를 봅니다.", tag: "문제 해결", covers: ["증거를 남기는 방법", "고용주 문의부터 Fair Work 도움까지"] },
   { href: "/super-guide", title: "Super 이해하기", description: "Super 12%와 급여 패키지 포함 여부를 확인합니다.", tag: "Super", covers: ["급여와 별도인지 포함인지 확인", "납부 내역과 계좌 확인 방법"] },
   { href: "/leave-guide", title: "휴가·병가·공휴일", description: "Annual Leave, Personal Leave와 Public Holiday 권리를 비교합니다.", tag: "휴가", covers: ["고용 형태별 휴가 차이", "공휴일 근무와 휴무 조건"] },
+  { href: "/resources/australia-job-ending-final-pay-dismissal-guide", title: "퇴사·해고 뒤 마지막 21일", description: "Notice, Final pay, Redundancy와 Dismissal 대응기한을 확인합니다.", tag: "고용 종료", covers: ["Resignation·Dismissal·Redundancy 구분", "Final pay 검산과 Fair Work Commission 21일"] },
 ];
 
 export default function GuidesPage() {
