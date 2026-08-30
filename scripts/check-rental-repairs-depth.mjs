@@ -10,7 +10,7 @@ const [articles, articlePage, picker, inspectionPage, depthContract] = await Pro
 ]);
 
 const start = articles.indexOf('slug: "australia-rental-repairs-maintenance-guide"');
-const end = articles.indexOf('slug: "australia-sharehouse-photo-vs-reality-checklist"', start);
+const end = articles.indexOf('slug: "australia-rental-moving-out-bond-refund-guide"', start);
 assert.ok(start >= 0 && end > start, "rental repair article block is missing");
 const article = articles.slice(start, end);
 
@@ -46,7 +46,7 @@ assert.ok(picker.includes("jurisdictions.find"), "picker must show only the sele
 assert.doesNotMatch(picker, /fetch\(|sendBeacon|XMLHttpRequest|localStorage|sessionStorage/, "picker must not transmit or persist the rental selection");
 assert.ok(inspectionPage.includes('id="rental-repairs-guide"'), "inspection page must expose the repair handoff");
 assert.ok(inspectionPage.includes('href="/resources/australia-rental-repairs-maintenance-guide"'), "inspection page must reach the detailed repair guide");
-assert.ok(depthContract.includes("articleBlocks.length, 32"), "content-depth baseline must include the new audited guide");
+assert.ok(depthContract.includes("articleBlocks.length, 33"), "content-depth baseline must include the new audited guide");
 
 const inspectionRepairStart = inspectionPage.indexOf('id="rental-repairs-guide"');
 const inspectionRepairEnd = inspectionPage.indexOf("</section>", inspectionRepairStart);

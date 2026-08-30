@@ -69,7 +69,7 @@ expect(movingPage.includes("주소별 NBN·대체망·기술과 설치·임시 �
 expect(movingPage.includes("NBN·Provider 장비 구분"), "the moving checklist distinguishes address-bound and provider equipment");
 expect(movingPage.includes("<LocalProjectChecklist"), "the existing local moving checklist remains intact");
 expect(movingPage.includes("<EnergySupportJurisdictionPicker/>"), "the existing energy support flow remains intact");
-expect(depthContract.includes("articleBlocks.length, 32"), "the content-depth baseline is updated for the complete audited library");
+expect(depthContract.includes("articleBlocks.length, 33"), "the content-depth baseline is updated for the complete audited library");
 expect(resourcePage.includes("generateStaticParams"), "the resource route statically includes the new article");
 expect(resourcePage.includes("article.sources.map"), "the resource route renders every official source");
 expect(resourcePage.includes("getRelatedArticles(article.slug)"), "the resource route renders deliberate related content");
