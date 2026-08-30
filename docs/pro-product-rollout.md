@@ -9,7 +9,7 @@ This document keeps public product labels aligned with the checkout and access s
 | Resume Pro | Live when the production readiness contract passes | Complete and protected in production | Live one-time purchase, signed-webhook entitlement, recovery and refund revocation verified on 20 August 2026 |
 | Rental Pack Pro | Controlled release readiness | Expanded 20-candidate local workspace reconciled with current `main`; protected by its own entitlement in deployed builds | Checkout, success, recovery and release code complete; live Product and Price exist, and the product-specific switch remains off |
 | Pay Evidence Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
-| EOFY Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
+| EOFY Pack Pro | Local paid-access preparation | A$9.90 Checkout, entitlement isolation, activation, recovery and workspace gate implemented locally | Migrations unapplied; no Stripe/Vercel configuration or public Checkout |
 | Leaving Australia Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
 
 The homepage and Pro catalogue must derive Resume Pro's live label from the production payment-readiness contract. They must never infer availability from a hard-coded date or price.
@@ -147,6 +147,14 @@ Session cleanup in the product acceptance file.
 
 - Pay Evidence Pack Pro needs an additional employment-information review so the tool does not present an entered difference as a legal underpayment finding.
 - EOFY Pack Pro needs an additional tax-information review so it remains preparation support and does not calculate deductions or promise a refund.
+
+### EOFY Pack Pro review progress
+
+- The workspace remains preparation-only: it records income-source status, expense candidates, evidence state and accountant questions without calculating deductions or refunds.
+- Missing evidence, reimbursements, private-use calculation gaps and incomplete records are separated before the current-draft handoff summary can be exported.
+- The local paid-access contract pins `eofy_pro` to AUD 9.90, one-time billing, its own disabled product switch and Price variable.
+- Checkout, signed-webhook entitlement, first-sale reservation, activation, access release and one-time recovery are product-scoped and fail closed.
+- The two dated SQL migrations and catalog/migration/readiness operators are preparation artifacts only. They have not been applied or run against external services.
 - Leaving Australia Pack Pro needs an additional migration, tax and Super review so it does not determine visa, residency or DASP eligibility.
 
 ### Pay Evidence Pack Pro review progress

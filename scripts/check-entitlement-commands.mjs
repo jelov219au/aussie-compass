@@ -96,6 +96,26 @@ assert.equal(
   "a Resume-priced Checkout mislabeled as Pay Evidence must never grant Pay Evidence access",
 );
 
+const eofyPaidCommand = getEntitlementCommand(stripeEvent("checkout.session.completed", {
+  ...paidSession,
+  id: "cs_test_eofy_paid",
+  metadata: { product_code: "eofy_pro" },
+  payment_intent: "pi_eofy_paid",
+  customer: "cus_eofy_paid",
+  amount_total: 990,
+}, "evt_eofy_checkout_completed"));
+assert.equal(eofyPaidCommand?.productCode, "eofy_pro");
+assert.equal(eofyPaidCommand?.amountTotal, 990);
+assert.equal(matchesCheckoutProductEntitlementContract(eofyPaidCommand), true);
+assert.equal(
+  matchesCheckoutProductEntitlementContract(getEntitlementCommand(stripeEvent("checkout.session.completed", {
+    ...paidSession,
+    metadata: { product_code: "eofy_pro" },
+  }))),
+  false,
+  "a Resume-priced Checkout mislabeled as EOFY must never grant EOFY access",
+);
+
 assert.equal(
   getEntitlementCommand(stripeEvent("checkout.session.completed", { ...paidSession, metadata: { product_code: "other" } })),
   null,

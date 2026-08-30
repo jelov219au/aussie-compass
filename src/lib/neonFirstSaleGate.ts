@@ -21,7 +21,7 @@ function getConnectionString() {
   return value;
 }
 
-export async function isPaymentRuntimeSchemaReady(requiredProductCode: "rental_application_pro" | "pay_evidence_pro" = "rental_application_pro") {
+export async function isPaymentRuntimeSchemaReady(requiredProductCode: "rental_application_pro" | "pay_evidence_pro" | "eofy_pro" = "rental_application_pro") {
   try {
     const sql = neon(getConnectionString(), {
       readOnly: true,
@@ -78,7 +78,7 @@ export async function isPaymentRuntimeSchemaReady(requiredProductCode: "rental_a
         ) > 0, false) as ready
     ` as { ready: boolean }[];
     if (rows[0]?.ready !== true) return false;
-    if (requiredProductCode !== "pay_evidence_pro") return true;
+    if (requiredProductCode === "rental_application_pro") return true;
 
     const productRows = await sql`
       select
@@ -86,16 +86,16 @@ export async function isPaymentRuntimeSchemaReady(requiredProductCode: "rental_a
           select 1 from pg_constraint
           where conrelid = 'public.first_sale_gates'::regclass
             and contype = 'c'
-            and position('pay_evidence_pro' in pg_get_constraintdef(oid)) > 0
+            and position(${requiredProductCode} in pg_get_constraintdef(oid)) > 0
         )
         and exists (
           select 1 from pg_constraint
           where conrelid = 'public.first_sale_gate_events'::regclass
             and contype = 'c'
-            and position('pay_evidence_pro' in pg_get_constraintdef(oid)) > 0
+            and position(${requiredProductCode} in pg_get_constraintdef(oid)) > 0
         )
         and position(
-          'pay_evidence_pro'
+          ${requiredProductCode}
           in pg_get_functiondef(to_regprocedure(
             'public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)'
           ))

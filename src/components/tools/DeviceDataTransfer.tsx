@@ -28,6 +28,7 @@ type BackupDocument = {
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 const payEvidenceProStorageKey = "hoju-compass-pay-evidence-pro-v1";
+const eofyProStorageKey = "hoju-compass-eofy-pro-v1";
 
 const storedRecords: StoredRecord[] = [
   { key: "visa-preparation-project", label: "비자 신청 준비", group: "체크리스트" },
@@ -45,7 +46,7 @@ const storedRecords: StoredRecord[] = [
   { key: "aussie-compass-life-reminders-v1", label: "만료일·갱신 일정", group: "생활 관리" },
   { key: "aussie-compass-tax-return-checklist-v1", label: "택스 리턴 준비", group: "돈 관리" },
   { key: taxPrepRecordsStorageKey, label: "연중 택스 리턴 준비 장부", group: "돈 관리", sensitive: true },
-  { key: "hoju-compass-eofy-pro-v1", label: "EOFY 준비 패키지", group: "돈 관리", sensitive: true },
+  { key: eofyProStorageKey, label: "EOFY 준비 패키지", group: "돈 관리", sensitive: true },
   { key: "aussie-compass-salary-calculation", label: "급여 계산", group: "돈 관리", sensitive: true },
   { key: "aussie-compass-living-budget-v1", label: "생활비 예산", group: "돈 관리", sensitive: true },
   { key: "aussie-compass-savings-goal-v1", label: "저축 목표", group: "돈 관리", sensitive: true },
@@ -84,6 +85,7 @@ export function DeviceDataTransfer() {
   const [error, setError] = useState("");
   const [rentalDeleteConfirmed, setRentalDeleteConfirmed] = useState(false);
   const [payEvidenceDeleteConfirmed, setPayEvidenceDeleteConfirmed] = useState(false);
+  const [eofyDeleteConfirmed, setEofyDeleteConfirmed] = useState(false);
 
   const refresh = (selectAll = false) => {
     const saved = storedRecords.filter((record) => {
@@ -200,6 +202,23 @@ export function DeviceDataTransfer() {
     }
   };
 
+  const deleteEofyDeviceData = () => {
+    setError("");
+    setMessage("");
+    try {
+      const existed = window.localStorage.getItem(eofyProStorageKey) !== null;
+      window.localStorage.removeItem(eofyProStorageKey);
+      refresh();
+      window.dispatchEvent(new Event("storage"));
+      setEofyDeleteConfirmed(false);
+      setMessage(existed
+        ? "이 브라우저의 EOFY 로컬 기록을 삭제했습니다."
+        : "이 브라우저에 남은 EOFY 로컬 기록이 없습니다.");
+    } catch {
+      setError("EOFY 기록을 삭제하지 못했습니다. 브라우저 저장공간 설정을 확인한 뒤 이 기기에서 다시 시도해 주세요.");
+    }
+  };
+
   return (
     <div className="mt-10 space-y-8">
       <section className="grid gap-6 border-y border-navy/20 py-7 lg:grid-cols-[1fr_18rem] lg:items-center">
@@ -277,6 +296,23 @@ export function DeviceDataTransfer() {
               삭제 후 이 브라우저에서는 복구할 수 없음을 확인했습니다
             </label>
             <button type="button" disabled={!payEvidenceDeleteConfirmed} onClick={deletePayEvidenceDeviceData} className="mt-3 inline-flex min-h-12 w-full items-center justify-center bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">Pay Evidence 로컬 기록 완전 삭제</button>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-navy/20 pt-8" aria-labelledby="eofy-delete-heading">
+        <div className="grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
+          <div>
+            <p className="font-mono text-sm text-gold">05</p>
+            <h2 id="eofy-delete-heading" className="mt-1 text-2xl font-semibold text-navy">공용 기기의 EOFY 기록 삭제</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">소득 준비 상태, 공제 후보, 회계사 질문과 검토 확인을 이 브라우저에서 삭제합니다. 구매 이용권·결제 증빙·서버 기록과 다른 기기의 데이터는 변경하지 않습니다.</p>
+          </div>
+          <div className="border border-red-200 bg-red-50/60 p-5">
+            <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm font-medium leading-6 text-navy">
+              <input type="checkbox" checked={eofyDeleteConfirmed} onChange={(event) => setEofyDeleteConfirmed(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-red-700" />
+              삭제 후 이 브라우저에서는 복구할 수 없음을 확인했습니다
+            </label>
+            <button type="button" disabled={!eofyDeleteConfirmed} onClick={deleteEofyDeviceData} className="mt-3 inline-flex min-h-12 w-full items-center justify-center bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">EOFY 로컬 기록 완전 삭제</button>
           </div>
         </div>
       </section>
