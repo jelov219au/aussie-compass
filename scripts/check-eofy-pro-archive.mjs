@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import { createEofyArchive, parseEofyArchive } from "../src/lib/eofyProArchive.ts";
+import { assessEofyHandoff } from "../src/lib/eofyProHandoff.ts";
 
 const component = await readFile(new URL("../src/components/tools/EofyProWorkspace.tsx", import.meta.url), "utf8");
 const archiveSource = await readFile(new URL("../src/lib/eofyProArchive.ts", import.meta.url), "utf8");
@@ -36,6 +37,26 @@ for (const prohibited of ["receiptFile", "receiptImage", "bankAccount", "myGovPa
   assert.equal(serialized.includes(`"${prohibited}":`), false, `Archive must not contain ${prohibited}`);
 }
 
+const handoffDraft = {
+  ...draft,
+  incomeStatuses: { employment: "ready", interest: "ready", government: "ready", gig: "review", complex: "ready" },
+  expenses: [
+    draft.expenses[0],
+    { ...draft.expenses[0], id: "missing", evidence: "missing", reimbursed: true, workUse: "100" },
+    { ...draft.expenses[0], id: "reimbursed", reimbursed: true, workUse: "100" },
+    { ...draft.expenses[0], id: "private-gap", evidence: "receipt", workUse: "50", note: "" },
+    { ...draft.expenses[0], id: "incomplete", description: "", amount: "", workUse: "100" },
+  ],
+};
+const handoffReview = assessEofyHandoff(handoffDraft);
+assert.deepEqual(handoffReview.incomeNotReady, ["gig"]);
+assert.deepEqual(handoffReview.missingEvidence, ["missing"]);
+assert.deepEqual(handoffReview.reimbursed, ["missing", "reimbursed"]);
+assert.deepEqual(handoffReview.privateUseGaps, ["private-gap"]);
+assert.deepEqual(handoffReview.incompleteDetails, ["incomplete"]);
+assert.equal(handoffReview.flaggedExpenseCount, 4);
+assert.equal(handoffReview.totalFlags, 6);
+
 const mutate = (change) => {
   const candidate = structuredClone(archive);
   change(candidate);
@@ -61,6 +82,13 @@ for (const contract of [
   "setPendingArchive(archive)",
   "아직 현재 작업은 바뀌지 않았습니다",
   "검토한 백업으로 교체",
+  "if (!handoffReviewed)",
+  "reviewedDraftSignature === draftSignature",
+  "증빙 확인 필요",
+  "환급받은 항목",
+  "개인 사용분 계산 공백",
+  "ACCOUNTANT HANDOFF READINESS REVIEW",
+  "These are preparation flags, not findings about deductibility or tax treatment.",
 ]) assert.ok(component.includes(contract), `EOFY archive UI contract is missing: ${contract}`);
 
 for (const privacyContract of ["receiptFilesIncluded: false", "credentialsIncluded: false"]) {
@@ -70,4 +98,4 @@ for (const privacyContract of ["receiptFilesIncluded: false", "credentialsInclud
 assert.ok(productPage.includes("회계연도별 백업 패키지"), "EOFY product page must promise the year archive outcome");
 assert.ok(packageSource.includes('"test:eofy-pro-archive"'), "EOFY archive contract must be runnable from package scripts");
 
-console.log("EOFY Pack Pro versioned year archive and two-step restore checks passed.");
+console.log("EOFY Pack Pro year archive, two-step restore and accountant handoff review checks passed.");
