@@ -99,6 +99,7 @@
     "test:leave-guide-depth": "node scripts/check-leave-guide-depth.mjs",
     "test:job-ending-depth": "node scripts/check-job-ending-depth.mjs",
     "test:financial-hardship-depth": "node scripts/check-financial-hardship-depth.mjs",
+    "test:marketplace-depth": "node scripts/check-marketplace-depth.mjs",
     "test:visual-hierarchy": "node scripts/check-visual-hierarchy-foundation.mjs",
     "test:public-data-trust": "node scripts/check-public-data-trust.mjs",
     "test:nsw-planning-data": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-nsw-planning-data.mjs",
