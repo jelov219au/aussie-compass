@@ -54,8 +54,10 @@ Expected: the product helps the customer prepare and minimise disclosure without
 2. Add or change a candidate.
 3. Restore the original backup and confirm the replacement warning.
 4. Attempt to restore an unrelated or malformed JSON file.
+5. Attempt backups with duplicate candidate IDs, duplicate follow-up IDs within one candidate, and more than 50 follow-up records for one candidate.
+6. Restore a valid v2 or v3 backup with 20 distinct candidates and 50 follow-up records each; the same follow-up ID in different candidates is allowed.
 
-Expected: a valid backup restores all candidates and the reusable profile; an invalid file changes nothing and returns a clear error.
+Expected: a valid backup restores all candidates and the reusable profile; an invalid file changes nothing and returns a clear error. Ambiguous record identities and history exceeding the loader's capacity are rejected before parsing into workspace state or requesting replacement, rather than silently merging records or dropping history.
 
 ## 6. Refund and dispute ordering
 
@@ -208,3 +210,13 @@ POST returns HTTP 503 with `Cache-Control: no-store`. No Rental candidate was
 promoted over that concurrent source. The sole unpaid Session is scheduled to
 expire at 30 August 2026 00:52:17 AEST; confirm Stripe reports it expired before
 closing this record.
+
+## Backup record integrity — 31 August 2026
+
+Local source-only improvement; this is not a deployment or payment activation record.
+
+The restore validator previously accepted duplicate candidate IDs, which made ID-based edits affect multiple candidates. It also accepted duplicate follow-up IDs within one candidate, where ID-based removal could delete more than the selected entry, and more than 50 contact records, which the workspace loader silently truncated.
+
+Both supported backup versions now require unique candidate IDs and unique follow-up IDs within each candidate, and reject contact histories above the existing 50-entry limit. IDs remain scoped per candidate: different candidates can retain the same contact ID or property label. Valid 20-candidate / 50-contact-per-candidate backups and legacy v2 records without contact history remain accepted. Validation is read-only and the existing restore flow rejects invalid files before normalization, replacement confirmation or workspace mutation. No schema version, stored-draft migration, UI, payment gate or server request changed. Rejected files are not automatically repaired; keep the original backup for review.
+
+The existing Rental Pack contract now reproduces the former duplicate-ID acceptance failure and covers both backup versions, duplicate identities, 50/51-entry boundaries, the maximum supported workspace, scoped IDs and non-mutation. The expanded workspace/legacy-migration, access-token, ready-now path and privacy-minimised handoff contracts pass. Targeted strict TypeScript and ESLint pass; ESLint's React autodetection emits an environment-only warning because the preserved checkout has no React installation, and no React component was changed. Dependencies were read from the already retained validation runtime without modifying or linking them. No full build or browser session was started. Web/mobile/installed-PWA source compatibility is `호환`: all surfaces use the same existing client-side restore validator.

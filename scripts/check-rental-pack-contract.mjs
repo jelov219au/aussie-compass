@@ -54,3 +54,28 @@ assert.equal(isRentalWorkspaceBackup({ ...validBackup, version: 2 }), true, "a s
 assert.equal(isRentalWorkspaceBackup({ ...validBackup, applications: [{ ...validBackup.applications[0], propertyLabel: 620 }] }), false, "wrong application field types must be rejected");
 assert.equal(isRentalWorkspaceBackup({ ...validBackup, applications: Array.from({ length: 21 }, (_, index) => ({ ...validBackup.applications[0], id: `candidate-${index}` })) }), false, "oversized backups must not be silently truncated");
 console.log("PASS: malformed backup rejection");
+
+const contact = { id: "contact-1", date: "2026-08-31", channel: "email", direction: "sent", summary: "Receipt requested" };
+const fiftyContacts = Array.from({ length: 50 }, (_, index) => ({ ...contact, id: `contact-${index + 1}` }));
+for (const version of [2, 3]) {
+  const candidate = { ...validBackup.applications[0], followUps: fiftyContacts };
+  const backup = { ...validBackup, version, applications: [candidate] };
+  const original = JSON.stringify(backup);
+  assert.equal(isRentalWorkspaceBackup(backup), true, `v${version} must preserve all 50 supported contact records`);
+  assert.equal(JSON.stringify(backup), original, "validation must not change the backup records");
+
+  assert.equal(isRentalWorkspaceBackup({ ...backup, applications: [candidate, { ...candidate }] }), false,
+    `v${version} must reject duplicate candidate IDs before edits could affect multiple candidates`);
+  assert.equal(isRentalWorkspaceBackup({ ...backup, applications: [{ ...candidate, followUps: [contact, { ...contact, summary: "Separate reply" }] }] }), false,
+    `v${version} must reject duplicate contact IDs within one candidate before deletion could remove both`);
+  assert.equal(isRentalWorkspaceBackup({ ...backup, applications: [{ ...candidate, followUps: [...fiftyContacts, { ...contact, id: "contact-51" }] }] }), false,
+    `v${version} must reject a backup whose contact history would be silently truncated`);
+  assert.equal(isRentalWorkspaceBackup({ ...backup, applications: [candidate, { ...candidate, id: "candidate-2" }] }), true,
+    "different candidates may reuse contact IDs and labels because their records are scoped separately");
+  assert.equal(isRentalWorkspaceBackup({ ...backup, applications: Array.from({ length: 20 }, (_, index) => ({ ...candidate, id: `candidate-${index + 1}` })) }), true,
+    "the full supported workspace of 20 candidates with 50 contacts each must remain restorable");
+  assert.equal(JSON.stringify(backup), original, "rejected alternatives must leave source records unchanged");
+}
+assert.equal(isRentalWorkspaceBackup({ version: 2, applications: [{ id: "legacy-without-contacts" }] }), true,
+  "legacy backups with no contact-history field must remain valid");
+console.log("PASS: backup record identity, loss prevention and v2/v3 compatibility");
