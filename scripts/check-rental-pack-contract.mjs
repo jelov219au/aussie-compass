@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import process from "node:process";
+import { stripTypeScriptTypes } from "node:module";
+import { runInNewContext } from "node:vm";
 
 import { isRentalWorkspaceBackup } from "../src/lib/rentalWorkspaceBackup.ts";
 
@@ -79,3 +81,47 @@ for (const version of [2, 3]) {
 assert.equal(isRentalWorkspaceBackup({ version: 2, applications: [{ id: "legacy-without-contacts" }] }), true,
   "legacy backups with no contact-history field must remain valid");
 console.log("PASS: backup record identity, loss prevention and v2/v3 compatibility");
+
+// Exercise the actual event handler without starting a browser or a development server.
+const contactHandlerStart = workspace.indexOf("  const addFollowUp = () => {");
+const contactHandlerEnd = workspace.indexOf("  const removeFollowUp =", contactHandlerStart);
+assert.ok(contactHandlerStart >= 0 && contactHandlerEnd > contactHandlerStart);
+const contactHandler = stripTypeScriptTypes(workspace.slice(contactHandlerStart, contactHandlerEnd));
+function addContact(history, draft = { date: "2026-08-31", channel: "email", direction: "sent", summary: "  New contact  " }) {
+  const active = { ...validBackup.applications[0], stage: "submitted", followUps: history };
+  const before = JSON.stringify({ active, draft });
+  const changes = [], drafts = [], messages = [];
+  let idsCreated = 0;
+  runInNewContext(`${contactHandler}\naddFollowUp();`, {
+    active, followUpDraft: draft,
+    createId: () => { idsCreated += 1; return "new-contact"; },
+    updateActive: (value) => changes.push(value),
+    setFollowUpDraft: (value) => drafts.push(value),
+    setMessage: (value) => messages.push(value),
+  }, { timeout: 1000 });
+  assert.equal(JSON.stringify({ active, draft }), before, "contact insertion must not mutate existing records or the pending draft");
+  return { changes, drafts, messages, idsCreated };
+}
+
+const belowLimit = addContact(fiftyContacts.slice(0, 49));
+assert.equal(belowLimit.changes.length, 1);
+assert.equal(belowLimit.changes[0].followUps.length, 50);
+assert.ok(fiftyContacts.slice(0, 49).every((entry, index) => belowLimit.changes[0].followUps[index] === entry), "adding the 50th contact must retain the oldest record and order");
+assert.equal(belowLimit.changes[0].followUps[49].summary, "New contact");
+assert.equal(belowLimit.changes[0].stage, "follow_up");
+assert.equal(belowLimit.drafts.length, 1);
+assert.equal(belowLimit.idsCreated, 1);
+for (const history of [fiftyContacts, [...fiftyContacts, { ...contact, id: "already-over-capacity" }]]) {
+  const full = addContact(history);
+  assert.equal(full.changes.length, 0, "at capacity the handler must not discard the oldest contact or change candidate state");
+  assert.equal(full.drafts.length, 0, "blocked insertion must keep the user's unfinished input");
+  assert.equal(full.idsCreated, 0);
+  assert.match(full.messages[0], /50.*백업/);
+}
+const afterExplicitRemoval = addContact(fiftyContacts.slice(1));
+assert.equal(afterExplicitRemoval.changes[0].followUps.length, 50);
+assert.equal(afterExplicitRemoval.changes[0].followUps[0].id, "contact-2");
+const incompleteContact = addContact([], { date: "", channel: "email", direction: "sent", summary: "" });
+assert.equal(incompleteContact.changes.length, 0);
+assert.equal(incompleteContact.drafts.length, 0);
+console.log("PASS: contact capacity, oldest-record preservation and pending-input retention");

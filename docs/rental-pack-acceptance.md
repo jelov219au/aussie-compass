@@ -39,6 +39,14 @@ Expected: repeated evidence preparation is reduced without accidentally carrying
 
 Expected: overdue, today and near-term actions are visibly prioritised; completed candidates no longer show an action warning.
 
+## 3A. Contact history capacity
+
+1. With 49 contact records for a candidate, add another and confirm that all 50 records remain in their original order.
+2. At 50 records, confirm that the count and backup guidance are visible and the add button is disabled. An attempted insertion must not remove the oldest record, change the candidate stage or clear unfinished input.
+3. Save the whole-workspace backup, deliberately remove an unneeded contact and add the pending contact. Unsubmitted input is not included in the backup.
+
+Expected: contact history is never automatically evicted to make room for a new entry. Only the user's explicit deletion makes room. The same client-side flow applies on web, mobile and the installed PWA.
+
 ## 4. Privacy mistake prevention
 
 1. Review every privacy check before submission.
@@ -220,3 +228,11 @@ The restore validator previously accepted duplicate candidate IDs, which made ID
 Both supported backup versions now require unique candidate IDs and unique follow-up IDs within each candidate, and reject contact histories above the existing 50-entry limit. IDs remain scoped per candidate: different candidates can retain the same contact ID or property label. Valid 20-candidate / 50-contact-per-candidate backups and legacy v2 records without contact history remain accepted. Validation is read-only and the existing restore flow rejects invalid files before normalization, replacement confirmation or workspace mutation. No schema version, stored-draft migration, UI, payment gate or server request changed. Rejected files are not automatically repaired; keep the original backup for review.
 
 The existing Rental Pack contract now reproduces the former duplicate-ID acceptance failure and covers both backup versions, duplicate identities, 50/51-entry boundaries, the maximum supported workspace, scoped IDs and non-mutation. The expanded workspace/legacy-migration, access-token, ready-now path and privacy-minimised handoff contracts pass. Targeted strict TypeScript and ESLint pass; ESLint's React autodetection emits an environment-only warning because the preserved checkout has no React installation, and no React component was changed. Dependencies were read from the already retained validation runtime without modifying or linking them. No full build or browser session was started. Web/mobile/installed-PWA source compatibility is `호환`: all surfaces use the same existing client-side restore validator.
+
+## Contact history capacity protection — 31 August 2026
+
+This local continuation builds on the backup-integrity patch, without changing payment or deployment state. Previously, the live add-contact handler retained only the last 50 entries, so a 51st addition silently dropped the oldest contact. The handler now rejects insertion at capacity before creating a record or updating the candidate. It leaves unfinished input intact. The common workspace shows the count, disables the add button at 50, and provides whole-workspace backup and explicit-cleanup guidance. The backup action uses the existing local download function and clearly excludes unsubmitted input; no record is automatically deleted.
+
+The existing contract executes the actual TypeScript add-contact handler in an isolated Node context, rather than copying its implementation. It reproduced the original unwanted update at capacity, then passed after the fix. Cases cover adding the 50th entry with oldest-record/order preservation, rejecting a 51st entry, rejecting an already-over-capacity history, retaining pending input and candidate state, adding again after explicit removal, and rejecting an incomplete contact. Previous v2/v3 backup and identity tests still pass.
+
+Five targeted Rental contracts, strict TypeScript for the component and validator dependency graph, targeted ESLint and whitespace checks passed. Node's TypeScript-strip API emits its experimental-feature warning, and ESLint emits the known React-autodetection warning because dependencies are read from a retained runtime outside this checkout; neither is an assertion or lint failure. No dependencies, source runtime settings or package scripts were changed. No full build, development server or browser rehearsal was run. Source parity is `호환`: the same component and handler serve web, mobile and the installed PWA; visual/device behavior has not been newly exercised in a browser.
