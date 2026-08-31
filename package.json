@@ -110,6 +110,7 @@
     "test:critical-source-review": "node scripts/check-critical-source-review.mjs",
     "test:health-safety-source-review": "node scripts/check-health-safety-source-review.mjs",
     "test:tenancy-source-review": "node scripts/check-tenancy-source-review.mjs",
+    "test:hardship-utility-source-review": "node scripts/check-hardship-utility-source-review.mjs",
     "audit:content-sources": "node scripts/audit-content-source-links.mjs",
     "test:visual-hierarchy": "node scripts/check-visual-hierarchy-foundation.mjs",
     "test:public-data-trust": "node scripts/check-public-data-trust.mjs",

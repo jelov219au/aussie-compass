@@ -6,6 +6,8 @@ import { Footer } from "@/components/layout/Footer";
 import { PageShareButton } from "@/components/pwa/PageShareButton";
 import { ArticleNextStep } from "@/components/resources/ArticleNextStep";
 import { ArticleReadingNav } from "@/components/resources/ArticleReadingNav";
+import { FinancialHardshipRoutes } from "@/components/resources/FinancialHardshipRoutes";
+import { EnergySupportJurisdictionPicker } from "@/components/tools/EnergySupportJurisdictionPicker";
 import { ResumeTemplateDownloadLink } from "@/components/analytics/ResumeTemplateDownloadLink";
 import { Container } from "@/components/ui/Container";
 import { TopicIcon } from "@/components/ui/TopicIcon";
@@ -125,6 +127,14 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 ))}
               </ol>
             </section>
+
+            {article.slug === "australia-financial-hardship-bills-debt-guide" && <FinancialHardshipRoutes />}
+            {article.slug === "australia-energy-plan-moving-home-guide" && (
+              <section id="energy-help" className="mt-8 scroll-mt-24" aria-labelledby="energy-help-heading">
+                <h2 id="energy-help-heading" className="text-2xl font-semibold leading-9 text-navy">우리 지역의 요금 지원·민원 창구</h2>
+                <EnergySupportJurisdictionPicker />
+              </section>
+            )}
 
             <ArticleReadingNav
               sections={readingSections}

@@ -70,6 +70,12 @@ Do not update an article's entire factual-review date solely because a URL respo
 
 ## Release checks
 
+Successor reviews preserve the immutable baseline: tenancy reviews 15 further
+sources (110 cumulative); hardship/utility reviews 26 more (136 cumulative,
+24 remaining). Run `npm run test:tenancy-source-review` and
+`npm run test:hardship-utility-source-review`. See the
+[hardship/utility report](hardship-utility-source-review-2026-08-31.md).
+
 Run the source-audit fixtures, affected content contracts, cross-surface, security
 and Rental live-status contracts, targeted ESLint, TypeScript and whitespace checks.
 URL-only changes do not require launching another local development server.

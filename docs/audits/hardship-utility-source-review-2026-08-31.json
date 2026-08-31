@@ -1,0 +1,558 @@
+{
+  "checkedAt": "2026-08-31",
+  "baseSha": "8f2cfa011b018047f356bae9df380ca09c7f6a90",
+  "baseline": "content-source-links-2026-08-31.json",
+  "scope": "All 26 hardship, utility, telecom, banking and related income-loss entries selected from the immutable restricted/network-error baseline after the critical, health-safety and tenancy reviews. Historical references retained; destination and noted content only, not exhaustive financial/legal review.",
+  "counts": {
+    "reviewed": 26,
+    "retained": 26,
+    "replaced": 0,
+    "previousReviewed": 110,
+    "cumulativeReviewed": 136,
+    "remainingBaselineRestrictedOrNetwork": 24
+  },
+  "reviews": [
+    {
+      "id": 1,
+      "url": "https://ombudsman.nt.gov.au/complaints",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 25
+        }
+      ],
+      "destination": "https://ombudsman.nt.gov.au/complaints",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Ombudsman NT complaints",
+      "note": "Official complaint process reviewed: agency first, records and requested outcome; normally matters learned of within twelve months, with exceptions. Added scope check naming Power and Water/Jacana from separate jurisdiction page."
+    },
+    {
+      "id": 2,
+      "url": "https://www.acma.gov.au/choose-your-mobile-service-carefully",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 752
+        }
+      ],
+      "destination": "https://www.acma.gov.au/choose-your-mobile-service-carefully",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Choose your mobile service carefully",
+      "note": "CIS, three network operators, device and Triple Zero compatibility checked. Existing SIM guide already distinguishes coverage estimates from actual service and keeps unsupported emergency-capable devices out."
+    },
+    {
+      "id": 3,
+      "url": "https://www.acma.gov.au/choosing-nbn-plan",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 788
+        }
+      ],
+      "destination": "https://www.acma.gov.au/choosing-nbn-plan",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Choosing an NBN plan",
+      "note": "Key Facts Sheet, busy-period expectations, factors reducing speed, equipment and power-failure/medical-alarm limitations confirmed. Existing connection and comparison guidance retained."
+    },
+    {
+      "id": 4,
+      "url": "https://www.acma.gov.au/choosing-right-product-or-plan",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 749
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 787
+        }
+      ],
+      "destination": "https://www.acma.gov.au/choosing-right-product-or-plan",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Choosing the right product or plan",
+      "note": "CIS inclusion/exclusion, price, minimum term and complaints information confirmed. Telephone-sales delivery rules differ; no universal instantaneous CIS promise added."
+    },
+    {
+      "id": 5,
+      "url": "https://www.acma.gov.au/how-complain-your-telco",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 754
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 792
+        }
+      ],
+      "destination": "https://www.acma.gov.au/how-complain-your-telco",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "How to complain to your telco",
+      "note": "Provider first; urgent complaints generally resolved within two business days and non-urgent proposed resolution up to ten working days. Page mixes five and ten working days for agreed implementation; no universal agreed-completion deadline asserted."
+    },
+    {
+      "id": 6,
+      "url": "https://www.acma.gov.au/id-checks-prepaid-mobiles",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 750
+        }
+      ],
+      "destination": "https://www.acma.gov.au/id-checks-prepaid-mobiles",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "ID checks for prepaid mobiles",
+      "note": "Activation needs identity checks and name/date of birth/address; permitted verification methods vary. Existing official-channel handling and no sensitive ID in shared checklists retained."
+    },
+    {
+      "id": 7,
+      "url": "https://www.acma.gov.au/keep-or-port-your-phone-number",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 751
+        }
+      ],
+      "destination": "https://www.acma.gov.au/keep-or-port-your-phone-number",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Keep or port your phone number",
+      "note": "Only active numbers port, new provider arranges process and previous debt/handset obligations remain. Usual three-hour mobile period is not a guaranteed deadline."
+    },
+    {
+      "id": 8,
+      "url": "https://www.acma.gov.au/managing-your-phone-bill",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 790
+        }
+      ],
+      "destination": "https://www.acma.gov.au/managing-your-phone-bill",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Managing your phone bill",
+      "note": "Contract/CIS rate checks, unfamiliar charges, earlier bills and direct-debit information verified. Existing itemised first-bill comparison and separate contract/payment cancellation retained."
+    },
+    {
+      "id": 9,
+      "url": "https://www.acma.gov.au/telecommunications-financial-hardship-industry-standard",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 791
+        }
+      ],
+      "destination": "https://www.acma.gov.au/telecommunications-financial-hardship-industry-standard",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Telecommunications Financial Hardship Industry Standard",
+      "note": "Current industry guide describes realistic assistance, six minimum options, preserving connection and collection safeguards. Added consumer-facing companion rather than treating industry rules as an application form."
+    },
+    {
+      "id": 10,
+      "url": "https://www.aer.gov.au/consumers/understanding-energy/understanding-your-energy-bill",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1022
+        }
+      ],
+      "destination": "https://www.aer.gov.au/consumers/understanding-energy/understanding-your-energy-bill",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Understanding your energy bill",
+      "note": "Account, billing period, meter readings, fixed supply and usage charges verified. Retail customer scope ACT/NSW/QLD/SA/TAS explicitly distinguished from VIC/WA/NT."
+    },
+    {
+      "id": 11,
+      "url": "https://www.aer.gov.au/industry/retail/customer-hardship-policies",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1023
+        }
+      ],
+      "destination": "https://www.aer.gov.au/industry/retail/customer-hardship-policies",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Customer hardship policies",
+      "note": "AER approved retailer policies apply under National Energy Retail Law in ACT/NSW/QLD/SA/TAS. Retained policy lookup, realistic payments and concessions; not a national application portal."
+    },
+    {
+      "id": 12,
+      "url": "https://www.afca.org.au/about-afca/receiving-banks-and-unauthorised-opening-of-accounts",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 840
+        }
+      ],
+      "destination": "https://www.afca.org.au/about-afca/receiving-banks-and-unauthorised-opening-of-accounts",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Receiving banks and unauthorised opening of accounts",
+      "note": "Browser verified expanded jurisdiction from 12 March 2026 including certain receiving-bank/non-customer scam cases. Older incident dates may qualify; standard time limits and prior complaints matter. Not automatic compensation or the start of the separate Scams Prevention Framework."
+    },
+    {
+      "id": 13,
+      "url": "https://www.afca.org.au/make-a-complaint/banking",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 839
+        }
+      ],
+      "destination": "https://www.afca.org.au/make-a-complaint/banking",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Banking deposits and payments complaints",
+      "note": "Browser verified deposits, transfers, direct debits, mistaken/unauthorised transactions and limits on fee-only disputes. Membership and issue eligibility remain required; free AFCA is not a guaranteed recovery service."
+    },
+    {
+      "id": 14,
+      "url": "https://www.afca.org.au/make-a-complaint/financial-hardship-complaints",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 98
+        }
+      ],
+      "destination": "https://www.afca.org.au/make-a-complaint/financial-hardship-complaints",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Financial hardship complaints",
+      "note": "Browser verified that a request need not use a formal process; no reply or dissatisfaction after approaching firm can be raised with AFCA. Removed implication that a written refusal must arrive first."
+    },
+    {
+      "id": 15,
+      "url": "https://www.austrac.gov.au/general-public/why-you-might-be-asked-id",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 831
+        }
+      ],
+      "destination": "https://www.austrac.gov.au/general-public/why-you-might-be-asked-id",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Why you might be asked for ID",
+      "note": "AUSTRAC explains institution/transaction-dependent ID and ongoing due diligence, including existing customers and source-of-funds information. Added verify-through-official-bank-channel safeguard; no universal 100-point rule."
+    },
+    {
+      "id": 16,
+      "url": "https://www.dewr.gov.au/fair-entitlements-guarantee",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 154
+        }
+      ],
+      "destination": "https://www.dewr.gov.au/fair-entitlements-guarantee",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Fair Entitlements Guarantee",
+      "note": "Official overview and detailed claim guide verified: last resort following liquidation/bankruptcy; citizenship/visa, timing and effective claim requirements; unpaid super excluded. Added direct claim-eligibility source."
+    },
+    {
+      "id": 17,
+      "url": "https://www.dss.gov.au/emergency-support/emergency-relief",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 101
+        }
+      ],
+      "destination": "https://www.dss.gov.au/emergency-support/emergency-relief",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Emergency relief",
+      "note": "DSS describes provider-dependent food, transport/chemist vouchers, partial utility help and referrals. No automatic cash or availability guarantee; community relief distinguished from Centrelink Crisis Payment."
+    },
+    {
+      "id": 18,
+      "url": "https://www.dss.gov.au/supporting-people-financial-crises",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 102
+        }
+      ],
+      "destination": "https://www.dss.gov.au/supporting-people-financial-crises",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Supporting people in financial crises",
+      "note": "DSS explicitly describes free Emergency Relief without citizenship or residency requirements. Community support and National Debt Helpline referral confirmed. Linked grants-directory query returned no results; not represented as a verified local match."
+    },
+    {
+      "id": 19,
+      "url": "https://www.energy.gov.au/households/find-the-best-energy-deal",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1019
+        }
+      ],
+      "destination": "https://www.energy.gov.au/households/find-the-best-energy-deal",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Switch to save",
+      "note": "Government state-specific comparison routes and supply/usage charges confirmed. WA/NT/VIC differences retained; no automatic whole-market lowest-price or savings promise added."
+    },
+    {
+      "id": 20,
+      "url": "https://www.energy.gov.au/households/your-rights-energy-customer",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1024
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 18
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 21
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 22
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 23
+        }
+      ],
+      "destination": "https://www.energy.gov.au/households/your-rights-energy-customer",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Your rights as an energy customer",
+      "note": "National Energy Customer Framework jurisdiction, bill review, support and provider-first complaint routes verified. Added named state coverage; disconnection/embedded-network eligibility still needs local assessment."
+    },
+    {
+      "id": 21,
+      "url": "https://www.energy.vic.gov.au/households/help-paying-your-energy-bills/read-your-energy-bill",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 20
+        }
+      ],
+      "destination": "https://www.energy.vic.gov.au/households/help-paying-your-energy-bills/read-your-energy-bill",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "How to read your energy bill",
+      "note": "VIC official page confirms Best Offer is retailer-specific, Payment Difficulty Framework support and EWOV. Future October 2026 disconnection threshold mentioned by source is not presented as already operative."
+    },
+    {
+      "id": 22,
+      "url": "https://www.ombudsman.tas.gov.au/complaints/referrals-to-other-organisations/power%2C-electricity-and-gas",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 23
+        }
+      ],
+      "destination": "https://www.ombudsman.tas.gov.au/complaints/referrals-to-other-organisations/power%2C-electricity-and-gas",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Power, electricity and gas",
+      "note": "TAS official referral page confirms independent energy complaints after provider contact and two years from awareness. Original percent-encoded comma URL remains usable; decoding is not treated as a broken-link replacement."
+    },
+    {
+      "id": 23,
+      "url": "https://www.powerwater.com.au/about/regulation/electricity-network-regulation-and-pricing/electricity-retailers",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 25
+        }
+      ],
+      "destination": "https://www.powerwater.com.au/about/regulation/electricity-network-regulation-and-pricing/electricity-retailers",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Electricity retailers",
+      "note": "Power and Water lists regional retailers and remote-area exceptions. Clarified network operator versus bill issuer; not all NT residents buy electricity from Power and Water."
+    },
+    {
+      "id": 24,
+      "url": "https://www.powerwater.com.au/pricing",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 25
+        }
+      ],
+      "destination": "https://www.powerwater.com.au/pricing",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Pricing and tariffs",
+      "note": "Power and Water pricing page lists tariffs effective 1 July 2026 and retailer/remote exceptions. Relabelled as tariff reference, not a hardship application. No exact prices copied because applicability varies."
+    },
+    {
+      "id": 25,
+      "url": "https://www.servicesaustralia.gov.au/crisis-payment",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 104
+        }
+      ],
+      "destination": "https://www.servicesaustralia.gov.au/crisis-payment",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Crisis Payment",
+      "note": "Services Australia identifies separate extreme-circumstance payment types and severe-hardship conditions. Added companion for Other Extreme Circumstances only; seven-day contact trigger and fourteen-day claim period not generalized to every payment type."
+    },
+    {
+      "id": 26,
+      "url": "https://www.servicesaustralia.gov.au/when-you-need-employment-separation-certificate",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 153
+        }
+      ],
+      "destination": "https://www.servicesaustralia.gov.au/when-you-need-employment-separation-certificate",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "When you need an Employment Separation Certificate",
+      "note": "Services Australia says certificate may be required when person/partner stops work or changes full-time to casual, depending on payment and circumstances. Clarified conditional need rather than every departure."
+    }
+  ],
+  "supportingSources": [
+    {
+      "url": "https://www.acma.gov.au/help-if-you-cant-pay-your-bill",
+      "connected": true,
+      "method": "official-web-read",
+      "note": "Consumer guide reviewed: five-business-day assessment and two-business-day outcome notification, realistic assistance and essential connection; not a waiver guarantee."
+    },
+    {
+      "url": "https://www.servicesaustralia.gov.au/who-can-get-crisis-payment-for-other-extreme-circumstances?context=52754",
+      "connected": true,
+      "method": "official-web-read",
+      "note": "Other Extreme Circumstances only: all eligibility requirements, exclusions, seven-day contact trigger and fourteen-day claim period after contacting Services Australia."
+    },
+    {
+      "url": "https://www.dewr.gov.au/fair-entitlements-guarantee/claimants/making-feg-claim",
+      "connected": true,
+      "method": "official-web-read",
+      "note": "Effective FEG claim within twelve months of later employment end or insolvency date; citizenship/visa status at employment end and unpaid super exclusion."
+    },
+    {
+      "url": "https://ombudsman.nt.gov.au/complaints/what-can-i-complaint-about",
+      "connected": true,
+      "method": "official-browser",
+      "note": "Public browser jurisdiction list names Power Water / Jacana Energy. Automated detail-page retries timed out; no claim that every private retailer is covered."
+    },
+    {
+      "url": "https://www.dewr.gov.au/fair-entitlements-guarantee/claimants",
+      "connected": false,
+      "method": "official-web-read",
+      "note": "Navigation to the detailed claim eligibility guide; no submission."
+    },
+    {
+      "url": "https://www.servicesaustralia.gov.au/crisis-payment-for-other-extreme-circumstances",
+      "connected": false,
+      "method": "official-web-read",
+      "note": "Public overview used to reach detailed conditions and claim methods; no account access."
+    },
+    {
+      "url": "https://www.servicesaustralia.gov.au/how-to-claim-crisis-payment-for-other-extreme-circumstances?context=52754",
+      "connected": false,
+      "method": "official-web-read",
+      "note": "Public instructions confirm phone/service-centre alternative if online claim unavailable. No form or login opened."
+    },
+    {
+      "url": "https://serviceproviders.dss.gov.au/?postcode&ppp=100&programme=Families%20and%20Communities&region&service=Financial%20Crisis%20and%20Material%20Aid%20-%20Emergency%20Relief&state",
+      "connected": false,
+      "method": "official-web-read",
+      "note": "DSS-linked directory loaded filters but no results. Not used as a verified service listing; main Emergency Relief guidance retained."
+    }
+  ]
+}
