@@ -18,6 +18,8 @@ import {
 import {
   rentalApplicationProFirstSuccessStorageKey,
   rentalApplicationProWorkspaceStorageKey,
+  writeRentalWorkspace,
+  type RentalWorkspaceSaveResult,
 } from "@/lib/rentalApplicationProDeviceStorage";
 import { isRentalWorkspaceBackup } from "@/lib/rentalWorkspaceBackup";
 
@@ -122,13 +124,17 @@ function normaliseApplication(candidate: Partial<RentalApplication>, fallbackId:
 function parseWorkspace(saved: string): WorkspaceState {
   type LegacyPack = { id?: string; propertyLabel?: string; moveDate?: string; leaseTerm?: string; householdSize?: string; employmentSummary?: string; rentalSummary?: string; petSummary?: string; strengths?: string; statuses?: Record<string, DocumentStatus>; coverNote?: string; inspectionSummary?: RentalReadyNowImportReceipt | null; contactStatus?: string; followUpDate?: string };
   const parsed = JSON.parse(saved) as { version?: number; profile?: Partial<ApplicantProfile>; evidenceLibrary?: Record<string, Partial<ReusableEvidence>>; activeId?: string; applications?: Partial<RentalApplication>[]; packs?: LegacyPack[]; propertyLabel?: string; moveDate?: string; leaseTerm?: string; statuses?: Record<string, DocumentStatus>; coverNote?: string; householdSize?: string; employmentSummary?: string; rentalSummary?: string; petSummary?: string; strengths?: string };
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Invalid Rental workspace");
   if ((parsed.version === 2 || parsed.version === 3) && Array.isArray(parsed.applications) && parsed.applications.length) {
+    // Older local drafts can lack later v3 fields; validate supplied fields before applying defaults.
+    if (!isRentalWorkspaceBackup({ ...parsed, version: 2 }, MAX_APPLICATIONS)) throw new Error("Invalid Rental workspace records");
     const applications = parsed.applications.slice(0, MAX_APPLICATIONS).map((item, index) => normaliseApplication(item, `restored-${index + 1}`));
     const storedEvidence = parsed.evidenceLibrary && typeof parsed.evidenceLibrary === "object" ? parsed.evidenceLibrary : createEvidenceLibrary(applications[0].statuses);
     const evidenceLibrary = Object.fromEntries(reusableDocumentIds.map((id) => { const evidence = storedEvidence[id]; const status = evidence?.status; return [id, { status: status === "review" || status === "ready" ? status : "todo", checkedOn: typeof evidence?.checkedOn === "string" ? evidence.checkedOn : "" }]; })) as Record<string, ReusableEvidence>;
     return { version: 3, profile: { ...initialProfile, ...(parsed.profile ?? {}) }, evidenceLibrary, activeId: applications.some((item) => item.id === parsed.activeId) ? parsed.activeId as string : applications[0].id, applications };
   }
   if (parsed.version === 2 && Array.isArray(parsed.packs) && parsed.packs.length) {
+    if (parsed.packs.length > MAX_APPLICATIONS) throw new Error("Rental legacy workspace exceeds capacity");
     const legacyPacks = parsed.packs.slice(0, MAX_APPLICATIONS);
     const applications = legacyPacks.map((pack, index) => {
       const application = createApplication(typeof pack.id === "string" && pack.id ? pack.id : `migrated-${index + 1}`);
@@ -145,6 +151,7 @@ function parseWorkspace(saved: string): WorkspaceState {
         : "shortlist";
       return application;
     });
+    if (new Set(applications.map((application) => application.id)).size !== applications.length) throw new Error("Duplicate Rental legacy candidate IDs");
     const profileSource = legacyPacks.find((pack) => pack.id === parsed.activeId) ?? legacyPacks[0];
     const profile = {
       householdSize: typeof profileSource.householdSize === "string" ? profileSource.householdSize : "1",
@@ -155,6 +162,8 @@ function parseWorkspace(saved: string): WorkspaceState {
     };
     return { version: 3, profile, evidenceLibrary: createEvidenceLibrary(profileSource.statuses), activeId: applications.some((item) => item.id === parsed.activeId) ? parsed.activeId as string : applications[0].id, applications };
   }
+  const legacyFields = ["propertyLabel", "moveDate", "leaseTerm", "statuses", "coverNote", "householdSize", "employmentSummary", "rentalSummary", "petSummary", "strengths"] as const;
+  if ((parsed.version !== undefined && parsed.version !== 1) || !legacyFields.some((field) => Object.prototype.hasOwnProperty.call(parsed, field))) throw new Error("Unsupported Rental workspace format");
   const migrated = createApplication("migrated");
   migrated.propertyLabel = typeof parsed.propertyLabel === "string" ? parsed.propertyLabel : "";
   migrated.moveDate = typeof parsed.moveDate === "string" ? parsed.moveDate : "";
@@ -167,6 +176,9 @@ function parseWorkspace(saved: string): WorkspaceState {
 export function RentalApplicationWorkspace() {
   const [workspace, setWorkspace] = useState<WorkspaceState>(initialWorkspace);
   const [loaded, setLoaded] = useState(false);
+  const [storageBlocked, setStorageBlocked] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<RentalWorkspaceSaveResult | "pending">("pending");
+  const [originalWorkspace, setOriginalWorkspace] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [firstCandidateSaved, setFirstCandidateSaved] = useState(false);
   const [firstCandidateMessage, setFirstCandidateMessage] = useState("");
@@ -180,7 +192,9 @@ export function RentalApplicationWorkspace() {
     didInitialiseRef.current = true;
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      let nextWorkspace = saved ? parseWorkspace(saved) : initialWorkspace;
+      setOriginalWorkspace(saved);
+      let nextWorkspace = saved !== null ? parseWorkspace(saved) : initialWorkspace;
+      setWorkspace(nextWorkspace);
       const handoff = readRentalReadyNowHandoff(window.localStorage);
       if (handoff) {
         const contextNote = `무료 집 방문 체크에서 ${handoff.reviewedCount}개 항목 확인 · 다시 확인 ${handoff.concernCount}개. 방문 메모와 세부 체크 결과는 개인정보 보호를 위해 가져오지 않았습니다.`;
@@ -213,12 +227,22 @@ export function RentalApplicationWorkspace() {
       }
       setWorkspace(nextWorkspace);
       setFirstCandidateSaved(readRentalReadyNowSavedFlag(window.localStorage, FIRST_SUCCESS_KEY) || nextWorkspace.applications.some((item) => Boolean(item.propertyLabel.trim())));
+      setOriginalWorkspace(null);
     } catch {
-      setMessage("브라우저 저장소를 사용할 수 없어 무료 방문 결과를 가져오지 못했습니다. 무료 방문 결과 원본은 삭제하지 않았습니다.");
+      setStorageBlocked(true);
+      setSaveStatus("blocked");
+      setMessage("저장 원본을 안전하게 불러오지 못해 자동 저장을 중단했습니다. 기존 저장 내용을 보호 중이며 무료 방문 결과 원본은 삭제하지 않았습니다.");
     }
     setLoaded(true);
   }, []);
-  useEffect(() => { if (!loaded) return; const timer = window.setTimeout(() => { try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace)); } catch {} }, 400); return () => window.clearTimeout(timer); }, [workspace, loaded]);
+  useEffect(() => {
+    if (!loaded || storageBlocked) return;
+    setSaveStatus("pending");
+    const timer = window.setTimeout(() => {
+      setSaveStatus(writeRentalWorkspace(() => window.localStorage, workspace, true));
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [workspace, loaded, storageBlocked]);
 
   const active = workspace.applications.find((item) => item.id === workspace.activeId) ?? workspace.applications[0];
   useEffect(() => { setFollowUpDraft({ date: "", channel: "email", direction: "sent", summary: "" }); }, [active.id]);
@@ -236,16 +260,17 @@ export function RentalApplicationWorkspace() {
   const updateEvidence = (id: string, patch: Partial<ReusableEvidence>) => setWorkspace((current) => ({ ...current, evidenceLibrary: { ...current.evidenceLibrary, [id]: { ...current.evidenceLibrary[id], ...patch } } }));
   const updateActive = (patch: Partial<RentalApplication>) => setWorkspace((current) => ({ ...current, applications: current.applications.map((item) => item.id === current.activeId ? { ...item, ...patch } : item) }));
   const saveFirstCandidate = () => {
+    if (!loaded || storageBlocked) return setFirstCandidateMessage("저장 원본 보호 중입니다. 먼저 저장 상태 안내에서 복구 방법을 확인해 주세요.");
     const label = active.propertyLabel.trim();
     if (!label) return setFirstCandidateMessage("정확한 주소 대신 알아볼 수 있는 별칭을 입력해 주세요.");
     const nextWorkspace = { ...workspace, applications: workspace.applications.map((item) => item.id === workspace.activeId ? { ...item, propertyLabel: label } : item) };
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextWorkspace));
-      window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved");
-    } catch {
+    const result = writeRentalWorkspace(() => window.localStorage, nextWorkspace, true);
+    setSaveStatus(result);
+    if (result !== "saved") {
       setFirstCandidateMessage("브라우저 저장소를 사용할 수 없어 첫 후보 저장을 확인하지 못했습니다.");
       return;
     }
+    try { window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved"); } catch {}
     setWorkspace(nextWorkspace);
     setFirstCandidateSaved(true);
     setFirstCandidateMessage(`“${label}”을 첫 집 후보로 저장했습니다.`);
@@ -306,6 +331,22 @@ export function RentalApplicationWorkspace() {
   const copyMessage = async () => { const text = active.messages[activeMessageType]; if (!text) return; try { await navigator.clipboard.writeText(text); setMessage("선택한 문구를 복사했습니다."); } catch { setMessage("브라우저 복사 권한을 확인해 주세요."); } };
   const saveBlob = (content: string, type: string, name: string) => { const url = URL.createObjectURL(new Blob([content], { type })); const anchor = document.createElement("a"); anchor.href = url; anchor.download = name; anchor.click(); URL.revokeObjectURL(url); };
   const downloadBackup = () => { saveBlob(JSON.stringify(workspace, null, 2), "application/json;charset=utf-8", `hoju-compass-rental-workspace-${new Date().toISOString().slice(0, 10)}.json`); setMessage("전체 작업 공간을 JSON으로 백업했습니다."); };
+  const downloadStorageOriginal = () => {
+    if (originalWorkspace === null) return;
+    saveBlob(originalWorkspace, "text/plain;charset=utf-8", "hoju-compass-rental-storage-original.txt");
+    setMessage("저장 원본을 그대로 내려받았습니다. 현재 화면 백업과 다른 파일이며 민감한 내용이 있을 수 있으니 안전하게 보관해 주세요.");
+  };
+  const retryWorkspaceSave = () => {
+    if (!loaded) return;
+    if (storageBlocked && !window.confirm("기존 저장 원본을 현재 화면 내용으로 덮어쓰고 저장을 재개할까요? 먼저 저장 원본과 현재 화면 백업을 각각 내려받으세요.")) return;
+    const result = writeRentalWorkspace(() => window.localStorage, workspace, true);
+    setSaveStatus(result);
+    if (result === "saved") {
+      setStorageBlocked(false);
+      setOriginalWorkspace(null);
+      setMessage("현재 화면 내용을 이 브라우저에 저장했습니다.");
+    }
+  };
   const restoreBackup = async (file: File | undefined) => {
     if (!file) return;
     try {
@@ -314,8 +355,15 @@ export function RentalApplicationWorkspace() {
       const candidate: unknown = JSON.parse(content);
       if (!isRentalWorkspaceBackup(candidate, MAX_APPLICATIONS)) throw new Error("Invalid rental workspace backup");
       const restored = parseWorkspace(content);
-      if (!window.confirm(`백업에 있는 집 후보 ${restored.applications.length}개로 현재 작업 공간을 바꿀까요? 현재 내용은 먼저 전체 백업을 권장합니다.`)) return;
-      setWorkspace(restored); setMessage(`백업에서 집 후보 ${restored.applications.length}개를 복원했습니다.`);
+      if (!window.confirm(`백업에 있는 집 후보 ${restored.applications.length}개로 현재 작업 공간을 바꿀까요? 현재 내용은 먼저 전체 백업을 권장합니다.${storageBlocked ? " 읽지 못한 저장 원본도 대체되므로 먼저 원본을 내려받으세요." : ""}`)) return;
+      const result = writeRentalWorkspace(() => window.localStorage, restored, true);
+      setSaveStatus(result);
+      if (result !== "saved") {
+        setMessage("백업은 확인했지만 브라우저에 저장하지 못했습니다. 현재 화면은 그대로 유지했습니다. 저장 공간이나 권한을 확인하고 다시 시도해 주세요.");
+        return;
+      }
+      setWorkspace(restored); setStorageBlocked(false); setOriginalWorkspace(null);
+      setMessage(`백업에서 집 후보 ${restored.applications.length}개를 복원했습니다.`);
     } catch {
       setMessage("이 파일은 Rental Pack 전체 백업으로 확인되지 않습니다. 원본 JSON 파일을 선택해 주세요.");
     } finally {
@@ -333,7 +381,21 @@ export function RentalApplicationWorkspace() {
   };
 
   return <div className="space-y-8">
-    {!firstCandidateSaved ? <form className="border-l-4 border-gold bg-gold/10 p-5 sm:p-6" onSubmit={(event) => { event.preventDefault(); saveFirstCandidate(); }} aria-labelledby="rental-first-candidate-heading"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">구매 후 첫 1분</p><h2 id="rental-first-candidate-heading" className="mt-2 text-xl font-semibold text-navy">첫 집 후보 하나를 먼저 저장하세요.</h2><p className="mt-2 text-sm leading-6 text-muted">정확한 주소는 적지 말고 “Carlton 후보 1”처럼 나만 알아볼 별칭을 사용하세요.</p><div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end"><label className="flex-1 text-sm font-semibold text-navy">첫 집 후보 별칭<input id="rental-first-candidate-label" autoComplete="off" maxLength={80} value={active.propertyLabel} onChange={(event) => updateActive({ propertyLabel: event.target.value })} className="mt-2 min-h-12 w-full border border-border bg-white px-3 text-sm font-normal text-navy outline-none focus:border-navy focus:ring-2 focus:ring-navy/15" /></label><button type="submit" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white">첫 후보 저장</button></div><p className="mt-3 min-h-5 text-sm leading-5 text-red-800" role="status" aria-live="polite">{firstCandidateMessage}</p></form> : <div className="border-l-4 border-emerald-600 bg-emerald-50 p-5 sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-6" role="status"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-800">첫 후보 저장 완료</p><h2 className="mt-2 text-xl font-semibold text-navy">{firstCandidateMessage || "첫 집 후보가 이 브라우저에 저장되어 있어요."}</h2><p className="mt-2 text-sm leading-6 text-muted">이 후보의 증빙 상태, 개인정보 확인과 다음 행동을 집별로 이어서 관리할 수 있어요.</p></div><a href="#rental-document-readiness" className="mt-4 inline-flex min-h-12 shrink-0 items-center justify-center bg-navy px-5 text-sm font-semibold text-white sm:mt-0">8개 증빙 상태 시작</a></div>}
+    <section className="border border-border bg-white p-5 sm:p-6" aria-label="브라우저 저장 상태">
+      <p id="rental-storage-status" className="text-sm font-semibold leading-6 text-navy" role="status" aria-live="polite">
+        {!loaded ? "저장된 내용을 확인하고 있습니다." : storageBlocked ? (saveStatus === "failed" ? "저장 재개 실패 · 원본 보호 상태를 유지합니다." : "저장 원본 보호 중 · 자동 저장을 중단했습니다.") : saveStatus === "failed" ? "자동 저장 실패 · 최근 수정은 아직 이 브라우저에 저장되지 않았습니다." : saveStatus === "pending" ? "최근 수정을 저장하는 중입니다." : "현재 화면 내용을 이 브라우저에 저장했습니다."}
+      </p>
+      {loaded && (storageBlocked || saveStatus === "failed") ? <>
+        <p className="mt-2 text-sm leading-6 text-muted">{storageBlocked ? "저장 원본을 읽거나 처리하지 못했습니다. 현재 화면은 원래 저장 내용과 다를 수 있습니다. 원본과 현재 화면을 각각 내려받아 확인한 뒤 저장 재개를 선택하세요." : "저장 공간이나 브라우저 권한을 확인하세요. 페이지를 닫기 전에 현재 화면을 백업하거나 저장을 다시 시도하세요."} 현재 화면 백업에는 아직 추가하지 않은 연락 입력은 포함되지 않습니다.</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" onClick={downloadBackup} className="min-h-11 border border-navy px-4 text-sm font-semibold text-navy">현재 화면 백업</button>
+          {storageBlocked ? <button type="button" onClick={downloadStorageOriginal} disabled={originalWorkspace === null} className="min-h-11 border border-border px-4 text-sm font-semibold text-navy disabled:opacity-50">저장 원본 내려받기</button> : null}
+          <button type="button" onClick={retryWorkspaceSave} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">{storageBlocked ? "현재 화면으로 저장 재개" : "저장 다시 시도"}</button>
+        </div>
+        {storageBlocked && originalWorkspace === null ? <p className="mt-2 text-xs leading-5 text-muted">브라우저에서 원본을 읽을 수 없어 원본 다운로드를 제공할 수 없습니다. 권한을 확인하고, 현재 화면 백업 없이 새로고침하지 마세요.</p> : null}
+      </> : null}
+    </section>
+    {!firstCandidateSaved ? <form className="border-l-4 border-gold bg-gold/10 p-5 sm:p-6" onSubmit={(event) => { event.preventDefault(); saveFirstCandidate(); }} aria-labelledby="rental-first-candidate-heading"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">구매 후 첫 1분</p><h2 id="rental-first-candidate-heading" className="mt-2 text-xl font-semibold text-navy">첫 집 후보 하나를 먼저 저장하세요.</h2><p className="mt-2 text-sm leading-6 text-muted">정확한 주소는 적지 말고 “Carlton 후보 1”처럼 나만 알아볼 별칭을 사용하세요.</p><div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end"><label className="flex-1 text-sm font-semibold text-navy">첫 집 후보 별칭<input id="rental-first-candidate-label" autoComplete="off" maxLength={80} value={active.propertyLabel} onChange={(event) => updateActive({ propertyLabel: event.target.value })} className="mt-2 min-h-12 w-full border border-border bg-white px-3 text-sm font-normal text-navy outline-none focus:border-navy focus:ring-2 focus:ring-navy/15" /></label><button type="submit" disabled={!loaded || storageBlocked} aria-describedby="rental-storage-status" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white disabled:opacity-50">첫 후보 저장</button></div><p className="mt-3 min-h-5 text-sm leading-5 text-red-800" role="status" aria-live="polite">{firstCandidateMessage}</p></form> : <div className="border-l-4 border-emerald-600 bg-emerald-50 p-5 sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-6" role="status"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-800">첫 후보 저장 완료</p><h2 className="mt-2 text-xl font-semibold text-navy">{firstCandidateMessage || "첫 집 후보가 이 브라우저에 저장되어 있어요."}</h2><p className="mt-2 text-sm leading-6 text-muted">이 후보의 증빙 상태, 개인정보 확인과 다음 행동을 집별로 이어서 관리할 수 있어요.</p></div><a href="#rental-document-readiness" className="mt-4 inline-flex min-h-12 shrink-0 items-center justify-center bg-navy px-5 text-sm font-semibold text-white sm:mt-0">8개 증빙 상태 시작</a></div>}
     <section className="border-y border-navy/20 bg-white py-6" aria-labelledby="rental-dashboard-heading">
       <div className="flex flex-wrap items-end justify-between gap-4 px-5 sm:px-7"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Application dashboard</p><h2 id="rental-dashboard-heading" className="mt-2 text-2xl font-semibold text-navy">집 후보와 신청 진행 상황</h2></div><div className="flex flex-wrap gap-2"><input ref={backupInputRef} type="file" accept="application/json,.json" className="sr-only" onChange={(event) => void restoreBackup(event.target.files?.[0])} /><button type="button" onClick={() => backupInputRef.current?.click()} className="min-h-11 border border-border px-4 text-sm font-semibold text-navy">백업 복원</button><button type="button" onClick={downloadBackup} className="min-h-11 border border-border px-4 text-sm font-semibold text-navy">전체 백업</button><button type="button" onClick={addApplication} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">+ 새 집 후보</button></div></div>
       <div className="mt-6 grid gap-px bg-border sm:grid-cols-3"><div className="bg-surface px-6 py-4"><p className="text-xs text-muted">관리 중</p><p className="font-mono text-2xl text-navy">{workspace.applications.length}</p></div><div className="bg-surface px-6 py-4"><p className="text-xs text-muted">제출</p><p className="font-mono text-2xl text-navy">{submittedCount}</p></div><div className="bg-surface px-6 py-4"><p className="text-xs text-muted">승인</p><p className="font-mono text-2xl text-navy">{approvedCount}</p></div></div>

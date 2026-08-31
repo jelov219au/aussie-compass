@@ -67,6 +67,17 @@ Expected: the product helps the customer prepare and minimise disclosure without
 
 Expected: a valid backup restores all candidates and the reusable profile; an invalid file changes nothing and returns a clear error. Ambiguous record identities and history exceeding the loader's capacity are rejected before parsing into workspace state or requesting replacement, rather than silently merging records or dropping history.
 
+## 5A. Local save failure and recovery
+
+1. Open a normal saved draft and confirm the local save status changes from pending to saved after an edit.
+2. With a malformed or empty stored value, confirm that initialization blocks automatic writes and retains the original. Download the original text separately from the current-screen backup.
+3. Deny browser-storage access before loading. Confirm that no write is attempted, saving remains blocked, and the UI explains why an original download is unavailable.
+4. Simulate storage quota failure after editing a loaded draft. Confirm a visible failure state, retained screen content, local backup and retry actions.
+5. Cancel the explicit replacement prompt and confirm no write or unlock. Confirm replacement while writes still fail and confirm the original and lock remain. After a successful explicit write, saving may resume.
+6. Restore a valid backup while writes fail. Keep the current screen and original unchanged; only a successful stored write may replace the screen and unlock saving.
+
+Expected: unknown or unreadable stored data is not automatically replaced with a starter workspace. Downloads stay local; the original text is not represented as a valid restorable backup. Known legacy formats still migrate, including older local v3 drafts missing fields added later. Future versions, wrong-typed records and legacy candidate lists that would lose records are held for explicit recovery instead of silently normalized away.
+
 ## 6. Refund and dispute ordering
 
 1. Grant a Rental Pack entitlement from a signed paid Checkout event.
@@ -236,3 +247,11 @@ This local continuation builds on the backup-integrity patch, without changing p
 The existing contract executes the actual TypeScript add-contact handler in an isolated Node context, rather than copying its implementation. It reproduced the original unwanted update at capacity, then passed after the fix. Cases cover adding the 50th entry with oldest-record/order preservation, rejecting a 51st entry, rejecting an already-over-capacity history, retaining pending input and candidate state, adding again after explicit removal, and rejecting an incomplete contact. Previous v2/v3 backup and identity tests still pass.
 
 Five targeted Rental contracts, strict TypeScript for the component and validator dependency graph, targeted ESLint and whitespace checks passed. Node's TypeScript-strip API emits its experimental-feature warning, and ESLint emits the known React-autodetection warning because dependencies are read from a retained runtime outside this checkout; neither is an assertion or lint failure. No dependencies, source runtime settings or package scripts were changed. No full build, development server or browser rehearsal was run. Source parity is `호환`: the same component and handler serve web, mobile and the installed PWA; visual/device behavior has not been newly exercised in a browser.
+
+## Safe local saving — 31 August 2026
+
+This local continuation adds explicit pending/saved/failed/blocked status. A reproduced startup-load failure previously continued into autosave and replaced the unreadable stored value with the initial workspace. Initialization now locks writes on failure, retains any readable original string for an exact local text download, and keeps an already-loaded draft visible if a later free-inspection handoff cannot persist. Free-handoff retry data remains intact. Regular quota/access failures are visible, with current-screen backup and retry controls.
+
+Saving over a protected original requires explicit confirmation; cancellation or another write failure leaves the original and lock intact. A valid backup restore writes successfully before replacing the screen. First-candidate saving cannot bypass the load lock; its optional success-marker failure no longer falsely reports an otherwise saved workspace as failed. The storage writer is local-only, catches getter/serialization/write failures and does not access storage when writes are disallowed. No stored schema version or payment path changed.
+
+Actual parser, lifecycle/effect and event-handler regressions cover corrupt/empty/denied loads, normal autosave and quota failure, failed handoff persistence, known legacy formats and sparse older v3 drafts, future/wrong-typed/lossy records, guarded writes, cancelled/failed/successful recovery, restore failure, first-save protection and exact original-text download. Six selected Rental/device-privacy contracts, targeted strict TypeScript, targeted ESLint and whitespace checks pass. Known Node strip-types and external-runtime React-detection warnings remain non-failing. No build, dev server or browser rehearsal was run; tests execute the source callbacks with controlled local storage, not a full browser lifecycle. Web/mobile/PWA source compatibility is `호환`, using the same existing component and storage key. Browser storage is device-specific and no cloud synchronization is claimed.
