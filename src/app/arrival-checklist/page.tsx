@@ -23,7 +23,7 @@ const groups: ProjectGroup[] = [
     { id: "bank", label: "은행 계좌 개설·카드 수령·급여 정보 확인", detail: "신분 확인이 끝났는지, 카드 배송 주소와 예상일, 전체 수수료를 확인하고 BSB·계좌번호를 Payroll에 옮긴 뒤 보안 알림을 설정하세요." },
     { id: "tfn", label: "근로 예정이라면 공식 ATO에서 TFN 신청", detail: "호주에 도착한 뒤 본인에게 맞는 신청 경로를 사용하고 TFN을 구직 사이트나 고용주 외 제3자에게 공개하지 마세요." },
     { id: "student-address", label: "학생은 학교 주소 신고 의무 확인", detail: "비자 조건과 학교 안내에서 도착 후 주소 통지 기한을 확인하고 공식 학생 포털로 업데이트하세요." },
-    { id: "usi", label: "학생은 입국 후 USI 생성 여부 확인", detail: "호주에서 VET·고등교육을 이수한다면 공식 USI 안내와 학교 요구사항을 확인하세요." },
+    { id: "usi", label: "학생은 입국 후 USI 생성 여부 확인", detail: "호주에서 VET·고등교육을 이수하는 국제학생은 입국 후 USI를 만들고 학교에 전달하세요. 출국 뒤에는 호주 비자를 이용한 신규 생성이 불가능할 수 있어 졸업·수료증 발급에 문제가 생길 수 있습니다. 기존 USI와 면제 여부는 공식 안내에서 먼저 확인하세요." },
   ]},
   { title: "첫 2주", items: [
     { id: "health", label: "의료 보장·청구 방식을 실제 항목별로 확인", detail: "OSHC·OVHC·여행보험 또는 Medicare 자격을 단정하지 말고 GP·검사·약·Ambulance의 보장, direct billing과 먼저 낼 금액을 본인 보험사와 Services Australia에서 확인하세요." },

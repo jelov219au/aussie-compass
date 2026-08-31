@@ -118,6 +118,7 @@ export default function UsedCarComparisonPage() {
           <ol className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-2">
             {buyingSteps.map(([title, description], index) => <li key={title} className="bg-white p-5 sm:p-6"><span className="font-mono text-xs text-gold-ink">{String(index + 1).padStart(2, "0")}</span><h3 className="mt-2 font-semibold text-navy">{title}</h3><p className="mt-2 text-sm leading-6 text-muted">{description}</p></li>)}
           </ol>
+          <p className="mt-5 border-l-4 border-gold bg-surface p-5 text-sm leading-7 text-muted">PPSR 확인: 2026-08-31 · 구매 당일 또는 하루 전에 차체와 대조한 VIN으로 검색하고 인증서를 보관하세요. 도난·Write-off 등 NEVDIS 정보는 누락되거나 늦게 반영될 수 있습니다. 특히 TAS 도난 정보는 PPSR에 제공되지 않으므로 Tasmania 등록 차량은 Transport Tasmania의 별도 조회도 확인해야 합니다. 아래 공식 Car Check의 NEVDIS 안내를 따르고, “기록 없음”을 기계 상태·소유권 보증으로 해석하지 마세요.</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <a href="https://www.ppsr.gov.au/carcheck" target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-navy px-5 text-sm font-semibold text-white">공식 PPSR Car Check ↗</a>
             <a href="https://www.scamwatch.gov.au/types-of-scams/buying-and-selling-scams" target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-navy px-5 text-sm font-semibold text-navy">Scamwatch 거래 사기 안내 ↗</a>

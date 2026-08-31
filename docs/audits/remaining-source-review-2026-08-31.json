@@ -1,0 +1,509 @@
+{
+  "checkedAt": "2026-08-31",
+  "baseSha": "081550adcb3f63548cda5f95b7623624e53e152d",
+  "baseline": "content-source-links-2026-08-31.json",
+  "scope": "Final 24 access-limited entries from the immutable baseline, excluding four earlier review ledgers. Destination and noted content only; not an exhaustive factual, eligibility, transaction or runtime certification.",
+  "counts": {
+    "reviewed": 24,
+    "retained": 21,
+    "replaced": 3,
+    "previousReviewed": 136,
+    "cumulativeReviewed": 160,
+    "remainingBaselineRestrictedOrNetwork": 0,
+    "unresolvedDestinations": 0
+  },
+  "reviews": [
+    {
+      "id": 1,
+      "url": "https://austroads.com.au/drivers-and-vehicles/overseas-drivers",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/app/overseas-driver-licence-guide/page.tsx",
+          "line": 69
+        }
+      ],
+      "destination": "https://austroads.com.au/drivers-and-vehicles/overseas-drivers",
+      "observedFinalUrl": "https://austroads.gov.au/drivers-and-vehicles/overseas-drivers",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Overseas drivers",
+      "note": "Austroads now redirects from .com.au to its .gov.au overseas-driver hub. It distinguishes visiting drivers from applicants and points to jurisdiction rules. Working redirect retained; do not turn its broad national summary into one deadline for every state."
+    },
+    {
+      "id": 2,
+      "url": "https://nt.gov.au/driving/licence/new-nt-residents-and-visitors/transfer-your-overseas-licence",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 121
+        }
+      ],
+      "destination": "https://nt.gov.au/driving/licence/new-nt-residents-and-visitors/transfer-your-overseas-licence",
+      "observedFinalUrl": "https://nt.gov.au/driving/licence/new-nt-residents-and-visitors/transfer-your-overseas-licence",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Transfer your overseas licence — NT",
+      "note": "Official page confirms the three-month transfer context, recognised-country list without Korea and theory/practical route. Added Class C interim limits: full NT licensed supervisor in front seat, 80 km/h maximum and zero BAC; original licence cannot bypass issued conditions."
+    },
+    {
+      "id": 3,
+      "url": "https://nt.gov.au/driving/public-transport-cycling/public-buses",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 19
+        }
+      ],
+      "destination": "https://nt.gov.au/driving/public-transport-cycling/public-buses",
+      "observedFinalUrl": "https://nt.gov.au/driving/public-transport-cycling/public-buses",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Public buses — NT",
+      "note": "Official hub links Darwin/Palmerston and Alice Springs timetables, fares, alerts, journey planner and tracker. Retained the URL and broadened the misleading Darwin-only label. No fares, departures or service coverage inferred beyond the hub."
+    },
+    {
+      "id": 4,
+      "url": "https://www.adelaidemetro.com.au/tickets-and-fares",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 16
+        }
+      ],
+      "destination": "https://www.adelaidemetro.com.au/tickets-and-fares",
+      "observedFinalUrl": "https://www.adelaidemetro.com.au/fares-and-passes",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Fares and passes — Adelaide Metro",
+      "note": "Original tickets-and-fares URL correctly redirects to the fares-and-passes hub with fares, metroCARD, Buy & Go and Tap and Pay. Retained working redirect; linked options are not a claim of universal concessions or a copied fare schedule."
+    },
+    {
+      "id": 5,
+      "url": "https://www.apsc.gov.au/working-aps/joining-aps/cracking-code/3-applying-aps-job-cracking-code",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 393
+        }
+      ],
+      "destination": "https://www.apsc.gov.au/working-aps/joining-aps/cracking-code/3-applying-aps-job-cracking-code",
+      "observedFinalUrl": "https://www.apsc.gov.au/working-aps/joining-aps/cracking-code/3-applying-aps-job-cracking-code",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Applying for an APS job — APSC",
+      "note": "Read the application, selection-criteria and STAR guidance. Existing article already limits STAR to an evidence-organising tool, distinguishes APS written applications from private-sector CV rules and prioritises advertised limits; no change needed."
+    },
+    {
+      "id": 6,
+      "url": "https://www.carsales.com.au/cars/used/",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/app/used-car-comparison/page.tsx",
+          "line": 32
+        }
+      ],
+      "destination": "https://www.carsales.com.au/cars/used/",
+      "observedFinalUrl": "https://www.carsales.com.au/cars/used/",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "marketplace-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Used, Demo and Near New cars — carsales",
+      "note": "Commercial marketplace destination and used/demo condition, location, seller and price filters confirmed. Listings include government-charge distinctions and price badges that are not valuations. Retained discovery link only, without certifying stock, sellers, prices or inspections."
+    },
+    {
+      "id": 7,
+      "url": "https://www.crimestatistics.vic.gov.au/crime-statistics/latest-crime-data-by-area",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 24
+        }
+      ],
+      "destination": "https://www.crimestatistics.vic.gov.au/crime-statistics/latest-crime-data-by-area",
+      "observedFinalUrl": "https://www.crimestatistics.vic.gov.au/crime-statistics/latest-crime-data-by-area",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Latest crime data by area — CSA Victoria",
+      "note": "Web reader received 403, but official browser displayed the correct page and crime-by-area dashboard. Read explanatory caution about legislation and police recording changes and the downloadable-data alternative. Retained source; no data extraction or suburb safety ranking."
+    },
+    {
+      "id": 8,
+      "url": "https://www.gumtree.com.au/s-cars-vans-utes/c18320",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/app/used-car-comparison/page.tsx",
+          "line": 25
+        }
+      ],
+      "destination": "https://www.gumtree.com.au/s-cars-vans-utes/c18320",
+      "observedFinalUrl": "https://www.gumtree.com.au/s-cars-vans-utes/c18320",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "marketplace-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Cars, Vans & Utes — Gumtree",
+      "note": "Commercial category page offers make, price, model, fuel and seller/advertisement-related filters; premium and featured options are visible. Retained marketplace discovery link only. No verification of any seller, vehicle, report, listing availability or comparative provider ranking."
+    },
+    {
+      "id": 9,
+      "url": "https://www.police.sa.gov.au/about-us/crime-statistics-map",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 27
+        }
+      ],
+      "destination": "https://www.police.sa.gov.au/about-us/crime-statistics-map",
+      "observedFinalUrl": "https://www.police.sa.gov.au/about-us/crime-statistics-map",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Crime statistics — SAPOL",
+      "note": "Official suburb/postcode crime map entry and rolling state totals are available. Read the explicit exclusion of sexual offences at suburb/postcode level for privacy. Added that omitted categories do not mean zero crime; no map data copied."
+    },
+    {
+      "id": 10,
+      "url": "https://www.policenews.act.gov.au/crime-statistics-and-data/crime-statistics",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 29
+        }
+      ],
+      "destination": "https://police.act.gov.au/crime-statistics",
+      "observedFinalUrl": "https://police.act.gov.au/news",
+      "action": "replaced",
+      "reason": "wrong-destination-redirect",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Crime Statistics — ACT Policing",
+      "note": "Old policenews path redirects to general news rather than statistics. Followed the official Crime Statistics navigation to police.act.gov.au/crime-statistics. Destination reports a map technical issue and downloadable statistics fallback, now reflected on the page."
+    },
+    {
+      "id": 11,
+      "url": "https://www.ppsr.gov.au/about-us/technical-information/conditions-and-terms-use/our-disclaimers",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 549
+        }
+      ],
+      "destination": "https://www.ppsr.gov.au/about-us/technical-information/conditions-and-terms-use/our-disclaimers",
+      "observedFinalUrl": "https://www.ppsr.gov.au/about-us/technical-information/conditions-and-terms-use/our-disclaimers",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Our disclaimers — PPSR",
+      "note": "Official NEVDIS disclaimer confirms incomplete or delayed data, road-agency/police ownership of the data, and lack of Tasmania stolen-vehicle data. Added limits and separate TAS follow-up; an empty record is not a vehicle-condition or ownership guarantee."
+    },
+    {
+      "id": 12,
+      "url": "https://www.ppsr.gov.au/carcheck",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/app/used-car-comparison/page.tsx",
+          "line": 122
+        },
+        {
+          "file": "src/app/used-car-comparison/page.tsx",
+          "line": 174
+        }
+      ],
+      "destination": "https://www.ppsr.gov.au/carcheck",
+      "observedFinalUrl": "https://www.ppsr.gov.au/carcheck",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Do a used car or vehicle search — PPSR Car Check",
+      "note": "Official carcheck guide confirms VIN/chassis not number plate, online $2 versus assisted-phone $7, non-refundable search fees, purchase-day/day-before timing and retained certificate. Added TAS/NEVDIS caution beside the existing official CTA; no paid search performed."
+    },
+    {
+      "id": 13,
+      "url": "https://www.ppsr.gov.au/poweredbyppsr",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 550
+        }
+      ],
+      "destination": "https://www.ppsr.gov.au/poweredbyppsr",
+      "observedFinalUrl": "https://www.ppsr.gov.au/poweredbyppsr",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Powered by PPSR",
+      "note": "Official page distinguishes government PPSR data from commercial extras and explains optional logo use and free certificate-copy checking with a search number. Added that checking an old certificate is not a fresh purchase-day search or a government warranty of extras."
+    },
+    {
+      "id": 14,
+      "url": "https://www.ppsr.gov.au/searching/do-used-car-or-vehicle-search",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 548
+        }
+      ],
+      "destination": "https://www.ppsr.gov.au/searching/do-used-car-or-vehicle-search",
+      "observedFinalUrl": "https://www.ppsr.gov.au/searching/do-used-car-or-vehicle-search",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Do a used car or vehicle search — PPSR",
+      "note": "Repeated web-reader failures were not proof of a dead link. Official browser successfully displayed the full search-information page, including VIN/chassis, fees, timing, limitations and NEVDIS sections. Original URL retained; no transaction or personal data entry."
+    },
+    {
+      "id": 15,
+      "url": "https://www.ptv.vic.gov.au/disruptions/disruptions-information/?n=",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1245
+        }
+      ],
+      "destination": "https://transport.vic.gov.au/disruptions/disruptions-information",
+      "observedFinalUrl": "https://transport.vic.gov.au/",
+      "action": "replaced",
+      "reason": "wrong-destination-redirect",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Disruptions — Transport Victoria",
+      "note": "Old PTV disruptions-information/?n= resolves to Transport Victoria home, losing the intended screen. Followed the official Disruptions link to its current dedicated page; replaced source URL and institution label. Live incident accuracy and journeys were not separately tested."
+    },
+    {
+      "id": 16,
+      "url": "https://www.ptv.vic.gov.au/getting-around/night-network/night-tram/",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1246
+        }
+      ],
+      "destination": "https://transport.vic.gov.au/plan-a-journey/travel-tips-and-resources/late-night-public-transport",
+      "observedFinalUrl": "https://transport.vic.gov.au/",
+      "action": "replaced",
+      "reason": "wrong-destination-redirect",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Late-night public transport — Transport Victoria",
+      "note": "Old PTV night-tram path resolves to the Transport Victoria homepage. Replaced it with the current official late-night public transport page, which links Night Network maps, timetables and departures. No promise that every route runs all night or every day."
+    },
+    {
+      "id": 17,
+      "url": "https://www.ptv.vic.gov.au/more/travelling-on-the-network/visiting-melbourne-and-victoria/",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1244
+        }
+      ],
+      "destination": "https://www.ptv.vic.gov.au/more/travelling-on-the-network/visiting-melbourne-and-victoria/",
+      "observedFinalUrl": "https://transport.vic.gov.au/plan-a-journey/visitors-to-victoria",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Visitors to Victoria — Transport Victoria",
+      "note": "Old PTV visitor URL correctly redirects to a current visitor hub. Retained working URL but corrected its summary: this is general trip/accessibility/fare navigation, not the direct Free Tram Zone rule. Added explicit myki tap and contactless sources for those claims."
+    },
+    {
+      "id": 18,
+      "url": "https://www.ptv.vic.gov.au/tickets/myki/",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 13
+        }
+      ],
+      "destination": "https://www.ptv.vic.gov.au/tickets/myki/",
+      "observedFinalUrl": "https://transport.vic.gov.au/tickets-and-payments/myki",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Get started with myki — Transport Victoria",
+      "note": "Original myki URL correctly redirects to Transport Victoria. Read physical and Android Mobile myki, regional rollout and contactless links. Retained URL and updated label; connected contactless source clarifies full-fare versus concession and same-payment-medium use."
+    },
+    {
+      "id": 19,
+      "url": "https://www.sa.gov.au/topics/driving-and-transport/licences/interstate-and-overseas/overseas-licence-transfer",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 82
+        }
+      ],
+      "destination": "https://www.sa.gov.au/topics/driving-and-transport/licences/interstate-and-overseas/overseas-licence-transfer",
+      "observedFinalUrl": "https://www.sa.gov.au/topics/driving-and-transport/licences/interstate-and-overseas/overseas-licence-transfer",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Transfer your overseas driver's licence — SA",
+      "note": "Official transfer page requires accepted translation formats, including NAATI digital QR, rather than treating IDP alone as conversion paperwork. Linked the public eligibility checker and verified one current Korean licence/20-or-older/over-three-years branch in browser through its all-tests result; not all combinations tested."
+    },
+    {
+      "id": 20,
+      "url": "https://www.servicesaustralia.gov.au/centrelink-online-account-help-update-address-accommodation-and-contact-details",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/app/moving-checklist/page.tsx",
+          "line": 58
+        }
+      ],
+      "destination": "https://www.servicesaustralia.gov.au/centrelink-online-account-help-update-address-accommodation-and-contact-details",
+      "observedFinalUrl": "https://www.servicesaustralia.gov.au/centrelink-online-account-help-update-address-accommodation-and-contact-details",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Centrelink update address, accommodation and contact details",
+      "note": "Official guide separates address, accommodation and contact updates, final submission and Receipt ID. Added record retention and pending-update caution; relationship/violence safety guidance prioritises relationship status before contact changes. No account accessed or update submitted."
+    },
+    {
+      "id": 21,
+      "url": "https://www.tpb.gov.au/registrations_search",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 20
+        }
+      ],
+      "destination": "https://www.tpb.gov.au/registrations_search",
+      "observedFinalUrl": "https://www.tpb.gov.au/public-register",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Public Register — Tax Practitioners Board",
+      "note": "Original registration-search path correctly redirects to the official public register, which links search and includes registration information, certain unregistered entities and public sanctions. Existing instruction to inspect current status and conditions retained; no individual practitioner endorsed."
+    },
+    {
+      "id": 22,
+      "url": "https://www.transport.tas.gov.au/licensing/interstate_or_overseas_licences/converting_an_overseas_licence",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 95
+        }
+      ],
+      "destination": "https://www.transport.tas.gov.au/licensing/interstate_or_overseas_licences/converting_an_overseas_licence",
+      "observedFinalUrl": "https://www.transport.tas.gov.au/licensing/interstate_or_overseas_licences/converting_an_overseas_licence",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Converting an overseas licence — Tasmania",
+      "note": "Official page lists recognised/non-recognised routes and knowledge/HPT/practical steps; Korea absent from current recognised list. The page retains an older experienced-driver phrase, so no automatic exemption inferred. Linked separate booking guidance: P1 online is not every assessment; other types/interpreters use Service Tasmania."
+    },
+    {
+      "id": 23,
+      "url": "https://www.usi.gov.au/students/international-students-and-students-studying-overseas",
+      "baseline": "network-error",
+      "references": [
+        {
+          "file": "src/app/arrival-checklist/page.tsx",
+          "line": 47
+        }
+      ],
+      "destination": "https://www.usi.gov.au/students/international-students-and-students-studying-overseas",
+      "observedFinalUrl": "https://www.usi.gov.au/students/international-students-and-students-studying-overseas",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "International students and students studying overseas — USI",
+      "note": "Official guidance says international students create USI after arrival, not before, and should not leave without one if required for award issue. Added departure risk while preserving existing-USI and exemption checks. Permanent-resident/Australian-ID exceptions not flattened into universal rules."
+    },
+    {
+      "id": 24,
+      "url": "https://www.vicroads.vic.gov.au/licences/convert-your-licence/convert-overseas-licence",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 43
+        }
+      ],
+      "destination": "https://www.vicroads.vic.gov.au/licences/convert-your-licence/convert-overseas-licence",
+      "observedFinalUrl": "https://www.vicroads.vic.gov.au/licences/convert-your-licence/convert-overseas-licence",
+      "action": "retained",
+      "reason": "destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Convert your overseas licence — VicRoads",
+      "note": "Official page confirms six months from first living in Victoria, including when leaving and returning. Added no-reset warning and original-licence/accepted translation or compliant IDP distinction. Requirements checker determines tests by individual country, age and history; no automatic exemption promised."
+    }
+  ],
+  "supportingSources": [
+    {
+      "url": "https://www.sa.gov.au/topics/driving-and-transport/licences/interstate-and-overseas/overseas-licence-transfer/licence-check",
+      "connected": true,
+      "method": "official-browser",
+      "note": "Public hypothetical current Korea, age 20+, over three years branch, no application submission."
+    },
+    {
+      "url": "https://www.sa.gov.au/topics/driving-and-transport/licences/interstate-and-overseas/overseas-licence-transfer/licence-check/transfer-to-full-or-provisional-with-all-tests",
+      "connected": false,
+      "method": "official-browser",
+      "note": "Observed result link: theory, three-month temporary permit, HPT/practical before expiry, certificate and accepted translation. Motorcycle class separate."
+    },
+    {
+      "url": "https://www.transport.tas.gov.au/licensing/driving_assessments",
+      "connected": true,
+      "method": "official-web-read",
+      "note": "P1 online versus other assessment and interpreter bookings at Service Tasmania."
+    },
+    {
+      "url": "https://transport.vic.gov.au/tickets-and-payments/contactless",
+      "connected": true,
+      "method": "official-web-read",
+      "note": "Full fare Visa/Mastercard; concessions keep myki; same medium on/off and V/Line rollout."
+    },
+    {
+      "url": "https://transport.vic.gov.au/tickets-and-payments/myki/tap-on-and-off-with-myki",
+      "connected": true,
+      "method": "official-web-read",
+      "note": "myki train/bus tap rules and trips wholly within Free Tram Zone; no universal tram tap-off rule inferred."
+    }
+  ]
+}

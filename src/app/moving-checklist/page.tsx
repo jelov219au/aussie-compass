@@ -25,7 +25,7 @@ const movingGroups:ProjectGroup[]=[
  ]},
  {title:"주소 변경",items:[
   {id:"licence",label:"운전면허·차량 등록",detail:"변경 기한은 주·준주 교통기관에서 확인하세요."},
-  {id:"mygov",label:"myGov 연결 서비스",detail:"ATO, Medicare, Centrelink 등 본인에게 해당하는 기관을 확인하세요."},
+  {id:"mygov",label:"myGov 연결 서비스",detail:"ATO, Medicare, Centrelink 등 해당 기관을 각각 확인하세요. Centrelink는 주소·주거비·연락처 변경을 최종 제출하고 Receipt ID와 추가 증빙 기한을 보관하세요. 반영이 늦어도 중복 제출하지 말고 접수 내역을 확인합니다. 관계 종료·폭력 위험이 있다면 연락처보다 관계 상태를 먼저 안전하게 변경하도록 공식 안내를 받으세요."},
   {id:"bank",label:"은행·카드·Super·고용주",detail:"급여, 명세서와 신원 확인 주소를 업데이트하세요."},
   {id:"health",label:"병원·약국·학교·보험",detail:"정기 연락이나 기록이 필요한 기관의 주소를 바꾸세요."},
   {id:"subscriptions",label:"쇼핑·배달·구독 서비스",detail:"이전 주소로 자동 배송되지 않도록 저장 주소를 점검하세요."},
