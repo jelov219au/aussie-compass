@@ -8,9 +8,9 @@ This document keeps public product labels aligned with the checkout and access s
 | --- | --- | --- | --- |
 | Resume Pro | Live when the production readiness contract passes | Complete and protected in production | Live one-time purchase, signed-webhook entitlement, recovery and refund revocation verified on 20 August 2026 |
 | Rental Pack Pro | Controlled release readiness | Expanded 20-candidate local workspace reconciled with current `main`; protected by its own entitlement in deployed builds | Checkout, success, recovery and release code complete; live Product and Price exist, and the product-specific switch remains off |
-| Pay Evidence Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
-| EOFY Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
-| Leaving Australia Pack Pro | Feature validation | Implemented as a local-only prototype | No public checkout or entitlement yet |
+| Pay Evidence Pack Pro | Payment-off external foundation | A$9.90 workspace, paid access and portable case archive implemented | Live catalog/Price and migrations installed with the product switch off; product-scoped exact-SHA runtime preflight implemented locally, deployment remains pending |
+| EOFY Pack Pro | Local paid-access preparation | A$9.90 Checkout, entitlement isolation, activation, recovery and workspace gate implemented locally | Migrations unapplied; no Stripe/Vercel configuration or public Checkout |
+| Leaving Australia Pack Pro | Local paid-access preparation | A$12.90 Checkout, entitlement isolation, activation, recovery and workspace gate implemented locally | Migrations unapplied; no Stripe/Vercel configuration or public Checkout |
 
 The homepage and Pro catalogue must derive Resume Pro's live label from the production payment-readiness contract. They must never infer availability from a hard-coded date or price.
 
@@ -147,6 +147,31 @@ Session cleanup in the product acceptance file.
 
 - Pay Evidence Pack Pro needs an additional employment-information review so the tool does not present an entered difference as a legal underpayment finding.
 - EOFY Pack Pro needs an additional tax-information review so it remains preparation support and does not calculate deductions or promise a refund.
-- Leaving Australia Pack Pro needs an additional migration, tax and Super review so it does not determine visa, residency or DASP eligibility.
+
+### EOFY Pack Pro review progress
+
+- The workspace remains preparation-only: it records income-source status, expense candidates, evidence state and accountant questions without calculating deductions or refunds.
+- Missing evidence, reimbursements, private-use calculation gaps and incomplete records are separated before the current-draft handoff summary can be exported.
+- The local paid-access contract pins `eofy_pro` to AUD 9.90, one-time billing, its own disabled product switch and Price variable.
+- Checkout, signed-webhook entitlement, first-sale reservation, activation, access release and one-time recovery are product-scoped and fail closed.
+- The two dated SQL migrations and catalog/migration/readiness operators are preparation artifacts only. They have not been applied or run against external services.
+
+### Leaving Australia Pack Pro review progress
+
+- The workspace remains preparation-only: it records ordered departure tasks, pending settlements, questions and closure dependencies without deciding bank closure, visa status, tax treatment, Super or DASP eligibility.
+- The local paid-access contract pins `leaving_australia_pro` to AUD 12.90, one-time billing, its own disabled product switch and Price variable.
+- Checkout, signed-webhook entitlement, first-sale reservation, activation, access release and one-time recovery are product-scoped and fail closed.
+- Shared-device deletion targets only `hoju-compass-leaving-pro-v1`; browser/PWA storage is device-specific and another device requires a one-time recovery code.
+- The two dated SQL migrations and catalog/migration/readiness operators are preparation artifacts only. They have not been applied or run against external services.
+
+### Pay Evidence Pack Pro review progress
+
+- 2026-08-30: the pay-period workspace now keeps the user-entered Gross comparison separate from the Net payment reconciliation. It records Payslip Net explicitly, compares it only with the actual bank Net, identifies missing or mismatched Net pairs, and carries both values into TXT and CSV exports. Existing local v1 drafts remain readable with the new field defaulted safely. This closes the Gross/Net comparison gap but does not complete the employment-information review or authorise payment, checkout, entitlement or public workspace access.
+- 2026-08-30: the workspace now requires a rate-basis type, checked date, source/classification note and ready evidence state before marking a user-entered Gross comparison ready to share. Employment type defaults to `Unsure`; incomplete basis records omit the estimated amount from the generated employer request and are exported as `NOT READY`. This closes the defined employment-information review gap without determining an Award, classification or legal underpayment.
+- 2026-08-30: the A$9.90 Pay Evidence product contract now has a product-specific kill switch and Price ID, fail-closed Checkout, first-sale gate, signed webhook entitlement, browser-bound activation, server-tracked access release, one-time recovery, paid workspace gate and local-data purge path. The two owner-reviewed SQL migrations and live catalog/Price were subsequently installed with the product switch still off. Exact-SHA payment-off deployment and preflight remain pending; no payment or public activation occurred.
+- 2026-08-30: the workspace can now export the complete text-based case state as a versioned JSON archive and restore it only after strict format, size, enum, count, date and identifier validation plus a separate review-and-replace confirmation. The archive carries the employer alias, rate basis, periods, shifts, evidence states and request draft; it copies only approved fields and excludes original documents and credential fields. Invalid or oversized files fail closed without changing the current local draft, making manual browser/PWA device transfer possible without an external service.
+- 2026-08-30: Vercel read-only listing confirmed the hidden Production names `STRIPE_PAY_EVIDENCE_PRO_PRICE_ID` and `PAY_EVIDENCE_PRO_PAYMENTS_ENABLED` remain present. A dedicated external-PowerShell operator packet then validated the existing live Stripe Account Read key, separate Balance Transactions Read key and least-privilege `hoju_payment_auditor` Neon URL without persisting or printing values. Both the launcher and child now prove the pinned Stripe and Neon modules load before opening any secret prompt. Runtime-key separation remains deliberately pending the exact-deployment challenge HMAC.
+- 2026-08-31: a product-scoped protected Production runtime preflight now requires the shared payment gate to remain on while the Pay Evidence switch remains off. It pins an exact protected deployment and SHA, validates the Pay Evidence live A$9.90 inclusive one-time Product/Price, rejects open Pay Evidence Sessions without blocking unrelated product Sessions, checks the Pay Evidence schema and runtime database role, verifies monitoring without mail, and proves three Stripe roles are distinct by challenge HMAC. Its launcher always opens a separate visible PowerShell window and performs dependency import gates before masked input. The implementation is read-only and creates no Session, email or transaction.
+- Next launch action: obtain explicit approval to push and deploy the reconciled exact SHA with `PAY_EVIDENCE_PRO_PAYMENTS_ENABLED=false`, then run the product-scoped command from the external PowerShell window. Do not change the shared Resume/Rental gate or the Pay Evidence switch during this check.
 
 Until each product passes the same checkout, entitlement, recovery and refund gates as Resume Pro, its production workspace remains inaccessible and its displayed amount remains a proposed price rather than a chargeable offer.

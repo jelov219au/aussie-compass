@@ -2,7 +2,10 @@ import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { EofyProCheckoutForm } from "@/components/tools/EofyProCheckoutForm";
 import { Container } from "@/components/ui/Container";
+import { canCreateEofyTestCheckout, getEofyPaymentReadiness } from "@/lib/commerce";
+import { normalizeEofyProEntry } from "@/lib/eofyProAttribution";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -36,15 +39,33 @@ function DocumentPreview() {
   </div>;
 }
 
-export default function EofyProPage() {
+export const dynamic = "force-dynamic";
+
+type Props = { searchParams: Promise<{ access?: string; checkout?: string; from?: string | string[] }> };
+
+export default async function EofyProPage({ searchParams }: Props) {
+  const { access, checkout, from } = await searchParams;
+  const paymentReadiness = getEofyPaymentReadiness();
+  const testCheckoutAvailable = canCreateEofyTestCheckout();
+  const checkoutAvailable = paymentReadiness.ready || testCheckoutAvailable;
+  const entry = normalizeEofyProEntry(Array.isArray(from) ? from[0] : from ?? null);
+
   return <>
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "택스 리턴 준비", path: "/tax-return-guide" }, { name: "EOFY Pack Pro", path: "/eofy-pro" }]} />
     <Header />
     <main>
       <section className="border-b border-navy/15 py-12 sm:py-20"><Container>
         <Link href="/tax-return-guide" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 택스 리턴 가이드로 돌아가기</Link>
-        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end"><div className="max-w-3xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">EOFY Pack Pro · 미리보기</p><h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">영수증은 안전하게,<br /><span className="font-normal text-navy-light">준비한 내용은 한눈에.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">어떤 소득 자료와 공제 증빙을 가지고 있는지 정리하고, 궁금한 내용은 따로 모아 직접 신고하거나 세무사와 상담할 때 활용할 수 있어요.</p></div><aside className="border-l-2 border-gold pl-6"><p className="text-sm font-semibold text-muted">검토 중인 1회 가격</p><p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$9.90</p><p className="mt-2 text-sm leading-6 text-muted">구독 없이 한 회계연도의 준비 내용을 정리하는 방식이에요.</p></aside></div>
-        <div className="mt-10 flex flex-wrap gap-3"><Link href="/tax-return-guide" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 체크리스트 사용</Link><span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">Pro 작업 공간 출시 준비 중</span></div>
+        {access === "required" && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">이 기기의 EOFY Pack Pro 접근이 만료됐거나 확인되지 않았습니다. 결제 완료 화면에서 다시 열거나 이용권 복구를 사용해 주세요.</div>}
+        {access === "released" && <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status"><p>이 기기의 EOFY Pack Pro 접근을 안전하게 해제했습니다. 구매 이용권은 유지됩니다.</p><Link href="/data-transfer#eofy-delete-heading" className="mt-3 inline-flex min-h-11 items-center font-semibold underline decoration-gold underline-offset-4">EOFY 로컬 기록 삭제</Link></div>}
+        {checkout === "cancelled" && <div className="mt-5 border-l-2 border-navy/40 bg-white p-4 text-sm leading-6 text-navy" role="status">Stripe 결제 창에서 돌아왔습니다. 상태가 불명확하면 다시 결제하지 말고 <Link href="/payment-help" className="font-semibold underline decoration-gold underline-offset-4">결제 상태 확인 순서</Link>를 이용하세요.</div>}
+        {checkout === "checkout_already_purchased" && <div className="mt-5 border-l-2 border-emerald-600 bg-white p-4 text-sm leading-6 text-navy" role="status">이 기기의 이용권을 확인했습니다. <Link href="/eofy-pro/workspace" className="font-semibold underline decoration-gold underline-offset-4">작업 공간에서 계속해 주세요</Link>.</div>}
+        {(checkout === "checkout_retry_later" || checkout === "checkout_sales_closed") && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">다른 결제 확인 또는 통제된 첫 결제가 진행 중입니다. 새 결제를 시작하지 말고 잠시 뒤 확인해 주세요.</div>}
+        {(checkout === "checkout_unavailable" || checkout === "checkout_support_required" || checkout === "checkout_failed") && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">현재 결제를 안전하게 시작할 수 없습니다. Stripe 화면을 이미 봤다면 재결제하지 말고 <Link href="/payment-help" className="font-semibold underline decoration-gold underline-offset-4">결제 상태 확인 순서</Link>를 이용하세요.</div>}
+        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem] lg:items-end"><div className="max-w-3xl"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">EOFY Pack Pro</p><h1 className="mt-4 text-3xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy [word-break:keep-all] sm:text-6xl">영수증은 안전하게,<br /><span className="font-normal text-navy-light">준비한 내용은 한눈에.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">어떤 소득 자료와 공제 증빙을 가지고 있는지 정리하고, 궁금한 내용은 따로 모아 직접 신고하거나 세무사와 상담할 때 활용할 수 있어요.</p></div><aside className="border-l-2 border-gold pl-6"><p className="text-sm font-semibold text-muted">{checkoutAvailable ? "1회 가격" : "결제 미오픈"}</p><p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$9.90</p><p className="mt-2 text-sm leading-6 text-muted">구독 없이 한 회계연도의 준비 내용을 정리하는 방식이에요.</p></aside></div>
+        <div className="mt-10 flex flex-wrap gap-3"><Link href="/tax-return-guide" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">무료 체크리스트 사용</Link><Link href="/eofy-pro/restore" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 text-sm font-semibold text-navy">이용권 복구</Link>{!checkoutAvailable && <span className="inline-flex min-h-12 items-center border border-border bg-white px-5 text-sm font-semibold text-muted">외부 결제 설정 전</span>}</div>
+        {checkoutAvailable && <div id="eofy-pro-checkout" className="mt-5 scroll-mt-24"><EofyProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
+        <p className="mt-4 text-xs leading-5 text-muted">{testCheckoutAvailable ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다." : checkoutAvailable ? "결제는 Stripe의 보안 결제 페이지에서 진행되며 결제와 이용권 확인 뒤 작업 공간을 열 수 있어요." : "결제는 Stripe·Neon 설정과 출시 승인이 완료될 때까지 닫혀 있습니다."}</p>
       </Container></section>
 
       <section className="py-14 sm:py-20"><Container><div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">회계사에게 설명하기 쉽게</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">자료만 건네기보다,<br />궁금한 점도 함께 정리해요.</h2><p className="mt-4 text-sm leading-7 text-muted">원본 영수증과 금융자료는 내가 안전하게 보관하고, 어떤 자료가 있는지와 무엇을 확인하고 싶은지 짧게 정리할 수 있어요. 복잡한 세무 판단을 대신하지는 않아요.</p></div><DocumentPreview /></div></Container></section>

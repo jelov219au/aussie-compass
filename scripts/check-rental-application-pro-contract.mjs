@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const checkout = await readFile(new URL("../src/app/api/checkout/rental-application-pro/route.ts", import.meta.url), "utf8");
+// Keep exact safety assertions independent of the checkout's Windows line endings.
+const checkout = (await readFile(new URL("../src/app/api/checkout/rental-application-pro/route.ts", import.meta.url), "utf8")).replace(/\r\n/g, "\n");
 const offerPage = await readFile(new URL("../src/app/rental-application-pro/page.tsx", import.meta.url), "utf8");
 const checkoutForm = await readFile(new URL("../src/components/tools/RentalApplicationProCheckoutForm.tsx", import.meta.url), "utf8");
 const commerce = await readFile(new URL("../src/lib/commerce.ts", import.meta.url), "utf8");

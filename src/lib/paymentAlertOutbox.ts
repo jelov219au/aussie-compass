@@ -13,7 +13,7 @@ export type PaymentOperatorAlertIntent = {
   alertKind: PaymentOperatorAlertKind;
   eventType: string;
   eventRefLast8: string;
-  productCode?: "resume_pro" | "rental_application_pro";
+  productCode?: "resume_pro" | "rental_application_pro" | "pay_evidence_pro" | "eofy_pro" | "leaving_australia_pro";
   checkoutRefLast8?: string;
   paymentIntentRefLast8?: string;
   chargeRefLast8?: string;
@@ -35,7 +35,7 @@ export interface PaymentOperatorAlertOutboxStore {
     eventId: string;
     eventType: string;
     livemode: boolean;
-    productCode: "resume_pro" | "rental_application_pro";
+    productCode: "resume_pro" | "rental_application_pro" | "pay_evidence_pro" | "eofy_pro" | "leaving_australia_pro";
     checkoutSessionId: string;
     paymentIntentId: string;
   }): Promise<void>;
