@@ -11,6 +11,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function hasUniqueIds(values: unknown[]) {
+  const ids = new Set<string>();
+  for (const value of values) {
+    if (!isRecord(value) || typeof value.id !== "string" || value.id.trim() === "" || ids.has(value.id)) return false;
+    ids.add(value.id);
+  }
+  return true;
+}
+
 function hasOnlyValues(value: unknown, predicate: (item: unknown) => boolean) {
   return isRecord(value) && Object.values(value).every(predicate);
 }
@@ -42,7 +51,8 @@ function isApplication(value: unknown, version: 2 | 3) {
   if (value.privacyChecks !== undefined && !hasOnlyValues(value.privacyChecks, (checked) => typeof checked === "boolean")) return false;
   if (value.messages !== undefined && !isMessages(value.messages)) return false;
   if (value.inspectionReceipt !== undefined && !isInspectionReceipt(value.inspectionReceipt)) return false;
-  if (value.followUps !== undefined && (!Array.isArray(value.followUps) || !value.followUps.every((entry) => isRecord(entry)
+  // The workspace loader retains at most 50 entries; reject rather than truncate a backup.
+  if (value.followUps !== undefined && (!Array.isArray(value.followUps) || value.followUps.length > 50 || !hasUniqueIds(value.followUps) || !value.followUps.every((entry) => isRecord(entry)
     && typeof entry.id === "string" && entry.id.trim() !== ""
     && typeof entry.date === "string"
     && typeof entry.summary === "string"
@@ -58,6 +68,7 @@ export function isRentalWorkspaceBackup(value: unknown, maximumApplications = 20
   if (!isRecord(value) || (value.version !== 2 && value.version !== 3)) return false;
   if (!Array.isArray(value.applications) || value.applications.length === 0 || value.applications.length > maximumApplications) return false;
   if (!value.applications.every((application) => isApplication(application, value.version as 2 | 3))) return false;
+  if (!hasUniqueIds(value.applications)) return false;
   if (value.activeId !== undefined && typeof value.activeId !== "string") return false;
   if (value.profile !== undefined && !isProfile(value.profile)) return false;
   if (value.evidenceLibrary !== undefined && (!isRecord(value.evidenceLibrary) || !Object.values(value.evidenceLibrary).every((entry) => isRecord(entry)

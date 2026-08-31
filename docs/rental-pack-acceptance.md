@@ -39,6 +39,14 @@ Expected: repeated evidence preparation is reduced without accidentally carrying
 
 Expected: overdue, today and near-term actions are visibly prioritised; completed candidates no longer show an action warning.
 
+## 3A. Contact history capacity
+
+1. With 49 contact records for a candidate, add another and confirm that all 50 records remain in their original order.
+2. At 50 records, confirm that the count and backup guidance are visible and the add button is disabled. An attempted insertion must not remove the oldest record, change the candidate stage or clear unfinished input.
+3. Save the whole-workspace backup, deliberately remove an unneeded contact and add the pending contact. Unsubmitted input is not included in the backup.
+
+Expected: contact history is never automatically evicted to make room for a new entry. Only the user's explicit deletion makes room. The same client-side flow applies on web, mobile and the installed PWA.
+
 ## 4. Privacy mistake prevention
 
 1. Review every privacy check before submission.
@@ -54,8 +62,21 @@ Expected: the product helps the customer prepare and minimise disclosure without
 2. Add or change a candidate.
 3. Restore the original backup and confirm the replacement warning.
 4. Attempt to restore an unrelated or malformed JSON file.
+5. Attempt backups with duplicate candidate IDs, duplicate follow-up IDs within one candidate, and more than 50 follow-up records for one candidate.
+6. Restore a valid v2 or v3 backup with 20 distinct candidates and 50 follow-up records each; the same follow-up ID in different candidates is allowed.
 
-Expected: a valid backup restores all candidates and the reusable profile; an invalid file changes nothing and returns a clear error.
+Expected: a valid backup restores all candidates and the reusable profile; an invalid file changes nothing and returns a clear error. Ambiguous record identities and history exceeding the loader's capacity are rejected before parsing into workspace state or requesting replacement, rather than silently merging records or dropping history.
+
+## 5A. Local save failure and recovery
+
+1. Open a normal saved draft and confirm the local save status changes from pending to saved after an edit.
+2. With a malformed or empty stored value, confirm that initialization blocks automatic writes and retains the original. Download the original text separately from the current-screen backup.
+3. Deny browser-storage access before loading. Confirm that no write is attempted, saving remains blocked, and the UI explains why an original download is unavailable.
+4. Simulate storage quota failure after editing a loaded draft. Confirm a visible failure state, retained screen content, local backup and retry actions.
+5. Cancel the explicit replacement prompt and confirm no write or unlock. Confirm replacement while writes still fail and confirm the original and lock remain. After a successful explicit write, saving may resume.
+6. Restore a valid backup while writes fail. Keep the current screen and original unchanged; only a successful stored write may replace the screen and unlock saving.
+
+Expected: unknown or unreadable stored data is not automatically replaced with a starter workspace. Downloads stay local; the original text is not represented as a valid restorable backup. Known legacy formats still migrate, including older local v3 drafts missing fields added later. Future versions, wrong-typed records and legacy candidate lists that would lose records are held for explicit recovery instead of silently normalized away.
 
 ## 6. Refund and dispute ordering
 
@@ -208,3 +229,29 @@ POST returns HTTP 503 with `Cache-Control: no-store`. No Rental candidate was
 promoted over that concurrent source. The sole unpaid Session is scheduled to
 expire at 30 August 2026 00:52:17 AEST; confirm Stripe reports it expired before
 closing this record.
+
+## Backup record integrity — 31 August 2026
+
+Local source-only improvement; this is not a deployment or payment activation record.
+
+The restore validator previously accepted duplicate candidate IDs, which made ID-based edits affect multiple candidates. It also accepted duplicate follow-up IDs within one candidate, where ID-based removal could delete more than the selected entry, and more than 50 contact records, which the workspace loader silently truncated.
+
+Both supported backup versions now require unique candidate IDs and unique follow-up IDs within each candidate, and reject contact histories above the existing 50-entry limit. IDs remain scoped per candidate: different candidates can retain the same contact ID or property label. Valid 20-candidate / 50-contact-per-candidate backups and legacy v2 records without contact history remain accepted. Validation is read-only and the existing restore flow rejects invalid files before normalization, replacement confirmation or workspace mutation. No schema version, stored-draft migration, UI, payment gate or server request changed. Rejected files are not automatically repaired; keep the original backup for review.
+
+The existing Rental Pack contract now reproduces the former duplicate-ID acceptance failure and covers both backup versions, duplicate identities, 50/51-entry boundaries, the maximum supported workspace, scoped IDs and non-mutation. The expanded workspace/legacy-migration, access-token, ready-now path and privacy-minimised handoff contracts pass. Targeted strict TypeScript and ESLint pass; ESLint's React autodetection emits an environment-only warning because the preserved checkout has no React installation, and no React component was changed. Dependencies were read from the already retained validation runtime without modifying or linking them. No full build or browser session was started. Web/mobile/installed-PWA source compatibility is `호환`: all surfaces use the same existing client-side restore validator.
+
+## Contact history capacity protection — 31 August 2026
+
+This local continuation builds on the backup-integrity patch, without changing payment or deployment state. Previously, the live add-contact handler retained only the last 50 entries, so a 51st addition silently dropped the oldest contact. The handler now rejects insertion at capacity before creating a record or updating the candidate. It leaves unfinished input intact. The common workspace shows the count, disables the add button at 50, and provides whole-workspace backup and explicit-cleanup guidance. The backup action uses the existing local download function and clearly excludes unsubmitted input; no record is automatically deleted.
+
+The existing contract executes the actual TypeScript add-contact handler in an isolated Node context, rather than copying its implementation. It reproduced the original unwanted update at capacity, then passed after the fix. Cases cover adding the 50th entry with oldest-record/order preservation, rejecting a 51st entry, rejecting an already-over-capacity history, retaining pending input and candidate state, adding again after explicit removal, and rejecting an incomplete contact. Previous v2/v3 backup and identity tests still pass.
+
+Five targeted Rental contracts, strict TypeScript for the component and validator dependency graph, targeted ESLint and whitespace checks passed. Node's TypeScript-strip API emits its experimental-feature warning, and ESLint emits the known React-autodetection warning because dependencies are read from a retained runtime outside this checkout; neither is an assertion or lint failure. No dependencies, source runtime settings or package scripts were changed. No full build, development server or browser rehearsal was run. Source parity is `호환`: the same component and handler serve web, mobile and the installed PWA; visual/device behavior has not been newly exercised in a browser.
+
+## Safe local saving — 31 August 2026
+
+This local continuation adds explicit pending/saved/failed/blocked status. A reproduced startup-load failure previously continued into autosave and replaced the unreadable stored value with the initial workspace. Initialization now locks writes on failure, retains any readable original string for an exact local text download, and keeps an already-loaded draft visible if a later free-inspection handoff cannot persist. Free-handoff retry data remains intact. Regular quota/access failures are visible, with current-screen backup and retry controls.
+
+Saving over a protected original requires explicit confirmation; cancellation or another write failure leaves the original and lock intact. A valid backup restore writes successfully before replacing the screen. First-candidate saving cannot bypass the load lock; its optional success-marker failure no longer falsely reports an otherwise saved workspace as failed. The storage writer is local-only, catches getter/serialization/write failures and does not access storage when writes are disallowed. No stored schema version or payment path changed.
+
+Actual parser, lifecycle/effect and event-handler regressions cover corrupt/empty/denied loads, normal autosave and quota failure, failed handoff persistence, known legacy formats and sparse older v3 drafts, future/wrong-typed/lossy records, guarded writes, cancelled/failed/successful recovery, restore failure, first-save protection and exact original-text download. Six selected Rental/device-privacy contracts, targeted strict TypeScript, targeted ESLint and whitespace checks pass. Known Node strip-types and external-runtime React-detection warnings remain non-failing. No build, dev server or browser rehearsal was run; tests execute the source callbacks with controlled local storage, not a full browser lifecycle. Web/mobile/PWA source compatibility is `호환`, using the same existing component and storage key. Browser storage is device-specific and no cloud synchronization is claimed.
