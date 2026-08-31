@@ -16,9 +16,9 @@ export default function InstallPage() {
       <Container>
         <Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 홈으로 돌아가기</Link>
         <section className="mt-7 rounded-3xl bg-navy p-5 text-white sm:p-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Keep it within reach</p>
-          <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">필요할 때 바로 여는<br />나의 호주 생활 앱.</h1>
-          <p className="mt-5 max-w-2xl leading-7 text-white/80">별도 앱스토어 다운로드 없이 이 웹사이트를 홈 화면에 추가하세요. 설치와 기본 도구 이용에는 Hoju Compass 계정이 필요하지 않습니다. 웹과 앱에서 같은 주소와 도구를 사용합니다.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">내 휴대폰에 Hoju Compass</p>
+          <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">홈 화면에서<br />바로 열어요.</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/80 sm:text-base">앱스토어 다운로드나 Hoju Compass 계정 없이 추가할 수 있어요. 설치하지 않아도 같은 도구를 쓸 수 있습니다.</p>
           <InstallAppButton />
         </section>
 
@@ -44,12 +44,18 @@ export default function InstallPage() {
             <article className="rounded-2xl border border-border bg-white p-5 sm:p-6">
               <p className="font-mono text-xs text-gold-ink">ANDROID · CHROME</p>
               <h3 className="mt-2 text-xl font-semibold text-navy">Chrome 메뉴에서 설치</h3>
+              <p className="mt-3 text-sm leading-6 text-muted">Android는 Chrome에서 이 주소를 직접 열어 진행하세요.</p>
               <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm leading-7 text-muted">
                 <li>Chrome에서 Hoju Compass를 엽니다.</li>
                 <li>주소 표시줄 옆 더 보기 메뉴를 누릅니다.</li>
                 <li>‘설치 및 바로가기 만들기’ → ‘설치’를 선택합니다. 버전에 따라 ‘앱 설치’ 또는 ‘홈 화면에 추가’로 표시될 수 있습니다.</li>
                 <li>화면의 설치 안내를 확인한 뒤 홈 화면에서 아이콘을 찾아보세요.</li>
               </ol>
+              <details className="group mt-5 rounded-xl border border-border bg-surface p-4">
+                <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 text-sm font-semibold text-navy"><span>‘출처를 알 수 없는 앱’ 경고가 뜨나요?</span><span className="shrink-0 text-lg group-open:rotate-45" aria-hidden="true">＋</span></summary>
+                <p className="mt-3 text-sm leading-7 text-muted">삼성 인터넷 등에서 설치 출처 경고가 나오면 설치를 멈추세요. 보안 차단을 끄거나 알 수 없는 앱 설치를 허용하도록 안내하지 않습니다. Chrome에서 설치 안내를 확인하거나 설치 없이 웹으로 이용하세요.</p>
+                <p className="mt-3 text-xs leading-6 text-muted">경고 문구만으로 악성 앱 판정 여부나 안전성을 단정할 수 없습니다. Chrome에서도 경고가 나오면 진행하지 말고 기기·브라우저 정보와 경고 문구를 확인해 주세요.</p>
+              </details>
               <a href="https://support.google.com/chrome/answer/9658361?hl=en&co=GENIE.Platform%3DAndroid" target="_blank" rel="noreferrer" className="mt-5 inline-flex min-h-11 items-center rounded-lg border border-border px-3 text-sm font-semibold text-navy hover:bg-surface">Chrome 공식 안내 ↗<span className="sr-only"> (새 창)</span></a>
             </article>
           </div>

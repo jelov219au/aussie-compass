@@ -6,7 +6,7 @@ import { ArticlesSection } from "@/components/sections/ArticlesSection";
 import { ReturnVisitSection } from "@/components/sections/ReturnVisitSection";
 import { PersonalRouteFinder } from "@/components/sections/PersonalRouteFinder";
 import { PremiumToolsSection } from "@/components/sections/PremiumToolsSection";
-import { HomeSearch } from "@/components/sections/HomeSearch";
+import { HomeInstallBanner } from "@/components/sections/HomeInstallBanner";
 import { HomeTrustBar } from "@/components/sections/HomeTrustBar";
 
 export default function HomePage() {
@@ -15,7 +15,7 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
-        <HomeSearch />
+        <HomeInstallBanner />
         <ToolsSection />
         <PersonalRouteFinder />
         <ReturnVisitSection />

@@ -6,6 +6,7 @@ import { Container } from "@/components/ui/Container";
 import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory } from "@/lib/articleProgress";
 import { RAIL_WORK_ALERT_STORAGE_KEY } from "@/lib/railWorkAlerts";
 import { taxPrepRecordsStorageKey } from "@/lib/taxPrepStorage";
+import installStyles from "./HomeInstallBanner.module.css";
 
 const progressKeys = [
   "visa-preparation-project",
@@ -61,16 +62,16 @@ export function ReturnVisitSection() {
             <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-sm text-gold-ink" aria-hidden="true">↗</span>
             <div>
               <p className="font-semibold text-navy">
-                {count && count > 0 ? `전에 보던 ${count}개의 기록이 이 기기에 남아 있어요.` : "오늘 시작한 일은 다음에 다시 이어볼 수 있어요."}
+                {count && count > 0 ? `이 기기의 기록 ${count}개, 이어서 볼까요?` : "시작한 일을 다시 이어보세요."}
               </p>
               <p className="mt-1 text-sm leading-6 text-muted">
-                체크리스트와 계산 결과, 이력서, 읽은 자료를 로그인 없이 한곳에서 모아볼 수 있어요.
+                기록은 현재 기기에 저장돼요. 기기 간 자동 동기화는 아니에요.
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
             <TrackedLink href="/my-compass" eventName="Home Navigation" properties={{ section: "return_visit", destination: "my_compass" }} className="inline-flex min-h-11 items-center text-navy">이어서 보기 →</TrackedLink>
-            <TrackedLink href="/install" eventName="Home Navigation" properties={{ section: "return_visit", destination: "install" }} className="inline-flex min-h-11 items-center text-muted hover:text-navy">홈 화면에 추가</TrackedLink>
+            <TrackedLink href="/install" eventName="Home Navigation" properties={{ section: "return_visit", destination: "install" }} className={`${installStyles.prompt} inline-flex min-h-11 items-center text-muted hover:text-navy`}>홈 화면에 추가</TrackedLink>
           </div>
         </div>
       </Container>

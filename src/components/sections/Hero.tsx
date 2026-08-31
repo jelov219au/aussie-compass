@@ -1,49 +1,34 @@
-import { getContent } from "@/content";
-import { Button } from "@/components/ui/Button";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Container } from "@/components/ui/Container";
 import { AustralianSky } from "@/components/brand/AustralianSky";
 import { AustralianFlagBackdrop } from "@/components/brand/AustralianFlagBackdrop";
+import { HomeSearch } from "@/components/sections/HomeSearch";
 
 export function Hero() {
-  const content = getContent();
-
   return (
-    <section className="relative overflow-hidden border-b border-border bg-[#edf3f2] py-14 sm:py-20 lg:py-24">
+    <section className="relative overflow-hidden border-b border-border bg-[#edf3f2] py-7 sm:py-12 lg:py-16">
       <AustralianFlagBackdrop />
-      <div className="pointer-events-none absolute -left-20 top-20 h-64 w-64 rounded-full bg-[#d6e6e4]/65 blur-3xl" aria-hidden="true" />
       <Container>
-        <div className="relative grid items-center gap-12 lg:grid-cols-[minmax(0,1.12fr)_minmax(19rem,0.72fr)] lg:gap-16">
-          <div className="max-w-4xl">
-            <div className="mb-6 flex items-center gap-3">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-navy text-gold" aria-hidden="true">✦</span>
-              <p className="text-xs font-semibold tracking-[0.14em] text-[#874b32]">
-                {content.hero.label}
-              </p>
-            </div>
-            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.14] tracking-[-0.035em] text-navy sm:text-5xl lg:text-6xl">
-              <span className="block">호주 생활,</span>
-              <span className="block font-normal text-navy-light">필요한 순간에</span>
-              <span className="block font-normal text-navy-light">바로 찾으세요.</span>
-            </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-muted sm:text-lg">
-              {content.hero.description}
+        <div className="relative grid items-center gap-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(17rem,0.7fr)] lg:gap-16">
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 text-xs font-semibold text-[#874b32]">
+              <span aria-hidden="true">✦</span> 낯선 호주 생활, 든든한 길잡이
             </p>
-
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Button href="#route-finder" eventName="Home Navigation" properties={{ section: "hero", destination: "route_finder" }}>
-                {content.hero.primaryCta} <span aria-hidden="true">→</span>
-              </Button>
-              <Button href="/tools" variant="secondary" eventName="Home Navigation" properties={{ section: "hero", destination: "tools" }}>
-                {content.hero.secondaryCta}
-              </Button>
+            <h1 className="mt-4 text-[2rem] font-semibold tracking-[-0.035em] text-navy sm:text-5xl lg:text-6xl">
+              호주 생활,<br />필요한 것부터.
+            </h1>
+            <p className="mt-3 max-w-lg text-sm leading-6 text-muted sm:mt-5 sm:text-base">
+              집, 일자리, 생활비.<br className="sm:hidden" /> 지금 필요한 정보와 도구를 찾아보세요.
+            </p>
+            <HomeSearch />
+            <div className="mt-2 flex flex-wrap gap-x-5 text-sm font-semibold text-navy">
+              <TrackedLink href="#route-finder" eventName="Home Navigation" properties={{ section: "hero", destination: "route_finder" }} className="inline-flex min-h-11 items-center rounded-sm hover:underline">내 상황에 맞춰보기 <span className="ml-2" aria-hidden="true">↓</span></TrackedLink>
+              <TrackedLink href="/tools" eventName="Home Navigation" properties={{ section: "hero", destination: "tools" }} className="inline-flex min-h-11 items-center rounded-sm hover:underline">전체 도구 <span className="ml-2" aria-hidden="true">→</span></TrackedLink>
             </div>
-            <ul className="mt-7 grid max-w-2xl gap-2 text-sm text-navy sm:grid-cols-3" aria-label="Hoju Compass 정보 원칙">
-              {["공식 원문 연결", "한국어 실행 순서", "로그인 없이 바로 사용"].map((item) => <li key={item} className="flex min-h-11 items-center gap-2 rounded-xl border border-navy/15 bg-white/70 px-3"><span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gold text-xs font-bold text-navy" aria-hidden="true">✓</span>{item}</li>)}
-            </ul>
-            <p className="mt-5 text-xs leading-6 text-muted">입력한 내용은 별도 안내가 없는 한 현재 기기에만 남아요.</p>
+            <p className="mt-2 text-xs leading-5 text-muted">공식 원문 연결 · 로그인 없이 바로 사용</p>
           </div>
 
-          <AustralianSky />
+          <div className="hidden lg:block"><AustralianSky /></div>
         </div>
       </Container>
     </section>

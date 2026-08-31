@@ -1,0 +1,7 @@
+/* Installation is optional. Hide the invitation on installed surfaces without
+   reading storage, detecting a browser brand, or prompting automatically. */
+@media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+  .prompt {
+    display: none;
+  }
+}
