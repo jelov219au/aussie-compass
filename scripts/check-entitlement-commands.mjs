@@ -76,6 +76,66 @@ assert.equal(
   "a Rental-priced Checkout mislabeled as Resume must never grant Resume access",
 );
 
+const payEvidencePaidCommand = getEntitlementCommand(stripeEvent("checkout.session.completed", {
+  ...paidSession,
+  id: "cs_test_pay_evidence_paid",
+  metadata: { product_code: "pay_evidence_pro" },
+  payment_intent: "pi_pay_evidence_paid",
+  customer: "cus_pay_evidence_paid",
+  amount_total: 990,
+}, "evt_pay_evidence_checkout_completed"));
+assert.equal(payEvidencePaidCommand?.productCode, "pay_evidence_pro");
+assert.equal(payEvidencePaidCommand?.amountTotal, 990);
+assert.equal(matchesCheckoutProductEntitlementContract(payEvidencePaidCommand), true);
+assert.equal(
+  matchesCheckoutProductEntitlementContract(getEntitlementCommand(stripeEvent("checkout.session.completed", {
+    ...paidSession,
+    metadata: { product_code: "pay_evidence_pro" },
+  }))),
+  false,
+  "a Resume-priced Checkout mislabeled as Pay Evidence must never grant Pay Evidence access",
+);
+
+const eofyPaidCommand = getEntitlementCommand(stripeEvent("checkout.session.completed", {
+  ...paidSession,
+  id: "cs_test_eofy_paid",
+  metadata: { product_code: "eofy_pro" },
+  payment_intent: "pi_eofy_paid",
+  customer: "cus_eofy_paid",
+  amount_total: 990,
+}, "evt_eofy_checkout_completed"));
+assert.equal(eofyPaidCommand?.productCode, "eofy_pro");
+assert.equal(eofyPaidCommand?.amountTotal, 990);
+assert.equal(matchesCheckoutProductEntitlementContract(eofyPaidCommand), true);
+assert.equal(
+  matchesCheckoutProductEntitlementContract(getEntitlementCommand(stripeEvent("checkout.session.completed", {
+    ...paidSession,
+    metadata: { product_code: "eofy_pro" },
+  }))),
+  false,
+  "a Resume-priced Checkout mislabeled as EOFY must never grant EOFY access",
+);
+
+const leavingAustraliaPaidCommand = getEntitlementCommand(stripeEvent("checkout.session.completed", {
+  ...paidSession,
+  id: "cs_test_leaving_australia_paid",
+  metadata: { product_code: "leaving_australia_pro" },
+  payment_intent: "pi_leaving_australia_paid",
+  customer: "cus_leaving_australia_paid",
+  amount_total: 1290,
+}, "evt_leaving_australia_checkout_completed"));
+assert.equal(leavingAustraliaPaidCommand?.productCode, "leaving_australia_pro");
+assert.equal(leavingAustraliaPaidCommand?.amountTotal, 1290);
+assert.equal(matchesCheckoutProductEntitlementContract(leavingAustraliaPaidCommand), true);
+assert.equal(
+  matchesCheckoutProductEntitlementContract(getEntitlementCommand(stripeEvent("checkout.session.completed", {
+    ...paidSession,
+    metadata: { product_code: "leaving_australia_pro" },
+  }))),
+  false,
+  "a Resume-priced Checkout mislabeled as Leaving Australia must never grant Leaving Australia access",
+);
+
 assert.equal(
   getEntitlementCommand(stripeEvent("checkout.session.completed", { ...paidSession, metadata: { product_code: "other" } })),
   null,

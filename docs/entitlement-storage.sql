@@ -67,7 +67,7 @@ alter table purchase_entitlements
   add constraint purchase_entitlements_product_code_check
   check (product_code in (
     'resume_pro', 'rental_application_pro',
-    'car_buy_pro', 'eofy_pro', 'pay_evidence_pro'
+    'car_buy_pro', 'eofy_pro', 'leaving_australia_pro', 'pay_evidence_pro'
   ));
 
 create index if not exists purchase_entitlements_customer_idx
