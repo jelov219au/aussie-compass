@@ -5,6 +5,24 @@ export const rentalApplicationProWorkspaceStorageKey = "hoju-compass-rental-appl
 export const rentalApplicationProFirstSuccessStorageKey = "hoju-compass-rental-application-pro-first-success-v1";
 export const rentalApplicationProHandoffStorageKey = "hoju-compass-rental-ready-now-handoff-v1";
 
+export type RentalWorkspaceSaveResult = "saved" | "failed" | "blocked";
+
+export function writeRentalWorkspace(
+  getStorage: () => Pick<Storage, "setItem">,
+  workspace: unknown,
+  canWrite: boolean,
+): RentalWorkspaceSaveResult {
+  if (!canWrite) return "blocked";
+  try {
+    const content = JSON.stringify(workspace);
+    if (typeof content !== "string") return "failed";
+    getStorage().setItem(rentalApplicationProWorkspaceStorageKey, content);
+    return "saved";
+  } catch {
+    return "failed";
+  }
+}
+
 export const rentalApplicationProTransferableStorageKeys = [
   propertyInspectionStorageKey,
   rentalApplicationProWorkspaceStorageKey,
