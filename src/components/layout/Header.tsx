@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { getContent } from "@/content";
 import { Container } from "@/components/ui/Container";
@@ -8,6 +8,7 @@ import { Container } from "@/components/ui/Container";
 export function Header() {
   const content = getContent();
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const navLinks = [
     { label: content.nav.tools, href: "/tools" },
@@ -17,9 +18,15 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md">
-      <Container className="flex h-[4.5rem] items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2.5 rounded-sm text-lg font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md" onKeyDown={(event) => {
+      if (event.key === "Escape" && menuOpen) {
+        event.preventDefault();
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    }}>
+      <Container className="flex h-[4.5rem] items-center justify-between gap-2 sm:gap-4">
+        <Link href="/" className="flex min-h-11 shrink-0 items-center gap-2.5 rounded-sm text-base font-semibold text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 sm:text-lg">
           <span className="relative inline-flex h-8 w-8 items-center justify-center rounded-full bg-navy shadow-sm" aria-hidden="true">
             <svg viewBox="0 0 32 32" className="h-5 w-5" fill="none">
               <path d="m11 8 5 7 5-3 3 7" stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
@@ -40,19 +47,20 @@ export function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted transition-colors hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 rounded-sm"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-sm font-medium text-muted transition-colors hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
             >
               {link.label}
             </Link>
           ))}
-          <Link href="/search" className="ml-1 inline-flex min-h-10 items-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-navy transition hover:border-navy/25 hover:bg-surface">검색</Link>
+          <Link href="/search" className="ml-1 inline-flex min-h-11 items-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-navy transition hover:border-navy/25 hover:bg-surface">검색</Link>
         </nav>
 
-        <div className="flex items-center gap-2 md:hidden">
-          <Link href="/search" className="hidden min-h-10 items-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-navy min-[420px]:inline-flex">검색</Link>
+        <div className="flex shrink-0 items-center gap-2 md:hidden">
+          <Link href="/search" className="hidden min-h-11 items-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-navy min-[420px]:inline-flex">검색</Link>
           <button
+            ref={menuButtonRef}
             type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border text-navy transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 md:hidden"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-white px-3 text-sm font-semibold text-navy transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 md:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             aria-label={menuOpen ? "메뉴 닫기" : "메뉴 열기"}
@@ -80,6 +88,7 @@ export function Header() {
                 />
               )}
             </svg>
+            <span>{menuOpen ? "닫기" : "메뉴"}</span>
           </button>
         </div>
       </Container>
@@ -87,7 +96,7 @@ export function Header() {
       {menuOpen ? (
         <nav
           id="mobile-menu"
-          className="border-t border-border bg-background md:hidden"
+          className="max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-t border-border bg-background md:hidden"
           aria-label="모바일 메뉴"
         >
           <Container className="flex flex-col gap-1 py-3">
@@ -103,7 +112,7 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-navy transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
+                className="flex min-h-11 items-center rounded-lg px-3 py-2.5 text-sm font-medium text-navy transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy"
                 onClick={() => setMenuOpen(false)}
               >
                 {link.label}

@@ -37,6 +37,7 @@
     "test:resume-launch-interest": "node scripts/check-resume-pro-launch-interest.mjs",
     "test:home-pro-ready-now": "node scripts/check-home-pro-ready-now-path.mjs",
     "test:core-accessibility": "node scripts/check-core-accessibility.mjs",
+    "test:mobile-pwa-usability": "node scripts/check-mobile-pwa-usability.mjs",
     "test:pay-evidence-net": "node scripts/check-pay-evidence-net-comparison.mjs",
     "test:pay-evidence-case-archive": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-pay-evidence-case-archive.mjs",
     "test:pay-evidence-basis": "node scripts/check-pay-evidence-rate-basis.mjs",

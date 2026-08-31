@@ -90,6 +90,7 @@ export function VehicleInspectionProviderPicker() {
       <label htmlFor="inspection-region" className="block text-sm font-semibold text-navy">검사받을 주·준주</label>
       <select
         id="inspection-region"
+        aria-controls="inspection-pathway"
         value={selectedRegion}
         onChange={(event) => setSelectedRegion(event.target.value)}
         className="mt-2 min-h-12 w-full rounded-lg border border-border bg-white px-4 text-base text-navy outline-none transition focus:border-navy focus:ring-2 focus:ring-gold/40"
@@ -99,7 +100,7 @@ export function VehicleInspectionProviderPicker() {
       </select>
     </div>
 
-    <div className="mt-4" aria-live="polite">
+    <div id="inspection-pathway" className="mt-4" aria-live="polite">
       {!selectedPathway ? <p className="rounded-2xl border border-dashed border-border bg-surface p-5 text-sm leading-6 text-muted">거주하거나 차량을 검사할 주·준주를 선택하면 공식 예약 출발점과 현재 안내 범위를 보여드려요.</p> : <article className={`rounded-2xl border p-6 ${selectedPathway.caution ? "border-amber-300 bg-amber-50" : "border-border bg-white"}`}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="font-mono text-xs font-semibold text-gold-ink">{selectedPathway.region}</p>
@@ -111,7 +112,8 @@ export function VehicleInspectionProviderPicker() {
           <div><dt className="font-semibold text-navy">현재 안내 범위</dt><dd className="text-muted">{selectedPathway.scope}</dd></div>
         </dl>
         {selectedPathway.caution ? <p className="mt-4 border-l-2 border-amber-400 pl-3 text-sm leading-6 text-amber-950"><strong>{selectedPathway.region}에서 특히 확인:</strong> {selectedPathway.caution}</p> : null}
-        <a href={selectedPathway.href} target="_blank" rel="noreferrer" className="mt-5 inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">공식 검사·예약 안내 열기 ↗</a>
+        <a href={selectedPathway.href} target="_blank" rel="noreferrer" aria-describedby="inspection-return-help" className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-navy px-4 py-3 text-center text-sm font-semibold leading-6 text-white transition hover:bg-navy-light sm:w-auto">공식 검사·예약 안내 열기 <span aria-hidden="true">↗</span><span className="sr-only"> (새 창)</span></a>
+        <p id="inspection-return-help" className="mt-3 text-sm leading-6 text-muted">인터넷 연결이 필요한 외부 사이트입니다. 새 탭이나 외부 브라우저에서 확인한 뒤, 이 탭 또는 Hoju Compass 앱으로 돌아오세요. 화면을 다시 불러오면 주·준주를 다시 선택해야 합니다.</p>
       </article>}
     </div>
   </div>;
