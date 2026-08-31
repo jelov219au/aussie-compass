@@ -3,6 +3,9 @@ import type { EntitlementCommand, ProductCode } from "@/lib/entitlements";
 const checkoutProductContracts: Record<ProductCode, { currency: string; amountTotal: number }> = {
   resume_pro: { currency: "aud", amountTotal: 1990 },
   rental_application_pro: { currency: "aud", amountTotal: 1490 },
+  pay_evidence_pro: { currency: "aud", amountTotal: 990 },
+  eofy_pro: { currency: "aud", amountTotal: 990 },
+  leaving_australia_pro: { currency: "aud", amountTotal: 1290 },
 };
 
 export function matchesCheckoutProductEntitlementContract(command: EntitlementCommand | null) {
