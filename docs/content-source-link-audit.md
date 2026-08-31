@@ -28,6 +28,7 @@ npm run audit:content-sources
 npm run audit:content-sources -- --check
 npm run test:content-source-audit
 npm run test:critical-source-review
+npm run test:health-safety-source-review
 ```
 
 The first command is a read-only local inventory with no network requests. The
@@ -43,6 +44,8 @@ source URLs, write files, deploy, schedule itself or change provider settings.
 The regression command uses in-memory response fixtures and makes no network calls.
 The critical-source review contract additionally validates the dated manual
 evidence ledger and changed content safeguards; it also runs entirely offline.
+The health/safety successor contract checks its separate 22-source ledger and
+the combined 65-entry remainder. See [the healthcare review](health-safety-source-review-2026-08-31.md).
 
 ## Interpret evidence before editing
 

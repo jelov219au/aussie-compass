@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 const page = await readFile(new URL("../src/app/help-directory/page.tsx", import.meta.url), "utf8");
 
 for (const contact of [
-  ["000", "triplezero.gov.au"],
+  ["000", "infrastructure.gov.au/media-communications/phone/triple-zero/using-other-emergency-numbers"],
   ["13 11 14", "lifeline.org.au"],
   ["1800 022 222", "healthdirect"],
   ["13 11 26", "healthdirect.gov.au/swallowed-substances"],

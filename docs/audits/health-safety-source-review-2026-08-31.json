@@ -1,0 +1,464 @@
+{
+  "checkedAt": "2026-08-31",
+  "baseSha": "46279ffa59dcc845098aff9bbf75bb0fc24631de",
+  "baseline": "content-source-links-2026-08-31.json",
+  "scope": "The 22 healthcare, Medicare, emergency and workplace safety/compensation URLs in the original restricted/network-error baseline. Reference line numbers come from that immutable baseline.",
+  "counts": {
+    "reviewed": 22,
+    "retained": 19,
+    "replaced": 3,
+    "previousCriticalReviewed": 73,
+    "cumulativeReviewed": 95,
+    "remainingBaselineRestrictedOrNetwork": 65
+  },
+  "reviews": [
+    {
+      "id": 1,
+      "url": "https://worksafe.nt.gov.au/notify-nt-worksafe",
+      "references": [
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 76
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://worksafe.nt.gov.au/notify-nt-worksafe",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Notify WorkSafe",
+      "note": "The public guidance separates a PCBU/authorised manager's statutory incident notification from a worker's safety concern. Personal compensation is a separate process."
+    },
+    {
+      "id": 2,
+      "url": "https://worksafe.nt.gov.au/workers-compensation/injuries-and-claims",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 212
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 74
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://worksafe.nt.gov.au/workers-compensation/injuries-and-claims",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Injuries and claims",
+      "note": "Worker claim form, chosen doctor's capacity certificate, employer/insurer handoff and retention of invoices/receipts are present. The linked journey exception is not treated as universal cover."
+    },
+    {
+      "id": 3,
+      "url": "https://www.comcare.gov.au/roles/workers",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 213
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.comcare.gov.au/roles/workers",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Employees and other workers",
+      "note": "Browser confirms WHS worker duties and links to roles in the claims process and making a workers compensation claim. WHS worker status alone is not compensation eligibility."
+    },
+    {
+      "id": 4,
+      "url": "https://www.hcscc.nt.gov.au/",
+      "references": [
+        {
+          "file": "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+          "line": 13
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://hcscc.nt.gov.au/",
+      "action": "replaced",
+      "reason": "certificate-hostname-error",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "HCSCC",
+      "note": "The www hostname failed in browser with ERR_CERT_COMMON_NAME_INVALID. The official non-www site opens normally; its contact page confirms 1800 004 474. No certificate warning was bypassed."
+    },
+    {
+      "id": 5,
+      "url": "https://www.hcscc.sa.gov.au/",
+      "references": [
+        {
+          "file": "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+          "line": 10
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.hcscc.sa.gov.au/",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "HCSCC",
+      "note": "The commission homepage identifies its SA health/community service complaint role and 1800 232 007. Its public complaint guidance links provider-first preparation and assistance."
+    },
+    {
+      "id": 6,
+      "url": "https://www.healthcomplaints.tas.gov.au/",
+      "references": [
+        {
+          "file": "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+          "line": 11
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.healthcomplaints.tas.gov.au/",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Health Complaints Commissioner Tasmania",
+      "note": "Homepage and complaint guidance identify Tasmanian health services as the jurisdiction, not the complainant's residence. Scope exclusions and prior provider contact remain for the agency to assess."
+    },
+    {
+      "id": 7,
+      "url": "https://www.ombudsman.gov.au/complaints/private-health-insurance-complaints",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 718
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ombudsman.gov.au/complaints/private-health-insurance-complaints",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Private Health Insurance complaints",
+      "note": "Official scope includes OSHC/OVHC only with Australian registered providers; excludes unregistered overseas providers, travel insurance and clinical quality. Insurer-first contact is preserved."
+    },
+    {
+      "id": 8,
+      "url": "https://www.safetyandquality.gov.au/your-rights/giving-feedback-and-making-complaints",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 716
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.safetyandquality.gov.au/your-rights/giving-feedback-and-making-complaints",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Giving feedback and making complaints",
+      "note": "Official guidance links the state/territory complaint bodies and provider-first preparation. The national Commission is not itself an individual complaints service; use each body's current contact details."
+    },
+    {
+      "id": 9,
+      "url": "https://www.safetyandquality.gov.au/your-rights/understanding-your-healthcare-rights",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 715
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.safetyandquality.gov.au/your-rights/understanding-your-healthcare-rights",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Understanding your healthcare rights",
+      "note": "Official Charter explains access, safety, respect, partnership, information, privacy and feedback. These rights are not a guarantee of Medicare eligibility or free services."
+    },
+    {
+      "id": 10,
+      "url": "https://www.safework.sa.gov.au/notify/incident-notification",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 208
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 49
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.safework.sa.gov.au/notify/workplace-incident-notifications",
+      "action": "replaced",
+      "reason": "confirmed-not-found",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Notify us of a workplace incident",
+      "note": "Browser confirms old route displays Page Not Found. Its own footer links the replacement with PCBU duties, notification channels and safety/site-preservation exceptions. No report submitted."
+    },
+    {
+      "id": 11,
+      "url": "https://www.safeworkaustralia.gov.au/law-and-regulation/whs-regulators-and-workers-compensation-authorities-contact-information",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 198
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.safeworkaustralia.gov.au/law-and-regulation/whs-regulators-and-workers-compensation-authorities-contact-information",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "WHS regulators and workers' compensation authorities contact information",
+      "note": "Official directory remains a jurisdiction-finding entry point, not a claims processor. QLD's provider site has newer contact details than the directory; no stale directory phone was copied."
+    },
+    {
+      "id": 12,
+      "url": "https://www.safeworkaustralia.gov.au/workers-compensation",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 197
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.safeworkaustralia.gov.au/workers-compensation",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Workers' compensation",
+      "note": "National overview identifies separate Australian compensation schemes and states Safe Work Australia does not manage individual claims. Retained for scheme distinctions only."
+    },
+    {
+      "id": 13,
+      "url": "https://www.servicesaustralia.gov.au/bulk-billing?context=60092",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 707
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.servicesaustralia.gov.au/bulk-billing?context=60092",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Bulk billing",
+      "note": "Medicare enrolment and provider acceptance of the benefit as full payment are distinguished. A single visit can contain bulk-billed and non-bulk-billed services; existing wording already covers this."
+    },
+    {
+      "id": 14,
+      "url": "https://www.servicesaustralia.gov.au/enrolling-medicare",
+      "references": [
+        {
+          "file": "src/app/arrival-checklist/page.tsx",
+          "line": 48
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.servicesaustralia.gov.au/enrolling-medicare",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Enrolling in Medicare",
+      "note": "Official eligibility/document guidance opens with a context query on the destination. Current arrival copy remains conditional; temporary visa status alone does not establish eligibility. Original useful link retained."
+    },
+    {
+      "id": 15,
+      "url": "https://www.servicesaustralia.gov.au/medicare-claims?context=60092",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 708
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.servicesaustralia.gov.au/medicare-claims?context=60092",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Medicare claims",
+      "note": "Official page distinguishes online limits for services over two years old from alternative submission channels, and explains Closed status. Added follow-up guidance without declaring all rights expired or promising acceptance."
+    },
+    {
+      "id": 16,
+      "url": "https://www.sira.nsw.gov.au/workers-compensation-claims-guide/understanding-the-claims-journey/making-a-claim",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 199
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 11
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.sira.nsw.gov.au/workers-compensation-claims-guide/understanding-the-claims-journey/making-a-claim",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Making a claim",
+      "note": "SIRA hub links initial notification, claim submission and capacity certificate guidance. Current psychological-injury changes were separately verified in the worker/employer guide, not inferred from the hub."
+    },
+    {
+      "id": 17,
+      "url": "https://www.triplezero.gov.au/triple-zero/other-emergency-numbers",
+      "references": [
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 15
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.infrastructure.gov.au/media-communications/phone/triple-zero/using-other-emergency-numbers",
+      "action": "replaced",
+      "reason": "redirect-detail-recovery",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Using other emergency numbers",
+      "note": "Old Triple Zero URL redirected toward infrastructure.gov.au/triple-zero and retrieval failed. Current department detail page explains 000, mobile-only 112 and TTY-only 106; replaced without claiming old URL was a 404."
+    },
+    {
+      "id": 18,
+      "url": "https://www.workcover.wa.gov.au/workers/understanding-your-rights-obligations-entitlements/making-a-claim/",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 205
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 38
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.workcover.wa.gov.au/workers/understanding-your-rights-obligations-entitlements/making-a-claim/",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Making a claim",
+      "note": "Web retrieval was 403 but public browser displays current claim instructions, First Certificate of Capacity, employer/insurer handoff and written decision guidance. Retained; not classified as dead."
+    },
+    {
+      "id": 19,
+      "url": "https://www.worksafe.qld.gov.au/safety-and-prevention/incidents-and-notifications",
+      "references": [
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 31
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.worksafe.qld.gov.au/safety-and-prevention/incidents-and-notifications",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Incidents and notifications",
+      "note": "Current WorkSafe page covers safety reporting and announces WorkCover's separate site from 10 August 2026. Kept the safety path separate from the insurer's compensation claim."
+    },
+    {
+      "id": 20,
+      "url": "https://www.worksafe.qld.gov.au/workers-compensation/compensation-claims/making-a-claim",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 203
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 29
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.worksafe.qld.gov.au/workers-compensation/compensation-claims/making-a-claim",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Making a claim",
+      "note": "Current regulatory guide distinguishes WorkCover from self-insurers and requires both certificate and application. Retained the general guide while adding WorkCover's specific new claim-information page."
+    },
+    {
+      "id": 21,
+      "url": "https://www.worksafe.qld.gov.au/workers-compensation/work-related-injuries/injury-or-illness-first-steps",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 204
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.worksafe.qld.gov.au/workers-compensation/work-related-injuries/injury-or-illness-first-steps",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Work-related injury or illness - first steps",
+      "note": "Worker care/certificate/employer contact and insurer claim are distinct from the employer's injury reporting and possible WHS notification. Public guidance updated 10 August 2026."
+    },
+    {
+      "id": 22,
+      "url": "https://www.worksafe.tas.gov.au/topics/compensation/workers-compensation/information-for-workers/how-to-make-a-workers-compensation-claim-as-worker",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 209
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 56
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.worksafe.tas.gov.au/topics/compensation/workers-compensation/information-for-workers/how-to-make-a-workers-compensation-claim-as-worker",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "How to make a workers compensation claim as a worker",
+      "note": "Official guidance describes claim form plus capacity certificate, usual six-month timing and submission before leaving employment if resigning. Illness/deafness exceptions are referred back to the authority."
+    }
+  ],
+  "supportingSources": [
+    {
+      "url": "https://www.workcoverqld.com.au/claims-and-payments/claims/how-to-make-a-claim",
+      "title": "How to make a claim",
+      "note": "Public insurer guide reached from the new official homepage. Current contact 1300 927 928; a certificate arriving alone does not start a claim. Self-insurers use their own process."
+    },
+    {
+      "url": "https://www.sira.nsw.gov.au/workers-compensation/psychological-injuries-for-workers-and-employers",
+      "title": "Psychological injuries - a guide for workers and employers",
+      "note": "Updated 18 August 2026. First employer-notification date, primary versus secondary injury, exempt groups and relevant-conduct form requirement bound the picker summary."
+    },
+    {
+      "url": "https://hcscc.nt.gov.au/contact-us",
+      "title": "Contact us",
+      "note": "Same official non-www domain confirms the existing NT phone; no call made."
+    },
+    {
+      "url": "https://www.healthcomplaints.tas.gov.au/complaints",
+      "title": "Complaints",
+      "note": "Official service-location scope supports choosing the jurisdiction of care, not current residence."
+    }
+  ],
+  "limits": [
+    "Not a full clinical/legal review of all statements on every page.",
+    "Original automated statuses are preserved, not rewritten as HTTP successes.",
+    "No account, claim, complaint, phone call, certificate bypass, payment change or personal-data entry.",
+    "65 other baseline access-limited URLs remain for later review; two dynamic URL templates remain separately unverified."
+  ]
+}

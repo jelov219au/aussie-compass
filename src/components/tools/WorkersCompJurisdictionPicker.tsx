@@ -6,11 +6,13 @@ const jurisdictions = [
   {
     id: "NSW",
     label: "NSW",
-    summary: "SIRA가 Workers compensation 제도를 감독하고 보험사가 Claim을 처리합니다. Injury를 고용주에게 알리고 Certificate of Capacity와 Claim 경로를 확인하세요. 2026년 7월부터 Psychological injury 일부에는 별도 Claim form·기준이 적용되므로 최신 안내를 따르세요.",
+    summary: "SIRA가 Workers compensation 제도를 감독하고 보험사가 Claim을 처리합니다. Injury를 고용주에게 알리고 Certificate of Capacity와 Claim 경로를 확인하세요. 2026년 7월 1일 이후 고용주에게 처음 알린 Primary psychological injury에는 새 규정이 적용될 수 있으며, Relevant conduct 관련 Claim은 완성된 Claim form이 필요합니다. 이전 통지·Secondary injury·면제 직군 등은 적용이 다르므로 SIRA의 최신 안내를 확인하세요.",
     claimLabel: "SIRA Claim 시작 안내",
     claimHref: "https://www.sira.nsw.gov.au/workers-compensation-claims-guide/understanding-the-claims-journey/making-a-claim",
     safetyLabel: "SafeWork NSW Incident 통지",
     safetyHref: "https://www.safework.nsw.gov.au/notify-safework",
+    additionalLabel: "SIRA 정신적 상해: 새 규정·예외",
+    additionalHref: "https://www.sira.nsw.gov.au/workers-compensation/psychological-injuries-for-workers-and-employers",
   },
   {
     id: "VIC",
@@ -24,11 +26,13 @@ const jurisdictions = [
   {
     id: "QLD",
     label: "QLD",
-    summary: "대부분은 WorkCover Queensland, Self-insured employer라면 그 고용주의 Workers compensation unit이 Claim을 처리합니다. Work capacity certificate와 Application for compensation이 모두 필요한지 확인하고, Injury report와 개인 Claim을 구분하세요.",
-    claimLabel: "QLD Claim 시작 안내",
+    summary: "대부분은 WorkCover Queensland, Self-insured employer라면 그 고용주의 Workers compensation unit이 Claim을 처리합니다. Work capacity certificate와 Application for compensation이 모두 필요하며, 병원이 Certificate를 보내거나 고용주가 Injury report를 했다고 개인 Claim이 자동 시작되는 것은 아닙니다. 2026년 8월 10일부터 WorkCover는 별도 사이트와 전화 1300 927 928을 사용합니다. 안전 신고는 기존 WorkSafe 경로에서 확인하세요.",
+    claimLabel: "QLD 보험사별 Claim 안내",
     claimHref: "https://www.worksafe.qld.gov.au/workers-compensation/compensation-claims/making-a-claim",
     safetyLabel: "QLD Incident·Notification 안내",
     safetyHref: "https://www.worksafe.qld.gov.au/safety-and-prevention/incidents-and-notifications",
+    additionalLabel: "WorkCover 가입 사업장: 신청 방법",
+    additionalHref: "https://www.workcoverqld.com.au/claims-and-payments/claims/how-to-make-a-claim",
   },
   {
     id: "WA",
@@ -46,12 +50,12 @@ const jurisdictions = [
     claimLabel: "ReturnToWorkSA Claim 안내",
     claimHref: "https://www.rtwsa.com/claims/when-an-injury-occurs/make-a-claim",
     safetyLabel: "SafeWork SA Incident 통지",
-    safetyHref: "https://www.safework.sa.gov.au/notify/incident-notification",
+    safetyHref: "https://www.safework.sa.gov.au/notify/workplace-incident-notifications",
   },
   {
     id: "TAS",
     label: "TAS",
-    summary: "고용주에게 Injury를 알리고 Doctor의 Workers Compensation Certificate of Capacity와 Claim Form을 함께 제출합니다. 고용주가 Form 제공을 막더라도 Claim 권리가 사라진다고 단정하지 말고 WorkSafe Tasmania 공식 안내에 연락하세요.",
+    summary: "고용주에게 Injury를 알리고 Doctor의 Workers Compensation Certificate of Capacity와 Claim Form을 함께 제출합니다. 공식 안내상 일반적인 Claim 기한은 부상 후 6개월이지만 퇴사를 결정했다면 퇴사 전에 제출해야 합니다. 질병·청력 손실 등 예외와 본인 기한은 WorkSafe Tasmania에 확인하세요. 고용주가 Form 제공을 막더라도 Claim 권리가 사라진다고 단정하지 마세요.",
     claimLabel: "WorkSafe TAS Claim 안내",
     claimHref: "https://www.worksafe.tas.gov.au/topics/compensation/workers-compensation/information-for-workers/how-to-make-a-workers-compensation-claim-as-worker",
     safetyLabel: "WorkSafe TAS Incident 통지",
@@ -120,6 +124,11 @@ export function WorkersCompJurisdictionPicker() {
               {selected.safetyLabel} <span aria-hidden="true">↗</span>
             </a>
           </div>
+          {"additionalHref" in selected ? (
+            <a href={selected.additionalHref} target="_blank" rel="noreferrer" className="mt-3 flex min-h-12 items-center justify-between rounded-xl border-2 border-navy px-5 py-3 text-sm font-semibold text-navy transition hover:border-gold hover:bg-surface">
+              {selected.additionalLabel} <span aria-hidden="true">↗</span>
+            </a>
+          ) : null}
         </div>
       </article>
 

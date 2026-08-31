@@ -12,7 +12,7 @@ export const metadata = createPageMetadata({
 });
 
 const urgent = [
-  { number: "000", href: "tel:000", title: "생명·안전이 위급한 상황", body: "경찰·소방·구급차가 즉시 필요하거나 범죄가 진행 중인 시간 긴급 상황에 사용합니다.", source: "https://www.triplezero.gov.au/triple-zero/other-emergency-numbers" },
+  { number: "000", href: "tel:000", title: "생명·안전이 위급한 상황", body: "경찰·소방·구급차가 즉시 필요하거나 범죄가 진행 중인 시간 긴급 상황에 사용합니다.", source: "https://www.infrastructure.gov.au/media-communications/phone/triple-zero/using-other-emergency-numbers" },
   { number: "13 11 14", href: "tel:131114", title: "Lifeline 위기지원", body: "감당하기 어렵거나 안전을 유지하기 힘들 때 24시간 위기지원 상담을 받을 수 있습니다. 생명이 위험하면 000을 먼저 이용하세요.", source: "https://www.lifeline.org.au/get-help/national-services/lifeline-crisis-support" },
 ];
 
