@@ -102,9 +102,12 @@ export function VehicleInspectionProviderPicker() {
 
     <div id="inspection-pathway" className="mt-4" aria-live="polite">
       {!selectedPathway ? <p className="rounded-2xl border border-dashed border-border bg-surface p-5 text-sm leading-6 text-muted">거주하거나 차량을 검사할 주·준주를 선택하면 공식 예약 출발점과 현재 안내 범위를 보여드려요.</p> : <article className={`rounded-2xl border p-6 ${selectedPathway.caution ? "border-amber-300 bg-amber-50" : "border-border bg-white"}`}>
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="font-mono text-xs font-semibold text-gold-ink">{selectedPathway.region}</p>
-          <span className="text-xs text-muted">공식 출처</span>
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="min-w-0 flex-1">
+            <span className="font-mono text-xs font-semibold text-gold-ink">{selectedPathway.region}</span>
+            <span className="mt-1 block break-words text-sm font-medium leading-6 text-navy">{selectedPathway.name}</span>
+          </p>
+          <span className="shrink-0 text-xs text-muted">공식 출처</span>
         </div>
         <h3 className="mt-2 text-lg font-semibold text-navy">{selectedPathway.provider}</h3>
         <dl className="mt-4 space-y-3 text-sm leading-6">
