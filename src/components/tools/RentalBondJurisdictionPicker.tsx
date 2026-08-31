@@ -42,16 +42,27 @@ const jurisdictions = [
   {
     id: "SA",
     label: "SA",
-    summary: "서면 종료 통지와 적용 Form을 먼저 확인하고, 집이 비고 Final inspection이 끝난 뒤 Residential Bonds Online에서 Tenant나 Managing party가 환급을 시작할 수 있습니다. 상대가 공제에 동의하지 않으면 CBS 통지와 SACAT 진행 조건을 확인하세요.",
+    summary: "서면 종료 통지, Final inspection과 열쇠 반환 기록을 준비하세요. 퇴거 뒤 Residential Bonds Online에서 Tenant나 Managing party가 환급을 시작할 수 있고, 합의되지 않으면 Non-consented claim 절차를 확인합니다.",
+    checkpoints: [
+      "집주인·에이전트가 청구했다면 세입자는 통지에 적힌 마감일까지 승인·Counter-offer·SACAT 경로를 확인하세요. 무응답은 이의제기가 아닙니다.",
+      "세입자가 상대 동의 없이 청구한 경우의 Managing party 14일 응답과, 세입자 본인의 응답기한을 혼동하지 마세요.",
+    ],
     exitLabel: "SA Moving out checklist",
     exitHref: "https://www.sa.gov.au/topics/housing-and-property/renting-and-letting/renting-privately/ending-a-tenancy/moving-out",
     bondLabel: "SA Bond refund FAQ",
     bondHref: "https://www.cbs.sa.gov.au/sections/renting/bonds/bonds-faqs",
+    additionalLabel: "SA 합의 없는 청구·Counter-offer",
+    additionalHref: "https://www.cbs.sa.gov.au/sections/renting/bonds/settling-a-bond-dispute",
   },
   {
     id: "TAS",
     label: "TAS",
-    summary: "모두 퇴거하고 열쇠를 돌려준 뒤 Owner·Agent가 MyBond 청구를 시작하는 기한을 확인하세요. Tenant는 조건을 충족하면 직접 청구할 수 있고, Owner 청구에는 10일 안에 승인 또는 이의 제기가 필요하며 분쟁 당사자는 다시 10 working days 안에 증거를 내야 합니다.",
+    summary: "모두 퇴거하고 열쇠를 돌려준 뒤 Owner·Agent의 MyBond 청구 시점을 확인하세요. Tenant도 조건을 충족하면 직접 청구할 수 있습니다. 청구 응답과 분쟁 증거 제출은 서로 다른 시계입니다.",
+    checkpoints: [
+      "청구 응답: Owner가 청구를 접수한 날부터 10일 안에 승인 또는 이의제기. 이메일을 늦게 읽었다고 시작일이 바뀌는 것으로 생각하지 마세요.",
+      "분쟁 증거: 분쟁 통지를 받은 뒤 10 working days 안에 제출. 앞의 10일과 단위·시작 시점이 다릅니다.",
+      "Commissioner 결정에 대한 불복은 별도 절차입니다. 위 기간을 불복기한으로 쓰지 말고 결정 통지의 법원·제출기한을 확인하세요.",
+    ],
     exitLabel: "TAS MyBond 청구",
     exitHref: "https://www.cbos.tas.gov.au/topics/housing/renting/bonds/claiming-a-bond",
     bondLabel: "TAS Bond 이의 제기",
@@ -69,7 +80,12 @@ const jurisdictions = [
   {
     id: "NT",
     label: "NT",
-    summary: "Landlord가 Security deposit 일부를 보유하려면 퇴거 뒤 7 business days 안에 금액·이유와 Receipts·Invoice 등 근거를 통지해야 합니다. 미청구 금액의 반환과 NTCAT 분쟁 절차, RT06 종료 통지와 RT12 미수령 Bond 청구 양식을 구분해 확인하세요.",
+    summary: "Landlord가 Security deposit 일부를 보유하려면 퇴거 뒤 7 business days 안에 금액·이유와 Receipts·Invoice 등 근거를 통지해야 합니다. 미청구 금액의 반환과 NTCAT 분쟁 절차를 확인하세요.",
+    checkpoints: [
+      "7 business days는 집주인의 반환·보유 통지 의무에 관한 기한입니다. 세입자의 NTCAT 신청기한으로 바꿔 읽지 마세요.",
+      "공제 근거에는 영수증·Invoice와 해당 보증금에 관한 것이라는 Statutory declaration이 필요합니다. 다투지 않는 잔액도 반환해야 합니다.",
+      "RT06 종료 통지, RT12 미수령 Bond 청구와 NTCAT 분쟁 신청은 서로 다릅니다. 양식 목적과 실제 접수기관을 확인하세요.",
+    ],
     exitLabel: "NT Tenant notices",
     exitHref: "https://nt.gov.au/property/private-renters/renters-your-rights-and-responsibilities/notices-for-tenants-to-landlords",
     bondLabel: "NT Security deposit disputes",
@@ -112,6 +128,14 @@ export function RentalBondJurisdictionPicker() {
         </div>
         <div className="p-5 sm:p-6">
           <p className="text-sm leading-7 text-muted">{selected.summary}</p>
+          {"checkpoints" in selected ? (
+            <ul className="mt-4 list-disc space-y-3 pl-5 text-sm leading-7 text-navy">
+              {selected.checkpoints.map((checkpoint) => <li key={checkpoint}>{checkpoint}</li>)}
+            </ul>
+          ) : null}
+          {["SA", "TAS", "NT"].includes(selected.id) ? (
+            <p className="mt-4 text-xs leading-6 text-muted">위 지역의 청구 경로·기한 구분 확인: 2026-08-31 · 실제 통지의 마감일과 현재 원문을 확인하세요.</p>
+          ) : null}
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <a href={selected.exitHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-between rounded-xl bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:bg-navy/90">
               {selected.exitLabel} <span aria-hidden="true">↗</span>
@@ -119,6 +143,11 @@ export function RentalBondJurisdictionPicker() {
             <a href={selected.bondHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-between rounded-xl border-2 border-navy px-5 py-3 text-sm font-semibold text-navy transition hover:border-gold hover:bg-surface">
               {selected.bondLabel} <span aria-hidden="true">↗</span>
             </a>
+            {"additionalHref" in selected ? (
+              <a href={selected.additionalHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-between rounded-xl border-2 border-navy px-5 py-3 text-sm font-semibold text-navy transition hover:border-gold hover:bg-surface sm:col-span-2">
+                {selected.additionalLabel} <span aria-hidden="true">↗</span>
+              </a>
+            ) : null}
           </div>
         </div>
       </article>

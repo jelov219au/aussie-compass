@@ -51,7 +51,12 @@ const jurisdictions = [
   {
     id: "TAS",
     label: "TAS",
-    summary: "General·urgent·emergency repair의 정의와 기한이 나뉩니다. 먼저 소유자·에이전트에게 알리고, 정해진 시간이 지난 뒤 Residential Tenancy Commissioner의 Order for repairs 경로를 확인하세요.",
+    summary: "General·urgent·emergency repair는 정의와 대응 조건이 다릅니다. 소유자·에이전트에게 즉시 알리고 서면 기록을 남기세요. 위험한 상태로 기한이 끝나기를 기다리지 마세요.",
+    checkpoints: [
+      "Urgent·emergency repair는 가능한 한 빨리 처리해야 합니다. 24시간을 모든 긴급수리의 완료기한이나 의무 대기시간으로 적용하지 마세요.",
+      "Order for repairs는 기한 만료 전에도 신청할 수 있지만, Commissioner가 남은 기간을 고려해 명령을 늦출 수 있습니다.",
+      "공식 양식 목록의 Application for order for repairs는 인쇄용 PDF입니다. 제출처·방법과 증빙을 요청 절차에서 함께 확인하세요.",
+    ],
     rulesLabel: "TAS 수리 요청·Order 절차",
     rulesHref: "https://cbos.tas.gov.au/topics/housing/renting/rental-maintenance-repairs-changes/requesting-repairs",
     escalationLabel: "TAS 임대 수리 공식 양식",
@@ -70,10 +75,16 @@ const jurisdictions = [
     id: "NT",
     label: "NT",
     summary: "수리가 필요하면 가능한 빨리 알리고, 미처리 시 집행하려면 서면 통지가 중요합니다. Emergency repair 기한, Notice to remedy breach와 NTCAT 신청 순서를 현재 안내에서 확인하세요.",
+    checkpoints: [
+      "공식 기관 목록과 개별 통지 페이지의 RT04a/RT04b 표기가 다릅니다. 번호만 믿지 말고 양식 제목·보내는 사람·받는 사람을 NT Consumer Affairs에 확인하세요.",
+      "RT06은 계약 종료, RT12는 Unclaimed bond 청구입니다. 일반 수리 요청이나 NTCAT 신청과 같은 양식으로 쓰지 마세요.",
+    ],
     rulesLabel: "NT 수리·유지보수 안내",
     rulesHref: "https://nt.gov.au/property/private-renters/what-to-do-if-your-home-needs-repairs/repairs-and-maintenance-on-rented-properties",
     escalationLabel: "NT 세입자용 공식 통지 양식",
     escalationHref: "https://nt.gov.au/property/private-renters/renters-your-rights-and-responsibilities/notices-for-tenants-to-landlords",
+    additionalLabel: "NT Consumer Affairs · 양식·상담 확인",
+    additionalHref: "https://consumeraffairs.nt.gov.au/for-consumers/residential-tenancies",
   },
 ] as const;
 
@@ -112,6 +123,14 @@ export function RentalRepairJurisdictionPicker() {
         </div>
         <div className="p-5 sm:p-6">
           <p className="text-sm leading-7 text-muted">{selected.summary}</p>
+          {"checkpoints" in selected ? (
+            <ul className="mt-4 list-disc space-y-3 pl-5 text-sm leading-7 text-navy">
+              {selected.checkpoints.map((checkpoint) => <li key={checkpoint}>{checkpoint}</li>)}
+            </ul>
+          ) : null}
+          {["SA", "TAS", "NT"].includes(selected.id) ? (
+            <p className="mt-4 text-xs leading-6 text-muted">위 지역의 수리 경로·주의사항 확인: 2026-08-31 · 실제 통지·신청 전 원문을 다시 확인하세요.</p>
+          ) : null}
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <a href={selected.rulesHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-between rounded-xl bg-navy px-5 py-3 text-sm font-semibold text-white transition hover:bg-navy/90">
               {selected.rulesLabel} <span aria-hidden="true">↗</span>
@@ -119,6 +138,11 @@ export function RentalRepairJurisdictionPicker() {
             <a href={selected.escalationHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-between rounded-xl border-2 border-navy px-5 py-3 text-sm font-semibold text-navy transition hover:border-gold hover:bg-surface">
               {selected.escalationLabel} <span aria-hidden="true">↗</span>
             </a>
+            {"additionalHref" in selected ? (
+              <a href={selected.additionalHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-between rounded-xl border-2 border-navy px-5 py-3 text-sm font-semibold text-navy transition hover:border-gold hover:bg-surface sm:col-span-2">
+                {selected.additionalLabel} <span aria-hidden="true">↗</span>
+              </a>
+            ) : null}
           </div>
         </div>
       </article>

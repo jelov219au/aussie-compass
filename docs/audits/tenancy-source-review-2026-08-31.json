@@ -1,0 +1,389 @@
+{
+  "checkedAt": "2026-08-31",
+  "baseSha": "45b4254d16a75f7560b9c80358c0226ace38083a",
+  "baseline": "content-source-links-2026-08-31.json",
+  "scope": "All 15 tenancy/repair/bond entries remaining after the critical and health-safety reviews in the immutable restricted/network-error baseline. Reference line numbers are historical. Not a full legal review.",
+  "counts": {
+    "reviewed": 15,
+    "retained": 15,
+    "replaced": 0,
+    "previousCriticalReviewed": 73,
+    "previousHealthSafetyReviewed": 22,
+    "cumulativeReviewed": 110,
+    "remainingBaselineRestrictedOrNetwork": 50
+  },
+  "reviews": [
+    {
+      "id": 1,
+      "url": "https://cbos.tas.gov.au/topics/housing/renting/beginning-tenancy/condition-reports",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 933
+        }
+      ],
+      "destination": "https://cbos.tas.gov.au/topics/housing/renting/beginning-tenancy/condition-reports",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Condition reports for rental properties",
+      "note": "The tenant returns one amended, signed copy within two days after receiving the reports. Added that trigger to the first-week guide; key handover and actual moving day must not be substituted. Missing damage/cleanliness details and dated photos remain relevant."
+    },
+    {
+      "id": 2,
+      "url": "https://cbos.tas.gov.au/topics/housing/renting/rental-maintenance-repairs-changes/requesting-repairs",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 983
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 56
+        }
+      ],
+      "destination": "https://cbos.tas.gov.au/topics/housing/renting/rental-maintenance-repairs-changes/requesting-repairs",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Request repairs to a rental property",
+      "note": "The overview includes response periods, written follow-up and evidence for an Order for repairs. It explicitly permits applying before the periods expire, although the Commissioner may delay an order. Detailed urgent/emergency pages qualify the overview's 24-hour wording; removed the blanket wait-until-expiry implication."
+    },
+    {
+      "id": 3,
+      "url": "https://consumeraffairs.nt.gov.au/for-consumers/residential-tenancies",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+          "line": 13
+        },
+        {
+          "file": "src/components/tools/RentalJurisdictionPicker.tsx",
+          "line": 75
+        }
+      ],
+      "destination": "https://consumeraffairs.nt.gov.au/for-consumers/residential-tenancies",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Renting in the NT",
+      "note": "The agency index supplies residential tenancy advice, forms and NTCAT application guidance. Its RT04a/RT04b labels differ from the individual government tenant-notices page. Added a visible confirmation route, not a legal determination of which downloaded form to send."
+    },
+    {
+      "id": 4,
+      "url": "https://nt.gov.au/property/private-renters/renters-your-rights-and-responsibilities/common-tenancy-disputes",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1146
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 76
+        }
+      ],
+      "destination": "https://nt.gov.au/property/private-renters/renters-your-rights-and-responsibilities/common-tenancy-disputes",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Common tenancy disputes",
+      "note": "Read the security deposit sections: seven business days concerns the landlord's return/retention notice; reasons, receipts/invoices, statutory declaration and unclaimed balance are distinguished from a tenant's NTCAT filing period. The page also has historical COVID material, not used for current advice."
+    },
+    {
+      "id": 5,
+      "url": "https://nt.gov.au/property/private-renters/renters-your-rights-and-responsibilities/notices-for-tenants-to-landlords",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 988
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 1147
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 76
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 74
+        }
+      ],
+      "destination": "https://nt.gov.au/property/private-renters/renters-your-rights-and-responsibilities/notices-for-tenants-to-landlords",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Notices for tenants to landlords",
+      "note": "The public page lists RT06 tenant termination and RT12 unclaimed bond, distinct from NTCAT applications. Its RT04b label differs from the Consumer Affairs index. Retained the useful public list with a warning to confirm form title and sender/recipient; no PDF was completed or submitted."
+    },
+    {
+      "id": 6,
+      "url": "https://nt.gov.au/property/private-renters/what-to-do-if-your-home-needs-repairs/repairs-and-maintenance-on-rented-properties",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 987
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 74
+        }
+      ],
+      "destination": "https://nt.gov.au/property/private-renters/what-to-do-if-your-home-needs-repairs/repairs-and-maintenance-on-rented-properties",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Repairs and maintenance on rented properties",
+      "note": "The page distinguishes verbal reporting from written notice needed to enforce a request and describes emergency and other repairs. Kept the existing escalation summary; did not turn five-day/14-day procedural wording into advice to remain in immediate danger or to stop paying rent."
+    },
+    {
+      "id": 7,
+      "url": "https://sacat.sa.gov.au/housing-and-rentals/common-disputes/parties-rights-disputes",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 982
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 49
+        }
+      ],
+      "destination": "https://sacat.sa.gov.au/housing-and-rentals/common-disputes/parties-rights-disputes",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Parties' rights disputes",
+      "note": "SACAT accepts applications to remedy breaches or clarify rights while a tenancy continues, including failure to repair. Public application assistance and scope are present. The guide retains this escalation entry without opening or submitting an application."
+    },
+    {
+      "id": 8,
+      "url": "https://www.cbos.tas.gov.au/topics/housing/renting",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+          "line": 11
+        },
+        {
+          "file": "src/components/tools/RentalJurisdictionPicker.tsx",
+          "line": 59
+        }
+      ],
+      "destination": "https://www.cbos.tas.gov.au/topics/housing/renting",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Renting",
+      "note": "The official TAS hub links beginning a tenancy, condition reports, bond claims/disputes, maintenance and ending a tenancy. Retained the existing entry in both moving and rental selectors. This is hub/destination verification, not a review of every linked page."
+    },
+    {
+      "id": 9,
+      "url": "https://www.cbos.tas.gov.au/topics/housing/renting/bonds/claiming-a-bond",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1142
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 56
+        }
+      ],
+      "destination": "https://www.cbos.tas.gov.au/topics/housing/renting/bonds/claiming-a-bond",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Claiming a rental bond",
+      "note": "The tenant response is within ten days of the owner's claim being lodged. The page mixes three days and three working days for the initial owner/tenant claim timing; no unconditional numeric tenant-start rule was added. Confirm MyBond/RDA conditions and actual notices before acting."
+    },
+    {
+      "id": 10,
+      "url": "https://www.cbos.tas.gov.au/topics/housing/renting/bonds/disputes-about-a-bond/disputing-a-bond-claim",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1143
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 58
+        }
+      ],
+      "destination": "https://www.cbos.tas.gov.au/topics/housing/renting/bonds/disputes-about-a-bond/disputing-a-bond-claim",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Disputing a bond claim",
+      "note": "Both parties provide evidence within ten working days after dispute notification, distinct from the initial ten-day claim response. Commissioner determinations, separate court appeals and excluded compensation/agent conduct are described. No appeal deadline or decision-time guarantee was invented."
+    },
+    {
+      "id": 11,
+      "url": "https://www.cbos.tas.gov.au/topics/resources-tools/general-forms/asset-listings/renting",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 984
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 58
+        }
+      ],
+      "destination": "https://www.cbos.tas.gov.au/topics/resources-tools/general-forms/asset-listings/renting",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Renting forms",
+      "note": "The official forms index includes Application for order for repairs, described as a printable hard-copy PDF, not an online-completable form. Confirmed list purpose and retained it with a submission-method reminder. Did not inspect, fill or submit individual forms."
+    },
+    {
+      "id": 12,
+      "url": "https://www.cbs.sa.gov.au/sections/renting/bonds/bonds-faqs",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1141
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 49
+        }
+      ],
+      "destination": "https://www.cbs.sa.gov.au/sections/renting/bonds/bonds-faqs",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Bonds FAQs",
+      "note": "The FAQ permits tenant refund requests after exit, distinguishes multi-tenant agreement, notice response and counter-offers, and links the current dispute guide. Processing estimates were not rewritten as guaranteed payouts or response deadlines. The public list remains useful."
+    },
+    {
+      "id": 13,
+      "url": "https://www.sa.gov.au/topics/housing-and-property/renting-and-letting/renting-privately/during-a-tenancy/Repairs-and-maintenance",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 981
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 47
+        }
+      ],
+      "destination": "https://www.sa.gov.au/topics/housing-and-property/renting-and-letting/renting-privately/during-a-tenancy/Repairs-and-maintenance",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Repairs and maintenance",
+      "note": "The SA page distinguishes immediate reporting of urgent repairs from other written requests, including Request for repairs, licensed trades and a written repair report. It links SACAT remedies. Existing source and procedural warnings retained; no unqualified reimbursement or automatic termination promise."
+    },
+    {
+      "id": 14,
+      "url": "https://www.sa.gov.au/topics/housing-and-property/renting-and-letting/renting-privately/ending-a-tenancy/moving-out",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1140
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 47
+        }
+      ],
+      "destination": "https://www.sa.gov.au/topics/housing-and-property/renting-and-letting/renting-privately/ending-a-tenancy/moving-out",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Moving out of your rental property",
+      "note": "The official checklist covers proper written notice, inspection-sheet comparison, photos, utilities, keys and forwarding contacts. Its bond link reaches current refund/dispute information. Removed the unsupported implication that final inspection is a universal legal prerequisite to starting an SA refund request."
+    },
+    {
+      "id": 15,
+      "url": "https://www.sa.gov.au/topics/housing/renting-and-letting",
+      "baseline": "restricted",
+      "references": [
+        {
+          "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+          "line": 10
+        },
+        {
+          "file": "src/components/tools/RentalJurisdictionPicker.tsx",
+          "line": 51
+        }
+      ],
+      "destination": "https://www.sa.gov.au/topics/housing/renting-and-letting",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "title": "Renting and letting",
+      "note": "The original short SA URL remains an accessible official rental hub with private renting, public/community housing, rooming houses, bond refunds and dispute links. A bot restriction in the original audit did not justify replacing this working entry."
+    }
+  ],
+  "supportingSources": [
+    {
+      "url": "https://cbos.tas.gov.au/topics/housing/renting/rental-maintenance-repairs-changes/general-repairs",
+      "title": "General repairs to rental properties",
+      "connected": true,
+      "note": "General repairs not caused by tenants: 28 days after notification, with a 14-day cooking-stove exception. Urgent classification remains separate."
+    },
+    {
+      "url": "https://cbos.tas.gov.au/topics/housing/renting/rental-maintenance-repairs-changes/urgent-repairs",
+      "title": "Urgent repairs to rental properties",
+      "connected": true,
+      "note": "Essential-service failure, as-soon-as-possible repair and inability to contact the owner within 24 hours before the nominated-repairer route."
+    },
+    {
+      "url": "https://cbos.tas.gov.au/topics/housing/renting/rental-maintenance-repairs-changes/emergency-repairs",
+      "title": "Emergency repairs to rental properties",
+      "connected": true,
+      "note": "Damage that worsens without prompt repair; owner cannot be contacted and nominated/suitably-qualified repairer conditions. Does not impose the urgent page's 24-hour wait."
+    },
+    {
+      "url": "https://www.cbs.sa.gov.au/sections/renting/bonds/settling-a-bond-dispute",
+      "title": "Settling a bond dispute",
+      "connected": true,
+      "note": "Managing-party and tenant non-consented claims, counter-offer and SACAT routes differ. The 14-day managing-party non-response rule is not recast as every tenant's response period."
+    },
+    {
+      "url": "https://www.sa.gov.au/topics/housing-and-property/renting-and-letting/residential-bonds/bond-refunds",
+      "title": "Bond refunds",
+      "connected": false,
+      "note": "Supporting navigation check from Moving out: consented refunds, alternative forms and separate dispute/unclaimed routes. Not added as a duplicate article source."
+    },
+    {
+      "url": "https://cbs.sa.gov.au/sections/renting/bonds/rbo-user-portal",
+      "title": "RBO user portal",
+      "connected": false,
+      "note": "Public landing page reached from the refund page's Request a refund link via /RBOportal redirect. Individual/business logins are distinct; stopped before login or submission."
+    }
+  ]
+}
