@@ -1,0 +1,1388 @@
+{
+  "checkedAt": "2026-08-31",
+  "baseSha": "e8190f66a2776d49ee5065fdd5d795f95df062cd",
+  "baseline": "content-source-links-2026-08-31.json",
+  "scope": "73 restricted/network-error visa, tax and wage URLs from the baseline; not a whole-site factual certification.",
+  "counts": {
+    "reviewed": 73,
+    "retained": 68,
+    "replaced": 5,
+    "confirmedNotFound": 3,
+    "publicGuidanceUpgrades": 2,
+    "remainingBaselineRestrictedOrNetwork": 87
+  },
+  "limitations": [
+    "Browser-visible headings and source text are evidence of public destinations, not HTTP-status probes or complete legal advice.",
+    "Official ATO pages can still contain old quarterly super links; dated Payday-specific guidance governs the revised post-1 July 2026 explanation.",
+    "No application, account, personal record, booking, transaction, payment environment or provider configuration was accessed or changed.",
+    "PDF verified from extracted text/tables, not a visual screenshot."
+  ],
+  "reviews": [
+    {
+      "id": 1,
+      "url": "https://immi.homeaffairs.gov.au/contact-us-subsite/Pages/offices-outside-Australia.aspx",
+      "references": [
+        {
+          "file": "src/app/visa-preparation-guide/page.tsx",
+          "line": 17
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://immi.homeaffairs.gov.au/contact-us-subsite/Pages/offices-outside-Australia.aspx",
+      "title": "Services outside Australia",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Public browser: chose Republic of Korea (South Korea), expanded Panel physician details and saw four named clinics. No booking or clinic availability check."
+    },
+    {
+      "id": 2,
+      "url": "https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/check-conditions-online",
+      "references": [
+        {
+          "file": "src/app/arrival-checklist/page.tsx",
+          "line": 45
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/check-conditions-online",
+      "title": "Check visa conditions online (VEVO)",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "VEVO destination and current-condition guidance retrieved; no login, visa or personal record checked."
+    },
+    {
+      "id": 3,
+      "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/fees-and-charges",
+      "references": [
+        {
+          "file": "src/app/visa-preparation-guide/page.tsx",
+          "line": 13
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/fees-and-charges",
+      "title": "Fees and charges for visa",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Fees and charges hub retrieved; estimator/table entry present. No individual visa fee quoted or estimator submission."
+    },
+    {
+      "id": 4,
+      "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-finder",
+      "references": [
+        {
+          "file": "src/app/visa-preparation-guide/page.tsx",
+          "line": 13
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-finder",
+      "title": "Explore visa options",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Public browser rendered Explore visa options with visit, study, work and other choices. No visa recommendation or application."
+    },
+    {
+      "id": 5,
+      "url": "https://immi.homeaffairs.gov.au/visas/working-in-australia/work-rights-and-exploitation/work-restrictions",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 155
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://immi.homeaffairs.gov.au/visas/working-in-australia/work-rights-and-exploitation/work-restrictions",
+      "title": "Work restrictions",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Work-rights guidance retrieved; employer cannot cancel a visa. Individual visa conditions still require VEVO/grant notice."
+    },
+    {
+      "id": 6,
+      "url": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/latest-news",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1322
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/latest-news",
+      "title": "Working holiday Maker program - latest news",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Official latest news confirms Korea 18–35 from 1 July 2026 and warns about high application volumes. No grant/processing guarantee."
+    },
+    {
+      "id": 7,
+      "url": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/specified-work-conditions/6-month-work-limitation",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1325
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/specified-work-conditions/6-month-work-limitation",
+      "title": "6 month work limitation",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "8547 six-month limit, exemptions and permission guidance retrieved. No individual exemption determination."
+    },
+    {
+      "id": 8,
+      "url": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/status-of-country-caps",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1323
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/status-of-country-caps",
+      "title": "Status of country caps",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Country caps page applies to first subclass 462; second/third are not capped. Indonesia ballot is expected later in 2026. Do not reuse transient cap statuses as 417 advice."
+    },
+    {
+      "id": 9,
+      "url": "https://softwaredevelopers.ato.gov.au/PaydaySuper",
+      "references": [
+        {
+          "file": "src/app/super-guide/page.tsx",
+          "line": 125
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/payday-super",
+      "title": "Payday Super for employers",
+      "action": "replaced",
+      "reason": "public-guidance-upgrade",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Developer source remains readable, but replaced with the public employer Payday Super hub. Official linked deadline detail distinguishes seven business days, qualifying first-contribution 20-day extension and other exceptions."
+    },
+    {
+      "id": 10,
+      "url": "https://www.ato.gov.au/api/public/content/0-066bd153-8eec-4c72-9c1b-9ca71bf80ade",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 832
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/investments-and-assets/investing-in-bank-accounts-and-income-bonds",
+      "title": "Investing in bank accounts and income bonds",
+      "action": "replaced",
+      "reason": "public-guidance-upgrade",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Raw content API was access-restricted, not confirmed 404. ATO public search led to bank-account guidance covering TFN withholding, tax credits and distinct foreign-resident treatment."
+    },
+    {
+      "id": 11,
+      "url": "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/single-touch-payroll/single-touch-payroll-for-employees/accessing-your-income-statement-online",
+      "references": [
+        {
+          "file": "src/app/payslip-guide/page.tsx",
+          "line": 121
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/single-touch-payroll/single-touch-payroll-for-employees/accessing-your-income-statement-online",
+      "title": "Accessing your income statement online",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved income-statement guidance. STP income statement and tax-ready status are separate from payslip/fund receipts."
+    },
+    {
+      "id": 12,
+      "url": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-contributions/employees-and-super-guarantee",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 156
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/super-from-your-employer",
+      "title": "Super from your employer",
+      "action": "replaced",
+      "reason": "confirmed-not-found",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Original browser page displayed 404 - Page not found. Current employee-facing Super from your employer page explains eligibility, qualifying earnings and links unpaid-super steps."
+    },
+    {
+      "id": 13,
+      "url": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/setting-up-super-for-your-business/offer-employees-a-choice-of-super-fund",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 867
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/setting-up-super-for-your-business/offer-employees-a-choice-of-super-fund",
+      "title": "Offer employees a choice of super fund",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved fund-choice guide. Eligibility differs for some temporary working visas; existing article already preserves this caution."
+    },
+    {
+      "id": 14,
+      "url": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/work-out-if-you-have-to-pay-super/super-for-independent-contractors",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 610
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/work-out-if-you-have-to-pay-super/super-for-independent-contractors",
+      "title": "Super for independent contractors",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved contractor eligibility guidance. ABN alone does not decide super eligibility. Page still contains quarterly timing text: use current Payday deadline source for post-1 July 2026 timing, not this older timing paragraph."
+    },
+    {
+      "id": 15,
+      "url": "https://www.ato.gov.au/forms-and-instructions/superannuation-standard-choice-form",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 866
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/forms-and-instructions/superannuation-standard-choice-form",
+      "title": "Superannuation standard choice form",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved standard choice form instructions, employer submission and seven/20-business-day transition guidance. No form filled or submitted."
+    },
+    {
+      "id": 16,
+      "url": "https://www.ato.gov.au/forms-and-instructions/tfn-declaration",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 666
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/forms-and-instructions/tfn-declaration",
+      "title": "Tax file number declaration",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved TFN declaration hub, distinct from applying for a TFN. No form filled."
+    },
+    {
+      "id": 17,
+      "url": "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/your-tax-residency",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 21
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/your-tax-residency",
+      "title": "Your tax residency",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved tax-residency tests hub; not the same as immigration residency."
+    },
+    {
+      "id": 18,
+      "url": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 19
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim",
+      "title": "Deductions you can claim",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved deductions hub and work/personal-expense evidence guidance. No individual deduction certified."
+    },
+    {
+      "id": 19,
+      "url": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/foreign-and-worldwide-income",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 22
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/foreign-and-worldwide-income",
+      "title": "Foreign and worldwide income",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved foreign/worldwide income hub; resident, temporary-resident and foreign-resident treatment needs individual assessment."
+    },
+    {
+      "id": 20,
+      "url": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/getting-your-super-started-and-growing/check-your-super/unpaid-super-from-my-employer",
+      "references": [
+        {
+          "file": "src/app/super-guide/page.tsx",
+          "line": 135
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/unpaid-super-from-your-employer",
+      "title": "Unpaid super from your employer",
+      "action": "replaced",
+      "reason": "confirmed-not-found",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Original browser page displayed 404 - Page not found. Followed official Fair Work call-us link to canonical unpaid-super steps; older quarterly links on that page are not the source for new Payday timing."
+    },
+    {
+      "id": 21,
+      "url": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/temporary-residents-and-superannuation",
+      "references": [
+        {
+          "file": "src/app/leaving-australia-guide/page.tsx",
+          "line": 16
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/temporary-residents-and-superannuation",
+      "title": "Temporary residents and superannuation",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved temporary-resident/DASP overview. No DASP application or eligibility decision."
+    },
+    {
+      "id": 22,
+      "url": "https://www.ato.gov.au/individuals-and-families/tax-file-number/apply-for-a-tfn/foreign-passport-holders-permanent-migrants-and-temporary-visitors-tfn-application",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 664
+        },
+        {
+          "file": "src/app/arrival-checklist/page.tsx",
+          "line": 46
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/tax-file-number/apply-for-a-tfn/foreign-passport-holders-permanent-migrants-and-temporary-visitors-tfn-application",
+      "title": "Permanent migrants and temporary visitors – TFN application",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved public TFN application guidance: in Australia, eligible foreign passport/visa, free application. No application started."
+    },
+    {
+      "id": 23,
+      "url": "https://www.ato.gov.au/individuals-and-families/tax-file-number/what-is-a-tax-file-number",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 665
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/tax-file-number/what-is-a-tax-file-number",
+      "title": "What is a tax file number?",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved TFN identity guide; free number retained for life. No TFN collected."
+    },
+    {
+      "id": 24,
+      "url": "https://www.ato.gov.au/individuals-and-families/your-tax-return/amend-your-tax-return",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 23
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/your-tax-return/amend-your-tax-return",
+      "title": "Amend your tax return",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved amendment hub. No return or amendment started."
+    },
+    {
+      "id": 25,
+      "url": "https://www.ato.gov.au/individuals-and-families/your-tax-return/how-to-lodge-your-tax-return",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 17
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/your-tax-return/how-to-lodge-your-tax-return",
+      "title": "How to lodge your tax return",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved how-to-lodge hub with myTax, agent, paper and non-lodgment routes. No tax return started."
+    },
+    {
+      "id": 26,
+      "url": "https://www.ato.gov.au/individuals-and-families/your-tax-return/in-detail/pre-fill-availability",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 18
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/individuals-and-families/your-tax-return/how-to-lodge-your-tax-return/lodge-your-tax-return-online-with-mytax/pre-fill-availability",
+      "title": "Pre-fill availability",
+      "action": "replaced",
+      "reason": "confirmed-not-found",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Original browser page displayed 404 - Page not found. Followed myGov tax-time official link to current pre-fill page; employer-specific readiness is not published on this public page."
+    },
+    {
+      "id": 27,
+      "url": "https://www.ato.gov.au/online-services/online-services-for-individuals-and-sole-traders/ato-online-services-and-mygov/help-and-support-for-online-services-individuals",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 667
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/online-services/online-services-for-individuals-and-sole-traders/ato-online-services-and-mygov/help-and-support-for-online-services-individuals",
+      "title": "Help and support for online services – individuals",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved public ATO online-services help. No account linked, login or identity verification attempted."
+    },
+    {
+      "id": 28,
+      "url": "https://www.ato.gov.au/online-services/scams-cyber-safety-and-identity-protection/protect-your-information/how-to-protect-yourself",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 668
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/online-services/scams-cyber-safety-and-identity-protection/protect-your-information/how-to-protect-yourself",
+      "title": "How to stay scam safe",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved How to stay scam safe. No private identity information accessed."
+    },
+    {
+      "id": 29,
+      "url": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+      "references": [
+        {
+          "file": "src/app/super-guide/page.tsx",
+          "line": 124
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+      "title": "Super guarantee",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-browser",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Browser retrieved SG table: general 2026–27 rate 12%, qualifying earnings from 1 July 2026. No personal entitlement calculation."
+    },
+    {
+      "id": 30,
+      "url": "https://www.fairwork.gov.au/about-us/careers/our-recruitment-process",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 396
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/about-us/careers/our-recruitment-process",
+      "title": "Our recruitment process - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Recruitment-process page retrieved as an employer example, not a universal job-application or APS-eligibility rule."
+    },
+    {
+      "id": 31,
+      "url": "https://www.fairwork.gov.au/about-us/contact-us/call-us",
+      "references": [
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 24
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/about-us/contact-us/call-us",
+      "title": "Call us - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Contact page retrieved; public Fair Work Infoline and scope of general help present. No call made."
+    },
+    {
+      "id": 32,
+      "url": "https://www.fairwork.gov.au/about-us/workplace-laws/annual-wage-review/annual-wage-review-2026",
+      "references": [
+        {
+          "file": "src/app/minimum-wage-guide/page.tsx",
+          "line": 88
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/about-us/workplace-laws/annual-wage-review/annual-wage-review-2026",
+      "title": "Minimum wages increase from 1 July 2026 - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "2026 annual-wage-review page confirms $26.44/hour and $1,004.90/week national minimum from first full pay period starting on/after 1 July; awards and introductory classifications differ."
+    },
+    {
+      "id": 33,
+      "url": "https://www.fairwork.gov.au/employment-conditions/awards",
+      "references": [
+        {
+          "file": "src/app/award-guide/page.tsx",
+          "line": 121
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/employment-conditions/awards",
+      "title": "Awards - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Official awards hub identity retrieved. Coverage and exact award still require individual lookup."
+    },
+    {
+      "id": 34,
+      "url": "https://www.fairwork.gov.au/employment-conditions/awards/award-and-agreement-free-wages-and-conditions",
+      "references": [
+        {
+          "file": "src/app/minimum-wage-guide/page.tsx",
+          "line": 87
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/employment-conditions/awards/award-and-agreement-free-wages-and-conditions",
+      "title": "Award and agreement free wages and conditions - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Award/agreement-free guidance retrieved; national minimum/NES are not a substitute for checking award coverage."
+    },
+    {
+      "id": 35,
+      "url": "https://www.fairwork.gov.au/employment-conditions/awards/award-classifications",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 457
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 901
+        },
+        {
+          "file": "src/app/award-guide/page.tsx",
+          "line": 122
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/employment-conditions/awards/award-classifications",
+      "title": "Award classifications - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Classification guide retrieved; duties, responsibility and required skills matter, not only a job title."
+    },
+    {
+      "id": 36,
+      "url": "https://www.fairwork.gov.au/employment-conditions/information-statements",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 459
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 900
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/employment-conditions/information-statements",
+      "title": "Information statements - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Information-statements guide retrieved; FWIS, CEIS and FTCIS have different applicability."
+    },
+    {
+      "id": 37,
+      "url": "https://www.fairwork.gov.au/employment-conditions/protections-at-work",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 214
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/employment-conditions/protections-at-work",
+      "title": "Protections at work - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Protections-at-work guidance retrieved, including workplace rights and adverse action. No legal merits assessed."
+    },
+    {
+      "id": 38,
+      "url": "https://www.fairwork.gov.au/employment-conditions/public-holidays",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 245
+        },
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 65
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/employment-conditions/public-holidays",
+      "title": "Public holidays - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Public-holiday guide retrieved; state/territory dates and applicable award remain separate checks."
+    },
+    {
+      "id": 39,
+      "url": "https://www.fairwork.gov.au/employment-conditions/public-holidays/not-working-on-public-holidays",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 246
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/employment-conditions/public-holidays/not-working-on-public-holidays",
+      "title": "Not working on public holidays - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Public-holiday request/refusal guidance retrieved; reasonable circumstances matter."
+    },
+    {
+      "id": 40,
+      "url": "https://www.fairwork.gov.au/ending-employment",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 145
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/ending-employment",
+      "title": "Ending employment - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Ending-employment hub retrieved. Separate resignation, dismissal and redundancy pathways retained."
+    },
+    {
+      "id": 41,
+      "url": "https://www.fairwork.gov.au/ending-employment/dismissal",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 148
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/ending-employment/dismissal",
+      "title": "Dismissal - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Dismissal guidance retrieved; minimum standards and individual legal advice caveats retained."
+    },
+    {
+      "id": 42,
+      "url": "https://www.fairwork.gov.au/ending-employment/final-pay",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 146
+        },
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 68
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/ending-employment/final-pay",
+      "title": "Final pay - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Final-pay guidance retrieved: wages, accrued annual leave/loading, notice and applicable redundancy/long-service leave considered separately."
+    },
+    {
+      "id": 43,
+      "url": "https://www.fairwork.gov.au/ending-employment/notice-and-final-pay/resignation-and-notice",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 147
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/ending-employment/notice-and-final-pay/resignation-and-notice",
+      "title": "Resignation - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Existing URL opens Resignation guidance; no rewrite merely because page title/path differ."
+    },
+    {
+      "id": 44,
+      "url": "https://www.fairwork.gov.au/ending-employment/redundancy",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 149
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/ending-employment/redundancy",
+      "title": "Redundancy - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Redundancy guidance retrieved. No individual genuine-redundancy or payout determination."
+    },
+    {
+      "id": 45,
+      "url": "https://www.fairwork.gov.au/find-help-for/building-and-construction-sector/contracts-in-building-and-construction",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 609
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/find-help-for/building-and-construction-sector/contracts-in-building-and-construction",
+      "title": "Contractors in building and construction - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Official contractors-in-construction destination identity retrieved. Detailed contract classification not individually assessed."
+    },
+    {
+      "id": 46,
+      "url": "https://www.fairwork.gov.au/find-help-for/independent-contractors",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 607
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/find-help-for/independent-contractors",
+      "title": "Independent contractors - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Contractor guide retrieved; employee/contractor tests depend on applicable relationship and circumstances."
+    },
+    {
+      "id": 47,
+      "url": "https://www.fairwork.gov.au/find-help-for/independent-contractors/sham-contracting",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 608
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/find-help-for/independent-contractors/sham-contracting",
+      "title": "Sham contracting - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Sham-contracting guidance retrieved; misdescription and legal tests are not decided by an ABN label alone."
+    },
+    {
+      "id": 48,
+      "url": "https://www.fairwork.gov.au/leave/annual-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 58
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/leave/annual-leave",
+      "title": "Annual leave - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Annual-leave guidance retrieved; permanent/casual distinctions retained."
+    },
+    {
+      "id": 49,
+      "url": "https://www.fairwork.gov.au/leave/annual-leave/directing-an-employee-to-take-annual-leave/direction-to-take-annual-leave-during-a-shut-down",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 66
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/leave/annual-leave/directing-an-employee-to-take-annual-leave/direction-to-take-annual-leave-during-a-shut-down",
+      "title": "Direction to take annual leave during a shutdown - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Shutdown annual-leave guidance retrieved; applicable award/agreement conditions needed."
+    },
+    {
+      "id": 50,
+      "url": "https://www.fairwork.gov.au/leave/community-service-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 63
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/leave/community-service-leave",
+      "title": "Community service leave - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Community-service-leave guidance retrieved; jury-duty payment exception distinguished from generally unpaid community service."
+    },
+    {
+      "id": 51,
+      "url": "https://www.fairwork.gov.au/leave/compassionate-and-bereavement-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 60
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/leave/compassionate-and-bereavement-leave",
+      "title": "Compassionate and bereavement leave - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Compassionate/bereavement leave destination and eligibility guidance retrieved. Individual event/relationship not assessed."
+    },
+    {
+      "id": 52,
+      "url": "https://www.fairwork.gov.au/leave/family-and-domestic-violence-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 61
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/leave/family-and-domestic-violence-leave",
+      "title": "Family and domestic violence leave - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Family/domestic-violence-leave official destination retrieved. No personal scenario or support contact initiated."
+    },
+    {
+      "id": 53,
+      "url": "https://www.fairwork.gov.au/leave/long-service-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 64
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/leave/long-service-leave",
+      "title": "Long service leave - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Long-service-leave guidance retrieved; state/territory rules remain relevant."
+    },
+    {
+      "id": 54,
+      "url": "https://www.fairwork.gov.au/leave/parental-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 62
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/leave/parental-leave",
+      "title": "Parental leave - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Parental-leave hub retrieved. Paid government support and employment leave are not interchangeable."
+    },
+    {
+      "id": 55,
+      "url": "https://www.fairwork.gov.au/leave/sick-and-carers-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 59
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/leave/sick-and-carers-leave",
+      "title": "Sick and carer's leave - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Sick/carer's leave guidance retrieved; full-time 10 days and part-time pro-rata distinction retained."
+    },
+    {
+      "id": 56,
+      "url": "https://www.fairwork.gov.au/leave/sick-and-carers-leave/paid-sick-and-carers-leave/notice-and-medical-certificates",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 67
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/leave/sick-and-carers-leave/paid-sick-and-carers-leave/notice-and-medical-certificates",
+      "title": "Notice and medical certificates - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Notice/evidence guidance retrieved; notice as soon as practicable and possible evidence even for one day."
+    },
+    {
+      "id": 57,
+      "url": "https://www.fairwork.gov.au/pay-and-wages/minimum-wages",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1326
+        },
+        {
+          "file": "src/app/minimum-wage-guide/page.tsx",
+          "line": 86
+        },
+        {
+          "file": "src/app/casual-loading-guide/page.tsx",
+          "line": 162
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/pay-and-wages/minimum-wages",
+      "title": "Minimum wages - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Minimum-wages hub retrieved; exact applicable award/age/classification remains necessary. 2026 national figure checked separately at source 32."
+    },
+    {
+      "id": 58,
+      "url": "https://www.fairwork.gov.au/pay-and-wages/paying-wages/pay-slips",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 454
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/pay-and-wages/paying-wages/pay-slips",
+      "title": "Pay slips - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Pay-slip guidance retrieved; one-working-day-after-payday requirement checked."
+    },
+    {
+      "id": 59,
+      "url": "https://www.fairwork.gov.au/pay-and-wages/penalty-rates-allowances-and-other-payments/penalty-rates/public-holiday-penalty-rates",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 244
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/pay-and-wages/penalty-rates-allowances-and-other-payments/penalty-rates/public-holiday-penalty-rates",
+      "title": "Public holiday penalty rates - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Public-holiday penalty guidance retrieved; additional rates depend on award/agreement, not a universal multiplier."
+    },
+    {
+      "id": 60,
+      "url": "https://www.fairwork.gov.au/pay-and-wages/tax-and-superannuation",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 460
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/pay-and-wages/tax-and-superannuation",
+      "title": "Tax and superannuation - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Tax/super guide retrieved; ATO super role and Fair Work employment-entitlement role remain distinct."
+    },
+    {
+      "id": 61,
+      "url": "https://www.fairwork.gov.au/starting-employment",
+      "references": [
+        {
+          "file": "src/app/arrival-checklist/page.tsx",
+          "line": 50
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/starting-employment",
+      "title": "Starting employment - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Starting-employment hub retrieved; no employment form submitted."
+    },
+    {
+      "id": 62,
+      "url": "https://www.fairwork.gov.au/starting-employment/before-starting-employment",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 579
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 899
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/starting-employment/before-starting-employment",
+      "title": "Before starting employment - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Before-starting-employment guide retrieved; applicable minimum conditions and records retained."
+    },
+    {
+      "id": 63,
+      "url": "https://www.fairwork.gov.au/starting-employment/types-of-employees/casual-employees",
+      "references": [
+        {
+          "file": "src/app/casual-loading-guide/page.tsx",
+          "line": 116
+        },
+        {
+          "file": "src/app/casual-loading-guide/page.tsx",
+          "line": 160
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/starting-employment/types-of-employees/casual-employees",
+      "title": "Casual employees - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Casual-employee official destination identity retrieved. No individual status determination."
+    },
+    {
+      "id": 64,
+      "url": "https://www.fairwork.gov.au/starting-employment/types-of-employees/casual-employees/becoming-a-permanent-employee",
+      "references": [
+        {
+          "file": "src/app/casual-loading-guide/page.tsx",
+          "line": 161
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/starting-employment/types-of-employees/casual-employees/becoming-a-permanent-employee",
+      "title": "Becoming a permanent employee - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Permanent-employment transition official destination identity retrieved. No employee-choice notice sent."
+    },
+    {
+      "id": 65,
+      "url": "https://www.fairwork.gov.au/starting-employment/unpaid-work",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 578
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/starting-employment/unpaid-work",
+      "title": "Unpaid work - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Unpaid-work guide retrieved; unpaid labels alone do not decide legality."
+    },
+    {
+      "id": 66,
+      "url": "https://www.fairwork.gov.au/starting-employment/unpaid-work/unpaid-trials",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 577
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/starting-employment/unpaid-work/unpaid-trials",
+      "title": "Unpaid trials - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Unpaid-trial guidance retrieved; necessary skills demonstration and direct supervision distinguished from productive paid work."
+    },
+    {
+      "id": 67,
+      "url": "https://www.fairwork.gov.au/tools-and-resources/best-practice-guides/workplace-privacy",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 307
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 397
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/tools-and-resources/best-practice-guides/workplace-privacy",
+      "title": "Workplace privacy best practice guide - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Official workplace-privacy guide identity retrieved; no full privacy-law re-audit."
+    },
+    {
+      "id": 68,
+      "url": "https://www.fairwork.gov.au/tools-and-resources/fact-sheets/rights-and-obligations/record-keeping-pay-slips",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 456
+        },
+        {
+          "file": "src/app/payslip-guide/page.tsx",
+          "line": 120
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/tools-and-resources/fact-sheets/rights-and-obligations/record-keeping-pay-slips",
+      "title": "Record-keeping and pay slips fact sheet - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Official record-keeping/pay-slip fact-sheet identity retrieved; no employer record accessed."
+    },
+    {
+      "id": 69,
+      "url": "https://www.fairwork.gov.au/tools-and-resources/language-help/english/issues-in-the-workplace/resolving-workplace-disputes",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 278
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/tools-and-resources/language-help/english/issues-in-the-workplace/resolving-workplace-disputes",
+      "title": "Resolving workplace disputes - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Official resolving-workplace-disputes destination retrieved; no dispute or complaint lodged."
+    },
+    {
+      "id": 70,
+      "url": "https://www.fairwork.gov.au/tools-and-resources/language-help/korean/pay-slips-and-record-keeping",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 455
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/tools-and-resources/language-help/korean/pay-slips-and-record-keeping",
+      "title": "급여명세서와 기록 보관 - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Korean pay-slip/record-keeping guidance retrieved. No translation-level legal certification."
+    },
+    {
+      "id": 71,
+      "url": "https://www.fairwork.gov.au/workplace-problems/common-workplace-problems/my-pay-doesnt-seem-right",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 458
+        },
+        {
+          "file": "src/app/underpayment-guide/page.tsx",
+          "line": 144
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/workplace-problems/common-workplace-problems/my-pay-doesnt-seem-right",
+      "title": "My pay doesn't seem right - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Pay-does-not-seem-right guidance retrieved; preserve payslip, roster and payment evidence."
+    },
+    {
+      "id": 72,
+      "url": "https://www.fairwork.gov.au/workplace-problems/fixing-a-workplace-problem",
+      "references": [
+        {
+          "file": "src/app/underpayment-guide/page.tsx",
+          "line": 152
+        }
+      ],
+      "baseline": "network-error",
+      "destination": "https://www.fairwork.gov.au/workplace-problems/fixing-a-workplace-problem",
+      "title": "Fixing a workplace problem - Fair Work Ombudsman",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-web-read",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Fixing-a-workplace-problem hub retrieved. No report submitted."
+    },
+    {
+      "id": 73,
+      "url": "https://www.homeaffairs.gov.au/research-and-stats/files/working-holiday-report-june-25.PDF",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1324
+        }
+      ],
+      "baseline": "restricted",
+      "destination": "https://www.homeaffairs.gov.au/research-and-stats/files/working-holiday-report-june-25.PDF",
+      "title": "Working Holiday Maker visa program report — 30 June 2025",
+      "action": "retained",
+      "reason": "official-destination-confirmed",
+      "method": "official-pdf-text",
+      "verificationScope": "destination-and-noted-content-only",
+      "note": "Official June 2025 PDF text tables checked: table 2.14 (printed p32) Korea 12,374 in FY2024–25; summary (p8) all-country first 417 grants 72,202/+1.2% in Jan–Jun 2025; table 3.01 (p42) all-country first-417 decided grant rate 99.8%. PDF screenshot service produced no inspectable image, so this is text/table verification only."
+    }
+  ]
+}

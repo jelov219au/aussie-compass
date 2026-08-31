@@ -49,6 +49,12 @@ advanced just because links were checked.
 
 ## Remaining limitations and next priority
 
+Follow-up: the [visa, tax and wage recheck](critical-source-review-2026-08-31.md)
+resolved the public destinations of 73 of these entries through official
+navigation/browser reads, with five source changes. The remaining baseline
+restricted/network queue is 87. The counts below describe the original automated
+run, not the follow-up; no HTTP-success result has been fabricated.
+
 **160 URLs remain unverified by the automated run** (80 restricted + 80 network
 failures). Do not label these dead, remove them or silently count them as passed.
 The baseline report contains the exact review queue and affected pages.

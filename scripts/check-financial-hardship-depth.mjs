@@ -38,7 +38,7 @@ for (const question of [
 assert.ok((article.match(/\{ heading:/g) ?? []).length >= 18, "financial hardship guide needs the crisis-to-review workflow");
 assert.ok((article.match(/\{ label:/g) ?? []).length >= 11, "financial hardship guide needs verified official and publicly funded sources");
 assert.ok(calculator.includes('href="/resources/australia-financial-hardship-bills-debt-guide"'), "cost calculator must expose the hardship guide when a budget is negative");
-assert.ok(depthContract.includes("articleBlocks.length, 36"), "content-depth baseline must include the audited hardship guide");
+assert.ok(depthContract.includes("articleBlocks.length, 35"), "content-depth baseline must include the audited hardship guide after public-holiday deduplication");
 assert.doesNotMatch(article, /createCheckout|stripe\.checkout|PAYMENTS_ENABLED|paymentReadiness/i, "financial hardship content changes must remain outside payment flows");
 
 console.log("FINANCIAL_HARDSHIP_DEPTH=PASS sections>=18 sources>=11 copy-questions=5");

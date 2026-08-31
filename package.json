@@ -107,6 +107,7 @@
     "test:content-depth-audit": "node scripts/check-content-depth-audit.mjs",
     "test:public-holiday-canonical": "node scripts/check-public-holiday-canonical.mjs",
     "test:content-source-audit": "node scripts/check-content-source-audit.mjs",
+    "test:critical-source-review": "node scripts/check-critical-source-review.mjs",
     "audit:content-sources": "node scripts/audit-content-source-links.mjs",
     "test:visual-hierarchy": "node scripts/check-visual-hierarchy-foundation.mjs",
     "test:public-data-trust": "node scripts/check-public-data-trust.mjs",

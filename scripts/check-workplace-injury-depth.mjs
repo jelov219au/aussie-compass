@@ -46,7 +46,7 @@ for (const jurisdiction of ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"]
 assert.ok(picker.includes("jurisdictions.find"), "workers compensation picker must show only the selected jurisdiction");
 assert.doesNotMatch(picker, /fetch\(|sendBeacon|XMLHttpRequest|localStorage|sessionStorage/, "picker must not transmit or persist the worker selection");
 assert.ok(arrival.includes('href="/resources/australia-workplace-injury-workers-compensation-guide"'), "arrival checklist must expose the workplace injury handoff");
-assert.ok(depthContract.includes("articleBlocks.length, 36"), "content-depth baseline must include the audited workplace injury guide");
+assert.ok(depthContract.includes("articleBlocks.length, 35"), "content-depth baseline must include the audited workplace injury guide after public-holiday deduplication");
 
 for (const source of [article, articlePage, picker, arrival]) {
   assert.doesNotMatch(source, /createCheckout|stripe\.checkout|PAYMENTS_ENABLED|paymentReadiness/i, "workplace injury content changes must remain outside payment flows");

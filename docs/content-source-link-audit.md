@@ -27,6 +27,7 @@ Use the repository's installed dependencies and Node.js 22 or newer:
 npm run audit:content-sources
 npm run audit:content-sources -- --check
 npm run test:content-source-audit
+npm run test:critical-source-review
 ```
 
 The first command is a read-only local inventory with no network requests. The
@@ -40,6 +41,8 @@ Credentials and local/IP-literal URL targets are rejected.
 Output goes to stdout as JSON; progress goes to stderr. The command does not alter
 source URLs, write files, deploy, schedule itself or change provider settings.
 The regression command uses in-memory response fixtures and makes no network calls.
+The critical-source review contract additionally validates the dated manual
+evidence ledger and changed content safeguards; it also runs entirely offline.
 
 ## Interpret evidence before editing
 

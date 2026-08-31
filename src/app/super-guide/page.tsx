@@ -106,8 +106,15 @@ export default function SuperGuidePage() {
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-gold">2026년 7월부터</p>
             <h2 id="payday-super-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">Payday Super가 적용됩니다</h2>
             <p className="mt-4 max-w-4xl leading-7 text-muted">
-              고용주는 급여일마다 Super를 계산해 납부해야 하며, 원칙적으로 급여일로부터 7영업일 안에 직원의 Super fund가 받아야 합니다. 급여명세서에 금액이 표시되어 있어도 실제 계좌 입금 내역을 함께 확인하는 것이 좋습니다.
+              2026년 7월 1일부터 지급한 급여는 각 급여일을 기준으로 Super를 계산하며, 원칙적으로 급여일 이후 7영업일 안에 직원의 Super fund가 필요한 회원정보와 함께 받아야 합니다. ATO는 처리시간을 고려해 급여일에 송금할 것을 권장합니다. 급여명세서의 표시와 실제 fund 입금은 따로 확인하세요.
             </p>
+            <p className="mt-3 max-w-4xl leading-7 text-muted">
+              신규 직원의 첫 해당 납부, 또는 기존 fund 납부를 중단하고 새 적격 fund에 하는 첫 해당 납부는 20영업일까지 허용되는 예외가 있습니다. 기한이 겹치는 후속 급여나 정규 급여일 밖의 지급에도 별도 규칙이 있으므로, 7영업일이 지났다는 이유만으로 바로 미납을 단정하지 마세요.
+            </p>
+            <p className="mt-3 max-w-4xl text-sm leading-7 text-muted">
+              여기서 영업일은 주말과 호주 어느 주·준주든 전역에 적용되는 공휴일을 제외합니다. 2026년 6월 30일까지 지급한 급여는 이전 분기별 규칙을 확인하세요. 기한·예외 재확인: 2026년 8월 31일.
+            </p>
+            <a href="https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super" target="_blank" rel="noreferrer" className="mt-4 inline-flex min-h-11 items-center border-b-2 border-gold text-sm font-semibold text-navy">ATO 납부기한·예외 확인 ↗</a>
           </section>
 
           <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="check-super-heading">
@@ -122,7 +129,7 @@ export default function SuperGuidePage() {
             </ol>
             <div className="mt-6 flex flex-wrap gap-4">
               <a href="https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO Super 비율 확인</a>
-              <a href="https://softwaredevelopers.ato.gov.au/PaydaySuper" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO Payday Super 안내</a>
+              <a href="https://www.ato.gov.au/businesses-and-organisations/super-for-employers/payday-super" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO Payday Super 안내</a>
               <a href="https://my.gov.au/en/about/help/mygov-website/link-services-to-your-account/link-the-australian-taxation-office" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">myGov에서 ATO 연결하기</a>
             </div>
           </section>
@@ -132,7 +139,7 @@ export default function SuperGuidePage() {
               <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Missing contribution</p><h2 id="unpaid-super-heading" className="mt-2 text-2xl font-semibold leading-tight text-navy sm:text-3xl">Payslip에는 있는데<br />계좌에 없다면</h2><p className="mt-4 text-sm leading-7 text-muted">단순 지연인지, 잘못된 회원정보인지, 실제 미납인지 증거를 나눠 확인하세요. 퇴사한 직장도 같은 방식으로 확인할 수 있습니다.</p></div>
               <ol className="grid gap-px bg-border sm:grid-cols-2">{unpaidSteps.map(([title, description], index) => <li key={title} className="bg-white p-5"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><h3 className="mt-2 font-semibold text-navy">{title}</h3><p className="mt-2 text-sm leading-6 text-muted">{description}</p></li>)}</ol>
             </div>
-            <a href="https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/getting-your-super-started-and-growing/check-your-super/unpaid-super-from-my-employer" target="_blank" rel="noreferrer" className="mt-6 inline-flex min-h-12 items-center bg-navy px-5 text-sm font-semibold text-white">ATO Unpaid super 절차 ↗</a>
+            <a href="https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/unpaid-super-from-your-employer" target="_blank" rel="noreferrer" className="mt-6 inline-flex min-h-12 items-center bg-navy px-5 text-sm font-semibold text-white">ATO Unpaid super 절차 ↗</a>
           </section>
 
           <section className="mt-8 bg-surface p-6 sm:p-8" aria-labelledby="super-copy-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Copy & ask</p><h2 id="super-copy-heading" className="mt-2 text-2xl font-semibold leading-tight text-navy">고용주·Payroll에 복사해 물어볼 문장</h2><ul className="mt-6 grid gap-3">{copyQuestions.map(([english, korean], index) => <li key={english} className="border border-border bg-white p-4"><div className="flex gap-4"><span className="font-mono text-sm text-gold">{index + 1}</span><p className="font-medium leading-7 text-navy">{english}<span className="mt-1 block text-sm font-normal leading-6 text-muted">({korean})</span></p></div></li>)}</ul></section>
