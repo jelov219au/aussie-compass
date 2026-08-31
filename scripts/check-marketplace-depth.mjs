@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 
 const articles = await readFile(new URL("../src/data/articles.ts", import.meta.url), "utf8");
 const start = articles.indexOf('slug: "australia-secondhand-marketplace-safe-buying-guide"');
-const end = articles.indexOf('slug: "australia-public-holiday-pay-guide"', start);
+const end = articles.indexOf('slug: "australia-rental-moving-out-bond-refund-guide"', start);
 assert.ok(start >= 0 && end > start, "second-hand marketplace article block is missing");
 const article = articles.slice(start, end);
 

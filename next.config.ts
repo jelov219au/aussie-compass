@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { articleRedirects } from "./src/lib/articleAliases.mjs";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 const isPreview = process.env.VERCEL_ENV === "preview";
@@ -33,6 +34,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  async redirects() {
+    return articleRedirects;
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

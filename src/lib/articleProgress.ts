@@ -1,3 +1,5 @@
+import { canonicalArticleHref } from "./articleAliases.mjs";
+
 export const ARTICLE_READ_HISTORY_KEY = "aussie-compass-read-articles-v1";
 export const ARTICLE_READING_UPDATED_EVENT = "hoju-compass:reading-updated";
 export const WEEKLY_READING_GOAL_KEY = "hoju-compass-weekly-reading-goal-v1";
@@ -15,6 +17,7 @@ export function readArticleHistory(): ReadArticleRecord[] {
     const parsed: unknown = JSON.parse(localStorage.getItem(ARTICLE_READ_HISTORY_KEY) ?? "[]");
     if (!Array.isArray(parsed)) return [];
 
+    const seen = new Set<string>();
     return parsed.filter((entry): entry is ReadArticleRecord => {
       if (!entry || typeof entry !== "object") return false;
       const record = entry as Partial<ReadArticleRecord>;
@@ -22,17 +25,23 @@ export function readArticleHistory(): ReadArticleRecord[] {
         && record.href.startsWith("/resources/")
         && typeof record.title === "string"
         && typeof record.completedAt === "string";
-    }).slice(0, 50);
+    }).map((record) => ({ ...record, href: canonicalArticleHref(record.href) }))
+      .filter((record) => {
+        if (seen.has(record.href)) return false;
+        seen.add(record.href);
+        return true;
+      }).slice(0, 50);
   } catch {
     return [];
   }
 }
 
 export function markArticleAsRead(article: { href: string; title: string }) {
+  const canonicalArticle = { ...article, href: canonicalArticleHref(article.href) };
   const current = readArticleHistory();
-  if (current.some((record) => record.href === article.href)) return current;
+  if (current.some((record) => record.href === canonicalArticle.href)) return current;
 
-  const next = [{ ...article, completedAt: new Date().toISOString() }, ...current].slice(0, 50);
+  const next = [{ ...canonicalArticle, completedAt: new Date().toISOString() }, ...current].slice(0, 50);
   localStorage.setItem(ARTICLE_READ_HISTORY_KEY, JSON.stringify(next));
   window.dispatchEvent(new Event(ARTICLE_READING_UPDATED_EVENT));
   return next;
