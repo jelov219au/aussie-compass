@@ -1,0 +1,92 @@
+[
+  {
+    "file": "src/data/articles.ts",
+    "old": "https://asic.gov.au/regulatory-resources/credit/debt-collection/",
+    "url": "https://www.asic.gov.au/regulatory-resources/credit/debt-collection",
+    "reason": "Equivalent official debt-collection detail page; removes canonical-host/path redirect.",
+    "checkedAt": "2026-08-31T00:34:34.246Z",
+    "httpStatus": 200,
+    "redirects": 0,
+    "verification": "Official page opened and content reviewed with web access; then operator GET confirmed HTTP 200 at exact replacement URL."
+  },
+  {
+    "file": "src/data/articles.ts",
+    "old": "https://www.pbs.gov.au/info/about-the-pbs",
+    "url": "https://www.pbs.gov.au/about",
+    "reason": "Equivalent official About the PBS page.",
+    "checkedAt": "2026-08-31T00:34:34.258Z",
+    "httpStatus": 200,
+    "redirects": 0,
+    "verification": "Official page opened and content reviewed with web access; then operator GET confirmed HTTP 200 at exact replacement URL."
+  },
+  {
+    "file": "src/data/articles.ts",
+    "old": "https://transportnsw.info/news/2026/planned-trackwork-from-friday-17-to-sunday-19-july",
+    "url": "https://transportnsw.info/travel-info/ways-to-get-around/train/about-trackwork",
+    "reason": "Expired dated notice redirects to news index; current evergreen guide links alerts, Trip Planner, future calendar and replacement-bus guidance.",
+    "checkedAt": "2026-08-31T00:34:34.258Z",
+    "httpStatus": 200,
+    "redirects": 0,
+    "verification": "Official page opened and content reviewed with web access; then operator GET confirmed HTTP 200 at exact replacement URL."
+  },
+  {
+    "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+    "old": "https://www.justice.act.gov.au/renting-and-occupancy-laws",
+    "url": "https://www.act.gov.au/housing-planning-and-property/renting/rental-laws-in-the-act",
+    "reason": "Old ACT page returns 404; ACT Government rental-law hub links Renting Book, ending a tenancy and dispute help.",
+    "checkedAt": "2026-08-31T00:34:34.258Z",
+    "httpStatus": 200,
+    "redirects": 0,
+    "verification": "Official page opened and content reviewed with web access; then operator GET confirmed HTTP 200 at exact replacement URL."
+  },
+  {
+    "file": "src/app/leaving-australia-guide/page.tsx",
+    "old": "https://www.applicant.tr.super.ato.gov.au/applicants/default.aspx?pid=1",
+    "url": "https://applicant.tr.super.ato.gov.au/applicants/default.aspx?pid=1",
+    "reason": "Invalid www-prefixed DASP hostname returns 400; verified official How to apply entry without www.",
+    "checkedAt": "2026-08-31T00:34:34.258Z",
+    "httpStatus": 200,
+    "redirects": 0,
+    "verification": "Official page opened and content reviewed with web access; then operator GET confirmed HTTP 200 at exact replacement URL."
+  },
+  {
+    "file": "src/app/public-transport-guide/page.tsx",
+    "old": "https://transportnsw.info/tickets-opal",
+    "url": "https://transportnsw.info/tickets-fares",
+    "reason": "Equivalent current Transport for NSW tickets/fare-payment hub.",
+    "checkedAt": "2026-08-31T00:34:34.258Z",
+    "httpStatus": 200,
+    "redirects": 0,
+    "verification": "Official page opened and content reviewed with web access; then operator GET confirmed HTTP 200 at exact replacement URL."
+  },
+  {
+    "file": "src/app/public-transport-guide/page.tsx",
+    "old": "https://www.bocsar.nsw.gov.au/Pages/bocsar_crime_stats/bocsar_crime_stats.aspx",
+    "url": "https://bocsar.nsw.gov.au/statistics-dashboards/crime-and-policing.html",
+    "reason": "Equivalent current BOCSAR hub with crime mapping and local-area statistics; label reflects hub.",
+    "checkedAt": "2026-08-31T00:34:34.258Z",
+    "httpStatus": 200,
+    "redirects": 0,
+    "verification": "Official page opened and content reviewed with web access; then operator GET confirmed HTTP 200 at exact replacement URL."
+  },
+  {
+    "file": "src/app/public-transport-guide/page.tsx",
+    "old": "https://www.police.wa.gov.au/crime/crimestatistics",
+    "url": "https://www.wa.gov.au/organisation/western-australia-police-force/crime-statistics",
+    "reason": "Equivalent current WA Police official statistics page.",
+    "checkedAt": "2026-08-31T00:34:34.258Z",
+    "httpStatus": 200,
+    "redirects": 0,
+    "verification": "Official page opened and content reviewed with web access; then operator GET confirmed HTTP 200 at exact replacement URL."
+  },
+  {
+    "file": "src/app/public-transport-guide/page.tsx",
+    "old": "https://www.police.tas.gov.au/about-us/crime-statistics/",
+    "url": "https://www.police.tas.gov.au/about-us/our-performance/",
+    "reason": "Old link redirects to 2015-16 supplement; official performance hub offers current reports and dashboards.",
+    "checkedAt": "2026-08-31T00:34:34.258Z",
+    "httpStatus": 200,
+    "redirects": 0,
+    "verification": "Official page opened and content reviewed with web access; then operator GET confirmed HTTP 200 at exact replacement URL."
+  }
+]

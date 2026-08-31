@@ -9,7 +9,7 @@ const jurisdictions = [
   { id: "WA", name: "Western Australia", authority: "Consumer Protection WA", href: "https://www.consumerprotection.wa.gov.au/renting-home", focus: "Leaving a rental home, Bonds, Rental forms에서 종료 통지·최종 상태·Bond 청구 절차를 확인하세요." },
   { id: "SA", name: "South Australia", authority: "SA.GOV.AU · Consumer and Business Services", href: "https://www.sa.gov.au/topics/housing/renting-and-letting", focus: "End of tenancy와 공식 Forms에서 Notice·Final inspection·Bond 환급에 필요한 현재 양식을 확인하세요." },
   { id: "TAS", name: "Tasmania", authority: "Consumer, Building and Occupational Services", href: "https://www.cbos.tas.gov.au/topics/housing/renting", focus: "Ending a tenancy, Bond와 Condition report 규칙을 확인하고 MyBond 기록과 계약 형태를 맞추세요." },
-  { id: "ACT", name: "Australian Capital Territory", authority: "Justice and Community Safety Directorate", href: "https://www.justice.act.gov.au/renting-and-occupancy-laws", focus: "Residential tenancy와 Occupancy agreement를 먼저 구분하고 종료·Bond·분쟁 경로를 해당 계약에 맞춰 확인하세요." },
+  { id: "ACT", name: "Australian Capital Territory", authority: "ACT Government · Rental laws", href: "https://www.act.gov.au/housing-planning-and-property/renting/rental-laws-in-the-act", focus: "Residential tenancy와 Occupancy agreement를 먼저 구분하고 종료·Bond·분쟁 경로를 해당 계약에 맞춰 확인하세요." },
   { id: "NT", name: "Northern Territory", authority: "NT Consumer Affairs", href: "https://consumeraffairs.nt.gov.au/for-consumers/residential-tenancies", focus: "Notice, Condition report, Security deposit와 분쟁 절차를 현재 NT Residential tenancies 안내와 양식에서 확인하세요." },
 ] as const;
 

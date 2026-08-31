@@ -97,7 +97,7 @@ export const articles: Article[] = [
       { label: "Moneysmart — Free legal advice", href: "https://moneysmart.gov.au/managing-debt/free-legal-advice", summary: "Default notice·Court action·Debt dispute에 무료 Community legal centre와 Legal Aid를 찾는 출발점이에요." },
       { label: "Australian Financial Complaints Authority — Financial hardship complaints", href: "https://www.afca.org.au/make-a-complaint/financial-hardship-complaints", summary: "Financial firm의 Hardship 거절·Default notice 관련 무료 Complaint 범위와 절차를 안내해요." },
       { label: "ACCC — Debt", href: "https://www.accc.gov.au/consumers/debt", summary: "Debt collector의 권리·의무, Dispute와 부적절한 행동 신고 범위를 설명해요." },
-      { label: "ASIC — Debt collection", href: "https://asic.gov.au/regulatory-resources/credit/debt-collection/", summary: "ASIC·ACCC Debt collection guideline과 Consumer rights 자료로 연결되는 공식 페이지예요." },
+      { label: "ASIC — Debt collection", href: "https://www.asic.gov.au/regulatory-resources/credit/debt-collection", summary: "ASIC·ACCC Debt collection guideline과 Consumer rights 자료로 연결되는 공식 페이지예요." },
       { label: "Department of Social Services — Emergency relief", href: "https://www.dss.gov.au/emergency-support/emergency-relief", summary: "Food·Transport·Medicine·Utility 등 Crisis support와 지역 Provider를 찾는 정부 안내예요." },
       { label: "Department of Social Services — Financial crisis support", href: "https://www.dss.gov.au/supporting-people-financial-crises", summary: "정부 지원을 받는 무료 Financial counselling, Emergency relief와 Financial Wellbeing service를 설명해요." },
       { label: "National Debt Helpline", href: "https://ndh.org.au/", summary: "무료·Confidential Financial counsellor 전화 1800 007 007과 Online chat의 현재 운영정보를 확인해요." },
@@ -710,7 +710,7 @@ export const articles: Article[] = [
       { label: "Australian Government — Overseas Student Health Cover", href: "https://www.privatehealth.gov.au/health_insurance/overseas/overseas_student_health_cover.htm", summary: "OSHC 유지 의무와 의료·병원·Ambulance·제한된 의약품 혜택, 기본 보장에서 제외될 수 있는 Dental·Optical·Physiotherapy를 설명해요." },
       { label: "Healthdirect — What is a referral?", href: "https://www.healthdirect.gov.au/what-is-a-referral", summary: "Referral에 들어가는 정보, 일반적인 유효기간, Specialist 비용과 검사·영상으로 이어지는 방식을 확인할 수 있어요." },
       { label: "Healthdirect — Blood testing and results", href: "https://www.healthdirect.gov.au/blood-testing", summary: "검사 결과 예상일, 연락 방식과 Follow-up 필요 여부를 의료진에게 확인하고 결과를 개인 맥락에서 해석해야 한다고 안내해요." },
-      { label: "Pharmaceutical Benefits Scheme — About the PBS", href: "https://www.pbs.gov.au/info/about-the-pbs", summary: "등재 의약품 보조, 자격과 환자 부담, Brand premium·Safety Net처럼 실제 약값에 영향을 주는 구조의 공식 출발점이에요." },
+      { label: "Pharmaceutical Benefits Scheme — About the PBS", href: "https://www.pbs.gov.au/about", summary: "등재 의약품 보조, 자격과 환자 부담, Brand premium·Safety Net처럼 실제 약값에 영향을 주는 구조의 공식 출발점이에요." },
       { label: "TIS National — Help using an interpreter", href: "https://www.tisnational.gov.au/en/Non-English-speakers/Help-using-TIS-National", summary: "자격을 갖춘 사설 의료인과 약국 등이 Free Interpreting Service를 통해 전문 통역을 마련할 수 있으며 이용자도 직원에게 통역을 요청할 수 있다고 안내해요." },
       { label: "Australian Commission — Understanding your healthcare rights", href: "https://www.safetyandquality.gov.au/your-rights/understanding-your-healthcare-rights", summary: "Access, Safety, Respect, Partnership, Information, Privacy와 Give feedback 등 호주 의료 이용자의 기본 권리를 설명해요." },
       { label: "Australian Commission — Giving feedback and making complaints", href: "https://www.safetyandquality.gov.au/your-rights/giving-feedback-and-making-complaints", summary: "Provider에게 먼저 문제를 알리는 출발점과 주·준주별 공식 의료 민원기관을 한곳에서 확인할 수 있어요." },
@@ -1208,7 +1208,7 @@ export const articles: Article[] = [
     sources: [
       { label: "Transport for NSW — Travel alerts", href: "https://transportnsw.info/template-travel-alerts-spa", summary: "현재와 예정된 교통 장애, Weekend trackwork map과 향후 선로 공사를 확인하는 공식 페이지예요. 계약 전 후보 지역의 주말 대체 경로를 살펴볼 때 사용할 수 있어요." },
       { label: "Transport for NSW — Trip Planner", href: "https://transportnsw.info/trip", summary: "출발·도착 시간, 걷기와 환승을 포함한 Door-to-door 대중교통 경로를 확인할 수 있어요. 평일 출퇴근과 주말 시간을 각각 넣어 비교하는 것이 좋아요." },
-      { label: "Transport for NSW — Planned trackwork example", href: "https://transportnsw.info/news/2026/planned-trackwork-from-friday-17-to-sunday-19-july", summary: "계획된 선로 공사 때 T1을 포함한 여러 노선에 Replacement bus와 변경 운행이 적용될 수 있으며, 미리 경로를 확인하고 추가 시간을 두라고 안내한 실제 공지 사례예요." },
+      { label: "Transport for NSW — About trackwork", href: "https://transportnsw.info/travel-info/ways-to-get-around/train/about-trackwork", summary: "선로 공사에 따른 변경 운행·Replacement bus 안내와 현재 알림, Trip Planner, 향후 공사 달력으로 연결돼요. 예정 달력은 바뀔 수 있으므로 실제 이동 날짜의 경로를 다시 확인하세요." },
     ],
   },
   {

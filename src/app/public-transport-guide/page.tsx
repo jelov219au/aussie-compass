@@ -9,7 +9,7 @@ import { createPageMetadata } from "@/lib/site";
 export const metadata = createPageMetadata({ title: "호주 대중교통·통학 생활권 비교 | Hoju Compass", description: "집 후보의 주거비와 통학시간을 비교하고 Google Maps 대중교통 길찾기, 주별 교통기관과 학생 할인 정보를 확인하세요.", path: "/public-transport-guide" });
 
 const transportLinks = [
-  ["NSW", "Opal · Transport for NSW", "https://transportnsw.info/tickets-opal"],
+  ["NSW", "Opal · Transport for NSW", "https://transportnsw.info/tickets-fares"],
   ["VIC", "myki · Public Transport Victoria", "https://www.ptv.vic.gov.au/tickets/myki/"],
   ["QLD", "Translink", "https://translink.com.au/tickets-and-fares"],
   ["WA", "SmartRider · Transperth", "https://www.transperth.wa.gov.au/smartrider"],
@@ -20,12 +20,12 @@ const transportLinks = [
 ];
 
 const safetyLinks = [
-  ["NSW", "BOCSAR Crime Mapping", "https://www.bocsar.nsw.gov.au/Pages/bocsar_crime_stats/bocsar_crime_stats.aspx"],
+  ["NSW", "BOCSAR Crime and policing", "https://bocsar.nsw.gov.au/statistics-dashboards/crime-and-policing.html"],
   ["VIC", "Crime Statistics Agency", "https://www.crimestatistics.vic.gov.au/crime-statistics/latest-crime-data-by-area"],
   ["QLD", "Queensland Police crime map", "https://qps-ocm.s3-ap-southeast-2.amazonaws.com/index.html"],
-  ["WA", "WA Police crime statistics", "https://www.police.wa.gov.au/crime/crimestatistics"],
+  ["WA", "WA Police crime statistics", "https://www.wa.gov.au/organisation/western-australia-police-force/crime-statistics"],
   ["SA", "SA Police crime statistics", "https://www.police.sa.gov.au/about-us/crime-statistics-map"],
-  ["TAS", "Tasmania Police statistics", "https://www.police.tas.gov.au/about-us/crime-statistics/"],
+  ["TAS", "Tasmania Police 통계·대시보드", "https://www.police.tas.gov.au/about-us/our-performance/"],
   ["ACT", "ACT Policing crime statistics", "https://www.policenews.act.gov.au/crime-statistics-and-data/crime-statistics"],
   ["NT", "NT Police crime statistics", "https://pfes.nt.gov.au/police/community-safety/nt-crime-statistics"],
 ];

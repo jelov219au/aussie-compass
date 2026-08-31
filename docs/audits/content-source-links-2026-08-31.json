@@ -1,0 +1,5488 @@
+{
+  "checkedAt": "2026-08-31T00:30:19.178Z",
+  "files": [
+    "src/app/arrival-checklist/page.tsx",
+    "src/app/award-guide/page.tsx",
+    "src/app/casual-loading-guide/page.tsx",
+    "src/app/help-directory/page.tsx",
+    "src/app/leave-guide/page.tsx",
+    "src/app/leaving-australia-guide/page.tsx",
+    "src/app/minimum-wage-guide/page.tsx",
+    "src/app/moving-checklist/page.tsx",
+    "src/app/overseas-driver-licence-guide/page.tsx",
+    "src/app/payslip-guide/page.tsx",
+    "src/app/property-inspection-checklist/page.tsx",
+    "src/app/public-transport-guide/page.tsx",
+    "src/app/resources/[slug]/page.tsx",
+    "src/app/super-guide/page.tsx",
+    "src/app/tax-return-guide/page.tsx",
+    "src/app/underpayment-guide/page.tsx",
+    "src/app/used-car-comparison/page.tsx",
+    "src/app/visa-preparation-guide/page.tsx",
+    "src/components/tools/CommuteHousingPlanner.tsx",
+    "src/components/tools/DaspReadinessCheck.tsx",
+    "src/components/tools/DriverLicenceGuide.tsx",
+    "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+    "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+    "src/components/tools/LocalProjectChecklist.tsx",
+    "src/components/tools/MinimumWageCalculator.tsx",
+    "src/components/tools/MovingJurisdictionPicker.tsx",
+    "src/components/tools/PropertyInspectionChecklist.tsx",
+    "src/components/tools/RentalBondJurisdictionPicker.tsx",
+    "src/components/tools/RentalJurisdictionPicker.tsx",
+    "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+    "src/components/tools/TaxReturnChecklist.tsx",
+    "src/components/tools/TaxTimeReminder.tsx",
+    "src/components/tools/VehicleComparison.tsx",
+    "src/components/tools/VehicleInspectionProviderPicker.tsx",
+    "src/components/tools/VisaCostPlanner.tsx",
+    "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+    "src/data/articles.ts"
+  ],
+  "dynamicUrls": 2,
+  "total": 340,
+  "counts": {
+    "reachable": 168,
+    "redirected": 10,
+    "restricted": 80,
+    "network-error": 80,
+    "http-error": 2
+  },
+  "results": [
+    {
+      "url": "https://about.healthdirect.gov.au/contact-us",
+      "references": [
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 20
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://about.healthdirect.gov.au/contact-us",
+      "title": "Contact us &#x2014; healthdirect helpline, enquiries | Healthdirect Australia",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://asic.gov.au/regulatory-resources/credit/debt-collection/",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 100
+        }
+      ],
+      "status": "redirected",
+      "httpStatus": 200,
+      "finalUrl": "https://www.asic.gov.au/regulatory-resources/credit/debt-collection",
+      "title": "Debt collection | ASIC",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": [
+        {
+          "from": "https://asic.gov.au/regulatory-resources/credit/debt-collection/",
+          "status": 301,
+          "to": "https://www.asic.gov.au/regulatory-resources/credit/debt-collection/"
+        },
+        {
+          "from": "https://www.asic.gov.au/regulatory-resources/credit/debt-collection/",
+          "status": 301,
+          "to": "https://www.asic.gov.au/regulatory-resources/credit/debt-collection"
+        }
+      ]
+    },
+    {
+      "url": "https://austroads.com.au/drivers-and-vehicles/overseas-drivers",
+      "references": [
+        {
+          "file": "src/app/overseas-driver-licence-guide/page.tsx",
+          "line": 69
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://austroads.com.au/drivers-and-vehicles/overseas-drivers",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://bocsar.nsw.gov.au/statistics-dashboards/crime-and-policing/guide-for-the-crime-mapping-tool.html",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1181
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://bocsar.nsw.gov.au/statistics-dashboards/crime-and-policing/guide-for-the-crime-mapping-tool.html",
+      "title": "Guide for the Crime Mapping Tool | BOCSAR",
+      "contentType": "text/html;charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://calculate.fairwork.gov.au/",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 247
+        },
+        {
+          "file": "src/app/minimum-wage-guide/page.tsx",
+          "line": 89
+        },
+        {
+          "file": "src/app/award-guide/page.tsx",
+          "line": 123
+        },
+        {
+          "file": "src/app/casual-loading-guide/page.tsx",
+          "line": 117
+        },
+        {
+          "file": "src/app/casual-loading-guide/page.tsx",
+          "line": 163
+        },
+        {
+          "file": "src/app/underpayment-guide/page.tsx",
+          "line": 148
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://calculate.fairwork.gov.au/",
+      "title": "P.A.C.T Home -",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://calculate.fairwork.gov.au/endingemployment",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 152
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://calculate.fairwork.gov.au/endingemployment",
+      "title": "P.A.C.T Notice &amp; redundancy calculator - Calculate entitlements",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://cbos.tas.gov.au/topics/housing/renting/beginning-tenancy/condition-reports",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 933
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://cbos.tas.gov.au/topics/housing/renting/beginning-tenancy/condition-reports",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://cbos.tas.gov.au/topics/housing/renting/rental-maintenance-repairs-changes/requesting-repairs",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 983
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 56
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://cbos.tas.gov.au/topics/housing/renting/rental-maintenance-repairs-changes/requesting-repairs",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://compare.energy.vic.gov.au/",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1021
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://compare.energy.vic.gov.au/",
+      "title": "Welcome - Victorian Energy Compare",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://compare.energy.vic.gov.au/start",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 20
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://compare.energy.vic.gov.au/start",
+      "title": "Welcome - Victorian Energy Compare",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://consumeraffairs.nt.gov.au/for-consumers/residential-tenancies",
+      "references": [
+        {
+          "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+          "line": 13
+        },
+        {
+          "file": "src/components/tools/RentalJurisdictionPicker.tsx",
+          "line": 75
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://consumeraffairs.nt.gov.au/for-consumers/residential-tenancies",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://costofliving.studyaustralia.gov.au/",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 40
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://costofliving.studyaustralia.gov.au/",
+      "title": "Cost of Living Calculator",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://energyandwater.ombudsman.wa.gov.au/complaints/make-your-complaint",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 24
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://energyandwater.ombudsman.wa.gov.au/complaints/make-your-complaint",
+      "title": "Make your complaint | Energy and Water Ombudsman WA",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://ewosa.com.au/about-ewosa/contact-us",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 22
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://ewosa.com.au/about-ewosa/contact-us",
+      "title": "Contact us | Energy &amp; Water Ombudsman SA",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://immi.homeaffairs.gov.au/contact-us-subsite/Pages/offices-outside-Australia.aspx",
+      "references": [
+        {
+          "file": "src/app/visa-preparation-guide/page.tsx",
+          "line": 17
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://immi.homeaffairs.gov.au/contact-us-subsite/Pages/offices-outside-Australia.aspx",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/check-conditions-online",
+      "references": [
+        {
+          "file": "src/app/arrival-checklist/page.tsx",
+          "line": 45
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/check-conditions-online",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/fees-and-charges",
+      "references": [
+        {
+          "file": "src/app/visa-preparation-guide/page.tsx",
+          "line": 13
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/fees-and-charges",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-finder",
+      "references": [
+        {
+          "file": "src/app/visa-preparation-guide/page.tsx",
+          "line": 13
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-finder",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://immi.homeaffairs.gov.au/visas/working-in-australia/work-rights-and-exploitation/work-restrictions",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 155
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://immi.homeaffairs.gov.au/visas/working-in-australia/work-rights-and-exploitation/work-restrictions",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/latest-news",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1322
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/latest-news",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/specified-work-conditions/6-month-work-limitation",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1325
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/specified-work-conditions/6-month-work-limitation",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/status-of-country-caps",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1323
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/status-of-country-caps",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://incident.worksafe.tas.gov.au/",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 210
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 58
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://incident.worksafe.tas.gov.au/",
+      "title": "",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/banking/direct-debits",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 834
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/banking/direct-debits",
+      "title": "Direct debits - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/banking/transaction-accounts-and-debit-cards",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 830
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/banking/transaction-accounts-and-debit-cards",
+      "title": "Transaction accounts and debit cards - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/banking/unauthorised-and-mistaken-transactions",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 835
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/banking/unauthorised-and-mistaken-transactions",
+      "title": "Unauthorised and mistaken transactions - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/budgeting/budget-planner",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 423
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 636
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/budgeting/budget-planner",
+      "title": "Budget planner - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/budgeting/managing-on-a-casual-income",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 635
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/budgeting/managing-on-a-casual-income",
+      "title": "Managing on a casual income - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/budgeting/managing-on-a-low-income",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 95
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/budgeting/managing-on-a-low-income",
+      "title": "Managing on a low income - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/budgeting/ways-to-save-on-food-and-fuel",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1051
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/budgeting/ways-to-save-on-food-and-fuel",
+      "title": "Ways to save on food and fuel - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/car-insurance",
+      "references": [
+        {
+          "file": "src/app/overseas-driver-licence-guide/page.tsx",
+          "line": 75
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/car-insurance",
+      "title": "Car insurance - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/how-life-insurance-works/insurance-through-super",
+      "references": [
+        {
+          "file": "src/app/super-guide/page.tsx",
+          "line": 142
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/how-life-insurance-works/insurance-through-super",
+      "title": "Insurance through super - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/how-super-works/choosing-a-super-fund",
+      "references": [
+        {
+          "file": "src/app/super-guide/page.tsx",
+          "line": 141
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/how-super-works/choosing-a-super-fund",
+      "title": "Choosing a super fund - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/how-super-works/consolidating-super-funds",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 869
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/how-super-works/consolidating-super-funds",
+      "title": "Consolidating super funds - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/how-super-works/stapled-super-fund",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 868
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/how-super-works/stapled-super-fund",
+      "title": "Stapled super fund - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/managing-debt/debt-consolidation-and-refinancing",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 96
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/managing-debt/debt-consolidation-and-refinancing",
+      "title": "Debt consolidation and refinancing - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/managing-debt/financial-hardship",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 94
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 837
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/managing-debt/financial-hardship",
+      "title": "Financial hardship - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/managing-debt/free-legal-advice",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 97
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/managing-debt/free-legal-advice",
+      "title": "Free legal advice - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/saving/how-to-start-saving",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 424
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/saving/how-to-start-saving",
+      "title": "How to start saving - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://moneysmart.gov.au/saving/save-for-an-emergency-fund",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 422
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 637
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://moneysmart.gov.au/saving/save-for-an-emergency-fund",
+      "title": "Save for an emergency fund - Moneysmart.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://my.gov.au/en/about/help/mygov-website/link-services-to-your-account/link-the-australian-taxation-office",
+      "references": [
+        {
+          "file": "src/app/super-guide/page.tsx",
+          "line": 126
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://my.gov.au/en/about/help/mygov-website/link-services-to-your-account/link-the-australian-taxation-office",
+      "title": "Link the Australian Taxation Office | myGov",
+      "contentType": "text/html;charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://ndh.org.au/",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 103
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://ndh.org.au/",
+      "title": "Welcome - National Debt Helpline",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://ndh.org.au/about-national-debt-helpline/contact-us/",
+      "references": [
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 25
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://ndh.org.au/about-national-debt-helpline/contact-us/",
+      "title": "Contact us - National Debt Helpline",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://nt.gov.au/driving/licence/new-nt-residents-and-visitors/transfer-your-overseas-licence",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 121
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://nt.gov.au/driving/licence/new-nt-residents-and-visitors/transfer-your-overseas-licence",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://nt.gov.au/driving/public-transport-cycling/public-buses",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 19
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://nt.gov.au/driving/public-transport-cycling/public-buses",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://nt.gov.au/property/private-renters/renters-your-rights-and-responsibilities/common-tenancy-disputes",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1146
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 76
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://nt.gov.au/property/private-renters/renters-your-rights-and-responsibilities/common-tenancy-disputes",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://nt.gov.au/property/private-renters/renters-your-rights-and-responsibilities/notices-for-tenants-to-landlords",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 988
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 1147
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 76
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 74
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://nt.gov.au/property/private-renters/renters-your-rights-and-responsibilities/notices-for-tenants-to-landlords",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://nt.gov.au/property/private-renters/what-to-do-if-your-home-needs-repairs/repairs-and-maintenance-on-rented-properties",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 987
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 74
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://nt.gov.au/property/private-renters/what-to-do-if-your-home-needs-repairs/repairs-and-maintenance-on-rented-properties",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://ombudsman.nt.gov.au/complaints",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 25
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://ombudsman.nt.gov.au/complaints",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://online.immi.gov.au/lusc/login",
+      "references": [
+        {
+          "file": "src/app/visa-preparation-guide/page.tsx",
+          "line": 13
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://online.immi.gov.au/lusc/login",
+      "title": "ImmiAccount",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://pfes.nt.gov.au/police/community-safety/nt-crime-statistics",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 30
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://pfes.nt.gov.au/police/community-safety/nt-crime-statistics",
+      "title": "Northern Territory Crime Statistics | NT Police, Fire &amp; Emergency Services",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://public.tableau.com/app/profile/crime.statistics.agency.victoria/viz/CrimeByLocationtool/CriminalIncidentsDashboard",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1252
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://public.tableau.com/app/profile/crime.statistics.agency.victoria/viz/CrimeByLocationtool/CriminalIncidentsDashboard",
+      "title": "",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://qps-ocm.s3-ap-southeast-2.amazonaws.com/index.html",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 25
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://qps-ocm.s3-ap-southeast-2.amazonaws.com/index.html",
+      "title": "Online Crime Map",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://rac.com.au/car-motoring/car-servicing-and-repair/vehicle-inspections",
+      "references": [
+        {
+          "file": "src/components/tools/VehicleInspectionProviderPicker.tsx",
+          "line": 45
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://rac.com.au/car-motoring/car-servicing-and-repair/vehicle-inspections",
+      "title": "Feel confident buying your next car with an RAC pre-purchase inspection | RAC WA",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://sacat.sa.gov.au/housing-and-rentals/common-disputes/parties-rights-disputes",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 982
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 49
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://sacat.sa.gov.au/housing-and-rentals/common-disputes/parties-rights-disputes",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://softwaredevelopers.ato.gov.au/PaydaySuper",
+      "references": [
+        {
+          "file": "src/app/super-guide/page.tsx",
+          "line": 125
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://softwaredevelopers.ato.gov.au/PaydaySuper",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://translink.com.au/plan-your-journey",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1285
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://translink.com.au/plan-your-journey",
+      "title": "Plan your journey | Translink",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://translink.com.au/plan-your-journey/journey-planning-help",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1286
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://translink.com.au/plan-your-journey/journey-planning-help",
+      "title": "Journey planning help | Translink",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://translink.com.au/tickets-and-fares",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 14
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://translink.com.au/tickets-and-fares",
+      "title": "Tickets and fares | Translink",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://translink.com.au/tickets-and-fares/fares-and-zones/south-east-queensland",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1287
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://translink.com.au/tickets-and-fares/fares-and-zones/south-east-queensland",
+      "title": "South East Queensland fares and tickets | Translink",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://transport.wa.gov.au/licensing/drivers-licence/visit-move-wa",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 69
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://transport.wa.gov.au/licensing/drivers-licence/visit-move-wa",
+      "title": "Visit or move to WA | Transport WA",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://transportnsw.info/news/2026/planned-trackwork-from-friday-17-to-sunday-19-july",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1211
+        }
+      ],
+      "status": "redirected",
+      "httpStatus": 200,
+      "finalUrl": "https://transportnsw.info/news",
+      "title": "Transport news | transportnsw.info",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": [
+        {
+          "from": "https://transportnsw.info/news/2026/planned-trackwork-from-friday-17-to-sunday-19-july",
+          "status": 302,
+          "to": "https://transportnsw.info/news"
+        }
+      ]
+    },
+    {
+      "url": "https://transportnsw.info/template-travel-alerts-spa",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1209
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://transportnsw.info/template-travel-alerts-spa",
+      "title": "Travel alerts | transportnsw.info",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://transportnsw.info/tickets-opal",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 12
+        }
+      ],
+      "status": "redirected",
+      "httpStatus": 200,
+      "finalUrl": "https://transportnsw.info/tickets-fares",
+      "title": "Tickets and fares | transportnsw.info",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": [
+        {
+          "from": "https://transportnsw.info/tickets-opal",
+          "status": 307,
+          "to": "https://transportnsw.info/tickets-fares"
+        }
+      ]
+    },
+    {
+      "url": "https://transportnsw.info/trip",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1210
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://transportnsw.info/trip",
+      "title": "Trip planner | transportnsw.info",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://worksafe.nt.gov.au/notify-nt-worksafe",
+      "references": [
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 76
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://worksafe.nt.gov.au/notify-nt-worksafe",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://worksafe.nt.gov.au/workers-compensation/injuries-and-claims",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 212
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 74
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://worksafe.nt.gov.au/workers-compensation/injuries-and-claims",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.1800respect.org.au/calling-1800respect",
+      "references": [
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 22
+        }
+      ],
+      "status": "redirected",
+      "httpStatus": 200,
+      "finalUrl": "https://1800respect.org.au/calling-1800respect",
+      "title": "Calling 1800RESPECT | 1800RESPECT",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": [
+        {
+          "from": "https://www.1800respect.org.au/calling-1800respect",
+          "status": 301,
+          "to": "https://1800respect.org.au/calling-1800respect"
+        }
+      ]
+    },
+    {
+      "url": "https://www.aant.com.au/motoring/driving-and-maintenance/approved-repairers",
+      "references": [
+        {
+          "file": "src/components/tools/VehicleInspectionProviderPicker.tsx",
+          "line": 78
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.aant.com.au/motoring/driving-and-maintenance/approved-repairers",
+      "title": "Approved repairers | AANT",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.acat.act.gov.au/case-types/energy-and-water-cases",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 18
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.acat.act.gov.au/case-types/energy-and-water-cases",
+      "title": "Energy and water cases - ACAT",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.acat.act.gov.au/case-types/rental-disputes/other-types-of-rental-property-disputes",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 986
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 67
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.acat.act.gov.au/case-types/rental-disputes/other-types-of-rental-property-disputes",
+      "title": "Other types of rental property disputes - ACAT",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.accc.gov.au/business/pricing/unit-pricing",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1050
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.accc.gov.au/business/pricing/unit-pricing",
+      "title": "Unit pricing | ACCC",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.accc.gov.au/consumers/buying-products-and-services/consumer-rights-and-guarantees",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1085
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.accc.gov.au/consumers/buying-products-and-services/consumer-rights-and-guarantees",
+      "title": "Consumer rights and guarantees | ACCC",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.accc.gov.au/consumers/debt",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 99
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.accc.gov.au/consumers/debt",
+      "title": "Debt | ACCC",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.accc.gov.au/consumers/problem-with-a-product-or-service-you-bought",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1087
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.accc.gov.au/consumers/problem-with-a-product-or-service-you-bought",
+      "title": "Problem with a product or service you bought | ACCC",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.accc.gov.au/consumers/problem-with-a-product-or-service-you-bought/contacting-a-business-to-fix-a-problem",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1088
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.accc.gov.au/consumers/problem-with-a-product-or-service-you-bought/contacting-a-business-to-fix-a-problem",
+      "title": "Contacting a business to fix a problem | ACCC",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.accc.gov.au/consumers/problem-with-a-product-or-service-you-bought/where-to-go-for-consumer-help",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 522
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 1089
+        },
+        {
+          "file": "src/app/moving-checklist/page.tsx",
+          "line": 58
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.accc.gov.au/consumers/problem-with-a-product-or-service-you-bought/where-to-go-for-consumer-help",
+      "title": "Where to go for consumer help | ACCC",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.accc.gov.au/consumers/stay-protected/checking-a-business-is-genuine",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1090
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.accc.gov.au/consumers/stay-protected/checking-a-business-is-genuine",
+      "title": "Checking a business is genuine | ACCC",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.accc.gov.au/consumers/telecommunications-and-internet/broadband-speeds",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 789
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.accc.gov.au/consumers/telecommunications-and-internet/broadband-speeds",
+      "title": "Broadband speeds | ACCC",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.accc.gov.au/consumers/telecommunications-and-internet/choosing-a-mobile-phone-service",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 748
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.accc.gov.au/consumers/telecommunications-and-internet/choosing-a-mobile-phone-service",
+      "title": "Choosing a mobile phone service | ACCC",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.accesscanberra.act.gov.au/driving-transport-and-parking/licences/drivers-with-licences-from-overseas",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 108
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.accesscanberra.act.gov.au/driving-transport-and-parking/licences/drivers-with-licences-from-overseas",
+      "title": "Drivers with licences from overseas - Access Canberra",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.acma.gov.au/choose-your-mobile-service-carefully",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 752
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.acma.gov.au/choose-your-mobile-service-carefully",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.acma.gov.au/choosing-nbn-plan",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 788
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.acma.gov.au/choosing-nbn-plan",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.acma.gov.au/choosing-right-product-or-plan",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 749
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 787
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.acma.gov.au/choosing-right-product-or-plan",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.acma.gov.au/how-complain-your-telco",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 754
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 792
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.acma.gov.au/how-complain-your-telco",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.acma.gov.au/id-checks-prepaid-mobiles",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 750
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.acma.gov.au/id-checks-prepaid-mobiles",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.acma.gov.au/keep-or-port-your-phone-number",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 751
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.acma.gov.au/keep-or-port-your-phone-number",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.acma.gov.au/managing-your-phone-bill",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 790
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.acma.gov.au/managing-your-phone-bill",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.acma.gov.au/telecommunications-financial-hardship-industry-standard",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 791
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.acma.gov.au/telecommunications-financial-hardship-industry-standard",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.act.gov.au/__data/assets/pdf_file/0006/2608620/Renting-Book-January-2026.pdf",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1145
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 67
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.act.gov.au/__data/assets/pdf_file/0006/2608620/Renting-Book-January-2026.pdf",
+      "title": "",
+      "contentType": "application/pdf",
+      "redirects": []
+    },
+    {
+      "url": "https://www.act.gov.au/housing-planning-and-property/renting/during-a-tenancy",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 985
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 65
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.act.gov.au/housing-planning-and-property/renting/during-a-tenancy",
+      "title": "During a tenancy - ACT Government",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.act.gov.au/housing-planning-and-property/renting/ending-a-tenancy",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1144
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 65
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.act.gov.au/housing-planning-and-property/renting/ending-a-tenancy",
+      "title": "Ending a tenancy - ACT Government",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.act.gov.au/housing-planning-and-property/renting/starting-a-tenancy",
+      "references": [
+        {
+          "file": "src/components/tools/RentalJurisdictionPicker.tsx",
+          "line": 67
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.act.gov.au/housing-planning-and-property/renting/starting-a-tenancy",
+      "title": "Starting a tenancy - ACT Government",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.adelaidemetro.com.au/tickets-and-fares",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 16
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.adelaidemetro.com.au/tickets-and-fares",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.aer.gov.au/consumers/understanding-energy/understanding-your-energy-bill",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1022
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.aer.gov.au/consumers/understanding-energy/understanding-your-energy-bill",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.aer.gov.au/industry/retail/customer-hardship-policies",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1023
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.aer.gov.au/industry/retail/customer-hardship-policies",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.afca.org.au/about-afca/receiving-banks-and-unauthorised-opening-of-accounts",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 840
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.afca.org.au/about-afca/receiving-banks-and-unauthorised-opening-of-accounts",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.afca.org.au/make-a-complaint/banking",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 839
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.afca.org.au/make-a-complaint/banking",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.afca.org.au/make-a-complaint/financial-hardship-complaints",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 98
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.afca.org.au/make-a-complaint/financial-hardship-complaints",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.applicant.tr.super.ato.gov.au/applicants/default.aspx?pid=1",
+      "references": [
+        {
+          "file": "src/app/leaving-australia-guide/page.tsx",
+          "line": 16
+        }
+      ],
+      "status": "http-error",
+      "httpStatus": 400,
+      "finalUrl": "https://www.applicant.tr.super.ato.gov.au/applicants/default.aspx?pid=1",
+      "title": "Invalid URL",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.apra.gov.au/types-accounts-covered-under-financial-claims-scheme",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 833
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.apra.gov.au/types-accounts-covered-under-financial-claims-scheme",
+      "title": "Types of accounts covered under the Financial Claims Scheme | APRA",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.apsc.gov.au/working-aps/joining-aps/cracking-code/3-applying-aps-job-cracking-code",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 393
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.apsc.gov.au/working-aps/joining-aps/cracking-code/3-applying-aps-job-cracking-code",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.asic.gov.au/regulatory-resources/financial-services/epayments-code",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 836
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.asic.gov.au/regulatory-resources/financial-services/epayments-code",
+      "title": "ePayments Code | ASIC",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/api/public/content/0-066bd153-8eec-4c72-9c1b-9ca71bf80ade",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 832
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/api/public/content/0-066bd153-8eec-4c72-9c1b-9ca71bf80ade",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/single-touch-payroll/single-touch-payroll-for-employees/accessing-your-income-statement-online",
+      "references": [
+        {
+          "file": "src/app/payslip-guide/page.tsx",
+          "line": 121
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/single-touch-payroll/single-touch-payroll-for-employees/accessing-your-income-statement-online",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-contributions/employees-and-super-guarantee",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 156
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-contributions/employees-and-super-guarantee",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/setting-up-super-for-your-business/offer-employees-a-choice-of-super-fund",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 867
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/setting-up-super-for-your-business/offer-employees-a-choice-of-super-fund",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/work-out-if-you-have-to-pay-super/super-for-independent-contractors",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 610
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/work-out-if-you-have-to-pay-super/super-for-independent-contractors",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/forms-and-instructions/superannuation-standard-choice-form",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 866
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/forms-and-instructions/superannuation-standard-choice-form",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/forms-and-instructions/tfn-declaration",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 666
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/forms-and-instructions/tfn-declaration",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/your-tax-residency",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 21
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/your-tax-residency",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 19
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/foreign-and-worldwide-income",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 22
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/foreign-and-worldwide-income",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/getting-your-super-started-and-growing/check-your-super/unpaid-super-from-my-employer",
+      "references": [
+        {
+          "file": "src/app/super-guide/page.tsx",
+          "line": 135
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/getting-your-super-started-and-growing/check-your-super/unpaid-super-from-my-employer",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/temporary-residents-and-superannuation",
+      "references": [
+        {
+          "file": "src/app/leaving-australia-guide/page.tsx",
+          "line": 16
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/temporary-residents-and-superannuation",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/individuals-and-families/tax-file-number/apply-for-a-tfn/foreign-passport-holders-permanent-migrants-and-temporary-visitors-tfn-application",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 664
+        },
+        {
+          "file": "src/app/arrival-checklist/page.tsx",
+          "line": 46
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/individuals-and-families/tax-file-number/apply-for-a-tfn/foreign-passport-holders-permanent-migrants-and-temporary-visitors-tfn-application",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/individuals-and-families/tax-file-number/what-is-a-tax-file-number",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 665
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/individuals-and-families/tax-file-number/what-is-a-tax-file-number",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/individuals-and-families/your-tax-return/amend-your-tax-return",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 23
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/individuals-and-families/your-tax-return/amend-your-tax-return",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/individuals-and-families/your-tax-return/how-to-lodge-your-tax-return",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 17
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/individuals-and-families/your-tax-return/how-to-lodge-your-tax-return",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/individuals-and-families/your-tax-return/in-detail/pre-fill-availability",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 18
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/individuals-and-families/your-tax-return/in-detail/pre-fill-availability",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/online-services/online-services-for-individuals-and-sole-traders/ato-online-services-and-mygov/help-and-support-for-online-services-individuals",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 667
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/online-services/online-services-for-individuals-and-sole-traders/ato-online-services-and-mygov/help-and-support-for-online-services-individuals",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/online-services/scams-cyber-safety-and-identity-protection/protect-your-information/how-to-protect-yourself",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 668
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/online-services/scams-cyber-safety-and-identity-protection/protect-your-information/how-to-protect-yourself",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+      "references": [
+        {
+          "file": "src/app/super-guide/page.tsx",
+          "line": 124
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.austrac.gov.au/general-public/why-you-might-be-asked-id",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 831
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.austrac.gov.au/general-public/why-you-might-be-asked-id",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.bocsar.nsw.gov.au/Pages/bocsar_crime_stats/bocsar_crime_stats.aspx",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 23
+        }
+      ],
+      "status": "redirected",
+      "httpStatus": 200,
+      "finalUrl": "https://bocsar.nsw.gov.au/statistics-dashboards/crime-and-policing.html",
+      "title": "Crime and policing | BOCSAR",
+      "contentType": "text/html;charset=utf-8",
+      "redirects": [
+        {
+          "from": "https://www.bocsar.nsw.gov.au/Pages/bocsar_crime_stats/bocsar_crime_stats.aspx",
+          "status": 301,
+          "to": "https://bocsar.nsw.gov.au/Pages/bocsar_crime_stats/bocsar_crime_stats.aspx"
+        },
+        {
+          "from": "https://bocsar.nsw.gov.au/Pages/bocsar_crime_stats/bocsar_crime_stats.aspx",
+          "status": 302,
+          "to": "https://bocsar.nsw.gov.au/statistics-dashboards/crime-and-policing.html"
+        }
+      ]
+    },
+    {
+      "url": "https://www.brisbane.qld.gov.au/community-support-and-safety/natural-disasters-and-emergencies/flooding-in-brisbane/flood-information-frequently-asked-questions",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1293
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.brisbane.qld.gov.au/community-support-and-safety/natural-disasters-and-emergencies/flooding-in-brisbane/flood-information-frequently-asked-questions",
+      "title": "Flood information frequently asked questions | Brisbane City Council",
+      "contentType": "text/html;charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.bupa.com.au/bupamvs",
+      "references": [
+        {
+          "file": "src/app/visa-preparation-guide/page.tsx",
+          "line": 17
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.bupa.com.au/bupamvs",
+      "title": "Health Examination for Visa | Bupa Medical Visa Services",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.carsales.com.au/cars/used/",
+      "references": [
+        {
+          "file": "src/app/used-car-comparison/page.tsx",
+          "line": 32
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.carsales.com.au/cars/used/",
+      "title": "carsales.com.au",
+      "contentType": "text/html;charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.cbos.tas.gov.au/topics/housing/renting",
+      "references": [
+        {
+          "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+          "line": 11
+        },
+        {
+          "file": "src/components/tools/RentalJurisdictionPicker.tsx",
+          "line": 59
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.cbos.tas.gov.au/topics/housing/renting",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.cbos.tas.gov.au/topics/housing/renting/bonds/claiming-a-bond",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1142
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 56
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.cbos.tas.gov.au/topics/housing/renting/bonds/claiming-a-bond",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.cbos.tas.gov.au/topics/housing/renting/bonds/disputes-about-a-bond/disputing-a-bond-claim",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1143
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 58
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.cbos.tas.gov.au/topics/housing/renting/bonds/disputes-about-a-bond/disputing-a-bond-claim",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.cbos.tas.gov.au/topics/resources-tools/general-forms/asset-listings/renting",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 984
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 58
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.cbos.tas.gov.au/topics/resources-tools/general-forms/asset-listings/renting",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.cbs.sa.gov.au/sections/renting/bonds/bonds-faqs",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1141
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 49
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.cbs.sa.gov.au/sections/renting/bonds/bonds-faqs",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.comcare.gov.au/roles/workers",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 213
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.comcare.gov.au/roles/workers",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.consumer.vic.gov.au/housing/renting",
+      "references": [
+        {
+          "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+          "line": 7
+        },
+        {
+          "file": "src/components/tools/RentalJurisdictionPicker.tsx",
+          "line": 27
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumer.vic.gov.au/housing/renting",
+      "title": "Renting - Consumer Affairs Victoria",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumer.vic.gov.au/housing/renting/legal-and-dispute-support/protecting-a-renters-personal-information-your-responsibilities-as-a-rental-provider-or-agent",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 492
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumer.vic.gov.au/housing/renting/legal-and-dispute-support/protecting-a-renters-personal-information-your-responsibilities-as-a-rental-provider-or-agent",
+      "title": "Protecting a renter's personal information – your responsibilities as a rental provider or agent - Consumer Affairs Victoria",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumer.vic.gov.au/housing/renting/legal-and-dispute-support/resolving-disputes",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 976
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 22
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumer.vic.gov.au/housing/renting/legal-and-dispute-support/resolving-disputes",
+      "title": "Resolving renting disputes - Consumer Affairs Victoria",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumer.vic.gov.au/housing/renting/rent-bond-bills-and-condition-reports/bond/bond-claims-and-refunds",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1134
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 22
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumer.vic.gov.au/housing/renting/rent-bond-bills-and-condition-reports/bond/bond-claims-and-refunds",
+      "title": "Bond claims and refunds - Consumer Affairs Victoria",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumer.vic.gov.au/housing/renting/rent-bond-bills-and-condition-reports/condition-reports",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 930
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 1135
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 20
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumer.vic.gov.au/housing/renting/rent-bond-bills-and-condition-reports/condition-reports",
+      "title": "Condition reports - Consumer Affairs Victoria",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumer.vic.gov.au/housing/renting/repairs-alterations-safety-and-pets/minimum-standards/minimum-standards-for-rental-properties",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1247
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumer.vic.gov.au/housing/renting/repairs-alterations-safety-and-pets/minimum-standards/minimum-standards-for-rental-properties",
+      "title": "Rental properties - minimum standards - Consumer Affairs Victoria",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumer.vic.gov.au/housing/renting/repairs-alterations-safety-and-pets/minimum-standards/rooming-house-minimum-standards",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1248
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumer.vic.gov.au/housing/renting/repairs-alterations-safety-and-pets/minimum-standards/rooming-house-minimum-standards",
+      "title": "Rooming house - minimum standards - Consumer Affairs Victoria",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumer.vic.gov.au/housing/renting/repairs-alterations-safety-and-pets/repairs/repairs-in-rental-properties",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 975
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 20
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumer.vic.gov.au/housing/renting/repairs-alterations-safety-and-pets/repairs/repairs-in-rental-properties",
+      "title": "Repairs in rental properties - Consumer Affairs Victoria",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumer.vic.gov.au/housing/renting/starting-and-changing-rental-agreements/different-rental-agreements/rooming-house-agreements",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1249
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumer.vic.gov.au/housing/renting/starting-and-changing-rental-agreements/different-rental-agreements/rooming-house-agreements",
+      "title": "Rooming house rental agreements - Consumer Affairs Victoria",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumer.vic.gov.au/housing/renting/starting-and-changing-rental-agreements/resources-and-guides-for-renters/rooming-house-residents-guide",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1250
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumer.vic.gov.au/housing/renting/starting-and-changing-rental-agreements/resources-and-guides-for-renters/rooming-house-residents-guide",
+      "title": "Rooming house residents guide - Consumer Affairs Victoria",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumer.vic.gov.au/licensing-and-registration/rooming-house-operators/public-register",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1251
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumer.vic.gov.au/licensing-and-registration/rooming-house-operators/public-register",
+      "title": "Public register - rooming house operators - Consumer Affairs Victoria",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumerprotection.wa.gov.au/bond-disputes-residential-tenancies",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1139
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 40
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumerprotection.wa.gov.au/bond-disputes-residential-tenancies",
+      "title": "Bond disputes for residential tenancies - Consumer Protection - LGIRS",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumerprotection.wa.gov.au/leaving-rental-home",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1138
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 38
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumerprotection.wa.gov.au/leaving-rental-home",
+      "title": "Leaving a rental home - Consumer Protection - LGIRS",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumerprotection.wa.gov.au/publications/notice-lessor-breach-agreement-form-23",
+      "references": [
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 40
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumerprotection.wa.gov.au/publications/notice-lessor-breach-agreement-form-23",
+      "title": "Notice to lessor of breach of agreement - Form 23 - Consumer Protection - LGIRS",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumerprotection.wa.gov.au/rental-home-repairs",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 979
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 38
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumerprotection.wa.gov.au/rental-home-repairs",
+      "title": "Rental home repairs - Consumer Protection - LGIRS",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumerprotection.wa.gov.au/renting-home",
+      "references": [
+        {
+          "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+          "line": 9
+        },
+        {
+          "file": "src/components/tools/RentalJurisdictionPicker.tsx",
+          "line": 43
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumerprotection.wa.gov.au/renting-home",
+      "title": "Renting a home - Consumer Protection - LGIRS",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.consumerprotection.wa.gov.au/resolving-rental-property-issues",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 980
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.consumerprotection.wa.gov.au/resolving-rental-property-issues",
+      "title": "Resolving rental property issues - Consumer Protection - LGIRS",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.crimestatistics.vic.gov.au/crime-statistics/latest-crime-data-by-area",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 24
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.crimestatistics.vic.gov.au/crime-statistics/latest-crime-data-by-area",
+      "title": "403 Forbidden",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.dewr.gov.au/fair-entitlements-guarantee",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 154
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.dewr.gov.au/fair-entitlements-guarantee",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.dss.gov.au/emergency-support/emergency-relief",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 101
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.dss.gov.au/emergency-support/emergency-relief",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.dss.gov.au/supporting-people-financial-crises",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 102
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.dss.gov.au/supporting-people-financial-crises",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.energy.gov.au/households/find-the-best-energy-deal",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1019
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.energy.gov.au/households/find-the-best-energy-deal",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.energy.gov.au/households/your-rights-energy-customer",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1024
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 18
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 21
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 22
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 23
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.energy.gov.au/households/your-rights-energy-customer",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.energy.nsw.gov.au/households/bills/help",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 19
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.energy.nsw.gov.au/households/bills/help",
+      "title": "Get help with your energy bills | NSW Climate and Energy Action",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.energy.vic.gov.au/households/help-paying-your-energy-bills/read-your-energy-bill",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 20
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.energy.vic.gov.au/households/help-paying-your-energy-bills/read-your-energy-bill",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.energymadeeasy.gov.au/",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1020
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 18
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 19
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 21
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 22
+        },
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 23
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.energymadeeasy.gov.au/",
+      "title": "Energy Made Easy",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ewoq.com.au/",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 21
+        }
+      ],
+      "status": "redirected",
+      "httpStatus": 200,
+      "finalUrl": "https://www.ewoq.com.au/home",
+      "title": "Home | EWOQ",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": [
+        {
+          "from": "https://www.ewoq.com.au/",
+          "status": 302,
+          "to": "https://www.ewoq.com.au/home"
+        }
+      ]
+    },
+    {
+      "url": "https://www.ewov.com.au/",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 20
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.ewov.com.au/",
+      "title": "Energy and Water Ombudsman Victoria (EWOV) | EWOV",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.facebook.com/marketplace/category/vehicles",
+      "references": [
+        {
+          "file": "src/app/used-car-comparison/page.tsx",
+          "line": 18
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.facebook.com/marketplace/category/vehicles",
+      "title": "",
+      "contentType": "text/html; charset=\"utf-8\"",
+      "redirects": []
+    },
+    {
+      "url": "https://www.fairwork.gov.au/about-us/careers/our-recruitment-process",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 396
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/about-us/careers/our-recruitment-process",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/about-us/contact-us/call-us",
+      "references": [
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 24
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/about-us/contact-us/call-us",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/about-us/workplace-laws/annual-wage-review/annual-wage-review-2026",
+      "references": [
+        {
+          "file": "src/app/minimum-wage-guide/page.tsx",
+          "line": 88
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/about-us/workplace-laws/annual-wage-review/annual-wage-review-2026",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/employment-conditions/awards",
+      "references": [
+        {
+          "file": "src/app/award-guide/page.tsx",
+          "line": 121
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/employment-conditions/awards",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/employment-conditions/awards/award-and-agreement-free-wages-and-conditions",
+      "references": [
+        {
+          "file": "src/app/minimum-wage-guide/page.tsx",
+          "line": 87
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/employment-conditions/awards/award-and-agreement-free-wages-and-conditions",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/employment-conditions/awards/award-classifications",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 457
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 901
+        },
+        {
+          "file": "src/app/award-guide/page.tsx",
+          "line": 122
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/employment-conditions/awards/award-classifications",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/employment-conditions/information-statements",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 459
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 900
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/employment-conditions/information-statements",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/employment-conditions/protections-at-work",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 214
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/employment-conditions/protections-at-work",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/employment-conditions/public-holidays",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 245
+        },
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 65
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/employment-conditions/public-holidays",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/employment-conditions/public-holidays/not-working-on-public-holidays",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 246
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/employment-conditions/public-holidays/not-working-on-public-holidays",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/ending-employment",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 145
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/ending-employment",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/ending-employment/dismissal",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 148
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/ending-employment/dismissal",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/ending-employment/final-pay",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 146
+        },
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 68
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/ending-employment/final-pay",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/ending-employment/notice-and-final-pay/resignation-and-notice",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 147
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/ending-employment/notice-and-final-pay/resignation-and-notice",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/ending-employment/redundancy",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 149
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/ending-employment/redundancy",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/find-help-for/building-and-construction-sector/contracts-in-building-and-construction",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 609
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/find-help-for/building-and-construction-sector/contracts-in-building-and-construction",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/find-help-for/independent-contractors",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 607
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/find-help-for/independent-contractors",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/find-help-for/independent-contractors/sham-contracting",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 608
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/find-help-for/independent-contractors/sham-contracting",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/leave/annual-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 58
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/leave/annual-leave",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/leave/annual-leave/directing-an-employee-to-take-annual-leave/direction-to-take-annual-leave-during-a-shut-down",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 66
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/leave/annual-leave/directing-an-employee-to-take-annual-leave/direction-to-take-annual-leave-during-a-shut-down",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/leave/community-service-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 63
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/leave/community-service-leave",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/leave/compassionate-and-bereavement-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 60
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/leave/compassionate-and-bereavement-leave",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/leave/family-and-domestic-violence-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 61
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/leave/family-and-domestic-violence-leave",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/leave/long-service-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 64
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/leave/long-service-leave",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/leave/parental-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 62
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/leave/parental-leave",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/leave/sick-and-carers-leave",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 59
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/leave/sick-and-carers-leave",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/leave/sick-and-carers-leave/paid-sick-and-carers-leave/notice-and-medical-certificates",
+      "references": [
+        {
+          "file": "src/app/leave-guide/page.tsx",
+          "line": 67
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/leave/sick-and-carers-leave/paid-sick-and-carers-leave/notice-and-medical-certificates",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/pay-and-wages/minimum-wages",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1326
+        },
+        {
+          "file": "src/app/minimum-wage-guide/page.tsx",
+          "line": 86
+        },
+        {
+          "file": "src/app/casual-loading-guide/page.tsx",
+          "line": 162
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/pay-and-wages/minimum-wages",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/pay-and-wages/paying-wages/pay-slips",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 454
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/pay-and-wages/paying-wages/pay-slips",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/pay-and-wages/penalty-rates-allowances-and-other-payments/penalty-rates/public-holiday-penalty-rates",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 244
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/pay-and-wages/penalty-rates-allowances-and-other-payments/penalty-rates/public-holiday-penalty-rates",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/pay-and-wages/tax-and-superannuation",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 460
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/pay-and-wages/tax-and-superannuation",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/starting-employment",
+      "references": [
+        {
+          "file": "src/app/arrival-checklist/page.tsx",
+          "line": 50
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/starting-employment",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/starting-employment/before-starting-employment",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 579
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 899
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/starting-employment/before-starting-employment",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/starting-employment/types-of-employees/casual-employees",
+      "references": [
+        {
+          "file": "src/app/casual-loading-guide/page.tsx",
+          "line": 116
+        },
+        {
+          "file": "src/app/casual-loading-guide/page.tsx",
+          "line": 160
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/starting-employment/types-of-employees/casual-employees",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/starting-employment/types-of-employees/casual-employees/becoming-a-permanent-employee",
+      "references": [
+        {
+          "file": "src/app/casual-loading-guide/page.tsx",
+          "line": 161
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/starting-employment/types-of-employees/casual-employees/becoming-a-permanent-employee",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/starting-employment/unpaid-work",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 578
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/starting-employment/unpaid-work",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/starting-employment/unpaid-work/unpaid-trials",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 577
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/starting-employment/unpaid-work/unpaid-trials",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/tools-and-resources/best-practice-guides/workplace-privacy",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 307
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 397
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/tools-and-resources/best-practice-guides/workplace-privacy",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/tools-and-resources/fact-sheets/rights-and-obligations/record-keeping-pay-slips",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 456
+        },
+        {
+          "file": "src/app/payslip-guide/page.tsx",
+          "line": 120
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/tools-and-resources/fact-sheets/rights-and-obligations/record-keeping-pay-slips",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/tools-and-resources/language-help/english/issues-in-the-workplace/resolving-workplace-disputes",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 278
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/tools-and-resources/language-help/english/issues-in-the-workplace/resolving-workplace-disputes",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/tools-and-resources/language-help/korean/pay-slips-and-record-keeping",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 455
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/tools-and-resources/language-help/korean/pay-slips-and-record-keeping",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/workplace-problems/common-workplace-problems/my-pay-doesnt-seem-right",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 458
+        },
+        {
+          "file": "src/app/underpayment-guide/page.tsx",
+          "line": 144
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/workplace-problems/common-workplace-problems/my-pay-doesnt-seem-right",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fairwork.gov.au/workplace-problems/fixing-a-workplace-problem",
+      "references": [
+        {
+          "file": "src/app/underpayment-guide/page.tsx",
+          "line": 152
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.fairwork.gov.au/workplace-problems/fixing-a-workplace-problem",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.fwc.gov.au/job-loss-or-dismissal/unfair-dismissal/process-unfair-dismissal-claims",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 150
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.fwc.gov.au/job-loss-or-dismissal/unfair-dismissal/process-unfair-dismissal-claims",
+      "title": "The process for unfair dismissal claims | Fair Work Commission",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.fwc.gov.au/workplace-disputes/general-protections-and-harmful-adverse-action/general-protections-applications",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 151
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.fwc.gov.au/workplace-disputes/general-protections-and-harmful-adverse-action/general-protections-applications",
+      "title": "General protections applications involving dismissal | Fair Work Commission",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.gumtree.com.au/s-cars-vans-utes/c18320",
+      "references": [
+        {
+          "file": "src/app/used-car-comparison/page.tsx",
+          "line": 25
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.gumtree.com.au/s-cars-vans-utes/c18320",
+      "title": "",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.hadsco.wa.gov.au/",
+      "references": [
+        {
+          "file": "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+          "line": 9
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.hadsco.wa.gov.au/",
+      "title": "Health and Disability Services Complaints Office",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.hcc.vic.gov.au/",
+      "references": [
+        {
+          "file": "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+          "line": 7
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.hcc.vic.gov.au/",
+      "title": "Home | Health Complaints Commissioner",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.hccc.nsw.gov.au/",
+      "references": [
+        {
+          "file": "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+          "line": 6
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.hccc.nsw.gov.au/",
+      "title": "Health Care Complaints Commission - NSW Health Care Complaints Commission",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.hcscc.nt.gov.au/",
+      "references": [
+        {
+          "file": "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+          "line": 13
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.hcscc.nt.gov.au/",
+      "redirects": [],
+      "error": "ERR_TLS_CERT_ALTNAME_INVALID"
+    },
+    {
+      "url": "https://www.hcscc.sa.gov.au/",
+      "references": [
+        {
+          "file": "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+          "line": 10
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.hcscc.sa.gov.au/",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.healthcomplaints.tas.gov.au/",
+      "references": [
+        {
+          "file": "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+          "line": 11
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.healthcomplaints.tas.gov.au/",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.healthdirect.gov.au/blood-testing",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 712
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.healthdirect.gov.au/blood-testing",
+      "title": "Guide to blood testing - All you need to know about having a blood test | healthdirect",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.healthdirect.gov.au/contact-us",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 706
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.healthdirect.gov.au/contact-us",
+      "title": "Contact us — healthdirect helpline, enquiries | healthdirect",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.healthdirect.gov.au/food-safety",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1052
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.healthdirect.gov.au/food-safety",
+      "title": "Food safety | healthdirect",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.healthdirect.gov.au/how-do-i-pay-for-healthcare",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 709
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.healthdirect.gov.au/how-do-i-pay-for-healthcare",
+      "title": "How do I pay for healthcare? | healthdirect",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.healthdirect.gov.au/swallowed-substances",
+      "references": [
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 21
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.healthdirect.gov.au/swallowed-substances",
+      "title": "Swallowed substance - poisoning information, symptoms and treatments | healthdirect",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.healthdirect.gov.au/what-care-do-i-need",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 279
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 705
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.healthdirect.gov.au/what-care-do-i-need",
+      "title": "What care do I need? | healthdirect",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.healthdirect.gov.au/what-is-a-referral",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 711
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.healthdirect.gov.au/what-is-a-referral",
+      "title": "What is a referral? | healthdirect",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.homeaffairs.gov.au/research-and-stats/files/working-holiday-report-june-25.PDF",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1324
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.homeaffairs.gov.au/research-and-stats/files/working-holiday-report-june-25.PDF",
+      "title": "Access Denied",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.hrc.act.gov.au/complaints",
+      "references": [
+        {
+          "file": "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+          "line": 12
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.hrc.act.gov.au/complaints",
+      "title": "Complaints - HRC",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.justice.act.gov.au/renting-and-occupancy-laws",
+      "references": [
+        {
+          "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+          "line": 12
+        }
+      ],
+      "status": "http-error",
+      "httpStatus": 404,
+      "finalUrl": "https://www.justice.act.gov.au/renting-and-occupancy-laws",
+      "title": "404 - Page Not Found - Justice and Community Safety Directorate",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.lifeline.org.au/get-help/national-services/lifeline-crisis-support",
+      "references": [
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 16
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.lifeline.org.au/get-help/national-services/lifeline-crisis-support",
+      "title": "Lifeline Crisis Support | Lifeline",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.metrotas.com.au/fares/",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 17
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.metrotas.com.au/fares/",
+      "title": "Tickets &amp; Fares - Metro Tasmania",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.mynrma.com.au/cars-and-driving/vehicle-inspections",
+      "references": [
+        {
+          "file": "src/components/tools/VehicleInspectionProviderPicker.tsx",
+          "line": 20
+        },
+        {
+          "file": "src/components/tools/VehicleInspectionProviderPicker.tsx",
+          "line": 69
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.mynrma.com.au/cars-and-driving/vehicle-inspections",
+      "title": "Pre Purchase Mobile Vehicle Inspections | My NRMA Rewards",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nbnco.com.au/residential/moving-home",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 786
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nbnco.com.au/residential/moving-home",
+      "title": "Moving home and nbn | nbn",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/departments-and-agencies/fair-trading/complaints-and-enquiries/utilities/electricity-gas-and-water",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 19
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/departments-and-agencies/fair-trading/complaints-and-enquiries/utilities/electricity-gas-and-water",
+      "title": "Electricity, gas and water complaints and enquiries | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/housing-and-construction/rental-forms-surveys-and-data/resources/fair-trading-commissioners-guidance/when-a-prospective-tenant-applies-for-a-property",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 490
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/housing-and-construction/rental-forms-surveys-and-data/resources/fair-trading-commissioners-guidance/when-a-prospective-tenant-applies-for-a-property",
+      "title": "When a prospective tenant applies for a property | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live",
+      "references": [
+        {
+          "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+          "line": 6
+        },
+        {
+          "file": "src/components/tools/RentalJurisdictionPicker.tsx",
+          "line": 19
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live",
+      "title": "Renting a place to live | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live/ending-a-residential-tenancy/moving-out-of-a-rental-home",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1132
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 11
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live/ending-a-residential-tenancy/moving-out-of-a-rental-home",
+      "title": "Moving out of a rental home | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live/getting-repairs-done",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 973
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 11
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live/getting-repairs-done",
+      "title": "Getting repairs done on a rental property | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live/residential-rental-bonds/dealing-bond-disputes-for-tenants",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1133
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 13
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live/residential-rental-bonds/dealing-bond-disputes-for-tenants",
+      "title": "Dealing with bond disputes for tenants | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live/residential-rental-bonds/rental-bonds-online-for-tenants",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1180
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/housing-and-construction/renting-a-place-to-live/residential-rental-bonds/rental-bonds-online-for-tenants",
+      "title": "Rental Bonds Online for tenants | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/housing-and-construction/rules/minimum-standards-for-rental-properties",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1178
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/housing-and-construction/rules/minimum-standards-for-rental-properties",
+      "title": "Minimum standards for rental properties | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/housing-and-construction/rules/rectification-orders-for-rental-properties",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 974
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 13
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/housing-and-construction/rules/rectification-orders-for-rental-properties",
+      "title": "Rectification orders for rental properties | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/housing-and-construction/rules/rental-property-condition-reports",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 932
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/housing-and-construction/rules/rental-property-condition-reports",
+      "title": "Rental property condition reports | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/housing-and-construction/rules/sharing-a-residential-rental-property",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1179
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/housing-and-construction/rules/sharing-a-residential-rental-property",
+      "title": "Sharing a residential rental property | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.nsw.gov.au/housing-and-construction/social-affordable/affordable-rental-housing/understand",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1182
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.nsw.gov.au/housing-and-construction/social-affordable/affordable-rental-housing/understand",
+      "title": "Understand affordable rental housing | NSW Government",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.oaic.gov.au/privacy/your-privacy-rights/health-information/access-your-health-information",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 717
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.oaic.gov.au/privacy/your-privacy-rights/health-information/access-your-health-information",
+      "title": "Access your health information | OAIC",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.oaic.gov.au/privacy/your-privacy-rights/more-privacy-rights/tenancy",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 489
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 523
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.oaic.gov.au/privacy/your-privacy-rights/more-privacy-rights/tenancy",
+      "title": "Tenancy | OAIC",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.oho.qld.gov.au/",
+      "references": [
+        {
+          "file": "src/components/tools/HealthComplaintJurisdictionPicker.tsx",
+          "line": 8
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.oho.qld.gov.au/",
+      "title": "Homepage - Office of the Health Ombudsman",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ombudsman.gov.au/complaints/private-health-insurance-complaints",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 718
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ombudsman.gov.au/complaints/private-health-insurance-complaints",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ombudsman.tas.gov.au/complaints/referrals-to-other-organisations/power%2C-electricity-and-gas",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 23
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.ombudsman.tas.gov.au/complaints/referrals-to-other-organisations/power%2C-electricity-and-gas",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.pbs.gov.au/info/about-the-pbs",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 713
+        }
+      ],
+      "status": "redirected",
+      "httpStatus": 200,
+      "finalUrl": "https://www.pbs.gov.au/about",
+      "title": "About the PBS | Pharmaceutical Benefits Scheme (PBS)",
+      "contentType": "text/html;charset=utf-8",
+      "redirects": [
+        {
+          "from": "https://www.pbs.gov.au/info/about-the-pbs",
+          "status": 301,
+          "to": "https://www.pbs.gov.au/about-the-pbs"
+        },
+        {
+          "from": "https://www.pbs.gov.au/about-the-pbs",
+          "status": 301,
+          "to": "https://www.pbs.gov.au/about"
+        }
+      ]
+    },
+    {
+      "url": "https://www.police.qld.gov.au/maps-and-statistics",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1294
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.police.qld.gov.au/maps-and-statistics",
+      "title": "",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.police.sa.gov.au/about-us/crime-statistics-map",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 27
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.police.sa.gov.au/about-us/crime-statistics-map",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.police.tas.gov.au/about-us/crime-statistics/",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 28
+        }
+      ],
+      "status": "redirected",
+      "httpStatus": 200,
+      "finalUrl": "https://www.police.tas.gov.au/news/crime-statistics-supplement-2015-16/",
+      "title": "Crime Statistics Supplement 2015-16 - Tasmania Police",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": [
+        {
+          "from": "https://www.police.tas.gov.au/about-us/crime-statistics/",
+          "status": 301,
+          "to": "https://www.police.tas.gov.au/news/crime-statistics-supplement-2015-16/"
+        }
+      ]
+    },
+    {
+      "url": "https://www.police.wa.gov.au/crime/crimestatistics",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 26
+        }
+      ],
+      "status": "redirected",
+      "httpStatus": 200,
+      "finalUrl": "https://www.wa.gov.au/organisation/western-australia-police-force/crime-statistics",
+      "title": "Crime statistics",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": [
+        {
+          "from": "https://www.police.wa.gov.au/crime/crimestatistics",
+          "status": 301,
+          "to": "https://www.wa.gov.au/organisation/western-australia-police-force/crime-statistics"
+        }
+      ]
+    },
+    {
+      "url": "https://www.policenews.act.gov.au/crime-statistics-and-data/crime-statistics",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 29
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.policenews.act.gov.au/crime-statistics-and-data/crime-statistics",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.powerwater.com.au/about/regulation/electricity-network-regulation-and-pricing/electricity-retailers",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 25
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.powerwater.com.au/about/regulation/electricity-network-regulation-and-pricing/electricity-retailers",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.powerwater.com.au/pricing",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 25
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.powerwater.com.au/pricing",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ppsr.gov.au/about-us/technical-information/conditions-and-terms-use/our-disclaimers",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 549
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.ppsr.gov.au/about-us/technical-information/conditions-and-terms-use/our-disclaimers",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.ppsr.gov.au/carcheck",
+      "references": [
+        {
+          "file": "src/app/used-car-comparison/page.tsx",
+          "line": 122
+        },
+        {
+          "file": "src/app/used-car-comparison/page.tsx",
+          "line": 174
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.ppsr.gov.au/carcheck",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.ppsr.gov.au/poweredbyppsr",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 550
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.ppsr.gov.au/poweredbyppsr",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.ppsr.gov.au/searching/do-used-car-or-vehicle-search",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 548
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.ppsr.gov.au/searching/do-used-car-or-vehicle-search",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.privatehealth.gov.au/health_insurance/overseas/overseas_student_health_cover.htm",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 710
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.privatehealth.gov.au/health_insurance/overseas/overseas_student_health_cover.htm",
+      "title": "Overseas Student Health Cover",
+      "contentType": "text/html",
+      "redirects": []
+    },
+    {
+      "url": "https://www.productsafety.gov.au/consumers/know-your-product-safety-rights/buy-safe-second-hand-products-online",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1086
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.productsafety.gov.au/consumers/know-your-product-safety-rights/buy-safe-second-hand-products-online",
+      "title": "Buy safe second-hand products online | ACCC Product Safety",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ptv.vic.gov.au/disruptions/disruptions-information/?n=",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1245
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://transport.vic.gov.au/",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": [
+        {
+          "from": "https://www.ptv.vic.gov.au/disruptions/disruptions-information/?n=",
+          "status": 301,
+          "to": "https://transport.vic.gov.au/"
+        }
+      ]
+    },
+    {
+      "url": "https://www.ptv.vic.gov.au/getting-around/night-network/night-tram/",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1246
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://transport.vic.gov.au/",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": [
+        {
+          "from": "https://www.ptv.vic.gov.au/getting-around/night-network/night-tram/",
+          "status": 301,
+          "to": "https://transport.vic.gov.au/"
+        }
+      ]
+    },
+    {
+      "url": "https://www.ptv.vic.gov.au/more/travelling-on-the-network/visiting-melbourne-and-victoria/",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1244
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://transport.vic.gov.au/plan-a-journey/visitors-to-victoria",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": [
+        {
+          "from": "https://www.ptv.vic.gov.au/more/travelling-on-the-network/visiting-melbourne-and-victoria/",
+          "status": 301,
+          "to": "https://transport.vic.gov.au/plan-a-journey/visitors-to-victoria"
+        }
+      ]
+    },
+    {
+      "url": "https://www.ptv.vic.gov.au/tickets/myki/",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 13
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://transport.vic.gov.au/tickets-and-myki/myki",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": [
+        {
+          "from": "https://www.ptv.vic.gov.au/tickets/myki/",
+          "status": 301,
+          "to": "https://transport.vic.gov.au/tickets-and-myki/myki"
+        }
+      ]
+    },
+    {
+      "url": "https://www.qld.gov.au/transport/licensing/driver-licensing/overseas/transfer",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 56
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.qld.gov.au/transport/licensing/driver-licensing/overseas/transfer",
+      "title": "Transferring to a Queensland licence - qld.gov.au",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.raa.com.au/motor/motoring-services/vehicle-inspections",
+      "references": [
+        {
+          "file": "src/components/tools/VehicleInspectionProviderPicker.tsx",
+          "line": 53
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.raa.com.au/motor/motoring-services/vehicle-inspections",
+      "title": "Vehicle inspections – Get an expert car check in SA | RAA",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.racq.com.au/car/vehicle-inspections",
+      "references": [
+        {
+          "file": "src/components/tools/VehicleInspectionProviderPicker.tsx",
+          "line": 37
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.racq.com.au/car/vehicle-inspections",
+      "title": "Vehicle Inspections | RACQ",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.ract.com.au/cars-and-driving/vehicle-inspections",
+      "references": [
+        {
+          "file": "src/components/tools/VehicleInspectionProviderPicker.tsx",
+          "line": 61
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.ract.com.au/cars-and-driving/vehicle-inspections",
+      "title": "Vehicle inspections – RACT",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.racv.com.au/cars-transport/vehicle-maintenance/inspections.html",
+      "references": [
+        {
+          "file": "src/components/tools/VehicleInspectionProviderPicker.tsx",
+          "line": 29
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.racv.com.au/cars-transport/vehicle-maintenance/inspections.html",
+      "title": "Pre-purchase Car Inspections Across Melbourne & Victoria | RACV",
+      "contentType": "text/html;charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/",
+      "references": [
+        {
+          "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+          "line": 8
+        },
+        {
+          "file": "src/components/tools/RentalJurisdictionPicker.tsx",
+          "line": 35
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/",
+      "title": "Home | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/before-renting/types-of-tenancy-agreements/share-homes-and-co-tenancies",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1290
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/before-renting/types-of-tenancy-agreements/share-homes-and-co-tenancies",
+      "title": "Share homes and co-tenancies | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/during-a-tenancy/repairs/emergency-repairs",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 977
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 29
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/during-a-tenancy/repairs/emergency-repairs",
+      "title": "Emergency repairs | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/during-a-tenancy/repairs/repair-orders",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 978
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 31
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/during-a-tenancy/repairs/repair-orders",
+      "title": "Repair orders | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/ending-a-tenancy/ending-a-tenancy-agreement",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1136
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 29
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/ending-a-tenancy/ending-a-tenancy-agreement",
+      "title": "Ending a tenancy agreement | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/forms-resources/factsheets/house-rules-in-rooming-accommodation-fact-sheet",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1291
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/forms-resources/factsheets/house-rules-in-rooming-accommodation-fact-sheet",
+      "title": "House rules in rooming accommodation fact sheet | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/forms-resources/factsheets/rental-bonds-for-rooming-accommodation-fact-sheet",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1292
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/forms-resources/factsheets/rental-bonds-for-rooming-accommodation-fact-sheet",
+      "title": "Rental bonds for rooming accommodation fact sheet | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/forms-resources/forms/rental-application-form-22",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 491
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/forms-resources/forms/rental-application-form-22",
+      "title": "Rental application (Form 22) | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/rental-law-changes/resources",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1288
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/rental-law-changes/resources",
+      "title": "Rental law changes resources | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/rooming-accommodation",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1289
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/rooming-accommodation",
+      "title": "Rooming accommodation | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/rta-web-services/online-bond-refund",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1137
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 31
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/rta-web-services/online-bond-refund",
+      "title": "Online Bond Refund | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rta.qld.gov.au/starting-a-tenancy/entry-condition-report",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 931
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rta.qld.gov.au/starting-a-tenancy/entry-condition-report",
+      "title": "Entry condition report | Residential Tenancies Authority",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.rtwsa.com/claims/when-an-injury-occurs/make-a-claim",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 207
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 47
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.rtwsa.com/claims/when-an-injury-occurs/make-a-claim",
+      "title": "Report an injury or make a claim",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.sa.gov.au/topics/driving-and-transport/licences/interstate-and-overseas/overseas-licence-transfer",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 82
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.sa.gov.au/topics/driving-and-transport/licences/interstate-and-overseas/overseas-licence-transfer",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.sa.gov.au/topics/housing-and-property/renting-and-letting/renting-privately/during-a-tenancy/Repairs-and-maintenance",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 981
+        },
+        {
+          "file": "src/components/tools/RentalRepairJurisdictionPicker.tsx",
+          "line": 47
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.sa.gov.au/topics/housing-and-property/renting-and-letting/renting-privately/during-a-tenancy/Repairs-and-maintenance",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.sa.gov.au/topics/housing-and-property/renting-and-letting/renting-privately/ending-a-tenancy/moving-out",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 1140
+        },
+        {
+          "file": "src/components/tools/RentalBondJurisdictionPicker.tsx",
+          "line": 47
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.sa.gov.au/topics/housing-and-property/renting-and-letting/renting-privately/ending-a-tenancy/moving-out",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.sa.gov.au/topics/housing/renting-and-letting",
+      "references": [
+        {
+          "file": "src/components/tools/MovingJurisdictionPicker.tsx",
+          "line": 10
+        },
+        {
+          "file": "src/components/tools/RentalJurisdictionPicker.tsx",
+          "line": 51
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.sa.gov.au/topics/housing/renting-and-letting",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.safetyandquality.gov.au/your-rights/giving-feedback-and-making-complaints",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 716
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.safetyandquality.gov.au/your-rights/giving-feedback-and-making-complaints",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.safetyandquality.gov.au/your-rights/understanding-your-healthcare-rights",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 715
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.safetyandquality.gov.au/your-rights/understanding-your-healthcare-rights",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.safework.nsw.gov.au/notify-safework",
+      "references": [
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 13
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.safework.nsw.gov.au/notify-safework",
+      "title": "Notify SafeWork | SafeWork NSW",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.safework.nsw.gov.au/safety-starts-here/safety-overview/when-an-incident-occurs",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 200
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.safework.nsw.gov.au/safety-starts-here/safety-overview/when-an-incident-occurs",
+      "title": "When an incident occurs | SafeWork NSW",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.safework.sa.gov.au/notify/incident-notification",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 208
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 49
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.safework.sa.gov.au/notify/incident-notification",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.safeworkaustralia.gov.au/law-and-regulation/whs-regulators-and-workers-compensation-authorities-contact-information",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 198
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.safeworkaustralia.gov.au/law-and-regulation/whs-regulators-and-workers-compensation-authorities-contact-information",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.safeworkaustralia.gov.au/workers-compensation",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 197
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.safeworkaustralia.gov.au/workers-compensation",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.scamwatch.gov.au/about-us/news-and-alerts/rental-scams-targeting-more-australians-during-pandemic",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 521
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.scamwatch.gov.au/about-us/news-and-alerts/rental-scams-targeting-more-australians-during-pandemic",
+      "title": "Rental scams targeting more Australians during pandemic | Scamwatch",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.scamwatch.gov.au/report-a-scam",
+      "references": [
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 26
+        },
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 26
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.scamwatch.gov.au/report-a-scam",
+      "title": "Report a scam | Scamwatch",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.scamwatch.gov.au/stop-check-protect/what-to-do-if-youve-been-scammed",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 838
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.scamwatch.gov.au/stop-check-protect/what-to-do-if-youve-been-scammed",
+      "title": "What to do if you&#039;ve been scammed | Scamwatch",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.scamwatch.gov.au/types-of-scams/account-or-identity-takeover-scams",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 753
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.scamwatch.gov.au/types-of-scams/account-or-identity-takeover-scams",
+      "title": "Account or identity takeover scams | Scamwatch",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.scamwatch.gov.au/types-of-scams/buying-and-selling-scams",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 520
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 1084
+        },
+        {
+          "file": "src/app/used-car-comparison/page.tsx",
+          "line": 123
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.scamwatch.gov.au/types-of-scams/buying-and-selling-scams",
+      "title": "Buying and selling scams | Scamwatch",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.scamwatch.gov.au/types-of-scams/jobs-and-employment-scams",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 897
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.scamwatch.gov.au/types-of-scams/jobs-and-employment-scams",
+      "title": "Jobs and employment scams | Scamwatch",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.service.nsw.gov.au/transaction/apply-for-a-nsw-licence-as-a-temporary-overseas-visitor",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 30
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.service.nsw.gov.au/transaction/apply-for-a-nsw-licence-as-a-temporary-overseas-visitor",
+      "title": "Apply for a NSW licence as a temporary overseas visitor | Service NSW",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.servicesaustralia.gov.au/bulk-billing?context=60092",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 707
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.servicesaustralia.gov.au/bulk-billing?context=60092",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.servicesaustralia.gov.au/centrelink-online-account-help-update-address-accommodation-and-contact-details",
+      "references": [
+        {
+          "file": "src/app/moving-checklist/page.tsx",
+          "line": 58
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.servicesaustralia.gov.au/centrelink-online-account-help-update-address-accommodation-and-contact-details",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.servicesaustralia.gov.au/crisis-payment",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 104
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.servicesaustralia.gov.au/crisis-payment",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.servicesaustralia.gov.au/enrolling-medicare",
+      "references": [
+        {
+          "file": "src/app/arrival-checklist/page.tsx",
+          "line": 48
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.servicesaustralia.gov.au/enrolling-medicare",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.servicesaustralia.gov.au/medicare-claims?context=60092",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 708
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.servicesaustralia.gov.au/medicare-claims?context=60092",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.servicesaustralia.gov.au/when-you-need-employment-separation-certificate",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 153
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.servicesaustralia.gov.au/when-you-need-employment-separation-certificate",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.sira.nsw.gov.au/workers-compensation-claims-guide/understanding-the-claims-journey/making-a-claim",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 199
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 11
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.sira.nsw.gov.au/workers-compensation-claims-guide/understanding-the-claims-journey/making-a-claim",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.studyaustralia.gov.au/en/plan-your-move/your-first-week-in-australia.html",
+      "references": [
+        {
+          "file": "src/app/arrival-checklist/page.tsx",
+          "line": 49
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.studyaustralia.gov.au/en/plan-your-move/your-first-week-in-australia.html",
+      "title": "Your first week in Australia | Study Australia",
+      "contentType": "text/html;charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.tio.com.au/",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 793
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.tio.com.au/",
+      "title": "Home - The Telecommunications Industry Ombudsman",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.tisnational.gov.au/en/Non-English-speakers/Help-using-TIS-National",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 714
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.tisnational.gov.au/en/Non-English-speakers/Help-using-TIS-National",
+      "title": "Translating and Interpreting Service (TIS National)",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.tisnational.gov.au/Non-English-speakers/Help-using-TIS-National",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 277
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.tisnational.gov.au/Non-English-speakers/Help-using-TIS-National",
+      "title": "Translating and Interpreting Service (TIS National)",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.tisnational.gov.au/Non-English-speakers/Interpreting-services",
+      "references": [
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 23
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.tisnational.gov.au/Non-English-speakers/Interpreting-services",
+      "title": "Translating and Interpreting Service (TIS National)",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.tpb.gov.au/registrations_search",
+      "references": [
+        {
+          "file": "src/app/tax-return-guide/page.tsx",
+          "line": 20
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.tpb.gov.au/registrations_search",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.transperth.wa.gov.au/smartrider",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 15
+        }
+      ],
+      "status": "redirected",
+      "httpStatus": 200,
+      "finalUrl": "https://www.transperth.wa.gov.au/SmartRider/Types-of-SmartRider",
+      "title": "Types of SmartRider",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": [
+        {
+          "from": "https://www.transperth.wa.gov.au/smartrider",
+          "status": 302,
+          "to": "https://www.transperth.wa.gov.au/SmartRider/Types-of-SmartRider"
+        }
+      ]
+    },
+    {
+      "url": "https://www.transport.act.gov.au/tickets-and-myway",
+      "references": [
+        {
+          "file": "src/app/public-transport-guide/page.tsx",
+          "line": 18
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.transport.act.gov.au/tickets-and-myway",
+      "title": "Tickets &amp; MyWay+ - Transport Canberra",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.transport.tas.gov.au/licensing/interstate_or_overseas_licences/converting_an_overseas_licence",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 95
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.transport.tas.gov.au/licensing/interstate_or_overseas_licences/converting_an_overseas_licence",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.triplezero.gov.au/triple-zero/other-emergency-numbers",
+      "references": [
+        {
+          "file": "src/app/help-directory/page.tsx",
+          "line": 15
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.infrastructure.gov.au/triple-zero",
+      "redirects": [
+        {
+          "from": "https://www.triplezero.gov.au/triple-zero/other-emergency-numbers",
+          "status": 301,
+          "to": "https://infrastructure.gov.au/triple-zero"
+        },
+        {
+          "from": "https://infrastructure.gov.au/triple-zero",
+          "status": 301,
+          "to": "https://www.infrastructure.gov.au/triple-zero"
+        }
+      ],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.usi.gov.au/students/international-students-and-students-studying-overseas",
+      "references": [
+        {
+          "file": "src/app/arrival-checklist/page.tsx",
+          "line": 47
+        }
+      ],
+      "status": "network-error",
+      "finalUrl": "https://www.usi.gov.au/students/international-students-and-students-studying-overseas",
+      "redirects": [],
+      "error": "TimeoutError"
+    },
+    {
+      "url": "https://www.vicroads.vic.gov.au/licences/convert-your-licence/convert-overseas-licence",
+      "references": [
+        {
+          "file": "src/components/tools/DriverLicenceGuide.tsx",
+          "line": 43
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.vicroads.vic.gov.au/licences/convert-your-licence/convert-overseas-licence",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.wa.gov.au/organisation/energy-policy-wa/household-electricity-pricing",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 24
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.wa.gov.au/organisation/energy-policy-wa/household-electricity-pricing",
+      "title": "Household electricity pricing",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.wa.gov.au/organisation/energy-policy-wa/household-energy-pricing-and-payment-support",
+      "references": [
+        {
+          "file": "src/components/tools/EnergySupportJurisdictionPicker.tsx",
+          "line": 24
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.wa.gov.au/organisation/energy-policy-wa/household-energy-pricing-and-payment-support",
+      "title": "Household energy pricing and payment support",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.workcover.wa.gov.au/workers/understanding-your-rights-obligations-entitlements/making-a-claim/",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 205
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 38
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.workcover.wa.gov.au/workers/understanding-your-rights-obligations-entitlements/making-a-claim/",
+      "title": "Attention Required! | Cloudflare",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.workforceaustralia.gov.au/businesses/help/advice/write-job-ad",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 363
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.workforceaustralia.gov.au/businesses/help/advice/write-job-ad",
+      "title": "How to write a great job ad",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.workforceaustralia.gov.au/content/online-learning/course/checking-your-resume/assets/resume%20quality%20checklist.pdf",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 334
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.workforceaustralia.gov.au/content/online-learning/course/checking-your-resume/assets/resume%20quality%20checklist.pdf",
+      "title": "",
+      "contentType": "application/pdf",
+      "redirects": []
+    },
+    {
+      "url": "https://www.workforceaustralia.gov.au/content/online-learning/course/tailoring-your-resume/assets/resume%20tailoring%20checklist.pdf",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 335
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 395
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.workforceaustralia.gov.au/content/online-learning/course/tailoring-your-resume/assets/resume%20tailoring%20checklist.pdf",
+      "title": "",
+      "contentType": "application/pdf",
+      "redirects": []
+    },
+    {
+      "url": "https://www.workforceaustralia.gov.au/content/online-learning/course/writing-cover-letters/assets/cover%20letter%20planner.pdf",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 364
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.workforceaustralia.gov.au/content/online-learning/course/writing-cover-letters/assets/cover%20letter%20planner.pdf",
+      "title": "",
+      "contentType": "application/pdf",
+      "redirects": []
+    },
+    {
+      "url": "https://www.workforceaustralia.gov.au/individuals/coaching/job-applications/cover-letters",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 362
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.workforceaustralia.gov.au/individuals/coaching/job-applications/cover-letters",
+      "title": "Write a cover letter",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.workforceaustralia.gov.au/individuals/coaching/job-applications/job-application-tips",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 305
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 898
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.workforceaustralia.gov.au/individuals/coaching/job-applications/job-application-tips",
+      "title": "Tips for successful job applications",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.workforceaustralia.gov.au/individuals/coaching/job-applications/job-interviews",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 306
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.workforceaustralia.gov.au/individuals/coaching/job-applications/job-interviews",
+      "title": "Prepare for a job interview",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.workforceaustralia.gov.au/individuals/coaching/job-applications/resumes",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 333
+        },
+        {
+          "file": "src/data/articles.ts",
+          "line": 394
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.workforceaustralia.gov.au/individuals/coaching/job-applications/resumes",
+      "title": "Write a resume | Coaching and support",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.workforceaustralia.gov.au/individuals/obligations/learn/meet-your-obligations/show-applied-job",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 304
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.workforceaustralia.gov.au/individuals/obligations/learn/meet-your-obligations/show-applied-job",
+      "title": "Show you applied for a job",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.worksafe.act.gov.au/health-and-safety-portal/notify-worksafe",
+      "references": [
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 67
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.worksafe.act.gov.au/health-and-safety-portal/notify-worksafe",
+      "title": "Notify WorkSafe ACT - WorkSafe ACT",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.worksafe.act.gov.au/workers-compensation/making-a-claim",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 211
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 65
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.worksafe.act.gov.au/workers-compensation/making-a-claim",
+      "title": "How to make a workers&#039; compensation claim - WorkSafe ACT",
+      "contentType": "text/html; charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.worksafe.qld.gov.au/safety-and-prevention/incidents-and-notifications",
+      "references": [
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 31
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.worksafe.qld.gov.au/safety-and-prevention/incidents-and-notifications",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.worksafe.qld.gov.au/workers-compensation/compensation-claims/making-a-claim",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 203
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 29
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.worksafe.qld.gov.au/workers-compensation/compensation-claims/making-a-claim",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.worksafe.qld.gov.au/workers-compensation/work-related-injuries/injury-or-illness-first-steps",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 204
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.worksafe.qld.gov.au/workers-compensation/work-related-injuries/injury-or-illness-first-steps",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.worksafe.tas.gov.au/topics/compensation/workers-compensation/information-for-workers/how-to-make-a-workers-compensation-claim-as-worker",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 209
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 56
+        }
+      ],
+      "status": "restricted",
+      "httpStatus": 403,
+      "finalUrl": "https://www.worksafe.tas.gov.au/topics/compensation/workers-compensation/information-for-workers/how-to-make-a-workers-compensation-claim-as-worker",
+      "title": "Just a moment...",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.worksafe.vic.gov.au/report-incident",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 202
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 22
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.worksafe.vic.gov.au/report-incident",
+      "title": "Report an incident | WorkSafe Victoria",
+      "contentType": "text/html;charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.worksafe.vic.gov.au/what-do-when-youve-been-injured-work",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 201
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 20
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.worksafe.vic.gov.au/what-do-when-youve-been-injured-work",
+      "title": "What to do when you’ve been injured at work | WorkSafe Victoria",
+      "contentType": "text/html;charset=utf-8",
+      "redirects": []
+    },
+    {
+      "url": "https://www.worksafe.wa.gov.au/report-incident",
+      "references": [
+        {
+          "file": "src/data/articles.ts",
+          "line": 206
+        },
+        {
+          "file": "src/components/tools/WorkersCompJurisdictionPicker.tsx",
+          "line": 40
+        }
+      ],
+      "status": "reachable",
+      "httpStatus": 200,
+      "finalUrl": "https://www.worksafe.wa.gov.au/report-incident",
+      "title": "Report an incident - WorkSafe – LGIRS",
+      "contentType": "text/html; charset=UTF-8",
+      "redirects": []
+    }
+  ],
+  "note": "Baseline before corrections. HTTP success does not establish factual accuracy; restricted/network-error entries remain unverified by this run."
+}
