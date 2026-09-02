@@ -47,6 +47,42 @@ function PackPreview() {
   return <div className="border border-navy/15 bg-white p-5 shadow-[0_24px_60px_rgba(26,39,68,0.1)] sm:p-7"><div className="flex items-start justify-between border-b-2 border-navy pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">신청 진행 대시보드</p><p className="mt-2 text-xl font-semibold text-navy">Carlton 후보 1</p></div><span className="font-mono text-sm text-muted">75%</span></div><div className="mt-6 grid grid-cols-3 gap-3"><div className="bg-surface p-3"><p className="text-xs text-muted">관리 중</p><p className="mt-1 text-xl font-semibold text-navy">04</p></div><div className="bg-gold/15 p-3"><p className="text-xs text-muted">제출</p><p className="mt-1 text-xl font-semibold text-navy">02</p></div><div className="bg-surface p-3"><p className="text-xs text-muted">다음 행동</p><p className="mt-1 text-sm font-semibold text-navy">22 Aug</p></div></div><div className="mt-6"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">이 집에서 남은 일</p><div className="mt-3 space-y-3"><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">은행 명세서 범위 확인</p><p className="mt-1 text-xs text-muted">거래내역 없이 지불 능력을 증명할 수 있는지 질문</p></div><div className="border-l-2 border-gold pl-3"><p className="text-sm font-semibold text-navy">제출 후 확인 문구</p><p className="mt-1 text-xs text-muted">신청 접수 여부와 빠진 자료 확인</p></div></div></div><p className="mt-7 border-t border-border pt-4 text-xs leading-5 text-muted">예시 화면입니다. 신분증·Payslip·은행 서류의 실제 파일은 받지 않습니다.</p></div>;
 }
 
+// Fixed fictional excerpts checked against RentalApplicationWorkspace's createMessages/downloadSummary.
+const followUpPreview = [
+  "Hello,",
+  "I am following up on my application for Example home A (fictional), submitted on 1 September 2026.",
+  "Could you please confirm it was received and let me know if any relevant information is missing? I am happy to respond promptly through the verified application channel.",
+  "Thank you for your time.",
+  "Kind regards,",
+].join("\n\n");
+const summaryPreview = [
+  "HOJU COMPASS — RENTAL APPLICATION PACK",
+  "Property: Example home A (fictional)",
+  "Stage: 후속 연락",
+  "Next action: 2026-09-04",
+  "",
+  "FOLLOW-UP LOG",
+  "- 2026-09-02 · sent via portal · Asked whether the application was received.",
+].join("\n");
+
+function OutputPreview() {
+  return <section className="mt-8 border border-navy/15 bg-surface p-5 sm:p-7" aria-labelledby="rental-output-preview-heading">
+    <h3 id="rental-output-preview-heading" className="text-xl font-semibold text-navy">실제로 남는 문구와 TXT 요약</h3>
+    <p className="mt-2 text-sm leading-6 text-muted">가상 예시 · 실제 신청 아님 · 읽기 전용. 집 구분명은 Example home A (fictional)이며, 날짜와 연락 기록도 모두 가상입니다. 신청을 보내거나 작업공간을 열지 않습니다.</p>
+    <div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <figure className="min-w-0 border border-border bg-white p-4 sm:p-5">
+        <figcaption className="text-sm font-semibold text-navy">영문 문구 3종 중 ‘제출 후 확인’</figcaption>
+        <pre lang="en" className="mt-3 whitespace-pre-wrap break-words font-sans text-sm leading-6 text-navy">{followUpPreview}</pre>
+      </figure>
+      <figure className="min-w-0 border border-border bg-white p-4 sm:p-5">
+        <figcaption className="text-sm font-semibold text-navy">집별 TXT 일부 발췌 · 집 구분명·다음 행동·연락 기록</figcaption>
+        <pre className="mt-3 whitespace-pre-wrap break-words font-mono text-xs leading-6 text-navy">{summaryPreview}</pre>
+        <p className="mt-3 text-xs leading-5 text-muted">위 가상 발췌는 공개 가능한 내용만 담았습니다. 실제 TXT에는 다른 준비 상태와 작성한 문구도 포함되므로, 공유 전 필요한 부분만 남기고 개인정보를 확인하세요. 비공개 JSON 백업은 이 예시에 포함하지 않습니다.</p>
+      </figure>
+    </div>
+  </section>;
+}
+
 type Props = { searchParams: Promise<{ access?: string; checkout?: string; from?: string | string[] }> };
 
 export default async function RentalApplicationProPage({ searchParams }: Props) {
@@ -124,7 +160,7 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
 
       <section className="py-14 sm:py-20"><Container><div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">많이 보내는 것보다, 필요한 것만</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">신청 서류가 많다고<br />꼭 유리한 것은 아니에요.</h2><p className="mt-4 text-sm leading-7 text-muted">경쟁이 치열하더라도 TFN이나 은행 로그인처럼 렌트 신청에 필요하지 않은 정보까지 보낼 이유는 없어요. 왜 필요한 정보인지, 어떻게 보관되는지 한 번 더 확인할 수 있게 구성했어요.</p></div><PackPreview /></div></Container></section>
 
-      <section className="border-y border-navy/15 bg-white py-14 sm:py-20"><Container><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">집을 본 뒤 신청까지</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">네 단계로 차근차근 준비해요.</h2><ol className="mt-10 grid border-t border-navy/20 md:grid-cols-2">{features.map(([number, eyebrow, title], index) => <li key={number} className={`min-h-56 border-b border-navy/20 p-6 sm:p-8 ${index % 2 === 0 ? "md:border-r" : ""}`}><div className="flex items-center justify-between"><span className="font-mono text-sm text-gold">{number} / 04</span><span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{eyebrow}</span></div><h3 className="mt-9 text-xl font-semibold leading-8 text-navy">{title}</h3></li>)}</ol></Container></section>
+      <section className="border-y border-navy/15 bg-white py-14 sm:py-20"><Container><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">집을 본 뒤 신청까지</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">네 단계로 차근차근 준비해요.</h2><ol className="mt-10 grid border-t border-navy/20 md:grid-cols-2">{features.map(([number, eyebrow, title], index) => <li key={number} className={`min-h-56 border-b border-navy/20 p-6 sm:p-8 ${index % 2 === 0 ? "md:border-r" : ""}`}><div className="flex items-center justify-between"><span className="font-mono text-sm text-gold">{number} / 04</span><span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{eyebrow}</span></div><h3 className="mt-9 text-xl font-semibold leading-8 text-navy">{title}</h3></li>)}</ol><OutputPreview /></Container></section>
 
       <RentalApplicationProDecisionBoard checkoutAvailable={checkoutAvailable} />
 
