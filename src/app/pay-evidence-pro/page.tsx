@@ -21,6 +21,39 @@ const sources = [
   { label: "Fair Work", title: "직장 문제 도움 요청", href: "https://www.fairwork.gov.au/workplace-problems/fixing-a-workplace-problem/resolving-disputes-with-our-help", body: "고용주와 직접 해결되지 않았을 때 무료 Dispute Assistance 범위와 공식 지원 경로를 확인합니다." },
 ];
 
+// Fictional excerpts checked against PayEvidenceWorkspace's downloadSummary and makeRequest output.
+const payPeriodPreview = "- 1–7 September | Hours Not recorded | Expected gross Not recorded | Payslip gross Not recorded | Payslip net Not recorded | Bank net Not recorded | User-entered gross comparison Not comparable | Payslip-to-bank net difference Not comparable";
+const requestPreview = `Subject: Request to review pay records
+
+Hi Payroll/Manager,
+
+I am reviewing my time and pay records for 1–7 September. I would like to confirm that the recorded hours and gross pay are correct.
+
+Could you please check the hours, pay rates, penalties, allowances and deductions used for these periods, and provide the relevant time and wage records if available? I can share my period-by-period calculation without sensitive bank or tax details.
+
+Please let me know the outcome in writing and how any correction will be shown on a payslip.
+
+Thank you.`;
+
+function PayOutputPreview() {
+  return <section className="mt-8 border border-navy/15 bg-surface p-5 sm:p-7" aria-labelledby="pay-output-preview-heading">
+    <h3 id="pay-output-preview-heading" className="text-xl font-semibold text-navy">TXT 요약과 영문 요청문은 이렇게 남아요</h3>
+    <p className="mt-2 text-sm leading-6 text-muted">가상 예시 · 실제 급여 기록이나 문의가 아닙니다 · 읽기 전용. ‘1–7 September’라는 급여기간만 기록하고 시간과 금액은 아직 입력하지 않은 상태입니다.</p>
+    <div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <figure className="min-w-0 border border-border bg-white p-4 sm:p-5">
+        <figcaption className="text-sm font-semibold text-navy">전체 요약 TXT 중 급여기간 1개</figcaption>
+        <pre lang="en" className="mt-3 whitespace-pre-wrap break-words font-mono text-xs leading-6 text-navy">{payPeriodPreview}</pre>
+        <p className="mt-3 text-xs leading-5 text-muted">값을 기록하지 않았으므로 <span lang="en">Not recorded</span>, 비교할 두 값이 없으므로 <span lang="en">Not comparable</span>로 남습니다. 0을 입력했다는 뜻이 아닙니다.</p>
+      </figure>
+      <figure className="min-w-0 border border-border bg-white p-4 sm:p-5">
+        <figcaption className="text-sm font-semibold text-navy">첫 번째 확인 요청 영문 초안</figcaption>
+        <pre lang="en" className="mt-3 whitespace-pre-wrap break-words font-sans text-sm leading-6 text-navy">{requestPreview}</pre>
+      </figure>
+    </div>
+    <p className="mt-4 text-xs leading-5 text-muted">도구는 입력한 기록을 정리할 뿐 Award·Classification·최저임금이나 미지급 여부를 결정하지 않습니다. 실제 전송 전 사실과 민감정보 포함 여부를 직접 확인하세요.</p>
+  </section>;
+}
+
 export const dynamic = "force-dynamic";
 
 type Props = { searchParams: Promise<{ access?: string; checkout?: string; from?: string | string[] }> };
@@ -45,7 +78,7 @@ export default async function PayEvidenceProPage({ searchParams }: Props) {
       {checkoutAvailable && <div id="pay-evidence-pro-checkout" className="mt-5 scroll-mt-24"><PayEvidenceProCheckoutForm testMode={testCheckoutAvailable} entry={entry} /></div>}
       <p className="mt-4 text-xs leading-5 text-muted">{testCheckoutAvailable ? "현재 버튼은 Stripe 테스트 환경 전용이며 실제 카드 청구는 없습니다." : checkoutAvailable ? "결제는 Stripe의 보안 결제 페이지에서 진행되며 결제와 이용권 확인 뒤 작업 공간을 열 수 있어요." : "결제는 Stripe·Neon 설정과 출시 승인이 완료될 때까지 닫혀 있습니다."}</p>
     </Container></section>
-    <section className="py-14 sm:py-20"><Container><div className="grid gap-8 lg:grid-cols-[18rem_1fr]"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">먼저 확인하고, 필요한 만큼만</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy">권리 정보는 무료로,<br />개인 기록 정리는 Pro로.</h2><p className="mt-4 text-sm leading-7 text-muted">최저임금과 Award 찾기, 미지급 급여 대응 순서는 계속 무료예요. Pro는 내 계산과 전달용 정리에 드는 시간을 줄여주는 역할만 해요.</p></div><ol className="grid border-t border-navy/20 md:grid-cols-2">{features.map(([number, eyebrow, title], index) => <li key={number} className={`min-h-52 border-b border-navy/20 p-6 ${index % 2 === 0 ? "md:border-r" : ""}`}><div className="flex items-center justify-between"><span className="font-mono text-sm text-gold">{number} / 04</span><span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{eyebrow}</span></div><h3 className="mt-8 text-xl font-semibold leading-8 text-navy">{title}</h3></li>)}</ol></div></Container></section>
+    <section className="py-14 sm:py-20"><Container><div className="grid gap-8 lg:grid-cols-[18rem_1fr]"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">먼저 확인하고, 필요한 만큼만</p><h2 className="mt-3 text-3xl font-semibold tracking-tight text-navy">권리 정보는 무료로,<br />개인 기록 정리는 Pro로.</h2><p className="mt-4 text-sm leading-7 text-muted">최저임금과 Award 찾기, 미지급 급여 대응 순서는 계속 무료예요. Pro는 내 계산과 전달용 정리에 드는 시간을 줄여주는 역할만 해요.</p></div><ol className="grid border-t border-navy/20 md:grid-cols-2">{features.map(([number, eyebrow, title], index) => <li key={number} className={`min-h-52 border-b border-navy/20 p-6 ${index % 2 === 0 ? "md:border-r" : ""}`}><div className="flex items-center justify-between"><span className="font-mono text-sm text-gold">{number} / 04</span><span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{eyebrow}</span></div><h3 className="mt-8 text-xl font-semibold leading-8 text-navy">{title}</h3></li>)}</ol></div><PayOutputPreview /></Container></section>
     <section className="border-y border-navy/15 bg-white py-14 sm:py-20"><Container><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">공식 기준도 함께 살펴봤어요</p><h2 className="mt-2 text-2xl font-semibold text-navy">급여는 지금 적용되는 공식 기준으로 확인해요</h2><ul className="mt-7 grid gap-px bg-border lg:grid-cols-3">{sources.map((source) => <li key={source.href} className="bg-surface"><a href={source.href} target="_blank" rel="noreferrer" className="group flex min-h-64 flex-col p-6 hover:bg-white"><span className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">{source.label}</span><strong className="mt-3 text-xl text-navy">{source.title}</strong><span className="mt-4 text-sm leading-7 text-muted">{source.body}</span><span className="mt-auto pt-6 text-sm font-semibold text-navy">공식 원문 열기 ↗</span></a></li>)}</ul></Container></section>
     <section className="bg-navy py-12 text-white sm:py-16"><Container className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-end"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">내 기록은 내 기기에</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">원본 급여자료를 올리지 않아도 순서대로 확인할 수 있어요.</h2><p className="mt-3 max-w-2xl text-sm leading-7 text-white/65">입력한 요약은 현재 브라우저에만 저장해요. Fair Work 신고나 고용주 연락, 법적인 미지급액 판단을 대신하지는 않아요.</p></div><Link href="/underpayment-guide" className="inline-flex min-h-12 items-center justify-center bg-gold px-5 text-sm font-semibold text-navy hover:bg-white">무료 대응 순서 →</Link></Container></section>
   </main><Footer /></>;
