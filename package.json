@@ -64,6 +64,7 @@
     "payments:leaving-readiness": "node scripts/check-leaving-australia-launch-readiness.mjs",
     "payments:leaving-migrate": "node scripts/apply-leaving-australia-migrations.mjs",
     "payments:leaving-catalog": "node scripts/ensure-leaving-australia-stripe-catalog.mjs",
+    "test:eofy-leaving-catalog": "node scripts/check-eofy-leaving-stripe-catalog.mjs",
     "test:eofy-leaving-access-functions": "node scripts/check-eofy-leaving-access-functions.mjs",
     "test:search-intent": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-site-search-resume-intent.mjs",
     "test:ai-discovery": "node scripts/check-ai-discovery-contract.mjs",
