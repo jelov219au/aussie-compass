@@ -51,16 +51,86 @@ for (const guard of [
 assert.doesNotMatch(alertMigration.replace(/^\s*--.*$/gm, ""), /\b(?:drop|delete|truncate|create role|alter role|grant all)\b/i);
 assert.ok(launch.includes(alertMigrationPath));
 const constraintPrerequisite = await read("docs/migrations/20260831_pay_evidence_gate_constraint_prerequisite_v1.sql");
-for (const guard of [
-  "in access exclusive mode", "state = 'RESERVED'",
-  "not v_old.convalidated or not v_named.convalidated",
-  "v_old.connoinherit is distinct from v_named.connoinherit",
-  "v_definition is distinct from pg_get_constraintdef(v_named.oid)",
-  "where oid = v_named.oid and convalidated",
-  "v_table || '_check'", "v_table || '_expected_amount_cents_check'",
-  "Canonical amount constraint was not preserved",
-]) assert.ok(constraintPrerequisite.includes(guard), guard);
-assert.doesNotMatch(constraintPrerequisite.replace(/^\s*--.*$/gm, ""), /\b(?:delete|truncate)\b/i);
+function assertConstraintPrerequisiteContract(source) {
+  for (const guard of [
+    "in access exclusive mode", "state = 'RESERVED'",
+    "v_mentions_product_code := position('product_code' in lower(v_definition)) > 0",
+    "v_mentions_expected_amount := position('expected_amount_cents' in lower(v_definition)) > 0",
+    "if not v_mentions_product_code and not v_mentions_expected_amount then",
+    "if not v_mentions_product_code or not v_mentions_expected_amount then",
+    "Suspicious amount-like gate constraint; refusing duplicate removal",
+    "not v_old.convalidated or not v_named.convalidated",
+    "v_old.connoinherit is distinct from v_named.connoinherit",
+    "v_definition is distinct from pg_get_constraintdef(v_named.oid)",
+    "where oid = v_named.oid and convalidated",
+    "v_table || '_check'", "v_table || '_expected_amount_cents_check'",
+    "if not found then continue; end if;",
+    "Canonical amount constraint was not preserved",
+  ]) assert.ok(source.includes(guard), guard);
+  assert.match(source, /if not v_mentions_product_code and not v_mentions_expected_amount then\s+continue;/);
+  assert.doesNotMatch(source.replace(/^\s*--.*$/gm, ""), /\b(?:delete|truncate)\b/i);
+}
+assertConstraintPrerequisiteContract(constraintPrerequisite);
+
+// Mutation checks keep the three-way contract explicit: unrelated state/audit
+// constraints survive, exact amount duplicates are removable, and every
+// amount-like mismatch stops before ALTER TABLE.
+function classifyAutoNamedGateConstraint({
+  definition,
+  canonicalDefinition,
+  oldType = "c",
+  namedType = "c",
+  oldValidated = true,
+  namedValidated = true,
+  sameInheritance = true,
+}) {
+  const normalized = definition.toLowerCase();
+  const mentionsProductCode = normalized.includes("product_code");
+  const mentionsExpectedAmount = normalized.includes("expected_amount_cents");
+  if (!mentionsProductCode && !mentionsExpectedAmount) return "preserve";
+  assert.ok(mentionsProductCode && mentionsExpectedAmount, "suspicious amount-like constraint");
+  assert.ok(canonicalDefinition, "canonical amount constraint missing");
+  assert.equal(oldType, "c");
+  assert.equal(namedType, "c");
+  assert.equal(oldValidated, true);
+  assert.equal(namedValidated, true);
+  assert.equal(sameInheritance, true);
+  assert.equal(definition, canonicalDefinition, "unexpected amount-like constraint");
+  assert.ok(definition.includes("resume_pro"));
+  assert.ok(definition.includes("rental_application_pro"));
+  return "drop";
+}
+const canonicalAmount = "CHECK (((product_code = 'resume_pro') AND (expected_amount_cents = 1990)) OR ((product_code = 'rental_application_pro') AND (expected_amount_cents = 1490)) OR ((product_code = 'pay_evidence_pro') AND (expected_amount_cents = 990)))";
+assert.equal(classifyAutoNamedGateConstraint({
+  definition: "CHECK (((state = 'OPEN') AND (claim_token_hash IS NULL)) OR ((state = 'RESERVED') AND (claim_token_hash IS NOT NULL)) OR (state = 'LOCKED'))",
+}), "preserve", "the Production state invariant must survive the prerequisite");
+assert.equal(classifyAutoNamedGateConstraint({
+  definition: "CHECK ((approval_reference IS NULL) OR (length(approval_reference) <= 120))",
+}), "preserve", "an unrelated audit invariant must survive the prerequisite");
+assert.equal(classifyAutoNamedGateConstraint({
+  definition: canonicalAmount,
+  canonicalDefinition: canonicalAmount,
+}), "drop", "only an exact validated amount duplicate is removable");
+for (const unsafeConstraint of [
+  { definition: canonicalAmount.replace("990", "991"), canonicalDefinition: canonicalAmount },
+  { definition: "CHECK (product_code <> '')", canonicalDefinition: canonicalAmount },
+  { definition: "CHECK (expected_amount_cents > 0)", canonicalDefinition: canonicalAmount },
+  { definition: canonicalAmount, canonicalDefinition: null },
+  { definition: canonicalAmount, canonicalDefinition: canonicalAmount, oldValidated: false },
+]) assert.throws(
+  () => classifyAutoNamedGateConstraint(unsafeConstraint),
+  undefined,
+  "every suspicious amount-like constraint mutation must fail closed",
+);
+for (const mutate of [
+  (source) => source.replace("if not v_mentions_product_code and not v_mentions_expected_amount then", "if false then"),
+  (source) => source.replace("if not v_mentions_product_code or not v_mentions_expected_amount then", "if false then"),
+  (source) => source.replace("v_definition is distinct from pg_get_constraintdef(v_named.oid)", "false"),
+]) assert.throws(
+  () => assertConstraintPrerequisiteContract(mutate(constraintPrerequisite)),
+  undefined,
+  "constraint prerequisite safety mutation must fail its source contract",
+);
 assert.ok(runner.indexOf('path: "../docs/migrations/20260831_pay_evidence_gate_constraint_prerequisite_v1.sql"')
   < runner.indexOf('path: "../docs/migrations/20260830_pay_evidence_first_sale_gate_v1.sql"'));
 
@@ -229,6 +299,13 @@ assert.equal((await runMigration({ alreadyApplied: true })).transactions.length,
 const withPrerequisite = await runMigration({ prerequisiteApplied: false });
 assert.equal(withPrerequisite.transactions.length, 2);
 assert.ok(withPrerequisite.transactions[0].statements.some((s) => s.includes("Canonical amount constraint missing")));
+assert.ok(withPrerequisite.transactions[0].statements.some((s) => s.includes("if not v_mentions_product_code and not v_mentions_expected_amount")));
+assert.ok(withPrerequisite.transactions[0].statements.some((s) => s.includes("Suspicious amount-like gate constraint")));
+const productionGap = await runMigration({ prerequisiteApplied: false, alertApplied: false });
+assert.equal(productionGap.transactions.length, 3, "the exact Production gap applies prerequisite, access and alert fixes in order");
+assert.ok(productionGap.transactions[0].statements.some((s) => s.includes("v_table || '_check'")));
+assert.ok(productionGap.transactions[1].statements.some((s) => s.includes("execute replace(v_definition")));
+assert.ok(productionGap.transactions[2].statements.some((s) => s.includes("grant execute on function public.enqueue_payment_operator_alert_failure")));
 const missingAlert = await runMigration({ alreadyApplied: true, alertApplied: false });
 assert.equal(missingAlert.transactions.length, 1);
 assert.ok(missingAlert.transactions[0].statements.some((s) => s.includes("grant execute on function public.enqueue_payment_operator_alert_failure")));
