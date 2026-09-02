@@ -1,0 +1,33 @@
+[
+  {
+    "signature": "public.consume_checkout_activation(text,text,text,text,text,text,timestamptz)",
+    "beforeHash": "85690029b31b0242c8bc26238b96c443",
+    "afterHash": "c1558997ec3adf30e367b5323affb605"
+  },
+  {
+    "signature": "public.consume_entitlement_restore_token(text,text,text,text,text,timestamptz)",
+    "beforeHash": "dd0b70e0a7d7a2363e85692df6fa5ffd",
+    "afterHash": "330131326fc2aaaac7b2db2c3fc46a1c"
+  },
+  {
+    "signature": "public.release_purchase_access_session(bigint,text,text)",
+    "beforeHash": "d307f351c0cda69b0b7096dfd21edb22",
+    "afterHash": "f43983d747c7c5ced37f378fbb03921e"
+  },
+  {
+    "signature": "public.find_active_purchase_entitlement_by_access_session(bigint,text,text)",
+    "beforeHash": "2a8982d842510531665d4254f7f1faa3",
+    "afterHash": "2a0ebb110d4f44aa2a7fafc9dadb954d"
+  },
+  {
+    "signature": "public.create_entitlement_restore_token(bigint,text,text,timestamptz)",
+    "beforeHash": "a73a7efea1f951a46e54f712b90a1411",
+    "afterHash": "71ad236f9f29a337547d8a09f20a7280"
+  },
+  {
+    "signature": "public.enqueue_payment_operator_alert_failure(text,text,boolean,text,text,text)",
+    "beforeHash": "43be66ffe2c5f87e587e6607b7e3838d",
+    "baselineHash": "27479297ed351ade7e65fbd8c4eaf413",
+    "afterHash": "02e61f2ca7f50247b7be6bb99b5e0bc6"
+  }
+]

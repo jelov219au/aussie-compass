@@ -2,6 +2,7 @@ import "server-only";
 
 import { neon } from "@neondatabase/serverless";
 
+import eofyLeavingAccessFunctions from "@/data/eofy-leaving-access-functions.json";
 import payEvidenceAccessFunctions from "@/data/pay-evidence-access-functions.json";
 import payEvidenceAlertFunction from "@/data/pay-evidence-alert-function.json";
 import { getEntitlementDatabaseUrl } from "@/lib/entitlementConfig";
@@ -82,6 +83,8 @@ export async function isPaymentRuntimeSchemaReady(requiredProductCode: "rental_a
     if (rows[0]?.ready !== true) return false;
     if (requiredProductCode === "rental_application_pro") return true;
 
+    const requiredAmountCents = requiredProductCode === "leaving_australia_pro" ? 1290 : 990;
+    const exactAmountGuard = `when '${requiredProductCode}' then ${requiredAmountCents}`;
     const productRows = await sql`
       select
         exists (
@@ -97,18 +100,46 @@ export async function isPaymentRuntimeSchemaReady(requiredProductCode: "rental_a
             and position(${requiredProductCode} in pg_get_constraintdef(oid)) > 0
         )
         and position(
-          ${requiredProductCode}
+          ${exactAmountGuard}
+          in pg_get_functiondef(to_regprocedure(
+            'public.claim_first_sale_reservation(text,text,timestamptz,text,text,integer)'
+          ))
+        ) > 0
+        and position(
+          ${exactAmountGuard}
           in pg_get_functiondef(to_regprocedure(
             'public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)'
           ))
         ) > 0 as ready
     ` as { ready: boolean }[];
     if (productRows[0]?.ready !== true) return false;
-    if (requiredProductCode !== "pay_evidence_pro") return true;
 
-    // A legacy overload or a product name in a comment is not sufficient.
-    // Check every current access body and the alert reset by the legacy migration.
-    const accessRows = await sql`
+    if (requiredProductCode === "pay_evidence_pro") {
+      // Keep Pay Evidence available during a staged migration: both its
+      // reviewed Pay-only bodies and the cumulative EOFY/Leaving bodies are valid.
+      const payAccessRows = await sql`
+        select count(*) = 6 and coalesce(bool_and(
+          p.oid is not null
+          and md5(replace(p.prosrc, chr(13) || chr(10), chr(10))) = expected."afterHash"
+          and p.prosecdef
+          and p.proowner = to_regrole('hoju_migration_owner')
+          and coalesce(p.proconfig @> array['search_path=public, pg_temp'], false)
+          and coalesce(has_function_privilege(current_user, p.oid, 'EXECUTE'), false)
+          and not exists (
+            select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner)))
+            where grantee = 0 and privilege_type = 'EXECUTE'
+          )
+        ), false) as ready
+        from jsonb_to_recordset(${JSON.stringify([...payEvidenceAccessFunctions, payEvidenceAlertFunction])}::jsonb)
+          as expected(signature text, "afterHash" text)
+        left join pg_proc p on p.oid = to_regprocedure(expected.signature)
+      ` as { ready: boolean }[];
+      if (payAccessRows[0]?.ready === true) return true;
+    }
+
+    // EOFY and Leaving Australia require every current runtime signature, not
+    // the legacy overloads recreated by their entitlement baselines.
+    const cumulativeAccessRows = await sql`
       select count(*) = 6 and coalesce(bool_and(
         p.oid is not null
         and md5(replace(p.prosrc, chr(13) || chr(10), chr(10))) = expected."afterHash"
@@ -121,11 +152,11 @@ export async function isPaymentRuntimeSchemaReady(requiredProductCode: "rental_a
           where grantee = 0 and privilege_type = 'EXECUTE'
         )
       ), false) as ready
-      from jsonb_to_recordset(${JSON.stringify([...payEvidenceAccessFunctions, payEvidenceAlertFunction])}::jsonb)
+      from jsonb_to_recordset(${JSON.stringify(eofyLeavingAccessFunctions)}::jsonb)
         as expected(signature text, "afterHash" text)
       left join pg_proc p on p.oid = to_regprocedure(expected.signature)
     ` as { ready: boolean }[];
-    return accessRows[0]?.ready === true;
+    return cumulativeAccessRows[0]?.ready === true;
   } catch {
     return false;
   }

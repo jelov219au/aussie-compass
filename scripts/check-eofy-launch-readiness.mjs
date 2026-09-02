@@ -31,6 +31,7 @@ const required = [
 const migrations = [
   "../docs/migrations/20260830_eofy_entitlement_v1.sql",
   "../docs/migrations/20260830_eofy_first_sale_gate_v1.sql",
+  "../docs/migrations/20260902_eofy_leaving_access_functions_v1.sql",
 ];
 const missing = required
   .filter(([, validate]) => !validate())

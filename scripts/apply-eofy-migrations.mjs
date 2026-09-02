@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import { neon } from "@neondatabase/serverless";
+import cumulativeAccessContracts from "../src/data/eofy-leaving-access-functions.json" with { type: "json" };
 
 const APPLY_ACK = "APPLY_EOFY_MIGRATIONS_WITH_CHECKOUT_OFF";
 const migrations = [
@@ -244,6 +245,10 @@ const postflight = await sql`
       where version = '20260830_eofy_first_sale_gate_v1'
     ) as first_sale_applied,
     exists (
+      select 1 from public.schema_migrations
+      where version = '20260902_eofy_leaving_access_functions_v1'
+    ) as cumulative_access_applied,
+    exists (
       select 1 from pg_constraint
       where conrelid = 'public.first_sale_gates'::regclass
         and position('eofy_pro' in pg_get_constraintdef(oid)) > 0
@@ -260,12 +265,31 @@ const postflight = await sql`
       ))
     ) > 0 as paid_function_ready
 `;
+const accessPostflight = await sql`
+  select count(*) = 6 and coalesce(bool_and(
+    p.oid is not null
+    and md5(replace(p.prosrc, chr(13) || chr(10), chr(10))) = expected."afterHash"
+    and p.prosecdef
+    and p.proowner = to_regrole('hoju_migration_owner')
+    and coalesce(p.proconfig @> array['search_path=public, pg_temp'], false)
+    and coalesce(has_function_privilege('hoju_app_runtime', p.oid, 'EXECUTE'), false)
+    and not exists (
+      select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner)))
+      where grantee = 0 and privilege_type = 'EXECUTE'
+    )
+  ), false) as ready
+  from jsonb_to_recordset(${JSON.stringify(cumulativeAccessContracts)}::jsonb)
+    as expected(signature text, "afterHash" text)
+  left join pg_proc p on p.oid = to_regprocedure(expected.signature)
+`;
 const result = postflight[0];
-const ready = result?.entitlement_applied === true
+const baseReady = result?.entitlement_applied === true
   && result?.first_sale_applied === true
   && result?.gate_constraint_ready === true
   && result?.access_constraint_ready === true
   && result?.paid_function_ready === true;
+const cumulativeAccessReady = result?.cumulative_access_applied === true
+  && accessPostflight[0]?.ready === true;
 
-console.log(`EOFY_MIGRATION=${ready ? "PASS" : apply ? "FAIL" : "PENDING"} checkout=off secrets_printed=no`);
-if (apply) assert.equal(ready, true, "EOFY migration postflight failed.");
+console.log(`EOFY_BASE_MIGRATION=${baseReady ? "PASS" : apply ? "FAIL" : "PENDING"} cumulative_access=${cumulativeAccessReady ? "PASS" : "PENDING"} checkout=off secrets_printed=no`);
+if (apply) assert.equal(baseReady, true, "EOFY base migration postflight failed.");

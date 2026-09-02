@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 import ts from "typescript";
+import eofyLeavingAccessFunctions from "../src/data/eofy-leaving-access-functions.json" with { type: "json" };
 import contracts from "../src/data/pay-evidence-access-functions.json" with { type: "json" };
 import alertContract from "../src/data/pay-evidence-alert-function.json" with { type: "json" };
 
@@ -229,6 +230,7 @@ async function readiness(product, responses) {
       return sql;
     },
     getEntitlementDatabaseUrl: () => "postgresql://synthetic.invalid/neondb",
+    eofyLeavingAccessFunctions,
     payEvidenceAccessFunctions: contracts,
     payEvidenceAlertFunction: alertContract,
     AbortSignal,
@@ -250,9 +252,9 @@ assert.equal(pass.result, true);
 assert.equal(pass.calls.length, 3);
 assert.deepEqual(JSON.parse(pass.calls[2].values[0]), [...contracts, alertContract]);
 for (const product of ["rental_application_pro", "eofy_pro", "leaving_australia_pro"]) {
-  const result = await readiness(product, [ready, ready]);
+  const result = await readiness(product, product === "rental_application_pro" ? [ready] : [ready, ready, ready]);
   assert.equal(result.result, true);
-  assert.equal(result.calls.length, product === "rental_application_pro" ? 1 : 2);
+  assert.equal(result.calls.length, product === "rental_application_pro" ? 1 : 3);
 }
 
 // Exercise the actual migration runner's selection/SQL splitter in memory.
