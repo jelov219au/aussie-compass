@@ -111,6 +111,7 @@
     "test:first-sale-mobile-incident": "node scripts/check-first-sale-mobile-incident-card.mjs",
     "test:first-sale-isolated-rehearsal": "node scripts/check-first-sale-isolated-rehearsal.mjs",
     "test:first-sale-production-forward-fix": "node scripts/check-first-sale-production-forward-fix.mjs",
+    "test:resume-refunded-verification-recovery": "node scripts/check-resume-refunded-verification-recovery.mjs",
     "first-sale:evidence": "node scripts/verify-first-sale-evidence.mjs",
     "test:first-sale-evidence": "node scripts/check-first-sale-evidence.mjs",
     "test:first-customer-invitation": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-first-customer-invitation.mjs",
