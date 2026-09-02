@@ -51,6 +51,11 @@ function netComparisonLabel(period: PayPeriod) {
 }
 function netDifferenceExport(period: PayPeriod) { return hasAmount(period.payslipNet) && hasAmount(period.bankNet) ? netDifference(period).toFixed(2) : "Not comparable"; }
 function recordedAmount(value: string) { return hasAmount(value) ? safeNumber(value).toFixed(2) : "Not recorded"; }
+function recordedNumber(value: string, suffix = "") { return hasAmount(value) ? `${safeNumber(value).toFixed(2)}${suffix}` : "Not recorded"; }
+function recordedAudAmount(value: string, suffix = "") { return hasAmount(value) ? `A$${safeNumber(value).toFixed(2)}${suffix}` : "Not recorded"; }
+function periodHoursExport(period: PayPeriod) { return period.shifts.length ? periodHours(period).toFixed(2) : recordedNumber(period.hours); }
+function periodExpectedGrossExport(period: PayPeriod) { return period.shifts.length ? `A$${periodExpectedGross(period).toFixed(2)}` : recordedAudAmount(period.expectedGross); }
+function grossDifferenceExport(period: PayPeriod) { return (period.shifts.length || hasAmount(period.expectedGross)) && hasAmount(period.payslipGross) ? `A$${difference(period).toFixed(2)}` : "Not comparable"; }
 function safeFileName(value: string) { return value.trim().replace(/[^a-z0-9가-힣]+/gi, "-").replace(/^-|-$/g, "").slice(0, 42) || "pay-evidence"; }
 function csvCell(value: string | number) { return `"${String(value).replaceAll('"', '""')}"`; }
 
@@ -135,8 +140,8 @@ export function PayEvidenceWorkspace() {
       "",
       "PAY PERIODS",
       ...(draft.periods.length ? draft.periods.flatMap((period) => [
-        `- ${period.label || "Untitled"} | Hours ${periodHours(period).toFixed(2)} | Expected gross A$${periodExpectedGross(period).toFixed(2)} | Payslip gross A$${safeNumber(period.payslipGross).toFixed(2)} | Payslip net ${recordedAmount(period.payslipNet)} | Bank net ${recordedAmount(period.bankNet)} | User-entered gross comparison A$${difference(period).toFixed(2)} | Payslip-to-bank net difference ${netDifferenceExport(period)}`,
-        ...period.shifts.map((shift) => `  Shift ${shift.date || "Date not set"} ${shift.start || "--:--"}–${shift.end || "--:--"} | Break ${safeNumber(shift.breakMinutes)} min | Hours ${shiftHours(shift).toFixed(2)} | ${shift.rateLabel || "Rate"} A$${safeNumber(shift.hourlyRate).toFixed(2)}/h | Allowance A$${safeNumber(shift.allowance).toFixed(2)} | Expected A$${shiftExpectedGross(shift).toFixed(2)} | ${shift.note || "No note"}`),
+        `- ${period.label || "Untitled"} | Hours ${periodHoursExport(period)} | Expected gross ${periodExpectedGrossExport(period)} | Payslip gross ${recordedAudAmount(period.payslipGross)} | Payslip net ${recordedAmount(period.payslipNet)} | Bank net ${recordedAmount(period.bankNet)} | User-entered gross comparison ${grossDifferenceExport(period)} | Payslip-to-bank net difference ${netDifferenceExport(period)}`,
+        ...period.shifts.map((shift) => `  Shift ${shift.date || "Date not set"} ${shift.start || "--:--"}–${shift.end || "--:--"} | Break ${recordedNumber(shift.breakMinutes, " min")} | Hours ${shiftHours(shift).toFixed(2)} | ${shift.rateLabel || "Rate"} ${recordedAudAmount(shift.hourlyRate, "/h")} | Allowance ${recordedAudAmount(shift.allowance)} | Expected A$${shiftExpectedGross(shift).toFixed(2)} | ${shift.note || "No note"}`),
         `  Note: ${period.note || "None"}`,
       ]) : ["- None recorded"]),
       "",
