@@ -1,0 +1,32 @@
+[
+  {
+    "signature": "public.consume_checkout_activation(text,text,text,text,text,text,timestamptz)",
+    "source": "docs/migrations/20260823_purchase_access_sessions_v1.sql",
+    "beforeHash": "91827a3d877e7f69704e6f39eb93a972",
+    "afterHash": "85690029b31b0242c8bc26238b96c443"
+  },
+  {
+    "signature": "public.consume_entitlement_restore_token(text,text,text,text,text,timestamptz)",
+    "source": "docs/migrations/20260823_restore_activation_nonce_v1.sql",
+    "beforeHash": "2da1a234bc08992181db3f57a60b9fb3",
+    "afterHash": "dd0b70e0a7d7a2363e85692df6fa5ffd"
+  },
+  {
+    "signature": "public.release_purchase_access_session(bigint,text,text)",
+    "source": "docs/migrations/20260823_purchase_access_sessions_v1.sql",
+    "beforeHash": "98ae8b52e8efd77bd789f77f634f1260",
+    "afterHash": "d307f351c0cda69b0b7096dfd21edb22"
+  },
+  {
+    "signature": "public.find_active_purchase_entitlement_by_access_session(bigint,text,text)",
+    "source": "docs/migrations/20260823_purchase_access_sessions_v1.sql",
+    "beforeHash": "cb36d83e50cbc090618ec6bb48a77eeb",
+    "afterHash": "2a8982d842510531665d4254f7f1faa3"
+  },
+  {
+    "signature": "public.create_entitlement_restore_token(bigint,text,text,timestamptz)",
+    "source": "docs/first-sale-gate.sql",
+    "beforeHash": "d738cfcc6ee1c8ee1d3e065a4f1d4bf4",
+    "afterHash": "a73a7efea1f951a46e54f712b90a1411"
+  }
+]

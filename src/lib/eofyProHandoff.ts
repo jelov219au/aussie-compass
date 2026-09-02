@@ -1,4 +1,5 @@
 import type { EofyDraft, EofyExpenseRecord } from "@/lib/eofyProArchive";
+import { getEofyExpenseArchiveIssues } from "./eofyProExpenseValidation.mjs";
 
 export type EofyHandoffReview = {
   incomeNotReady: string[];
@@ -19,7 +20,8 @@ function amount(value: string) {
 
 function hasIncompleteDetails(expense: EofyExpenseRecord) {
   const workUse = amount(expense.workUse);
-  return !expense.description.trim()
+  return getEofyExpenseArchiveIssues(expense).length > 0
+    || !expense.description.trim()
     || !expense.date
     || amount(expense.amount) <= 0
     || workUse <= 0

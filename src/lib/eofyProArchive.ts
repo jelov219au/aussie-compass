@@ -1,4 +1,11 @@
+import { getEofyExpenseArchiveIssues } from "./eofyProExpenseValidation.mjs";
+export { getEofyExpenseArchiveIssues, getEofyAmountCents, eofyExpenseDescriptionMaxLength, eofyExpenseNoteMaxLength } from "./eofyProExpenseValidation.mjs";
+
 export type EofyStatus = "todo" | "review" | "ready";
+export const eofyQuestionLimit = 20;
+export const eofyQuestionMaxLength = 500;
+export const eofyExpenseLimit = 500;
+export const eofyArchiveMaxBytes = 512 * 1024;
 
 export type EofyExpenseRecord = {
   id: string;
@@ -31,11 +38,8 @@ export type EofyArchive = {
 };
 
 const statuses = new Set<EofyStatus>(["todo", "review", "ready"]);
-const evidenceKinds = new Set<EofyExpenseRecord["evidence"]>(["receipt", "calculation", "missing"]);
 const incomeSourceIds = new Set(["employment", "interest", "government", "gig", "complex"]);
 const taxYearPattern = /^(\d{4})–(\d{2})$/;
-const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-const decimalPattern = /^\d{0,7}(?:\.\d{0,2})?$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -53,41 +57,24 @@ function validTaxYear(value: unknown): value is string {
   return Number(match[2]) === (start + 1) % 100;
 }
 
-function validDecimal(value: unknown, max: number) {
-  if (typeof value !== "string" || !decimalPattern.test(value)) return false;
-  const parsed = Number(value || "0");
-  return Number.isFinite(parsed) && parsed >= 0 && parsed <= max;
-}
-
 function parseExpense(value: unknown): EofyExpenseRecord | null {
-  if (!isRecord(value)) return null;
-  const id = boundedString(value.id, 100);
-  const category = boundedString(value.category, 100);
-  const description = boundedString(value.description, 300);
-  const date = boundedString(value.date, 10);
-  const amount = boundedString(value.amount, 10);
-  const workUse = boundedString(value.workUse, 6);
-  const note = boundedString(value.note, 1_000);
-  if (!id || !category || description === null || date === null || amount === null || workUse === null || note === null) return null;
-  if (date && !datePattern.test(date)) return null;
-  if (!validDecimal(amount, 9_999_999.99) || !validDecimal(workUse, 100)) return null;
-  if (!evidenceKinds.has(value.evidence as EofyExpenseRecord["evidence"]) || typeof value.reimbursed !== "boolean") return null;
+  if (!isRecord(value) || getEofyExpenseArchiveIssues(value).length) return null;
   return {
-    id,
-    category,
-    description,
-    date,
-    amount,
-    workUse,
+    id: value.id as string,
+    category: value.category as string,
+    description: value.description as string,
+    date: value.date as string,
+    amount: value.amount as string,
+    workUse: value.workUse as string,
     evidence: value.evidence as EofyExpenseRecord["evidence"],
-    reimbursed: value.reimbursed,
-    note,
+    reimbursed: value.reimbursed as boolean,
+    note: value.note as string,
   };
 }
 
 function parseDraft(value: unknown): EofyDraft | null {
   if (!isRecord(value) || !validTaxYear(value.taxYear) || !isRecord(value.incomeStatuses)) return null;
-  if (!Array.isArray(value.expenses) || value.expenses.length > 500 || !Array.isArray(value.questions) || value.questions.length > 20) return null;
+  if (!Array.isArray(value.expenses) || value.expenses.length > eofyExpenseLimit || !Array.isArray(value.questions) || value.questions.length > eofyQuestionLimit) return null;
 
   const incomeStatuses: Record<string, EofyStatus> = {};
   for (const [key, status] of Object.entries(value.incomeStatuses)) {
@@ -100,7 +87,7 @@ function parseDraft(value: unknown): EofyDraft | null {
   const ids = new Set(expenses.map((expense) => expense?.id));
   if (ids.size !== expenses.length) return null;
 
-  const questions = value.questions.map((question) => boundedString(question, 500));
+  const questions = value.questions.map((question) => boundedString(question, eofyQuestionMaxLength));
   if (questions.some((question) => question === null)) return null;
 
   return {

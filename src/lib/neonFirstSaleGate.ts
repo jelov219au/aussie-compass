@@ -2,6 +2,8 @@ import "server-only";
 
 import { neon } from "@neondatabase/serverless";
 
+import payEvidenceAccessFunctions from "@/data/pay-evidence-access-functions.json";
+import payEvidenceAlertFunction from "@/data/pay-evidence-alert-function.json";
 import { getEntitlementDatabaseUrl } from "@/lib/entitlementConfig";
 import type { FirstSaleClaimResult, FirstSaleGateStore } from "@/lib/firstSaleGate";
 
@@ -101,7 +103,29 @@ export async function isPaymentRuntimeSchemaReady(requiredProductCode: "rental_a
           ))
         ) > 0 as ready
     ` as { ready: boolean }[];
-    return productRows[0]?.ready === true;
+    if (productRows[0]?.ready !== true) return false;
+    if (requiredProductCode !== "pay_evidence_pro") return true;
+
+    // A legacy overload or a product name in a comment is not sufficient.
+    // Check every current access body and the alert reset by the legacy migration.
+    const accessRows = await sql`
+      select count(*) = 6 and coalesce(bool_and(
+        p.oid is not null
+        and md5(replace(p.prosrc, chr(13) || chr(10), chr(10))) = expected."afterHash"
+        and p.prosecdef
+        and p.proowner = to_regrole('hoju_migration_owner')
+        and coalesce(p.proconfig @> array['search_path=public, pg_temp'], false)
+        and coalesce(has_function_privilege(current_user, p.oid, 'EXECUTE'), false)
+        and not exists (
+          select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner)))
+          where grantee = 0 and privilege_type = 'EXECUTE'
+        )
+      ), false) as ready
+      from jsonb_to_recordset(${JSON.stringify([...payEvidenceAccessFunctions, payEvidenceAlertFunction])}::jsonb)
+        as expected(signature text, "afterHash" text)
+      left join pg_proc p on p.oid = to_regprocedure(expected.signature)
+    ` as { ready: boolean }[];
+    return accessRows[0]?.ready === true;
   } catch {
     return false;
   }

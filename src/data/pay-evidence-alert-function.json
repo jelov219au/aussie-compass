@@ -1,0 +1,6 @@
+{
+  "signature": "public.enqueue_payment_operator_alert_failure(text,text,boolean,text,text,text)",
+  "source": "docs/migrations/20260830_pay_evidence_entitlement_v1.sql",
+  "beforeHash": "27479297ed351ade7e65fbd8c4eaf413",
+  "afterHash": "43be66ffe2c5f87e587e6607b7e3838d"
+}

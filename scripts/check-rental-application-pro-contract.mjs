@@ -20,6 +20,7 @@ const activationForm = await readFile(new URL("../src/components/tools/RentalApp
 const successPage = await readFile(new URL("../src/app/rental-application-pro/success/page.tsx", import.meta.url), "utf8");
 const restoreForm = await readFile(new URL("../src/components/tools/RentalApplicationProRestoreForm.tsx", import.meta.url), "utf8");
 const workspace = await readFile(new URL("../src/app/rental-application-pro/workspace/page.tsx", import.meta.url), "utf8");
+const workspaceTool = await readFile(new URL("../src/components/tools/RentalApplicationWorkspace.tsx", import.meta.url), "utf8");
 const webhook = await readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
 const productEntitlementContract = await readFile(new URL("../src/lib/productEntitlementContract.ts", import.meta.url), "utf8");
 const resumeStripeProduct = await readFile(new URL("../src/lib/resumeProStripeProduct.ts", import.meta.url), "utf8");
@@ -40,6 +41,10 @@ for (const contract of [
 
 assert.ok(!checkout.includes("payment_method_types"), "Rental checkout must keep Stripe dynamic payment methods enabled");
 assert.ok(!checkout.includes("automatic_tax"), "Rental checkout must not add automatic tax on top of Managed Payments");
+assert.ok(checkoutForm.includes('action="/api/checkout/rental-application-pro"')
+  && checkoutForm.includes('method="post"'), "Rental CTA must submit a POST to the Rental checkout Route Handler");
+assert.ok(checkout.includes('success_url: `${origin}/rental-application-pro/success?session_id={CHECKOUT_SESSION_ID}`')
+  && checkout.includes('cancel_url: `${origin}/rental-application-pro?checkout=cancelled&from=${encodeURIComponent(acquisitionSource)}`'), "Rental Checkout must retain its success and cancellation destinations");
 assert.ok(checkoutForm.includes('/terms'), "Rental checkout must link the service terms");
 assert.ok(checkoutForm.includes('/purchase-information'), "Rental checkout must link the purchase information");
 assert.ok(checkoutForm.includes('/privacy'), "Rental checkout must link the privacy notice");
@@ -47,6 +52,10 @@ assert.ok(offerPage.includes("이 주소만으로 결제 완료 여부를 판단
 assert.ok(!offerPage.includes("결제가 취소됐습니다. 청구되지 않았으며"), "the Rental cancelled query must not make an unverified no-charge claim");
 assert.ok(commerce.includes("RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED"), "Rental payments require a product-specific kill switch");
 assert.ok(commerce.includes("STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID"), "Rental payments require a separate Stripe Price");
+assert.ok(offerPage.includes("A$14.90")
+  && offerPage.includes("getRentalApplicationPaymentReadiness")
+  && offerPage.includes("canCreateRentalApplicationTestCheckout")
+  && offerPage.includes("<RentalApplicationProCheckoutForm"), "Rental offer must tie the A$14.90 CTA to product-specific readiness");
 assert.ok(launchAudit.includes('selectedProduct === "rental-application-pro"')
   && launchAudit.includes("RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED")
   && launchAudit.includes("STRIPE_RENTAL_APPLICATION_PRO_PRICE_ID"), "the launch audit must select both Rental-specific gates");
@@ -114,6 +123,17 @@ assert.ok(successPage.includes("다시 결제하지 마세요") && activationFor
 assert.ok(restoreForm.includes("window.sessionStorage") && restoreForm.includes("restore_nonce"), "Rental restore must bind the raw code to a browser nonce");
 assert.ok(!restoreForm.includes("sessionStorage.setItem(restoreNonceStorageKey, code"), "The raw Rental restore code must never be stored in browser storage");
 assert.ok(workspace.includes("getActiveRentalApplicationProEntitlement"), "The Rental workspace must verify its paid entitlement");
+assert.ok(workspace.includes('const accessProtected = process.env.NODE_ENV === "production"')
+  && workspace.includes('if (accessProtected && !await getActiveRentalApplicationProEntitlement()) redirect("/rental-application-pro?access=required")'), "The purchased Rental workspace must fail closed behind its Production entitlement gate");
+for (const localResultContract of [
+  "window.localStorage.getItem(STORAGE_KEY)",
+  "writeRentalWorkspace(() => window.localStorage, workspace, true)",
+  "-application-pack.txt",
+  "-private-package.json",
+  "window.print()",
+  "no source document is embedded",
+  "Do not include TFN, bank login details, card details or identity document numbers.",
+]) assert.ok(workspaceTool.includes(localResultContract), `Rental local-result and privacy boundary is missing: ${localResultContract}`);
 for (const costBoundary of [
   "Live self-purchase followed by refund is not the default acceptance test",
   "In a Stripe sandbox, exercise successful payment, decline, 3DS",

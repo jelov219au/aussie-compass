@@ -5,6 +5,7 @@ const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 const [
   checkout, offer, checkoutForm, commerce, contract, firstSale, webhook,
   entitlementMigration, gateMigration, workspace, success, accessTools, deviceData,
+  nextConfig, activationRoute, activationForm,
 ] = await Promise.all([
   read("../src/app/api/checkout/pay-evidence-pro/route.ts"),
   read("../src/app/pay-evidence-pro/page.tsx"),
@@ -19,6 +20,9 @@ const [
   read("../src/app/pay-evidence-pro/success/page.tsx"),
   read("../src/components/tools/PayEvidenceProAccessTools.tsx"),
   read("../src/components/tools/DeviceDataTransfer.tsx"),
+  read("../next.config.ts"),
+  read("../src/app/api/pay-evidence-pro/access/activate/route.ts"),
+  read("../src/components/tools/PayEvidenceProActivationForm.tsx"),
 ]);
 
 for (const value of [
@@ -32,6 +36,37 @@ for (const value of [
 
 assert.ok(!checkout.includes("payment_method_types"), "Stripe must retain dynamic payment methods");
 assert.ok(!checkout.includes("automatic_tax"), "Managed Payments must not be combined with automatic tax");
+assert.ok(
+  nextConfig.includes(`"form-action 'self' https://checkout.stripe.com"`),
+  "Pay Evidence native Checkout POST must allow only the exact hosted Stripe form destination",
+);
+assert.ok(
+  checkoutForm.includes('action="/api/checkout/pay-evidence-pro"')
+    && checkoutForm.includes('method="post"')
+    && checkout.includes("return NextResponse.redirect(session.url, 303)"),
+  "Pay Evidence Checkout must retain its native POST and 303 hosted-Checkout navigation",
+);
+for (const returnContract of [
+  "/pay-evidence-pro/success?session_id={CHECKOUT_SESSION_ID}",
+  "/pay-evidence-pro?checkout=cancelled",
+]) {
+  assert.ok(checkout.includes(returnContract), `Pay Evidence Checkout return path is missing: ${returnContract}`);
+}
+assert.ok(
+  success.includes("getVerifiedPayEvidenceProCheckout(sessionId)")
+    && success.includes('findActiveByCheckoutSession(session.id, "pay_evidence_pro")'),
+  "Pay Evidence success must verify both the Checkout Session and product-scoped entitlement",
+);
+assert.ok(
+  activationRoute.includes('"activation_ready", "/pay-evidence-pro/workspace", 200')
+    && activationForm.includes('window.location.assign(body.destination)'),
+  "Pay Evidence activation must enter the paid workspace only after the server returns activation_ready",
+);
+assert.ok(
+  workspace.includes("getActivePayEvidenceProEntitlement()")
+    && workspace.includes('redirect("/pay-evidence-pro?access=required")'),
+  "Pay Evidence workspace must remain entitlement-protected",
+);
 for (const href of ["/terms", "/purchase-information", "/privacy"]) {
   assert.ok(checkoutForm.includes(href), `Checkout disclosure link is missing: ${href}`);
 }

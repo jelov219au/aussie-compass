@@ -31,6 +31,9 @@ const required = [
 const migrations = [
   "../docs/migrations/20260830_pay_evidence_entitlement_v1.sql",
   "../docs/migrations/20260830_pay_evidence_first_sale_gate_v1.sql",
+  "../docs/migrations/20260831_pay_evidence_access_functions_v1.sql",
+  "../docs/migrations/20260831_pay_evidence_alert_runtime_v1.sql",
+  "../docs/migrations/20260831_pay_evidence_gate_constraint_prerequisite_v1.sql",
 ];
 const missing = required
   .filter(([, validate]) => !validate())

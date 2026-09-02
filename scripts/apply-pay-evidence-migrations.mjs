@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import { neon } from "@neondatabase/serverless";
+import accessFunctions from "../src/data/pay-evidence-access-functions.json" with { type: "json" };
+import alertFunction from "../src/data/pay-evidence-alert-function.json" with { type: "json" };
 
 const APPLY_ACK = "APPLY_PAY_EVIDENCE_MIGRATIONS_WITH_CHECKOUT_OFF";
 const migrations = [
@@ -11,9 +13,24 @@ const migrations = [
     appliedKey: "entitlement_applied",
   },
   {
+    path: "../docs/migrations/20260831_pay_evidence_gate_constraint_prerequisite_v1.sql",
+    version: "20260831_pay_evidence_gate_constraint_prerequisite_v1",
+    appliedKey: "gate_constraint_prerequisite_applied",
+  },
+  {
     path: "../docs/migrations/20260830_pay_evidence_first_sale_gate_v1.sql",
     version: "20260830_pay_evidence_first_sale_gate_v1",
     appliedKey: "first_sale_applied",
+  },
+  {
+    path: "../docs/migrations/20260831_pay_evidence_access_functions_v1.sql",
+    version: "20260831_pay_evidence_access_functions_v1",
+    appliedKey: "access_functions_applied",
+  },
+  {
+    path: "../docs/migrations/20260831_pay_evidence_alert_runtime_v1.sql",
+    version: "20260831_pay_evidence_alert_runtime_v1",
+    appliedKey: "alert_runtime_applied",
   },
 ];
 
@@ -209,7 +226,19 @@ const preflight = await sql`
     exists (
       select 1 from public.schema_migrations
       where version = '20260830_pay_evidence_first_sale_gate_v1'
-    ) as first_sale_applied
+    ) as first_sale_applied,
+    exists (
+      select 1 from public.schema_migrations
+      where version = '20260831_pay_evidence_access_functions_v1'
+    ) as access_functions_applied,
+    exists (
+      select 1 from public.schema_migrations
+      where version = '20260831_pay_evidence_gate_constraint_prerequisite_v1'
+    ) as gate_constraint_prerequisite_applied,
+    exists (
+      select 1 from public.schema_migrations
+      where version = '20260831_pay_evidence_alert_runtime_v1'
+    ) as alert_runtime_applied
 `;
 const state = preflight[0];
 assert.equal(state?.database_ok, true, "Unexpected database.");
@@ -217,7 +246,7 @@ assert.equal(state?.owner_ok, true, "The migration requires neondb_owner.");
 assert.equal(state?.migration_role_ok, true, "neondb_owner cannot assume hoju_migration_owner.");
 assert.equal(state?.no_reservation, true, "A first-sale reservation is in flight.");
 
-if (apply && (!state.entitlement_applied || !state.first_sale_applied)) {
+if (apply && migrations.some((migration) => !state[migration.appliedKey])) {
   for (const migration of migrations) {
     if (state[migration.appliedKey]) continue;
 
@@ -260,12 +289,39 @@ const postflight = await sql`
       ))
     ) > 0 as paid_function_ready
 `;
+const accessPostflight = await sql`
+  select
+    exists (
+      select 1 from public.schema_migrations
+      where version = '20260831_pay_evidence_access_functions_v1'
+    )
+    and exists (
+      select 1 from public.schema_migrations
+      where version = '20260831_pay_evidence_alert_runtime_v1'
+    )
+    and count(*) = 6 and coalesce(bool_and(
+      p.oid is not null
+      and md5(replace(p.prosrc, chr(13) || chr(10), chr(10))) = expected."afterHash"
+      and p.prosecdef
+      and p.proowner = to_regrole('hoju_migration_owner')
+      and coalesce(p.proconfig @> array['search_path=public, pg_temp'], false)
+      and coalesce(has_function_privilege('hoju_app_runtime', p.oid, 'EXECUTE'), false)
+      and not exists (
+        select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner)))
+        where grantee = 0 and privilege_type = 'EXECUTE'
+      )
+    ), false) as ready
+  from jsonb_to_recordset(${JSON.stringify([...accessFunctions, alertFunction])}::jsonb)
+    as expected(signature text, "afterHash" text)
+  left join pg_proc p on p.oid = to_regprocedure(expected.signature)
+`;
 const result = postflight[0];
 const ready = result?.entitlement_applied === true
   && result?.first_sale_applied === true
   && result?.gate_constraint_ready === true
   && result?.access_constraint_ready === true
-  && result?.paid_function_ready === true;
+  && result?.paid_function_ready === true
+  && accessPostflight[0]?.ready === true;
 
 console.log(`PAY_EVIDENCE_MIGRATION=${ready ? "PASS" : apply ? "FAIL" : "PENDING"} checkout=off secrets_printed=no`);
 if (apply) assert.equal(ready, true, "Pay Evidence migration postflight failed.");
