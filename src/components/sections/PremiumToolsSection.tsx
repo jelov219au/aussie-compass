@@ -6,11 +6,13 @@ import { ResumeProCtaLink } from "@/components/analytics/ResumeFunnelAnalytics";
 import { Container } from "@/components/ui/Container";
 import { TopicIcon } from "@/components/ui/TopicIcon";
 import { actionClass } from "@/components/ui/actionStyles";
-import { isResumeProLive } from "@/lib/commerce";
+import { getRentalApplicationPaymentReadiness, isResumeProLive } from "@/lib/commerce";
+import { getProCatalogProducts } from "@/lib/proCatalogProducts";
 import { resumeFunnelContexts, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
 
 export function PremiumToolsSection() {
   const resumeProLive = isResumeProLive();
+  const products = getProCatalogProducts(resumeProLive, getRentalApplicationPaymentReadiness().ready);
   const readyNowPrimaryClass = actionClass("primary", "min-h-12 w-full");
   const readyNowSecondaryClass = actionClass("secondary", "min-h-12 w-full");
 
@@ -22,8 +24,16 @@ export function PremiumToolsSection() {
             <p className="inline-flex rounded-full bg-gold px-3 py-1 text-xs font-semibold text-gold-ink">정보를 찾은 다음, 내 준비를 끝낼 때</p>
             <h2 id="premium-tools-heading" className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">정보를 읽은 다음,<br /><span className="text-gold">제출할 결과물까지.</span></h2>
             <p className="mt-4 max-w-xl text-sm leading-7 text-white/70 sm:text-base">기본 정보와 점검은 무료로 이용하세요. 공고별 문서와 기록을 반복해서 준비할 때만 Pro를 선택하면 됩니다.</p>
-            <ul className="mt-7 space-y-3 text-sm text-white/85">{["무료 정보와 유료 기능을 분리", "구독 없는 1회 결제 우선", "민감한 원문은 서버에 모으지 않음"].map((item) => <li key={item} className="flex items-center gap-3"><span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gold text-xs font-bold text-navy" aria-hidden="true">✓</span>{item}</li>)}</ul>
-            <TrackedLink href="/pro" eventName="Pro Interest" properties={{ product: "catalog", entry: "home" }} className={actionClass("darkSecondary", "mt-8 w-full sm:w-auto")}>Pro 도구 전체 비교 <span aria-hidden="true">→</span></TrackedLink>
+            <ul className="mt-7 divide-y divide-white/15 border-y border-white/15" aria-label="필요한 Pro 결과물 고르기">
+              {products.map((product) => <li key={product.id}>
+                <Link href={`/pro#${product.id}`} className="block min-h-11 py-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold">
+                  <strong className="text-sm text-white">{product.name}</strong>
+                  <span className="mt-1 block text-sm leading-6 text-white/85">{product.outcome}</span>
+                  <span className="mt-1 block text-xs leading-5 text-white/70">{product.status} · {product.price} · {product.priceNote}</span>
+                </Link>
+              </li>)}
+            </ul>
+            <TrackedLink href="/pro" eventName="Pro Interest" properties={{ product: "catalog", entry: "home" }} className={actionClass("darkSecondary", "mt-6 w-full sm:w-auto")}>결과물·무료 대안·가격 비교 <span aria-hidden="true">→</span></TrackedLink>
           </div>
           <div className="bg-background p-7 sm:p-10">
             <div className="flex flex-wrap items-start justify-between gap-5">
