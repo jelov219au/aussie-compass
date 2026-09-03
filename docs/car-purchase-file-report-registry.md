@@ -74,8 +74,17 @@ the minimal fixture descriptors are not valid executed readiness reports.
 Temporary fixture files remain outside the source/operations workspaces; no
 cleanup or deletion occurs. Strict scoped ES2017 TypeScript and two-file lint pass.
 
-Full envelope + filesystem assembly, actual reviewed artifacts, remote registry
-provisioning, driver/DB acceptance, UI/PWA and production wiring remain NOT_RUN.
-Next verification should exercise this concrete reader with all eleven valid
-synthetic envelope descriptors and a mock catalog, including signature failure
-and index withdrawal between calls. Do not repeat unrelated completed checks.
+The follow-up `scripts/check-car-purchase-file-envelope.mjs` verifies real file
+reads composed with the actual envelope, Node Ed25519 verification and catalog
+validation. Its 25 checks use twelve complete sets of eleven synthetic signed
+descriptors, 60 report reads, four mock catalog queries and one fixture bootstrap;
+229 file opens are matched by 229 closes. It covers wrong signatures, mismatched
+environment/offer, expired reports, artifact tampering, index withdrawal between
+calls and during the report phase, catalog drift and deadline propagation into
+the actual file reader. Normal results retain `salesAuthorized: false`.
+
+Actual reviewed artifacts, remote registry provisioning, driver/DB acceptance,
+UI/PWA and production wiring remain NOT_RUN. This assembled local test does not
+prove real database execution or authorized approval. The next release decision
+still needs actual target/driver acceptance and approval/revocation distribution;
+do not add more format layers or repeat unrelated completed checks.
