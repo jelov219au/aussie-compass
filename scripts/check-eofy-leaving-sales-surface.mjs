@@ -149,4 +149,70 @@ for (const product of products) {
   assert.ok(webhook.includes(product.webhookCode), `${product.name} must remain recognized by the signed webhook flow.`);
 }
 
-console.log("EOFY and Leaving sales surfaces, routes, signed entitlements, and Production gates passed.");
+// Regression: listing and selected recommendations must follow the server's
+// readiness result, including each product being independently unavailable.
+const { createRequire } = await import("node:module");
+const { runInNewContext } = await import("node:vm");
+const require = createRequire(import.meta.url);
+const ts = require("typescript");
+const React = require("react");
+const { renderToStaticMarkup } = require("react-dom/server");
+const jsxRuntime = require("react/jsx-runtime");
+const catalogSource = await read("../src/lib/proCatalogProducts.ts");
+const catalogPage = await read("../src/app/pro/page.tsx");
+const Link = ({ href, children }) => React.createElement("a", { href }, children);
+const empty = () => null;
+const wrap = ({ children }) => React.createElement("div", null, children);
+function evaluate(source, imports) {
+  const loaded = { exports: {} };
+  const code = ts.transpileModule(source, { compilerOptions: {
+    module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, esModuleInterop: true,
+  } }).outputText;
+  runInNewContext(code, { module: loaded, exports: loaded.exports, require: (name) => {
+    assert.ok(name in imports, `Unexpected test import: ${name}`);
+    return imports[name];
+  } });
+  return loaded.exports;
+}
+const uiImports = {
+  "react/jsx-runtime": jsxRuntime,
+  "next/link": Link,
+  "@/components/analytics/ResumeFunnelAnalytics": { ResumeProCtaLink: Link },
+  "@/components/analytics/ResumeProProofLink": { ResumeProProofLink: Link },
+  "@/components/ui/actionStyles": { actionClass: () => "" },
+  "@/lib/resumeFunnelAnalyticsContract": { resumeFunnelContexts: {}, resumeFunnelSurfaces: {} },
+};
+for (let bits = 0; bits < 8; bits++) {
+  const ready = { pay: Boolean(bits & 1), tax: Boolean(bits & 2), leave: Boolean(bits & 4) };
+  const commerce = {
+    resumeProProduct: { priceCents: 1990 }, rentalApplicationProProduct: { priceCents: 1490 },
+    payEvidenceProProduct: { priceCents: 990 }, eofyProProduct: { priceCents: 990 }, leavingAustraliaProProduct: { priceCents: 1290 },
+    getPayEvidencePaymentReadiness: () => ({ ready: ready.pay }),
+    getEofyPaymentReadiness: () => ({ ready: ready.tax }),
+    getLeavingAustraliaPaymentReadiness: () => ({ ready: ready.leave }),
+    isResumeProLive: () => true, getRentalApplicationPaymentReadiness: () => ({ ready: true }),
+  };
+  const catalog = evaluate(catalogSource, { "@/lib/commerce": commerce });
+  for (const [situation, slug] of [["pay", "pay-evidence-pro"], ["tax", "eofy-pro"], ["leave", "leaving-australia-pro"]]) {
+    const Finder = evaluate(finder, { ...uiImports, react: { useState: () => [situation, () => {}] } }).ProProductFinder;
+    let received;
+    const Page = evaluate(catalogPage, {
+      ...uiImports, "@/lib/commerce": commerce, "@/lib/proCatalogProducts": catalog,
+      "@/components/layout/Footer": { Footer: empty }, "@/components/layout/Header": { Header: empty },
+      "@/components/seo/JsonLd": { BreadcrumbJsonLd: empty }, "@/components/ui/Container": { Container: wrap },
+      "@/components/ui/TopicIcon": { TopicIcon: empty }, "@/lib/site": { createPageMetadata: () => ({}) },
+      "@/components/tools/ProProductFinder": { ProProductFinder: (props) => { received = props; return React.createElement(Finder, props); } },
+    }).default;
+    const html = renderToStaticMarkup(React.createElement(Page));
+    const card = html.match(new RegExp(`<article id="${slug}"[\\s\\S]*?</article>`))?.[0];
+    assert.ok(card, `${slug} card must render`);
+    assert.equal(card.includes("현재 이용 가능"), ready[situation], `${slug} badge must match readiness`);
+    assert.equal(card.includes("결제 미오픈"), !ready[situation], `${slug} price note must match readiness`);
+    assert.equal(received.packAvailability[situation], ready[situation], `${slug} readiness must reach the client finder`);
+    const selected = renderToStaticMarkup(React.createElement(Finder, received));
+    assert.equal(selected.includes("한 번만 결제하면 돼요"), ready[situation], `${slug} selected purchase copy must match readiness`);
+    assert.equal(selected.includes("이 제품은 현재 결제되지 않아요"), !ready[situation], `${slug} selected closed copy must match readiness`);
+    assert.ok(selected.includes(`href="/${slug}"`), `${slug} must link to its own offer`);
+  }
+}
+console.log("EOFY/Leaving sales contracts and 24 rendered catalog/finder availability scenarios passed.");
