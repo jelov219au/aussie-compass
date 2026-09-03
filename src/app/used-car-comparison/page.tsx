@@ -177,6 +177,15 @@ export default function UsedCarComparisonPage() {
           </div>
         </section>
 
+        <section className="mt-8 rounded-2xl border border-gold/50 bg-[#f6f3e9] p-6" aria-labelledby="inspection-next-step-heading">
+          <h2 id="inspection-next-step-heading" className="text-xl font-semibold text-navy">보고서는 받았는데, 다음에 무엇을 해야 할까요?</h2>
+          <p className="mt-3 text-sm leading-7 text-muted">판매자가 고쳐주겠다고 답한 뒤 받을 증빙과, 견적이 없는 항목을 비용 비교에 남기는 방법을 확인하세요.</p>
+          <div className="mt-4 flex flex-wrap gap-4">
+            <Link href="/resources/used-car-inspection-report-next-steps" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline underline-offset-4">검사 후 다음 행동 가이드 →</Link>
+            <Link href="/car-purchase-pro" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline underline-offset-4">중고차 거래노트 Pro 준비 내용 →</Link>
+          </div>
+        </section>
+
         <section className="mt-14 border-t border-navy/20 pt-10" aria-labelledby="vehicle-comparison-heading">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">08 · 후보 비교</p>
           <h2 id="vehicle-comparison-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">확인한 차량만 비교표에 기록하세요</h2>

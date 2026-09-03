@@ -1,3 +1,5 @@
+import { carInspectionFollowupArticle } from "./carInspectionFollowupArticle";
+
 export type Article = {
   slug: string;
   title: string;
@@ -55,6 +57,7 @@ export function getArticleContentType(article: Article): ArticleContentTypeId {
 }
 
 export const articles: Article[] = [
+  carInspectionFollowupArticle,
   {
     slug: "australia-financial-hardship-bills-debt-guide",
     title: "호주에서 청구서·대출을 못 낼 것 같다면, 연체 전부터",

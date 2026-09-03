@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { ResumeProCtaLink } from "@/components/analytics/ResumeFunnelAnalytics";
 import { ResumeProProofLink } from "@/components/analytics/ResumeProProofLink";
@@ -71,6 +72,17 @@ const nextSteps: Record<
 };
 
 export function ArticleNextStep({ slug, toolHref, toolLabel }: ArticleNextStepProps) {
+  if (slug === "used-car-inspection-report-next-steps") {
+    return <aside className="mt-12 rounded-2xl border border-navy/20 bg-white p-6 sm:p-8" aria-labelledby="car-article-next-step">
+      <p className="text-sm font-semibold text-gold-ink">이 글을 읽은 다음</p>
+      <h2 id="car-article-next-step" className="mt-2 text-2xl font-semibold text-navy">비용을 비교하고, 남은 약속을 기록하세요</h2>
+      <p className="mt-3 text-sm leading-7 text-muted">기본 후보·비용 비교는 무료입니다. 검사 후 약속과 결정 기록을 이어가는 중고차 거래노트 Pro는 준비 중이며, 아직 구매할 수 없습니다.</p>
+      <div className="mt-5 flex flex-wrap gap-4">
+        <TrackedLink href={toolHref} eventName="Article Next Step" properties={{ article: slug, destination: "free_tool" }} className="inline-flex min-h-12 items-center rounded-lg bg-navy px-5 py-3 text-sm font-semibold text-white">{toolLabel}</TrackedLink>
+        <Link href="/car-purchase-pro" className="inline-flex min-h-12 items-center rounded-lg border border-navy px-5 py-3 text-sm font-semibold text-navy">중고차 거래노트 Pro 준비 내용 보기</Link>
+      </div>
+    </aside>;
+  }
   const nextStep = nextSteps[slug];
 
   if (!nextStep) {
