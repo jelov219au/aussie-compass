@@ -30,7 +30,7 @@ export function hashCarFunctionExecuteAcl(value: unknown): string | null {
 // Fixed catalog-only SELECT. Values are [runtime role, reviewed function names].
 // The injected transaction client must set the options below BEFORE this query.
 // No user-defined function is executed, and full function definitions stay in DB.
-export const carFunctionCatalogSql = `
+export const carFunctionCatalogCtes = `
 with runtime_role as (
   select oid from pg_catalog.pg_roles where rolname = $1::text
 ), selected_functions as (
@@ -53,12 +53,14 @@ with runtime_role as (
       'privilege', a.privilege_type, 'grantable', a.is_grantable))
       from (select * from pg_catalog.aclexplode(coalesce(p.proacl, pg_catalog.acldefault('f', p.proowner))) limit 129) a), '[]'::jsonb)
   ) as descriptor from selected_functions p left join runtime_role r on true
-)
-select pg_catalog.current_database() as database_name, current_user as inspection_role,
+)`;
+export const carCatalogContextColumns = `pg_catalog.current_database() as database_name, current_user as inspection_role,
   pg_catalog.current_setting('server_version_num')::integer as server_version,
   pg_catalog.current_setting('transaction_read_only') as read_only,
   pg_catalog.current_setting('transaction_isolation') as isolation,
-  pg_catalog.current_setting('search_path') as search_path,
+  pg_catalog.current_setting('search_path') as search_path`;
+export const carFunctionCatalogSql = `${carFunctionCatalogCtes}
+select ${carCatalogContextColumns},
   coalesce((select pg_catalog.jsonb_agg(descriptor) from descriptors), '[]'::jsonb) as functions
 `;
 

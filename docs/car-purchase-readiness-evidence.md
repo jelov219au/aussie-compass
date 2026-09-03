@@ -96,12 +96,15 @@ rejects an overlong result once returned but does not cancel a hung query.
 
 Hash convention for the collector: lowercase SHA256 of UTF-8 with CRLF
 normalized to LF, no other trimming. Function definition hashes cover the full
-`pg_get_functiondef` output, not only `prosrc`; trigger/constraint hashes cover their
-full catalog definitions. ACL/role/report hashes require a reviewed canonical
+`pg_get_functiondef` output, not only `prosrc`; trigger hashes cover full catalog
+definitions. Constraint hashes cover the versioned JSONB definition/backing-index/
+internal-trigger fingerprint in `car-purchase-readiness-schema-catalog.md`.
+ACL/role/report hashes require a reviewed canonical
 serialization, including exact identities and sorting rules. The isolated function
 collector now defines and mock-tests function EXECUTE ACL serialization in
-`car-purchase-readiness-function-catalog.md`; role/report serialization and the full
-collector remain unfinished. The older inventory SQL's
+`car-purchase-readiness-function-catalog.md`. The combined schema collector now
+prepares function/constraint/trigger observations in one statement; role/report
+serialization and the complete readiness envelope remain unfinished. The older inventory SQL's
 normalized `prosrc` MD5 is not interchangeable with these SHA256 pins and cannot
 be promoted to readiness. Completeness of dependency closure and provenance of
 approval/report files still require review; matching hashes alone do not prove it.

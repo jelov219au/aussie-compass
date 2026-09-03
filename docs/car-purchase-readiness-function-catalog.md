@@ -84,7 +84,9 @@ dependency found only within a string function body, as described in
 Review trigger targets, nested helpers and dynamic SQL against the exact definitions
 before approving a complete scope. Do not label a name-only inventory complete.
 
-Still required: matching constraint/trigger descriptors, effective role membership
+The combined collector in `car-purchase-readiness-schema-catalog.md` now prepares
+constraint/trigger descriptors and target-function coverage in the same statement.
+Still required: effective role membership
 and schema/table/column/sequence privilege evidence, semantic acceptance report
 provenance for the exact DB/candidate/offer, one combined snapshot and approved
 adapter to readiness. A separately collected function snapshot must not be spliced
