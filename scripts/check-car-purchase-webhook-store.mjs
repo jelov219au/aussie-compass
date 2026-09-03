@@ -25,10 +25,11 @@ const paid = { receipt: { eventId: "evt_store", eventType: "checkout.session.com
 const reversal = { receipt: { ...paid.receipt, eventType: "charge.refunded" },
   command: { ...identity, action: "revoke", reason: "charge_fully_refunded" } };
 const row = { outcome: "processed", id: "101", product_code: identity.productCode, status: "revoked",
+  event_id: "evt_store", event_type: "charge.refunded", livemode: false, alert_kind: "refund_event",
+  alert_durable: true, sale_hold_durable: true, restriction_durable: true, gate_state: "LOCKED",
   stripe_checkout_session_id: identity.checkoutSessionId, stripe_payment_intent_id: identity.paymentIntentId,
   stripe_charge_id: identity.chargeId, stripe_customer_id: identity.customerId };
-const empty = { outcome: "duplicate", id: null, product_code: null, status: null,
-  stripe_checkout_session_id: null, stripe_payment_intent_id: null, stripe_charge_id: null, stripe_customer_id: null };
+const empty = { ...row, outcome: "duplicate", id: null, status: null };
 let rows = [{ outcome: "processed" }], queryFailure = false;
 const calls = [];
 const query = async (sql, values) => { calls.push({ sql, values: [...values] }); if (queryFailure) throw new Error("private query detail"); return rows; };
@@ -38,7 +39,7 @@ assert.equal(calls[0].sql, "select public.apply_first_sale_paid_event($1::text,$
 assert.deepEqual(calls[0].values, ["evt_store", "checkout.session.completed", "false", paid.receipt.createdAt.toISOString(),
   "car_purchase_pro", "aud", "1234", "cs_test_store", "pi_store", "ch_store", "cus_store", "checkout_paid"]);
 rows = [row]; await store.applyReversal(reversal);
-assert.equal(calls[1].sql, "select * from public.apply_guarded_entitlement_event($1::text,$2::text,$3::boolean,$4::timestamptz,$5::text,$6::text,$7::text,$8::text,$9::text,$10::text,$11::text)");
+assert.equal(calls[1].sql, "select * from public.apply_car_purchase_reversal_event_v1($1::text,$2::text,$3::boolean,$4::timestamptz,$5::text,$6::text,$7::text,$8::text,$9::text,$10::text,$11::text)");
 assert.deepEqual(calls[1].values, ["evt_store", "charge.refunded", "false", paid.receipt.createdAt.toISOString(),
   "revoke", "car_purchase_pro", "cs_test_store", "pi_store", "ch_store", "cus_store", "charge_fully_refunded"]);
 for (const outcome of ["processed", "duplicate", "ignored_stale"]) {
@@ -48,7 +49,7 @@ for (const bad of [[], null, [{ outcome: "processed" }, { outcome: "processed" }
   [{ outcome: { toString: () => "processed" } }]]) {
   rows = bad; await assert.rejects(store.applyPaidEventAndEntitlement(paid));
 }
-for (const value of [row, { ...row, id: 101n }, { ...row, outcome: "ignored_stale", status: "active" }, empty,
+for (const value of [row, { ...row, id: 101n }, { ...row, outcome: "duplicate", gate_state: "OPEN" }, empty,
   { ...empty, outcome: "tombstoned", stripe_payment_intent_id: "pi_store", stripe_charge_id: "ch_store" }]) {
   rows = [value]; assert.equal((await store.applyReversal(reversal)).outcome, value.outcome);
 }
@@ -59,7 +60,13 @@ for (const bad of [[], null, [row, row], [{ ...row, id: 9007199254740992 }], [{ 
   [{ ...row, stripe_checkout_session_id: "cs_test_other" }], [{ ...row, stripe_payment_intent_id: null }],
   [{ ...row, stripe_charge_id: "ch_other" }], [{ ...row, stripe_customer_id: "cus_other" }],
   [{ ...row, status: "active" }], [{ ...row, outcome: "unknown" }], [{ ...row, outcome: "tombstoned" }],
-  [{ ...empty, outcome: "processed" }], [{ ...empty, product_code: "car_purchase_pro" }],
+  [{ ...row, outcome: "duplicate", status: "active" }], [{ ...row, outcome: "ignored_stale" }],
+  [{ ...row, outcome: "duplicate", status: "review" }], [{ ...row, event_id: "evt_other" }],
+  [{ ...row, event_type: "refund.created" }], [{ ...row, livemode: "false" }],
+  [{ ...row, alert_kind: "payment_completed" }], [{ ...row, alert_durable: false }],
+  [{ ...row, sale_hold_durable: false }], [{ ...row, restriction_durable: "true" }],
+  [{ ...row, gate_state: { toString: () => "OPEN" } }],
+  [{ ...empty, outcome: "processed" }], [{ ...empty, product_code: null }],
   [{ ...empty, outcome: "tombstoned", stripe_payment_intent_id: "pi_other", stripe_charge_id: "ch_store" }]]) {
   rows = bad; await assert.rejects(store.applyReversal(reversal));
 }
@@ -105,25 +112,35 @@ const fulfill = createFulfillment({ enabled: true, approvedOffer: offer, expecte
     retrievePaymentIntent: async () => ({ id: "pi_store", object: "payment_intent", customer: "cus_store", latest_charge: "ch_store",
       livemode: false, status: "succeeded", currency: "aud", amount: 1234, amount_received: 1234 }),
     retrieveCharge: async () => charge, listCheckoutsForPaymentIntent: async () => ({ has_more: false, data: [{ id: "cs_test_store" }] }) } });
+let flows = 0;
 async function dispatch(type, object) {
+  flows++;
   return fulfill(JSON.stringify({ id: "evt_store", object: "event", type, livemode: false, created: now / 1000 - 60, data: { object } }), "mock-signature");
 }
 rows = [{ outcome: "processed" }]; assert.equal((await dispatch("checkout.session.completed", session)).outcome, "processed");
 assert.ok(calls.at(-1).sql.includes("apply_first_sale_paid_event"));
 charge = { ...charge, refunded: true, amount_refunded: 1234 };
-for (const value of [row, { ...row, outcome: "ignored_stale" }, empty,
+for (const value of [row, { ...row, outcome: "duplicate" }, empty,
   { ...empty, outcome: "tombstoned", stripe_payment_intent_id: "pi_store", stripe_charge_id: "ch_store" }]) {
   rows = [value]; assert.equal((await dispatch("charge.refunded", charge)).outcome, value.outcome);
-  assert.ok(calls.at(-1).sql.includes("apply_guarded_entitlement_event")); assert.equal(calls.at(-1).values[4], "revoke");
+  assert.ok(calls.at(-1).sql.includes("apply_car_purchase_reversal_event_v1")); assert.equal(calls.at(-1).values[4], "revoke");
+}
+for (const patch of [{ outcome: "duplicate", status: "active" }, { outcome: "ignored_stale" }, { alert_durable: false }]) {
+  rows = [{ ...row, ...patch }]; assert.equal((await dispatch("charge.refunded", charge)).reason, "persistence_failed");
 }
 rows = [{ ...row, product_code: "eofy_pro" }]; assert.equal((await dispatch("charge.refunded", charge)).reason, "persistence_failed");
 queryFailure = true; assert.equal((await dispatch("charge.refunded", charge)).reason, "persistence_failed"); queryFailure = false;
 const beforeLateGrant = calls.length;
 assert.equal((await dispatch("checkout.session.completed", session)).reason, "contract_mismatch");
 assert.equal(calls.length, beforeLateGrant);
+charge = { ...charge, refunded: false, amount_refunded: 500 };
+rows = [{ ...row, status: "review" }]; assert.equal((await dispatch("charge.refunded", charge)).outcome, "processed");
+charge = { ...charge, amount_refunded: 0 };
+rows = [{ ...row, event_type: "refund.failed", status: "revoked", outcome: "duplicate" }];
+assert.equal((await dispatch("refund.failed", { id: "re_store", object: "refund", charge: "ch_store", payment_intent: "pi_store", status: "failed" })).outcome, "duplicate");
 for (const call of calls) {
   assert.ok(call.values.every(value => typeof value === "string"));
   assert.equal(call.sql.includes("evt_store"), false); assert.equal(call.sql.includes("cs_test_store"), false);
   assert.equal(call.sql.includes("approve_next_first_sale"), false);
 }
-console.log(`PASS car webhook store: two fixed bindings, strict inputs/rows/outcomes, ${calls.length} mock queries and 8 fulfillment/store flows. No SQL/DB/network/Stripe API; DB atomicity/order unverified.`);
+console.log(`PASS car webhook store: paid and proposed atomic reversal bindings, strict inputs/restricted rows/durable alerts, ${calls.length} mock queries and ${flows} fulfillment/store flows. No SQL/DB/network/Stripe API; DB atomicity/order unverified.`);

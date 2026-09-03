@@ -130,6 +130,15 @@ begin
           or (p_action = 'review' and p_reason = 'async_failure_requires_review')
         ))
       );
+  elsif p_event_type in ('charge.refunded','refund.created','refund.updated','refund.failed') then
+    v_kind := 'refund_event';
+    -- The refund wrapper supplies the exact server-verified charge as reference.
+    -- Distinct refund events remain distinct through their immutable event IDs.
+    v_valid := p_charge_id is not null and p_charge_id ~ '^ch_[A-Za-z0-9]{1,240}$'
+      and p_reference_id = p_charge_id and p_current_status = p_reason
+      and ((p_action='revoke' and p_reason='charge_fully_refunded')
+        or (p_action='review' and p_reason in ('charge_partially_refunded','refund_status_requires_review')))
+      and not (p_event_type='charge.refunded' and p_reason='refund_status_requires_review');
   elsif p_event_type in ('charge.dispute.created','charge.dispute.updated','charge.dispute.closed',
     'charge.dispute.funds_reinstated','charge.dispute.funds_withdrawn') then
     v_kind := 'dispute_event';
@@ -293,6 +302,44 @@ begin
     case when v_has_entitlement then v_entitlement.status else null::text end;
 end $$;
 
+-- Adapter-compatible wrapper around the same atomic restriction/hold/outbox core.
+-- It does not route through the general timestamp-based entitlement function.
+create function public.apply_car_purchase_reversal_event_v1(
+  p_event_id text,p_event_type text,p_livemode boolean,p_stripe_created_at timestamptz,
+  p_action text,p_product_code text,p_checkout_session_id text,p_payment_intent_id text,
+  p_charge_id text,p_customer_id text,p_reason text
+)
+returns table (
+  outcome text,id bigint,product_code text,status text,stripe_checkout_session_id text,
+  stripe_payment_intent_id text,stripe_charge_id text,stripe_customer_id text,
+  event_id text,event_type text,livemode boolean,alert_kind text,alert_durable boolean,
+  sale_hold_durable boolean,restriction_durable boolean,gate_state text
+)
+language plpgsql volatile parallel unsafe called on null input security definer
+set search_path = public, pg_temp as $$
+declare
+  v_result record;
+  v_id bigint;
+begin
+  if p_event_type is null or p_event_type not in ('charge.refunded','refund.created','refund.updated','refund.failed') then
+    raise exception 'Invalid car reversal event type';
+  end if;
+  select r.* into strict v_result from public.apply_car_purchase_exception_event_v1(
+    p_event_id,p_event_type,p_livemode,p_stripe_created_at,p_product_code,p_checkout_session_id,
+    p_payment_intent_id,p_charge_id,p_customer_id,p_action,p_reason,p_charge_id,p_reason
+  ) r;
+  if v_result.restriction_durable is distinct from true or v_result.alert_durable is distinct from true
+    or v_result.sale_hold_durable is distinct from true or v_result.alert_kind is distinct from 'refund_event'
+    or v_result.entitlement_status='active'
+  then raise exception 'Car reversal persistence evidence is incomplete'; end if;
+  select e.id into v_id from public.purchase_entitlements e
+    where e.product_code=p_product_code and e.stripe_checkout_session_id=p_checkout_session_id;
+  return query select v_result.outcome,v_id,v_result.product_code,v_result.entitlement_status,
+    v_result.checkout_session_id,v_result.payment_intent_id,v_result.charge_id,v_result.customer_id,
+    v_result.event_id,v_result.event_type,v_result.livemode,v_result.alert_kind,v_result.alert_durable,
+    v_result.sale_hold_durable,v_result.restriction_durable,v_result.gate_state;
+end $$;
+
 -- Runtime receives no table privileges. A final reviewed migration must apply
 -- explicit grants only after companion paid/reversal/release guards and hash checks.
 revoke all on table public.car_purchase_exception_receipts from public, hoju_app_runtime;
@@ -300,6 +347,8 @@ revoke all on table public.car_purchase_payment_holds from public, hoju_app_runt
 revoke all on function public.prevent_car_purchase_exception_receipt_mutation_v1() from public, hoju_app_runtime;
 revoke all on function public.car_purchase_sale_hold_guards_ready_v1() from public, hoju_app_runtime;
 revoke all on function public.apply_car_purchase_exception_event_v1(text,text,boolean,timestamptz,text,text,text,text,text,text,text,text,text)
+  from public, hoju_app_runtime;
+revoke all on function public.apply_car_purchase_reversal_event_v1(text,text,boolean,timestamptz,text,text,text,text,text,text,text)
   from public, hoju_app_runtime;
 
 -- NOT A RELEASE: no schema_migrations marker, no runtime grant, no commit.

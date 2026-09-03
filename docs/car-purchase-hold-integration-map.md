@@ -40,12 +40,11 @@ Before-grant exceptions still require the current exact gate checkout.
 
 ## Remaining car refund integration
 
-The existing car refund query adapter still calls apply_guarded_entitlement_event
-and accepts ignored_stale/duplicate outcomes. Its current checks can accept a
-duplicate/stale active row; that is incompatible with the new monotonic car policy.
-Do not mark readiness true with this path unchanged. Prepare a dedicated atomic
-car reversal function or a reviewed exact branch in the guarded function, plus
-matching adapter checks and real transaction cases. Charge-only unknown-product
+The car refund query adapter now targets the proposed dedicated atomic reversal
+function and rejects active/stale success and missing durable evidence. See
+`car-purchase-reversal-database-contract.md`. Its SQL wrapper remains an inert
+review draft; do not mark readiness true before final migration and real transaction
+cases pass. Charge-only unknown-product
 tombstones must also remain visible to the grant guard before a product is known.
 
 Avoid taking a product lock after an object lock: car-specific known identities

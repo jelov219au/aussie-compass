@@ -140,6 +140,32 @@ begin
   then raise exception 'before-grant failure must retain a restriction without granting'; end if;
   v_cases:=v_cases+1;
 
+  select * into strict v_result from public.apply_car_purchase_reversal_event_v1(
+    'evt_carRefund2','charge.refunded',false,v_at+interval '15 minutes','revoke','car_purchase_pro',
+    'cs_test_carFixture2','pi_carFixture2','ch_carFixture2','cus_carFixture2','charge_fully_refunded');
+  if v_result.outcome <> 'tombstoned' or v_result.id is not null or v_result.status is not null
+    or v_result.product_code <> 'car_purchase_pro' or v_result.stripe_checkout_session_id <> 'cs_test_carFixture2'
+    or v_result.alert_kind <> 'refund_event' or v_result.alert_durable is distinct from true
+    or v_result.sale_hold_durable is distinct from true or v_result.restriction_durable is distinct from true
+  then raise exception 'before-grant refund must return exact identity and durable restriction/alert'; end if;
+  v_cases:=v_cases+1;
+
+  select * into strict v_result from public.apply_car_purchase_reversal_event_v1(
+    'evt_carRefund2','charge.refunded',false,v_at+interval '15 minutes','revoke','car_purchase_pro',
+    'cs_test_carFixture2','pi_carFixture2','ch_carFixture2','cus_carFixture2','charge_fully_refunded');
+  if v_result.outcome <> 'duplicate' or v_result.alert_durable is distinct from true
+    or v_result.restriction_durable is distinct from true or v_result.stripe_charge_id <> 'ch_carFixture2'
+  then raise exception 'refund duplicate must preserve full identity and durable evidence'; end if;
+  v_cases:=v_cases+1;
+
+  select * into strict v_result from public.apply_car_purchase_reversal_event_v1(
+    'evt_carRefundFailed1','refund.failed',false,v_at-interval '2 days','review','car_purchase_pro',
+    'cs_test_carFixture1','pi_carFixture1','ch_carFixture1','cus_carFixture1','refund_status_requires_review');
+  if v_result.outcome <> 'processed' or v_result.status <> 'revoked' or v_result.alert_kind <> 'refund_event'
+    or v_result.restriction_durable is distinct from true
+  then raise exception 'old failed-refund review must preserve existing revoke'; end if;
+  v_cases:=v_cases+1;
+
   raise notice 'Car hold sequential SQL acceptance cases: %',v_cases;
 end $$;
 rollback;

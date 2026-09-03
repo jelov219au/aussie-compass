@@ -16,7 +16,8 @@ function validId(value: unknown) {
   return /^[1-9]\d{0,18}$/.test(String(value)) && BigInt(value) <= BigInt("9223372036854775807");
 }
 
-// Fixed existing signatures only. No client/connection/SQL migration is created.
+// Fixed paid signature and proposed car-only atomic reversal signature.
+// The new reversal function is NOT deployed. No client/connection is created.
 // Wire only after the car schema, function bodies and runtime ACLs are verified.
 export function createCarPurchaseWebhookStore(deps: {
   query: CarPurchaseAccessQuery;
@@ -65,24 +66,26 @@ export function createCarPurchaseWebhookStore(deps: {
         throw new Error("Invalid car reversal contract.");
       }
       const row = one(await query(
-        "select * from public.apply_guarded_entitlement_event($1::text,$2::text,$3::boolean,$4::timestamptz,$5::text,$6::text,$7::text,$8::text,$9::text,$10::text,$11::text)",
+        "select * from public.apply_car_purchase_reversal_event_v1($1::text,$2::text,$3::boolean,$4::timestamptz,$5::text,$6::text,$7::text,$8::text,$9::text,$10::text,$11::text)",
         [r.eventId, r.eventType, String(r.livemode), r.createdAt.toISOString(), c.action, c.productCode,
           c.checkoutSessionId, c.paymentIntentId, c.chargeId, c.customerId, c.reason]));
-      if (typeof row.outcome !== "string" || !["processed", "duplicate", "ignored_stale", "tombstoned"].includes(row.outcome)) throw new Error("Invalid car reversal outcome.");
+      if (typeof row.outcome !== "string" || !["processed", "duplicate", "tombstoned"].includes(row.outcome)
+        || row.event_id !== r.eventId || row.event_type !== r.eventType || row.livemode !== r.livemode
+        || row.product_code !== c.productCode || row.stripe_checkout_session_id !== c.checkoutSessionId
+        || row.stripe_payment_intent_id !== c.paymentIntentId || row.stripe_charge_id !== c.chargeId
+        || row.stripe_customer_id !== c.customerId || row.alert_kind !== "refund_event"
+        || row.alert_durable !== true || row.sale_hold_durable !== true || row.restriction_durable !== true
+        || typeof row.gate_state !== "string" || !["OPEN", "RESERVED", "LOCKED"].includes(row.gate_state)) {
+        throw new Error("Invalid car reversal persistence evidence.");
+      }
       if (row.id === null) {
-        const tombstone = row.outcome === "tombstoned";
-        if ((!tombstone && row.outcome !== "duplicate") || row.product_code !== null || row.status !== null
-          || row.stripe_checkout_session_id !== null || row.stripe_customer_id !== null
-          || row.stripe_payment_intent_id !== (tombstone ? c.paymentIntentId : null)
-          || row.stripe_charge_id !== (tombstone ? c.chargeId : null)) throw new Error("Invalid car reversal empty result.");
-      } else if (!validId(row.id) || row.outcome === "tombstoned" || row.product_code !== c.productCode
-        || typeof row.status !== "string" || !["active", "revoked", "review"].includes(row.status)
-        || row.stripe_checkout_session_id !== c.checkoutSessionId || row.stripe_payment_intent_id !== c.paymentIntentId
-        || row.stripe_charge_id !== c.chargeId || row.stripe_customer_id !== c.customerId
-        || (row.outcome === "processed" && (c.action === "revoke" ? row.status !== "revoked" : row.status === "active"))) {
+        if (!["tombstoned", "duplicate"].includes(row.outcome) || row.status !== null) throw new Error("Invalid car reversal empty result.");
+      } else if (!validId(row.id) || row.outcome === "tombstoned"
+        || typeof row.status !== "string" || !["revoked", "review"].includes(row.status)
+        || (c.action === "revoke" && row.status !== "revoked")) {
         throw new Error("Invalid car reversal entitlement result.");
       }
-      return { outcome: row.outcome };
+      return { outcome: row.outcome, alertDurable: true, saleHoldDurable: true, restrictionDurable: true };
     },
   };
 }

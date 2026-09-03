@@ -14,7 +14,8 @@ export type CarPurchaseReversalEvent = { receipt: Receipt; command: Identity & {
 export interface CarPurchaseWebhookStore {
   // The paid event MUST lock the sales gate and grant in one DB transaction.
   applyPaidEventAndEntitlement(input: CarPurchasePaidEvent): Promise<unknown>;
-  // Must preserve event idempotency/order and pre-grant reversal tombstones.
+  // Must atomically preserve receipt/restriction/sale hold/refund alert, including
+  // duplicates and pre-grant tombstones. Never accept active/stale success.
   // There is intentionally no grant/reopen method on this reversal port.
   applyReversal(input: CarPurchaseReversalEvent): Promise<unknown>;
 }
@@ -264,8 +265,10 @@ export function createCarPurchaseWebhookFulfillment(deps: {
         ? await store!.applyPaidEventAndEntitlement(input as CarPurchasePaidEvent)
         : await store!.applyReversal(input as CarPurchaseReversalEvent);
       const allowed = input.command.action === "grant" ? ["processed", "duplicate", "ignored_stale"]
-        : ["processed", "duplicate", "ignored_stale", "tombstoned"];
-      if (!record(result) || typeof result.outcome !== "string" || !allowed.includes(result.outcome)) return failed("persistence_failed");
+        : ["processed", "duplicate", "tombstoned"];
+      if (!record(result) || typeof result.outcome !== "string" || !allowed.includes(result.outcome)
+        || (input.command.action !== "grant" && (result.alertDurable !== true
+          || result.saleHoldDurable !== true || result.restrictionDurable !== true))) return failed("persistence_failed");
       return { ok: true, handled: true, outcome: result.outcome as Outcome };
     } catch { return failed("persistence_failed"); }
   };

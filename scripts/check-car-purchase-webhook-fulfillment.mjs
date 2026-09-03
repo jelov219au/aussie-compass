@@ -163,6 +163,8 @@ await send(event(), fail("unavailable")); providerThrows = false;
 assert.equal(stored.length, before);
 
 // Reversal path resolves the exact original checkout server-side, never by metadata on the refund.
+const reversalEvidence = { alertDurable: true, saleHoldDurable: true, restrictionDurable: true };
+storeResult = { outcome: "processed", ...reversalEvidence };
 currentCharge = { ...charge, amount_refunded: 500 };
 await send(event("charge.refunded", { ...currentCharge, payment_intent: null }), done("processed"));
 assert.equal(stored.at(-1).method, "reversal");
@@ -173,12 +175,18 @@ for (const type of ["charge.refunded", "refund.created", "refund.updated", "refu
   await send(event(type, type === "charge.refunded" ? currentCharge : refund), done("processed"));
   assert.equal(stored.at(-1).method, "reversal"); assert.equal(stored.at(-1).input.command.action, "revoke");
 }
-for (const outcome of ["duplicate", "ignored_stale", "tombstoned"]) {
-  storeResult = { outcome };
+for (const outcome of ["duplicate", "tombstoned"]) {
+  storeResult = { outcome, ...reversalEvidence };
   await send(event("refund.updated", refund, { created: now / 1000 - 86400 }), done(outcome));
   assert.equal(stored.at(-1).input.command.action, "revoke");
 }
-storeResult = { outcome: "processed" };
+for (const result of [{ outcome: "ignored_stale", ...reversalEvidence }, { outcome: "duplicate" },
+  { outcome: "duplicate", ...reversalEvidence, alertDurable: false },
+  { outcome: "processed", ...reversalEvidence, saleHoldDurable: false },
+  { outcome: "tombstoned", ...reversalEvidence, restrictionDurable: "true" }]) {
+  storeResult = result; await send(event("refund.updated", refund), fail("persistence_failed"));
+}
+storeResult = { outcome: "processed", ...reversalEvidence };
 before = stored.length;
 await send(event(), fail("contract_mismatch"));
 assert.equal(stored.length, before, "A delayed paid event cannot dispatch a grant after the current charge was refunded.");
