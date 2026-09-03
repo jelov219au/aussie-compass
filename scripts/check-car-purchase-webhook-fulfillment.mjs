@@ -136,7 +136,8 @@ await send(event(), fail("persistence_failed")); storeThrows = false;
 
 // Every bad paid contract must stop before either persistence port.
 let before = stored.length;
-for (const patch of [{ object: "wrong" }, { payment_status: "unpaid" }, { status: "open" }, { mode: "subscription" },
+await send(event(undefined, { ...checkout, payment_status: "unpaid" }), fail("unavailable")); // Exception store required.
+for (const patch of [{ object: "wrong" }, { status: "open" }, { mode: "subscription" },
   { livemode: true }, { customer: "cus_other" }, { payment_intent: "pi_other" }, { currency: "usd" },
   { amount_total: 1 }, { amount_subtotal: 1 }, { metadata: { ...checkout.metadata, purchase_terms_version: "2020-01-01" } }]) {
   await send(event(undefined, { ...checkout, ...patch }), fail("contract_mismatch"));

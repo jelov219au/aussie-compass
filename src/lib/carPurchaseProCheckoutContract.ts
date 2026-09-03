@@ -43,9 +43,26 @@ export function verifyCarPurchaseCheckout(
   approvedOffer: unknown,
   expectedMode: "test" | "live" | null,
 ): { ok: true; checkoutSessionId: string } | { ok: false; reason: CarPurchaseCheckoutFailure } {
+  return verifyCheckout(session, approvedOffer, expectedMode, true);
+}
+
+// Identity/offer inspection for exception handling only. This does NOT prove payment.
+// Keep the paid-only public verifier above as the sole grant/activation contract.
+export function inspectCarPurchaseCheckoutForException(
+  session: unknown,
+  approvedOffer: unknown,
+  expectedMode: "test" | "live" | null,
+): { ok: true; checkoutSessionId: string } | { ok: false; reason: CarPurchaseCheckoutFailure } {
+  return verifyCheckout(session, approvedOffer, expectedMode, false);
+}
+
+function verifyCheckout(
+  session: unknown, approvedOffer: unknown, expectedMode: "test" | "live" | null, requirePaid: boolean,
+): { ok: true; checkoutSessionId: string } | { ok: false; reason: CarPurchaseCheckoutFailure } {
   if (!isCarPurchaseApprovedOffer(approvedOffer)) return { ok: false, reason: "offer_unconfigured" };
   if (expectedMode !== "test" && expectedMode !== "live") return { ok: false, reason: "environment_unverified" };
-  if (!record(session) || session.payment_status !== "paid" || session.status !== "complete" ||
+  if (!record(session) || !(requirePaid ? session.payment_status === "paid"
+    : session.payment_status === "paid" || session.payment_status === "unpaid") || session.status !== "complete" ||
     session.mode !== "payment" || typeof session.id !== "string" ||
     !new RegExp("^cs_" + expectedMode + "_[A-Za-z0-9]+$").test(session.id) ||
     session.livemode !== (expectedMode === "live")) return { ok: false, reason: "session_incomplete" };

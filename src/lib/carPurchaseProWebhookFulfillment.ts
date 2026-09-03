@@ -1,5 +1,5 @@
 import "server-only";
-import { isCarPurchaseApprovedOffer, verifyCarPurchaseCheckout, type CarPurchaseApprovedOffer } from "./carPurchaseProCheckoutContract";
+import { inspectCarPurchaseCheckoutForException, isCarPurchaseApprovedOffer, verifyCarPurchaseCheckout, type CarPurchaseApprovedOffer } from "./carPurchaseProCheckoutContract";
 
 type Mode = "test" | "live";
 type Receipt = { eventId: string; eventType: string; livemode: boolean; createdAt: Date };
@@ -23,6 +23,26 @@ export interface CarPurchaseWebhookProvider {
   retrievePaymentIntent(id: string): Promise<unknown>;
   retrieveCharge(id: string): Promise<unknown>;
   listCheckoutsForPaymentIntent(id: string, options: { limit: 2 }): Promise<unknown>;
+  retrieveDispute?(id: string): Promise<unknown>;
+}
+export type CarPurchaseExceptionEvent = { receipt: Receipt; command: Omit<Identity, "chargeId"> & {
+  chargeId: string | null;
+  action: "pending" | "revoke" | "review";
+  reason: "checkout_payment_pending" | "async_payment_failed" | "async_failure_requires_review"
+    | "dispute_opened" | "dispute_lost" | "dispute_requires_review" | "charge_fully_refunded";
+  referenceId: string;
+  currentStatus: string;
+} };
+export interface CarPurchaseExceptionStore {
+  // One transaction: receipt + restricted state/tombstone + durable operator alert.
+  // pending only records observation: never downgrade active/revoked/review and never
+  // release/reopen the sales gate, including expiry-based claim reuse while pending.
+  // A later verified paid event may grant normally.
+  // revoke/review must serialize with paid grants by checkout/PI/charge and must
+  // prevent later automatic reactivation, including won/funds_reinstated events.
+  // Event IDs deduplicate; created seconds alone MUST NOT suppress restrictions.
+  // Duplicate receipts still require a durable alert. No raw event/PII is passed.
+  applyExceptionAndEnqueueAlert(input: CarPurchaseExceptionEvent): Promise<unknown>;
 }
 type Failure = "unavailable" | "invalid_signature" | "invalid_event" | "wrong_environment" | "contract_mismatch" | "persistence_failed";
 type Outcome = "processed" | "duplicate" | "ignored_stale" | "tombstoned";
@@ -38,6 +58,10 @@ function reference(value: unknown, prefix: string) {
 }
 const paidTypes = ["checkout.session.completed", "checkout.session.async_payment_succeeded"];
 const refundTypes = ["charge.refunded", "refund.created", "refund.updated", "refund.failed"];
+const disputeTypes = ["charge.dispute.created", "charge.dispute.updated", "charge.dispute.closed",
+  "charge.dispute.funds_reinstated", "charge.dispute.funds_withdrawn"];
+const disputeStatuses = ["needs_response", "under_review", "lost", "won", "warning_needs_response",
+  "warning_under_review", "warning_closed", "prevented"];
 
 // Isolated preparation, not mounted in the shared webhook route. verifySignature
 // must call Stripe's signature-verifying constructEvent on the unchanged body.
@@ -52,6 +76,7 @@ export function createCarPurchaseWebhookFulfillment(deps: {
   checkPrerequisites: ((offer: Readonly<CarPurchaseApprovedOffer>, mode: Mode) => Promise<boolean>) | null;
   provider: CarPurchaseWebhookProvider | null;
   store: CarPurchaseWebhookStore | null;
+  exceptionStore?: CarPurchaseExceptionStore | null;
   now?: () => number;
 }) {
   const mode = deps.expectedMode;
@@ -98,15 +123,90 @@ export function createCarPurchaseWebhookFulfillment(deps: {
       || event.created <= 0 || event.created > Math.floor(at / 1000) + 300
       || !record(event.data) || !record(event.data.object) || event.account != null || event.context != null) return failed("invalid_event");
     if (event.livemode !== (mode === "live")) return failed("wrong_environment");
-    const isPaid = paidTypes.includes(event.type), isRefund = refundTypes.includes(event.type);
-    if (!isPaid && !isRefund) return { ok: true, handled: false };
     const object = event.data.object;
-    if (isPaid && (!record(object.metadata) || object.metadata.product_code !== "car_purchase_pro")) return { ok: true, handled: false };
+    const isCheckoutException = event.type === "checkout.session.async_payment_failed"
+      || (event.type === "checkout.session.completed" && object.payment_status === "unpaid");
+    const isDispute = disputeTypes.includes(event.type);
+    const isPaid = paidTypes.includes(event.type), isRefund = refundTypes.includes(event.type);
+    if (!isPaid && !isRefund && !isCheckoutException && !isDispute) return { ok: true, handled: false };
+    if ((isPaid || isCheckoutException) && (!record(object.metadata) || object.metadata.product_code !== "car_purchase_pro")) return { ok: true, handled: false };
     try {
       if (await checkPrerequisites!(offer!, mode!) !== true) return failed("unavailable");
     } catch { return failed("unavailable"); }
     const receipt: Receipt = { eventId: event.id, eventType: event.type, livemode: event.livemode as boolean,
       createdAt: new Date(event.created * 1000) };
+    if (isCheckoutException || isDispute) {
+      const exceptionStore = deps.exceptionStore;
+      if (!exceptionStore || typeof exceptionStore.applyExceptionAndEnqueueAlert !== "function"
+        || (isDispute && typeof provider!.retrieveDispute !== "function")) return failed("unavailable");
+      let exception: CarPurchaseExceptionEvent;
+      try {
+        if (isCheckoutException) {
+          if (object.object !== "checkout.session" || !id(object.id, "cs_" + mode)
+            || object.status !== "complete" || object.payment_status !== "unpaid" || object.mode !== "payment"
+            || object.livemode !== receipt.livemode || !record(object.metadata)
+            || object.metadata.billing_model !== offer!.billing || object.metadata.purchase_terms_version !== offer!.termsVersion
+            || object.currency !== offer!.currency || object.amount_total !== offer!.priceCents
+            || object.amount_subtotal !== offer!.priceCents) return failed("contract_mismatch");
+          const raw = await provider!.retrieveCheckout(object.id, { expand: ["line_items"] });
+          if (!record(raw) || raw.object !== "checkout.session" || raw.id !== object.id
+            || !inspectCarPurchaseCheckoutForException(raw, offer, mode).ok) return failed("contract_mismatch");
+          const paymentIntentId = reference(raw.payment_intent, "pi"), customerId = reference(raw.customer, "cus");
+          if (!paymentIntentId || !customerId || reference(object.payment_intent, "pi") !== paymentIntentId
+            || reference(object.customer, "cus") !== customerId) return failed("contract_mismatch");
+          const pi = await provider!.retrievePaymentIntent(paymentIntentId);
+          if (!record(pi) || pi.object !== "payment_intent" || pi.id !== paymentIntentId || pi.livemode !== receipt.livemode
+            || pi.currency !== offer!.currency || pi.amount !== offer!.priceCents || reference(pi.customer, "cus") !== customerId
+            || typeof pi.status !== "string" || !["processing", "requires_payment_method", "requires_confirmation",
+              "requires_action", "requires_capture", "canceled", "succeeded"].includes(pi.status)) return failed("contract_mismatch");
+          const pending = event.type === "checkout.session.completed";
+          const definiteFailure = raw.payment_status === "unpaid" && ["requires_payment_method", "canceled"].includes(pi.status);
+          exception = { receipt, command: { productCode: "car_purchase_pro", checkoutSessionId: object.id,
+            paymentIntentId, customerId, chargeId: null, referenceId: object.id, currentStatus: pi.status,
+            action: pending ? "pending" : definiteFailure ? "revoke" : "review",
+            reason: pending ? "checkout_payment_pending" : definiteFailure ? "async_payment_failed" : "async_failure_requires_review" } };
+        } else {
+          if (object.object !== "dispute" || !id(object.id, "dp") || object.livemode !== receipt.livemode
+            || typeof object.status !== "string" || !disputeStatuses.includes(object.status)) return failed("contract_mismatch");
+          const current = await provider!.retrieveDispute!(object.id);
+          const chargeId = reference(object.charge, "ch");
+          if (!chargeId || !record(current) || current.object !== "dispute" || current.id !== object.id
+            || current.livemode !== receipt.livemode || reference(current.charge, "ch") !== chargeId
+            || typeof current.status !== "string" || !disputeStatuses.includes(current.status)) return failed("contract_mismatch");
+          const currentCharge = charge(await provider!.retrieveCharge(chargeId), chargeId);
+          if (!currentCharge || reference(object.payment_intent, "pi") !== currentCharge.paymentIntentId
+            || reference(current.payment_intent, "pi") !== currentCharge.paymentIntentId
+            || object.currency !== currentCharge.currency || current.currency !== currentCharge.currency
+            || typeof current.amount !== "number" || !Number.isSafeInteger(current.amount) || current.amount <= 0
+            || current.amount > currentCharge.amount || object.amount !== current.amount) return failed("contract_mismatch");
+          const list = await provider!.listCheckoutsForPaymentIntent(currentCharge.paymentIntentId, { limit: 2 });
+          if (!record(list) || list.has_more !== false || !Array.isArray(list.data) || list.data.length !== 1
+            || !record(list.data[0]) || !id(list.data[0].id, "cs_" + mode)) return failed("contract_mismatch");
+          const raw = await provider!.retrieveCheckout(list.data[0].id, { expand: ["line_items"] });
+          if (!record(raw) || raw.id !== list.data[0].id || reference(raw.payment_intent, "pi") !== currentCharge.paymentIntentId
+            || reference(raw.customer, "cus") !== currentCharge.customerId) return failed("contract_mismatch");
+          if (record(raw.metadata) && typeof raw.metadata.product_code === "string"
+            && raw.metadata.product_code !== "car_purchase_pro") return { ok: true, handled: false };
+          const purchase = checkout(raw);
+          if (!purchase || currentCharge.currency !== offer!.currency || currentCharge.amount !== offer!.priceCents) return failed("contract_mismatch");
+          // Even an old event or a currently won dispute can only restrict/review.
+          // A refund must not be undone by a later funds-reinstated event.
+          const fullRefund = currentCharge.amountRefunded === offer!.priceCents;
+          const lost = current.status === "lost";
+          const opened = event.type === "charge.dispute.created" || event.type === "charge.dispute.funds_withdrawn";
+          exception = { receipt, command: { ...purchase, productCode: "car_purchase_pro", chargeId,
+            referenceId: object.id, currentStatus: current.status, action: fullRefund || lost || opened ? "revoke" : "review",
+            reason: fullRefund ? "charge_fully_refunded" : lost ? "dispute_lost" : opened ? "dispute_opened" : "dispute_requires_review" } };
+        }
+      } catch { return failed("unavailable"); }
+      try {
+        const result = await exceptionStore.applyExceptionAndEnqueueAlert(exception);
+        const allowed = exception.command.action === "pending" ? ["processed", "duplicate"] : ["processed", "duplicate", "tombstoned"];
+        if (!record(result) || typeof result.outcome !== "string" || !allowed.includes(result.outcome)
+          || result.alertDurable !== true) return failed("persistence_failed");
+        return { ok: true, handled: true, outcome: result.outcome as Outcome };
+      } catch { return failed("persistence_failed"); }
+    }
     let input: CarPurchasePaidEvent | CarPurchaseReversalEvent;
     try {
       if (isPaid) {
