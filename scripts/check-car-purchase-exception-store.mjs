@@ -57,6 +57,7 @@ assert.equal(JSON.stringify(queries[0].values), JSON.stringify(["evt_store", "ch
 await success(failure); await success(dispute);
 assert.equal(queries[2].values[7], "ch_store"); assert.equal(queries[2].values[11], "dp_store");
 await success(pending, { outcome: "duplicate", entitlement_status: "active", gate_state: "LOCKED" });
+await success(dispute, { outcome: "duplicate", entitlement_status: "revoked", gate_state: "OPEN" });
 await success(pending, { outcome: "duplicate", entitlement_status: "revoked", restriction_durable: true });
 await success(failure, { outcome: "duplicate" });
 await success(failure, { outcome: "tombstoned", entitlement_status: null });
@@ -88,7 +89,7 @@ for (const data of [null, [], [{}, {}], [{}]]) { rows = data; await reject(); }
 for (const patch of [{ outcome: "ignored_stale" }, { outcome: "tombstoned" }, { event_id: "evt_other" }, { event_type: "other" },
   { livemode: "false" }, { product_code: "eofy_pro" }, { checkout_session_id: "cs_test_other" }, { payment_intent_id: "pi_other" },
   { charge_id: "ch_other" }, { customer_id: "cus_other" }, { reference_id: "cs_test_other" }, { alert_kind: "payment_completed" },
-  { alert_durable: false }, { alert_durable: "true" }, { sale_hold_durable: false }, { gate_state: "OPEN" },
+  { alert_durable: false }, { alert_durable: "true" }, { sale_hold_durable: false }, { gate_state: "PAUSED" },
   { restriction_durable: null }, { entitlement_status: "unknown" }, { entitlement_status: {} },
   { entitlement_status: "active", restriction_durable: true }, { entitlement_status: "review", restriction_durable: false }]) {
   rows = [row(pending, patch)]; await reject();

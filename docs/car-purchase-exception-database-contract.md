@@ -46,7 +46,7 @@ Return exactly one row:
 | alert_kind | fulfillment_attention for pending/failure; dispute_event for disputes |
 | alert_durable | true only after matching pending or sent outbox intent exists |
 | sale_hold_durable | true only while the gate and its release/claim paths preserve the hold |
-| gate_state | Actual RESERVED or LOCKED; never invent a sale to obtain LOCKED |
+| gate_state | Actual OPEN/RESERVED/LOCKED; an OPEN gate succeeds only when the new hold is enforced by every claim/release/reopen path |
 | restriction_durable | Boolean; true required for revoke/review and existing restricted status |
 | entitlement_status | null/active/review/revoked; active forbidden with a restriction; revoke cannot return review |
 
@@ -92,6 +92,8 @@ receipt ownership instead of trusting a reused ID or eight-character suffix.
 1. Verify approved schema/offer/environment and all exact reference relationships.
    Acquire the shared product gate and payment-object locks before state changes.
    Missing or conflicting gate identity is an error, never an invented sold row.
+   A late exception after an owner-approved OPEN can be stored only after the
+   companion gate functions atomically consult the same hold.
 2. Verify or insert an immutable exception receipt scoped to the environment.
    Proposed `car_purchase_payment_holds` binds checkout/PI/customer and optional
    charge. Persist pending observation or a monotonic review/revoke restriction.
@@ -142,6 +144,11 @@ The query adapter tests are preparation evidence only. The function implementati
 real SQL execution, concurrency, readiness probe and production connection remain
 unfinished. Price/remote application/launch stay in the single CAR-PURCHASE-LAUNCH
 approval item. Desktop/mobile/PWA share this server contract; visual tests NOT_RUN.
+
+The review draft has three independent application stops: an unconditional opening
+exception, a sale-hold integration guard that always returns false, and no runtime
+EXECUTE grant or commit. A final migration must be regenerated from verified remote
+hashes; removing those stops from the draft is not an approved application process.
 
 PostgreSQL references checked 2026-09-04: [CREATE FUNCTION](https://www.postgresql.org/docs/current/sql-createfunction.html)
 explains null-input behavior, function privileges and safe security-definer setup;
