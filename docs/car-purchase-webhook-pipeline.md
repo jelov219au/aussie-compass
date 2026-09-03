@@ -1,0 +1,11 @@
+# Isolated car webhook persistence and alert pipeline
+
+`createCarPurchaseWebhookPipeline` composes the signed fulfillment, strict paid/reversal/exception query adapters, car alert outbox and bounded-message delivery. Query, provider, signature verifier, readiness checks and sender are injected. No production route, SQL connection or email transport is created.
+
+The request's verified exception/reversal input is captured only after the strict persistence adapter succeeds. Fulfillment must also accept its durable markers before an alert is claimed. A separate per-request capture prevents overlapping requests from exchanging identities. Failed signature, readiness, provider verification or persistence never starts alert delivery. Missing sender/query/readiness configuration fails closed before signature/provider access. The readiness callback must cover approved schema/function/ACL and sender prerequisites; it is not implemented by this factory.
+
+Paid grants use the existing strict paid adapter and return `alert: not_requested`; this pipeline does not send paid confirmations. Unsupported events and other products return `handled: false`, which means the future shared route must continue its existing router, not acknowledge the event here. Refund/dispute lookup may need provider reads before determining the original purchase belongs to another product.
+
+After accepted persistence, success returns the persistence outcome plus `alert: sent` or `already_sent`. A busy lease returns `ok: false, reason: alert_busy, persisted: true`. Delivery/claim/mark failures return `alert_delivery_failed` with `persisted: true` and no private error details. These require a retryable HTTP response until a separately verified retry worker owns responsibility; they must not become success acknowledgements. Receipt/restriction/hold/outbox remain durable across retries, and duplicate persistence still reaches alert delivery. No rollback, regrant or sale reopening is attempted on an alert failure. Delivery is at least once.
+
+Validation is synthetic signed Stripe SDK input with mocked provider/query/sender, including deterministic overlapping-request interleaving. It is not SQL atomicity, real transport or shared-route verification. The factory remains unconnected; web/mobile/PWA use the same eventual server endpoint.
