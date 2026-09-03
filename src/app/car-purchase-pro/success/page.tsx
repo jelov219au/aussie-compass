@@ -30,6 +30,7 @@ export default async function CarPurchaseProSuccessPage({ searchParams }: {
     <CarPurchaseProActivationForm initialSessionId={sessionId} invalidReference={invalidReference} enabled={false} />
     <div className="mt-8 flex flex-wrap gap-3">
       <Link href="/car-purchase-pro" className="inline-flex min-h-12 items-center rounded-lg border border-navy px-5 py-3 text-sm font-semibold text-navy">제품 소개로 돌아가기</Link>
+      <Link href="/car-purchase-pro/restore" className="inline-flex min-h-12 items-center rounded-lg border border-navy px-5 py-3 text-sm font-semibold text-navy">복구·연결 관리</Link>
       <Link href="/payment-help" className="inline-flex min-h-12 items-center rounded-lg border border-navy px-5 py-3 text-sm font-semibold text-navy">결제·접근 문제 도움말</Link>
       <Link href="/contact" className="inline-flex min-h-12 items-center rounded-lg border border-navy px-5 py-3 text-sm font-semibold text-navy">고객지원</Link>
     </div>
