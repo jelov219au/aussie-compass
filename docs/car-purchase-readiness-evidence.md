@@ -79,7 +79,8 @@ It must execute bounded metadata reads in **one database-enforced read-only
 transaction** using an approved connection. It must not run mutating application
 functions, acquire business locks, select customer rows, inspect credentials or
 send messages. TypeScript's query-port type and `readOnly: true` do not enforce
-transaction behavior. No SQL collector or remote query was implemented here.
+transaction behavior. Catalog collectors are now prepared separately; no remote
+query or production driver is connected.
 
 Return exactly one row, `{ evidence_json: serializedEnvelope }`, whose envelope has
 exactly version, challenge, candidateCommit, observedAt, readOnly, environment,
@@ -105,8 +106,10 @@ collector now defines and mock-tests function EXECUTE ACL serialization in
 `car-purchase-readiness-function-catalog.md`. The combined schema collector now
 prepares function/constraint/trigger observations in one statement. The privilege
 collector adds canonical role/schema/table/column/sequence hashes as documented in
-`car-purchase-readiness-privilege-catalog.md`; report provenance and the complete
-readiness envelope remain unfinished. The older inventory SQL's
+`car-purchase-readiness-privilege-catalog.md`. The isolated envelope factory now
+joins signed report descriptors and independently bound catalog observations;
+see `car-purchase-readiness-envelope.md`. Production provenance registries and
+the connection adapter remain unimplemented. The older inventory SQL's
 normalized `prosrc` MD5 is not interchangeable with these SHA256 pins and cannot
 be promoted to readiness. Completeness of dependency closure and provenance of
 approval/report files still require review; matching hashes alone do not prove it.
@@ -118,10 +121,10 @@ unsafe search_path, role privileges, wrong database/mode/offer/candidate, expire
 approval, stale observations, malformed rows, query failure, settings snapshots and
 two concurrent requests with swapped challenges. It only uses mock query rows.
 
-Next: prepare a catalog-only collector contract and exact canonical descriptor
-serialization from the approved preflight scope; fill neither remote hashes nor
-price placeholders. Resolve dependency closure, inherited privileges and report
-provenance before adapting this result to runtime readiness. Real SQL acceptance,
+Next: prepare the transaction adapter's ordering, timeout/cancellation and cleanup
+contract; fill neither remote hashes nor price placeholders. Verify dependency
+closure, effective privileges and report provenance with approved evidence before
+adapting this result to runtime readiness. Real SQL acceptance,
 remote approval, sender and shared-route wiring remain separate gates under the
 existing CAR-PURCHASE-LAUNCH item. Production remains closed.
 
