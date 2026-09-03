@@ -96,11 +96,13 @@ and was cancelled; no failure was attributed to SQL or product behavior.
 
 Still needed: actual SQL parse/execution on a separately approved isolated target,
 an independently bound provider project/branch identity, complete dependency review,
-effective runtime role/membership/schema/table/column/sequence permissions and real
-acceptance report provenance. Ordinary CHECK clauses can call functions indirectly;
+actual effective runtime permissions and real acceptance report provenance.
+The next collector now prepares role/membership/schema/table/column/sequence
+observations in the same statement; see `car-purchase-readiness-privilege-catalog.md`.
+Ordinary CHECK clauses can call functions indirectly;
 trigger target coverage does not prove closure of all body/expression dependencies.
-Column nullability (not represented as pg_constraint entries on older versions),
-types/defaults/generated expressions and unrelated indexes are not collected here.
+The privilege collector includes column nullability/types/defaults/generated
+expressions; unrelated index/dependency completeness still requires review.
 All final inventory sections must be captured in one approved transaction before
 the outer readiness evaluator receives a fresh challenge/timestamp envelope.
 

@@ -31,7 +31,7 @@ export function hashCarFunctionExecuteAcl(value: unknown): string | null {
 // The injected transaction client must set the options below BEFORE this query.
 // No user-defined function is executed, and full function definitions stay in DB.
 export const carFunctionCatalogCtes = `
-with runtime_role as (
+with recursive runtime_role as (
   select oid from pg_catalog.pg_roles where rolname = $1::text
 ), selected_functions as (
   select p.*, n.nspname from pg_catalog.pg_proc p

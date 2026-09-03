@@ -86,9 +86,10 @@ before approving a complete scope. Do not label a name-only inventory complete.
 
 The combined collector in `car-purchase-readiness-schema-catalog.md` now prepares
 constraint/trigger descriptors and target-function coverage in the same statement.
-Still required: effective role membership
-and schema/table/column/sequence privilege evidence, semantic acceptance report
-provenance for the exact DB/candidate/offer, one combined snapshot and approved
+The privilege collector also prepares role membership and schema/table/column/
+sequence evidence in that statement; actual SQL and privileges are still unverified.
+Still required: semantic acceptance report provenance for the exact DB/candidate/
+offer, one approved complete snapshot and approved
 adapter to readiness. A separately collected function snapshot must not be spliced
 into a newer snapshot with a fresh timestamp. No real approval manifest or price
 was created. All release decisions remain in CAR-PURCHASE-LAUNCH.

@@ -103,8 +103,10 @@ ACL/role/report hashes require a reviewed canonical
 serialization, including exact identities and sorting rules. The isolated function
 collector now defines and mock-tests function EXECUTE ACL serialization in
 `car-purchase-readiness-function-catalog.md`. The combined schema collector now
-prepares function/constraint/trigger observations in one statement; role/report
-serialization and the complete readiness envelope remain unfinished. The older inventory SQL's
+prepares function/constraint/trigger observations in one statement. The privilege
+collector adds canonical role/schema/table/column/sequence hashes as documented in
+`car-purchase-readiness-privilege-catalog.md`; report provenance and the complete
+readiness envelope remain unfinished. The older inventory SQL's
 normalized `prosrc` MD5 is not interchangeable with these SHA256 pins and cannot
 be promoted to readiness. Completeness of dependency closure and provenance of
 approval/report files still require review; matching hashes alone do not prove it.

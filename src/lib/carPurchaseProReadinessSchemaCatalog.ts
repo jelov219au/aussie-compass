@@ -12,7 +12,7 @@ const baseKeys = ["database_name", "inspection_role", "server_version", "read_on
 
 // Three bound values: runtime role, reviewed function names, reviewed table names.
 // One SELECT reuses the function CTEs; no second transaction or cached snapshot.
-export const carSchemaCatalogSql = `${carFunctionCatalogCtes}, selected_tables as (
+export const carSchemaCatalogCtes = `${carFunctionCatalogCtes}, selected_tables as (
   select c.* from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid = c.relnamespace
   where n.nspname = 'public' and c.relname = any($3::text[]) order by c.oid limit 65
 ), selected_constraints as (
@@ -50,8 +50,8 @@ export const carSchemaCatalogSql = `${carFunctionCatalogCtes}, selected_tables a
     'definition_sha256', pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(
       pg_catalog.replace(pg_catalog.pg_get_triggerdef(t.oid, false), E'\\r\\n', E'\\n'), 'UTF8')), 'hex')) as descriptor
   from selected_triggers t join pg_catalog.pg_proc p on p.oid = t.tgfoid join pg_catalog.pg_namespace n on n.oid = p.pronamespace
-)
-select ${carCatalogContextColumns}, pg_catalog.current_setting('session_replication_role') as replication_role,
+)`;
+export const carSchemaCatalogColumns = `${carCatalogContextColumns}, pg_catalog.current_setting('session_replication_role') as replication_role,
   coalesce((select pg_catalog.jsonb_agg(descriptor) from descriptors), '[]'::jsonb) as functions,
   coalesce((select pg_catalog.jsonb_agg(descriptor) from constraint_descriptors), '[]'::jsonb) as constraints,
   coalesce((select pg_catalog.jsonb_agg(descriptor) from trigger_descriptors), '[]'::jsonb) as triggers,
@@ -64,6 +64,7 @@ select ${carCatalogContextColumns}, pg_catalog.current_setting('session_replicat
         select 1 from pg_catalog.pg_proc p join pg_catalog.pg_namespace n on n.oid = p.pronamespace
         where p.oid = t.tgfoid and n.nspname = 'pg_catalog'))))) from selected_tables c), '[]'::jsonb) as tables
 `;
+export const carSchemaCatalogSql = `${carSchemaCatalogCtes} select ${carSchemaCatalogColumns}`;
 
 type PlanEntry = { table: string; name: string };
 type SchemaTransaction = Readonly<{ sql: string; values: readonly [string, readonly string[], readonly string[]];
