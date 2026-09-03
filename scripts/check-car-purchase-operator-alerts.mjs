@@ -47,6 +47,7 @@ for(const [input,patch] of [[refund,{chargeRefLast8:"wrong"}],[dispute,{eventTyp
 const beforeInvalid=claims.length;
 for(const [input,patch] of [[pending,{productCode:"car_buy_pro"}],[pending,{checkoutSessionId:"cs_live_x"}],[pending,{paymentIntentId:"bad"}],
   [pending,{customerId:"bad"}],[pending,{referenceId:"cs_test_other"}],[pending,{reason:"checkout_paid"}],[failure,{action:"grant"}],
+  [failure,{reason:"dispute_opened"}],[failure,{reason:"charge_fully_refunded"}],[failure,{reason:"checkout_paid"}],
   [refund,{chargeId:"bad"}],[refund,{reason:"checkout_paid"}],[dispute,{referenceId:"re_bad"}],[dispute,{reason:"dispute_won_or_funds_reinstated"}]]){
   await reject({...input,command:{...input.command,...patch}})}
 for(const patch of [{eventId:"bad"},{eventType:"invoice.paid"},{livemode:true},{createdAt:new Date(NaN)}])await reject({...pending,receipt:{...pending.receipt,...patch}});

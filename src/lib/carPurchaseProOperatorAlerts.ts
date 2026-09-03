@@ -40,6 +40,7 @@ function classify(input: Input): Kind | null {
   if ("referenceId" in c) {
     if (checkoutEvents.includes(r.eventType)) {
       if (c.chargeId !== null || c.referenceId !== c.checkoutSessionId
+        || !["checkout_payment_pending", "async_payment_failed", "async_failure_requires_review"].includes(c.reason)
         || (c.reason === "checkout_payment_pending" && c.action !== "pending")
         || (c.reason === "async_payment_failed" && c.action !== "revoke")
         || (c.reason === "async_failure_requires_review" && c.action !== "review")
