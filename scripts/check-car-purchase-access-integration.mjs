@@ -42,7 +42,7 @@ function resolve(name) {
   boundaryErrors.push(error);
   throw error;
 }
-for (const name of ["carPurchaseProTokens", "carPurchaseProCheckoutContract", "carPurchaseProAccessLifecycle",
+for (const name of ["carPurchaseProRequestBody", "carPurchaseProTokens", "carPurchaseProCheckoutContract", "carPurchaseProAccessLifecycle",
   "carPurchaseProAccessStore", "carPurchaseProPurchase", "carPurchaseProAccessHttp"]) {
   modules.set("./" + name, load("../src/lib/" + name + ".ts", resolve));
 }

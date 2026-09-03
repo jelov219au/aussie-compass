@@ -13,8 +13,10 @@ async function load(path, resolve, extra = {}) {
     URLSearchParams, TextDecoder, Uint8Array, Date, require: resolve, ...extra });
   return compiledModule.exports;
 }
+const requestBody = await load("../src/lib/carPurchaseProRequestBody.ts", name => { throw new Error(name); });
 const http = await load("../src/lib/carPurchaseProAccessHttp.ts", name => {
   if (name === "./carPurchaseProTokens") return tokens;
+  if (name === "./carPurchaseProRequestBody") return requestBody;
   throw new Error("Unexpected import: " + name);
 });
 const origin = "https://hojucompass.com";

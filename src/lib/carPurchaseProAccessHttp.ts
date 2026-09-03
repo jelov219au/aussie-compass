@@ -1,39 +1,14 @@
 import type { createCarPurchaseAccessLifecycle } from "./carPurchaseProAccessLifecycle";
 import { carPurchaseProAccessLifetimeSeconds } from "./carPurchaseProTokens";
+import { readCarPurchaseRequestBody } from "./carPurchaseProRequestBody";
 
 type Operation = "activate" | "restore" | "restore-code" | "release";
 type Service = ReturnType<typeof createCarPurchaseAccessLifecycle>;
 const destinations = { workspace: "/car-purchase-pro/workspace", released: "/car-purchase-pro?access=released" };
-const bodyLimit = 2048;
 
 function json(body: object, status: number, extra: Record<string, string> = {}) {
   return Response.json(body, { status, headers: { "Cache-Control": "no-store", Pragma: "no-cache",
     "Referrer-Policy": "no-referrer", "X-Content-Type-Options": "nosniff", ...extra } });
-}
-
-// Read bounded chunks instead of buffering an arbitrarily large body before checking its size.
-async function readBody(request: Request): Promise<string | 400 | 413> {
-  const declared = request.headers.get("content-length");
-  if (declared !== null && (!/^\d+$/.test(declared) || !Number.isSafeInteger(Number(declared)))) return 400;
-  if (declared !== null && Number(declared) > bodyLimit) return 413;
-  if (!request.body) return "";
-  const reader = request.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      size += value.byteLength;
-      if (size > bodyLimit) { void reader.cancel().catch(() => {}); return 413; }
-      chunks.push(value);
-    }
-    const bytes = new Uint8Array(size);
-    let offset = 0;
-    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-  } catch { return 400; }
-  finally { reader.releaseLock(); }
 }
 
 export function createCarPurchaseAccessHttp(deps: {
@@ -60,7 +35,7 @@ export function createCarPurchaseAccessHttp(deps: {
       const type = request.headers.get("content-type")?.split(";", 1)[0].trim().toLowerCase();
       const formOperation = operation === "activate" || operation === "restore";
       if ((formOperation || type) && type !== "application/x-www-form-urlencoded") return json({ code: "unsupported_content_type" }, 415);
-      const body = await readBody(request);
+      const body = await readCarPurchaseRequestBody(request);
       if (typeof body === "number") return json({ code: body === 413 ? "request_too_large" : "invalid_request" }, body);
       const fields = new URLSearchParams(body);
       const names = operation === "activate" ? ["session_id", "activation_nonce"] : operation === "restore" ? ["restore_code", "restore_nonce"] : [];
