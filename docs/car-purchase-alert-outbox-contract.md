@@ -14,4 +14,25 @@ The SQL implementation must join the car atomic receipt/full event identity and 
 
 The delivery layer independently matches intent event type and every purchase suffix against the verified event before sending. A mismatched intent is not sent or marked; its lease may expire. Delivery is at least once: a transport success followed by uncertain mark can retry, so exactly-once email is not promised. Stable messageId helps downstream deduplication but is not a guarantee. Attempts over 1000 fail closed and require operator review; do not silently drop them.
 
-SQL bodies, remote schema/hash/ACL checks, concurrency tests and real sender integration remain pending. Generic outbox behavior and all other products remain untouched. The new adapter is server-only shared infrastructure for web/mobile/PWA; no browser behavior changes or installation verification are claimed.
+SQL review draft: `docs/drafts/car-purchase-alert-outbox-v1.sql`. It is intentionally inert (opening exception, false readiness, no runtime grants, final rollback), not parsed or executed. It adds a private receipt/intent validator with an alert-row lock, three public-contract wrappers and a private finish helper. Exact event ID selects the append-only receipt before validating the keyed intent; suffixes alone never authorize a lease. Orphan/mismatched rows raise instead of being repaired. A genuinely absent receipt and intent yields missing. Mark requires an unexpired current token; release may clear its own expired token. A replaced token cannot mark/release. Alert readiness is independent of the sales-enabled flag.
+
+Future isolated-database acceptance matrix (prepared, none executed):
+
+| Case | Required result |
+| --- | --- |
+| First pending intent | Claimed; attempts increments once; exact identity returned; token hash only stored |
+| Two concurrent claimers | One claimed, one busy; one lease owner |
+| Lease expiry and reclaim | New token owns lease; attempts increments once |
+| Stale token mark/release after reclaim | False; current owner and counters unchanged |
+| Expired token before reclaim | Mark false; same-token release permitted |
+| Mark with current unexpired token | Sent with timestamp; lease cleared; next claim sent |
+| Release with current token | Pending with lease cleared; attempts preserved; retry can claim |
+| Missing receipt and intent | Missing with exact requested identity and null intent fields |
+| Receipt without durable intent, or orphan intent | Exception; no mutation |
+| Wrong product/mode/kind/type/reference | Exception; no mutation, including sent/busy/finish paths |
+| Null, malformed or mismatched lease state | Exception; no mutation |
+| Attempts 999/1000 | Final claim reaches 1000; active lease can finish; later reclaim requires review |
+| Concurrent exception duplicate and alert claim | No deadlock or partial receipt; lock order remains gate/payment before alert |
+| Sales disabled after purchase | Alert delivery remains available when alert prerequisites are satisfied |
+
+Remote schema/hash/ACL checks, actual constraint changes, SQL parse/acceptance/concurrency tests and real sender integration remain pending. Generic outbox behavior and all other products remain untouched. The adapter is server-only shared infrastructure for web/mobile/PWA; no browser behavior changes or installation verification are claimed.
