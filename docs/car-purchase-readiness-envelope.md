@@ -57,7 +57,9 @@ The binding has exactly `version: car-deployment-binding-v1`, `candidateCommit`,
 registry must independently establish deployment/provider/project/branch identity
 and produce rows from that same fresh transaction and connection. Echoing the
 expected labels or retimestamping cached rows does not establish this trust.
-The production adapter and connection registry are not implemented.
+The production driver and connection registry are not implemented. Local command
+ordering and cleanup orchestration is prepared in
+`car-purchase-catalog-transaction.md`.
 
 The wrapper is detached by a bounded JSON snapshot. Binding must exactly match,
 challenge must belong to the current request, and observation time must fall
@@ -81,6 +83,7 @@ Scoped strict ES2017 TypeScript and changed-file lint pass.
 
 SQL parsing/execution, actual provider identity, approved report issuance,
 artifact review, remote hash acceptance, real customer journey, message delivery
-and UI/PWA checks remain NOT_RUN. The next local boundary is the transaction
-adapter's ordering, timeout/cancellation and cleanup contract. Any remote
+and UI/PWA checks remain NOT_RUN. The transaction orchestration now has a separate
+mock-tested ordering, deadline and cleanup contract; actual driver acceptance and
+registry configuration remain required. Any remote
 execution or launch remains under the existing CAR-PURCHASE-LAUNCH approval item.
