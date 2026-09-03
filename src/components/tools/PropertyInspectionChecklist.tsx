@@ -84,7 +84,16 @@ export function PropertyInspectionChecklist() {
   function reset() { setPropertyName(""); setStatuses({}); setNotes(""); }
   async function copySummary() {
     const modeName = mode === "share" ? "쉐어하우스" : mode === "rent" ? "일반 렌트" : "구매";
-    const text = [`집 방문 체크 — ${propertyName || "이름 미입력"}`, `유형: ${modeName} · 확인 ${reviewed}/${items.length} · 우려 ${concerns.length}`, "", "다시 확인할 항목:", ...(concerns.length ? concerns.map((item) => `- ${item.label}: ${item.hint}`) : ["- 없음"]), notes ? `\n메모:\n${notes}` : "", "\n※ 계약 전 관할 지역의 공식 규정과 전문가 조언을 확인하세요."].join("\n");
+    const text = [
+      `집 방문 체크 — ${propertyName || "이름 미입력"}`,
+      `유형: ${modeName} · 확인 ${reviewed}/${items.length} · 우려 ${concerns.length}`,
+      `아직 확인하지 않은 항목: ${items.length - reviewed}개`,
+      "",
+      concerns.length ? "표시한 우려:" : "표시한 우려: 없음",
+      ...concerns.map((item) => `- ${item.label}: ${item.hint}`),
+      notes ? `\n메모:\n${notes}` : "",
+      "\n※ 계약 전 관할 지역의 공식 규정과 전문가 조언을 확인하세요.",
+    ].join("\n");
     await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1800);
   }
   function continueToRentalPack() {

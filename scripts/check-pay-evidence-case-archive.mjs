@@ -123,6 +123,6 @@ for (const contract of [
   "파일을 선택해도 즉시 복원하지 않습니다",
   "현재 기록은 변경하지 않았습니다",
 ]) assert.ok(workspace.includes(contract), `Pay Evidence archive UI contract is missing: ${contract}`);
-assert.match(workspace, /const restoreCaseArchive = \(\) => \{[\s\S]*setDraft\(normaliseDraft\(pendingArchive\.case\)\)/);
+assert.match(workspace, /const restoreCaseArchive = \(\) => \{[\s\S]*const nextDraft = normaliseDraft\(pendingArchive\.case\);\s*if \(!persistDraft\(nextDraft\)\) return;\s*setDraft\(nextDraft\);\s*setPendingArchive\(null\)/);
 
 console.log("PAY_EVIDENCE_CASE_ARCHIVE=PASS version=1 review_before_replace=true strict_validation=true originals_excluded=true fidelity=blank_vs_zero+decimals+multi_period+multiline");

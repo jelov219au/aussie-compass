@@ -10,12 +10,17 @@ import {
   eofyExpenseDescriptionMaxLength,
   eofyExpenseNoteMaxLength,
   eofyArchiveMaxBytes,
+  eofyDocumentLimit,
+  eofyDocumentLabelMaxLength,
+  eofyDocumentNoteMaxLength,
+  getEofyDocumentArchiveIssues,
   getEofyExpenseArchiveIssues,
   getEofyAmountCents,
   type EofyArchive,
   type EofyDraft,
   type EofyExpenseRecord,
   type EofyStatus,
+  type EofyDocumentRecord,
 } from "@/lib/eofyProArchive";
 import { assessEofyHandoff } from "@/lib/eofyProHandoff";
 import { readEofyDraft, writeEofyDraft } from "@/lib/eofyProDeviceStorage";
@@ -162,13 +167,22 @@ export function EofyProWorkspace() {
   }, [draft.expenses]);
   const candidateTotal = amountTotals.cents / 100;
   const expenseArchiveIssues = useMemo(() => draft.expenses.map(getEofyExpenseArchiveIssues), [draft.expenses]);
+  const documents = draft.documents ?? [];
+  const documentArchiveIssues = documents.map(getEofyDocumentArchiveIssues);
+  const documentsToReview = documents.filter((item, index) => item.status !== "ready" || !item.label.trim() || !item.checkedOn || documentArchiveIssues[index].length);
   const draftSignature = useMemo(() => JSON.stringify(draft), [draft]);
   const handoffReviewed = reviewedDraftSignature === draftSignature;
-  const progressParts = incomeSources.length + draft.expenses.length;
-  const readyParts = incomeReady + draft.expenses.length - expenseReview.length;
+  const progressParts = incomeSources.length + draft.expenses.length + documents.length;
+  const readyParts = incomeReady + draft.expenses.length - expenseReview.length + documents.length - documentsToReview.length;
   const progress = readyParts === progressParts ? 100 : Math.min(99, Math.round((readyParts / progressParts) * 100));
 
   const setIncomeStatus = (id: string, status: EofyStatus) => setDraft((current) => ({ ...current, incomeStatuses: { ...current.incomeStatuses, [id]: status } }));
+  const updateDocument = <K extends keyof EofyDocumentRecord>(id: string, field: K, value: EofyDocumentRecord[K]) => setDraft((current) => ({ ...current, documents: (current.documents ?? []).map((item) => item.id === id ? { ...item, [field]: value } : item) }));
+  const addDocument = () => {
+    if (documents.length >= eofyDocumentLimit) return;
+    const item: EofyDocumentRecord = { id: crypto.randomUUID(), sourceId: "employment", label: "", status: "todo", checkedOn: "", note: "" };
+    setDraft((current) => (current.documents ?? []).length >= eofyDocumentLimit ? current : { ...current, documents: [...(current.documents ?? []), item] });
+  };
   const updateExpense = <K extends keyof EofyExpenseRecord>(id: string, field: K, value: EofyExpenseRecord[K]) => setDraft((current) => ({ ...current, expenses: current.expenses.map((expense) => expense.id === id ? { ...expense, [field]: value } : expense) }));
   const addExpense = () => {
     if (draft.expenses.length >= eofyExpenseLimit) return;
@@ -234,6 +248,15 @@ export function EofyProWorkspace() {
       "INCOME SOURCES",
       ...incomeSources.map((source) => `- [${statusLabels[draft.incomeStatuses[source.id] ?? "todo"]}] ${source.title}`),
       "",
+      `INDIVIDUAL DOCUMENT RECORDS (${documents.length}; ${documentsToReview.length} to review)`,
+      "User-recorded preparation status only; not confirmation of ATO Tax ready or tax treatment.",
+      ...(documents.length ? documents.flatMap((item, index) => [
+        `${index + 1}. ${item.label || "No document label"} | ${incomeSources.find(source => source.id === item.sourceId)?.title ?? item.sourceId}`,
+        `   Status: ${statusLabels[item.status]} | Checked on (user entry): ${item.checkedOn || "Not recorded"}`,
+        `   Next check / question: ${item.note || "Not recorded"}`,
+        ...(documentArchiveIssues[index].length ? ["   Archive validation: review this record before JSON backup"] : []),
+      ]) : ["- None recorded"]),
+      "",
       `EXPENSE CANDIDATES (${draft.expenses.length})`,
       ...draft.expenses.flatMap((expense, index) => [
         `${index + 1}. ${expense.category} — ${expense.description || "No description"}`,
@@ -262,6 +285,10 @@ export function EofyProWorkspace() {
   const downloadArchive = () => {
     setArchiveError("");
     setArchiveMessage("");
+    if (documents.length > eofyDocumentLimit || documentArchiveIssues.some(issues => issues.length)) {
+      setArchiveError("백업을 만들지 않았습니다. 문서별 기록의 개수·입력 한도와 확인일을 확인하세요. 현재 입력은 그대로 유지했습니다.");
+      return;
+    }
     if (draft.expenses.length > eofyExpenseLimit || expenseArchiveIssues.some((issues) => issues.length)) {
       setArchiveError("백업을 만들지 않았습니다. 공제 후보 기록에 표시된 개수·입력 한도를 확인하세요. 현재 입력은 그대로 유지했습니다.");
       return;
@@ -270,7 +297,7 @@ export function EofyProWorkspace() {
     try {
       archive = createEofyArchive(draft);
     } catch {
-      setArchiveError("현재 기록에 백업할 수 없는 값이 있습니다. 회계연도, 질문과 지출 항목을 다시 확인해 주세요.");
+      setArchiveError("현재 기록에 백업할 수 없는 값이 있습니다. 회계연도, 문서, 질문과 지출 항목을 다시 확인해 주세요.");
       return;
     }
     try {
@@ -364,6 +391,26 @@ export function EofyProWorkspace() {
         <ol className="mt-6 divide-y divide-border border-y border-navy/20">{incomeSources.map((source, index) => <li key={source.id} className="grid gap-3 py-5 sm:grid-cols-[2rem_1fr_8rem]"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div><h3 className="font-semibold text-navy">{source.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{source.detail}</p></div><label className="text-xs font-medium text-muted">상태<select className="mt-1 min-h-10 w-full border border-border bg-white px-2 text-sm text-navy" value={draft.incomeStatuses[source.id] ?? "todo"} onChange={(event) => setIncomeStatus(source.id, event.target.value as EofyStatus)}><option value="todo">확인 전</option><option value="review">확인 필요</option><option value="ready">준비 완료</option></select></label></li>)}</ol>
       </section>
 
+      <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="eofy-documents-heading">
+        <h2 id="eofy-documents-heading" className="text-xl font-semibold text-navy">고용주·문서별 확인 기록</h2>
+        <p id="eofy-document-help" className="mt-3 text-sm leading-6 text-muted">같은 종류의 자료가 여러 개면 문서마다 별칭을 붙이세요. 예: 가상 직장 A · Income statement. 파일을 올리거나 금액·TFN·계좌번호·로그인 정보를 적지 않습니다. 다음 확인 질문은 회계사 TXT와 JSON 백업에도 포함됩니다.</p>
+        <p id="eofy-document-limit" className="mt-3 text-xs leading-5 text-muted">{documents.length} / {eofyDocumentLimit}개 · 확인할 문서 {documentsToReview.length}개. 문서 상태는 위 소득 종류의 상태와 별개이며, ATO의 Tax ready 여부나 신고 자격을 판정하지 않습니다.</p>
+        <p className="mt-2 text-xs leading-5 text-muted">기존 v1 백업도 복원할 수 있습니다. 문서 기록을 담은 v2 백업은 구버전에서 열리지 않으므로 최신 사이트에서 복원하세요.</p>
+        <div className="mt-5 space-y-4">{documents.map((item, index) => <fieldset key={item.id} className="min-w-0 border border-border p-4" aria-describedby={`eofy-document-help eofy-document-issues-${index}`}>
+          <legend className="px-1 text-sm font-semibold text-navy">문서 {index + 1}</legend>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="text-sm font-medium text-navy">소득 종류<select className={inputClass} value={item.sourceId} onChange={event => updateDocument(item.id, "sourceId", event.target.value)}>{!incomeSources.some(source => source.id === item.sourceId) ? <option value={item.sourceId}>저장된 분류 확인 필요: {item.sourceId}</option> : null}{incomeSources.map(source => <option key={source.id} value={source.id}>{source.title}</option>)}</select></label>
+            <label className="text-sm font-medium text-navy">고용주·문서 별칭<input className={inputClass} value={item.label} aria-invalid={documentArchiveIssues[index].includes("label")} aria-describedby={`eofy-document-issues-${index}`} onChange={event => updateDocument(item.id, "label", event.target.value)} /><span className="mt-1 block text-xs font-normal text-muted">{item.label.length} / {eofyDocumentLabelMaxLength}자</span></label>
+            <label className="text-sm font-medium text-navy">문서 준비 상태<select className={inputClass} value={item.status} onChange={event => updateDocument(item.id, "status", event.target.value as EofyStatus)}>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+            <label className="text-sm font-medium text-navy">직접 확인한 날짜<input type="text" className={inputClass} value={item.checkedOn} placeholder="YYYY-MM-DD · 미확인은 빈칸" aria-invalid={documentArchiveIssues[index].includes("checkedOn")} aria-describedby={`eofy-document-issues-${index}`} onChange={event => updateDocument(item.id, "checkedOn", event.target.value)} /></label>
+            <label className="text-sm font-medium text-navy sm:col-span-2">다음 확인·회계사 질문<textarea className={`${inputClass} min-h-20 resize-y`} value={item.note} aria-invalid={documentArchiveIssues[index].includes("note")} aria-describedby={`eofy-document-issues-${index}`} onChange={event => updateDocument(item.id, "note", event.target.value)} /><span className="mt-1 block text-xs font-normal text-muted">{item.note.length} / {eofyDocumentNoteMaxLength}자</span></label>
+          </div>
+          <p id={`eofy-document-issues-${index}`} aria-live="polite" className="mt-3 text-xs leading-5 text-muted">{documentArchiveIssues[index].length ? "백업 전 별칭 120자·질문 500자 한도, 소득 종류와 실제 날짜(YYYY-MM-DD)를 확인하세요. 입력 원문은 유지합니다." : "빈 별칭·확인일이나 미완료 상태는 문서 확인 목록에 남습니다."}</p>
+          <button type="button" aria-label={`문서 ${index + 1} 삭제`} className="mt-2 min-h-11 min-w-11 text-sm text-muted hover:text-red-700" onClick={() => setDraft(current => ({ ...current, documents: (current.documents ?? []).filter(document => document.id !== item.id) }))}>삭제</button>
+        </fieldset>)}</div>
+        <button type="button" onClick={addDocument} disabled={!loaded || documents.length >= eofyDocumentLimit} aria-describedby="eofy-document-limit" className="mt-5 min-h-11 border-b-2 border-gold text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-50">+ 문서 기록 추가</button>
+      </section>
+
       <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="golden-rules-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">ATO basic rules</p><h2 id="golden-rules-heading" className="mt-2 text-xl font-semibold text-navy">업무 관련 비용 세 가지 기본 확인</h2><ol className="mt-5 space-y-3 text-sm leading-6 text-muted"><li className="border-l-2 border-gold pl-3"><strong className="text-navy">1. 내가 지출했고 환급받지 않았는가</strong></li><li className="border-l-2 border-gold pl-3"><strong className="text-navy">2. 소득을 얻는 업무와 직접 관련되는가</strong></li><li className="border-l-2 border-gold pl-3"><strong className="text-navy">3. 지출과 계산 방식을 입증할 기록이 있는가</strong></li></ol><p className="mt-4 text-xs leading-5 text-muted">업무와 개인 사용이 섞였다면 업무 관련 부분만 검토합니다. 이 도구는 세 조건 충족 여부를 판정하지 않습니다.</p></section>
 
       <section className="border border-border bg-surface p-5 sm:p-7" aria-labelledby="eofy-questions-heading">
@@ -400,7 +447,7 @@ export function EofyProWorkspace() {
         <button type="button" onClick={addExpense} disabled={draft.expenses.length >= eofyExpenseLimit} aria-describedby="eofy-expense-limit" className="mt-5 min-h-11 border-b-2 border-gold text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-50">+ 공제 후보 추가</button>
       </section>
 
-      <section className="border border-border bg-surface p-5 sm:p-7" aria-labelledby="eofy-handoff-review-heading"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Accountant handoff review</p><h2 id="eofy-handoff-review-heading" className="mt-2 text-xl font-semibold text-navy">전달 전에 따로 볼 항목</h2></div><p className="font-mono text-2xl text-navy">{handoffReview.totalFlags}</p></div><p className="mt-3 text-sm leading-6 text-muted">같은 항목이 여러 범주에 표시될 수 있습니다. 이 분류는 공제 가능 여부를 판단하지 않고, 상담 전에 확인할 기록을 놓치지 않도록 돕습니다.</p>
+      <section className="border border-border bg-surface p-5 sm:p-7" aria-labelledby="eofy-handoff-review-heading"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Accountant handoff review</p><h2 id="eofy-handoff-review-heading" className="mt-2 text-xl font-semibold text-navy">전달 전에 따로 볼 항목</h2></div><p className="font-mono text-2xl text-navy">{handoffReview.totalFlags + documentsToReview.length}</p></div><p className="mt-3 text-sm leading-6 text-muted">같은 항목이 여러 범주에 표시될 수 있습니다. 이 분류는 공제 가능 여부를 판단하지 않고, 상담 전에 확인할 기록을 놓치지 않도록 돕습니다.</p>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {[
             { title: "증빙 확인 필요", detail: "영수증·계산 기록이 아직 없다고 표시한 항목", ids: handoffReview.missingEvidence },
@@ -409,14 +456,15 @@ export function EofyProWorkspace() {
             { title: "기본 기록 미완성", detail: "설명·날짜·금액·사용 비율을 다시 채워야 하는 항목", ids: handoffReview.incompleteDetails },
           ].map((group) => <article key={group.title} className="border border-border bg-white p-4"><div className="flex items-start justify-between gap-3"><div><h3 className="text-sm font-semibold text-navy">{group.title}</h3><p className="mt-1 text-xs leading-5 text-muted">{group.detail}</p></div><span className="font-mono text-lg text-gold">{group.ids.length}</span></div>{group.ids.length ? <ul className="mt-3 space-y-1 border-t border-border pt-3">{group.ids.map((id) => <li key={id} className="text-xs leading-5 text-navy">{expenseName(id)}</li>)}</ul> : <p className="mt-3 border-t border-border pt-3 text-xs text-muted">표시된 항목 없음</p>}</article>)}
         </div>
-        <p className="mt-4 text-xs leading-5 text-muted">소득 자료 미완료: {handoffReview.incomeNotReady.length}개 · 표시된 지출 후보: {handoffReview.flaggedExpenseCount}개</p>
+        <p className="mt-4 text-xs leading-5 text-muted">소득 자료 미완료: {handoffReview.incomeNotReady.length}개 · 표시된 지출 후보: {handoffReview.flaggedExpenseCount}개 · 별도 확인할 문서: {documentsToReview.length}개</p>
+        {documentsToReview.length ? <div className="mt-4 border border-border bg-white p-4"><h3 className="text-sm font-semibold text-navy">다시 확인할 개별 문서</h3><ul className="mt-2 space-y-2">{documentsToReview.map(item => <li key={item.id} className="break-words text-xs leading-5 text-muted"><strong className="text-navy">{item.label || "별칭 미입력 문서"}</strong> · {statusLabels[item.status]} · 확인일 {item.checkedOn || "미기록"}<br />{item.note || "다음 확인 내용 미기록"}</li>)}</ul></div> : null}
         <button type="button" onClick={() => { setReviewedDraftSignature(draftSignature); setMessage("현재 기록의 전달 준비 검토를 확인했습니다. 이제 요약을 저장할 수 있습니다."); }} className={`mt-5 min-h-11 px-4 text-sm font-semibold ${handoffReviewed ? "border border-navy text-navy" : "bg-navy text-white hover:bg-navy-light"}`}>{handoffReviewed ? "현재 기록 검토 완료" : "현재 기록 검토 확인"}</button>
         {handoffReviewed ? <p className="mt-3 text-xs leading-5 text-muted">기록을 수정하면 검토 상태가 자동으로 만료되고 다시 확인해야 합니다.</p> : null}
       </section>
 
-      <section className="bg-navy p-5 text-white sm:p-7" aria-labelledby="eofy-summary-heading"><div className="flex items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Preparation summary</p><h2 id="eofy-summary-heading" className="mt-2 text-xl font-semibold">{draft.taxYear} 준비 현황</h2></div><p className="font-mono text-3xl text-gold">{progress}%</p></div><dl className="mt-6 grid grid-cols-3 gap-px bg-white/15 text-center"><div className="bg-navy p-3"><dt className="text-xs text-white/55">소득 준비</dt><dd className="mt-1 text-xl font-semibold">{incomeReady}/{incomeSources.length}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">지출 후보</dt><dd className="mt-1 text-xl font-semibold">{draft.expenses.length}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">질문</dt><dd className="mt-1 text-xl font-semibold">{draft.questions.length}</dd></div></dl>{incomeReview.length + expenseReview.length > 0 ? <p className="mt-5 text-sm leading-6 text-white/70">현재 확인 필요 항목 {incomeReview.length + expenseReview.length}개가 있습니다. 파일로 저장하기 전에 증빙과 질문을 검토하세요.</p> : <p className="mt-5 text-sm leading-6 text-white/70">확인 필요로 표시된 항목이 없습니다. 실제 신고 전 ATO 원문 또는 등록 세무사에게 최종 확인하세요.</p>}<button type="button" onClick={downloadSummary} className="mt-5 min-h-11 bg-gold px-4 text-sm font-semibold text-navy hover:bg-white">EOFY 준비 요약 저장</button><p className="mt-4 min-h-5 text-xs leading-5 text-white/60" aria-live="polite">{message}</p></section>
+      <section className="bg-navy p-5 text-white sm:p-7" aria-labelledby="eofy-summary-heading"><div className="flex items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Preparation summary</p><h2 id="eofy-summary-heading" className="mt-2 text-xl font-semibold">{draft.taxYear} 준비 현황</h2></div><p className="font-mono text-3xl text-gold">{progress}%</p></div><dl className="mt-6 grid grid-cols-3 gap-px bg-white/15 text-center"><div className="bg-navy p-3"><dt className="text-xs text-white/55">소득 준비</dt><dd className="mt-1 text-xl font-semibold">{incomeReady}/{incomeSources.length}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">지출 후보</dt><dd className="mt-1 text-xl font-semibold">{draft.expenses.length}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">질문</dt><dd className="mt-1 text-xl font-semibold">{draft.questions.length}</dd></div></dl>{incomeReview.length + expenseReview.length + documentsToReview.length > 0 ? <p className="mt-5 text-sm leading-6 text-white/70">현재 확인 필요 항목 {incomeReview.length + expenseReview.length + documentsToReview.length}개가 있습니다. 파일로 저장하기 전에 증빙과 질문을 검토하세요.</p> : <p className="mt-5 text-sm leading-6 text-white/70">확인 필요로 표시된 항목이 없습니다. 실제 신고 전 ATO 원문 또는 등록 세무사에게 최종 확인하세요.</p>}<button type="button" onClick={downloadSummary} className="mt-5 min-h-11 bg-gold px-4 text-sm font-semibold text-navy hover:bg-white">EOFY 준비 요약 저장</button><p className="mt-4 min-h-5 text-xs leading-5 text-white/60" aria-live="polite">{message}</p></section>
 
-      <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="eofy-archive-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Year archive</p><h2 id="eofy-archive-heading" className="mt-2 text-xl font-semibold text-navy">회계연도 백업과 복원</h2><p className="mt-3 text-sm leading-6 text-muted">소득 준비 상태, 공제 후보와 질문만 버전형 JSON으로 옮깁니다. TFN, 계좌번호, 로그인 정보와 영수증 파일은 포함하지 않습니다.</p><div className="mt-5 grid gap-3 sm:grid-cols-2"><button type="button" onClick={downloadArchive} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white hover:bg-navy-light">현재 연도 JSON 백업</button><label className="inline-flex min-h-11 cursor-pointer items-center justify-center border border-navy px-4 text-sm font-semibold text-navy hover:bg-surface"><input type="file" accept="application/json,.json" onChange={reviewArchive} className="sr-only" />백업 파일 검토</label></div>{archiveReading ? <button type="button" onClick={cancelArchiveReview} className="mt-4 min-h-11 border border-border px-4 text-sm font-semibold text-muted">파일 읽기 취소</button> : null}{pendingArchive ? <div className="mt-5 border border-gold/50 bg-gold/8 p-4"><p className="font-semibold text-navy">{pendingArchive.draft.taxYear} 백업</p><p className="mt-2 text-xs leading-5 text-muted">지출 후보 {pendingArchive.draft.expenses.length}개 · 질문 {pendingArchive.draft.questions.length}개 · 저장 시각 {new Date(pendingArchive.exportedAt).toLocaleString("ko-KR")}</p><p className="mt-2 text-xs leading-5 text-[#755b20]">아직 현재 작업은 바뀌지 않았습니다. 아래 확정 버튼을 누르면 이 브라우저의 현재 EOFY 작업을 백업 내용으로 교체합니다.</p><div className="mt-4 flex flex-wrap gap-3"><button type="button" onClick={restoreArchive} className="min-h-11 bg-gold px-4 text-sm font-semibold text-navy">검토한 백업으로 교체</button><button type="button" onClick={cancelArchiveReview} className="min-h-11 border border-border px-4 text-sm font-semibold text-muted">취소</button></div></div> : null}<p className={`mt-4 min-h-5 text-xs leading-5 ${archiveError ? "text-red-700" : "text-muted"}`} aria-live="polite">{archiveError || archiveMessage}</p></section>
+      <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="eofy-archive-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Year archive</p><h2 id="eofy-archive-heading" className="mt-2 text-xl font-semibold text-navy">회계연도 백업과 복원</h2><p className="mt-3 text-sm leading-6 text-muted">소득 준비 상태, 문서별 별칭·확인 기록, 공제 후보와 질문을 버전형 JSON으로 옮깁니다. 문서 원본·구매 권한은 포함하지 않습니다. 자유 입력에 TFN·계좌번호·로그인 정보를 적지 말고 파일을 안전하게 보관하세요. 웹·설치 앱·기기 간 자동 동기화가 아니며 JSON으로 수동 이동합니다.</p><div className="mt-5 grid gap-3 sm:grid-cols-2"><button type="button" onClick={downloadArchive} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white hover:bg-navy-light">현재 연도 JSON 백업</button><label className="inline-flex min-h-11 cursor-pointer items-center justify-center border border-navy px-4 text-sm font-semibold text-navy hover:bg-surface"><input type="file" accept="application/json,.json" onChange={reviewArchive} className="sr-only" />백업 파일 검토</label></div>{archiveReading ? <button type="button" onClick={cancelArchiveReview} className="mt-4 min-h-11 border border-border px-4 text-sm font-semibold text-muted">파일 읽기 취소</button> : null}{pendingArchive ? <div className="mt-5 border border-gold/50 bg-gold/8 p-4"><p className="font-semibold text-navy">{pendingArchive.draft.taxYear} 백업</p><p className="mt-2 text-xs leading-5 text-muted">문서 {(pendingArchive.draft.documents ?? []).length}개 · 지출 후보 {pendingArchive.draft.expenses.length}개 · 질문 {pendingArchive.draft.questions.length}개 · 저장 시각 {new Date(pendingArchive.exportedAt).toLocaleString("ko-KR")}</p><p className="mt-2 text-xs leading-5 text-[#755b20]">아직 현재 작업은 바뀌지 않았습니다. 아래 확정 버튼을 누르면 이 브라우저의 현재 EOFY 작업을 백업 내용으로 교체합니다.</p><div className="mt-4 flex flex-wrap gap-3"><button type="button" onClick={restoreArchive} className="min-h-11 bg-gold px-4 text-sm font-semibold text-navy">검토한 백업으로 교체</button><button type="button" onClick={cancelArchiveReview} className="min-h-11 border border-border px-4 text-sm font-semibold text-muted">취소</button></div></div> : null}<p className={`mt-4 min-h-5 text-xs leading-5 ${archiveError ? "text-red-700" : "text-muted"}`} aria-live="polite">{archiveError || archiveMessage}</p></section>
     </div>
   </div>;
 }

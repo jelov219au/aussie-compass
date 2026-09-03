@@ -138,6 +138,14 @@ function mount(original = raw, initialFault = "none") {
       return find(node => ["input", "textarea", "select"].includes(node.type), fieldLabel);
     },
     editExpense(index, label, value) { this.expenseField(index, label).props.onChange({ target: { value } }); settle(); },
+    documentField(index, label) {
+      const fieldset = find(node => node.type === "fieldset" && text(find(child => child.type === "legend", node)) === `문서 ${index + 1}`);
+      assert(fieldset, "Document has a numbered legend");
+      const fieldLabel = find(node => node.type === "label" && text(node).startsWith(label), fieldset);
+      assert(fieldLabel, `Document field: ${label}`);
+      return find(node => ["input", "textarea", "select"].includes(node.type), fieldLabel);
+    },
+    editDocument(index, label, value) { this.documentField(index, label).props.onChange({ target: { value } }); settle(); },
     enterQuestion(nativeEvent = {}) { find(node => node.type === "input" && node.props.onKeyDown).props.onKeyDown({ key: "Enter", nativeEvent, preventDefault() {} }); settle(); },
     editYear(year) { find(node => node.type === "select").props.onChange({ target: { value: year } }); settle(); },
     tick() { for (const [id, callback] of [...timers]) { timers.delete(id); callback(); } settle(); },
@@ -538,4 +546,80 @@ assert.doesNotThrow(() => cleanupFailure.click("EOFY 준비 요약 저장"));
 assert.equal(cleanupFailure.state.requests, 1, "A cleanup exception must not misreport an already requested download as failed");
 assert.match(cleanupFailure.text(cleanupFailure.find(node => node.props?.['aria-labelledby'] === "eofy-summary-heading")), /요청했습니다/);
 
-console.log("EOFY storage, readiness, summary fidelity and download-failure regressions passed. Browser/device acceptance not run.");
+// Two same-category documents survive real UI edits -> autosave -> TXT/JSON -> restore.
+{
+  const app = mount(JSON.stringify({ ...draft, incomeStatuses: readyIncome }));
+  app.click("+ 문서 기록 추가"); app.click("+ 문서 기록 추가");
+  for (const [index, alias, status, note] of [[0, "Synthetic employer A", "ready", "A confirmed"], [1, "Synthetic employer B", "review", "Ask B for the missing statement"]]) {
+    app.editDocument(index, "고용주·문서 별칭", alias);
+    app.editDocument(index, "문서 준비 상태", status);
+    app.editDocument(index, "직접 확인한 날짜", "2026-09-03");
+    app.editDocument(index, "다음 확인·회계사 질문", note);
+  }
+  app.tick();
+  const saved = JSON.parse(app.values.get(key));
+  assert.equal(saved.documents.length, 2);
+  assert.notEqual(saved.documents[0].id, saved.documents[1].id);
+  assert.equal(saved.documents[0].sourceId, saved.documents[1].sourceId);
+  assert.equal(saved.documents[0].note, "A confirmed");
+  assert.deepEqual(saved.incomeStatuses, readyIncome, "Individual status must not rewrite category status");
+  assert.equal(mount(app.values.get(key)).documentField(1, "다음 확인·회계사 질문").props.value, "Ask B for the missing statement");
+  const review = app.text(app.find(node => node.props?.['aria-labelledby'] === "eofy-handoff-review-heading"));
+  assert.match(review, /Synthetic employer B/); assert.match(review, /Ask B for the missing statement/);
+  const summaryPanel = app.text(app.find(node => node.props?.['aria-labelledby'] === "eofy-summary-heading"));
+  assert.doesNotMatch(summaryPanel, /확인 필요로 표시된 항목이 없습니다/);
+  app.click("현재 기록 검토 확인"); app.editDocument(1, "다음 확인·회계사 질문", "B next check");
+  app.click("EOFY 준비 요약 저장"); assert.equal(app.state.requests, 0, "Document edits expire handoff acknowledgement");
+  app.state.fault = "quota"; app.tick(); assert.match(app.status(), /저장 실패/);
+  assert.deepEqual(JSON.parse(app.values.get(key)), saved); assert.equal(app.documentField(1, "다음 확인·회계사 질문").props.value, "B next check");
+  app.state.fault = "none"; app.click("저장 다시 시도");
+  app.click("현재 기록 검토 확인"); app.click("EOFY 준비 요약 저장");
+  const summary = await app.state.downloads.at(-1).blob.text();
+  assert.match(summary, /INDIVIDUAL DOCUMENT RECORDS \(2; 1 to review\)/);
+  for (const value of ["Synthetic employer A", "Synthetic employer B", "A confirmed", "B next check", "2026-09-03"]) assert(summary.includes(value));
+  app.click("현재 연도 JSON 백업");
+  const archive = JSON.parse(await app.state.downloads.at(-1).blob.text());
+  assert.equal(archive.version, 2, "Older clients must reject new records rather than silently strip them");
+  assert.equal(archives.parseEofyArchive({ ...archive, version: 1 }), null);
+  assert.deepEqual(archive.draft.documents, JSON.parse(app.values.get(key)).documents);
+  const fresh = mount(raw); await fresh.review(archive); fresh.state.fault = "quota";
+  fresh.click("검토한 백업으로 교체"); assert.equal(fresh.values.get(key), raw); assert(fresh.button("검토한 백업으로 교체"));
+  fresh.state.fault = "none"; fresh.click("검토한 백업으로 교체");
+  assert.deepEqual(JSON.parse(fresh.values.get(key)), archive.draft);
+  fresh.click("현재 기록 검토 확인"); fresh.click("EOFY 준비 요약 저장");
+  assert.equal(await fresh.state.downloads.at(-1).blob.text(), summary);
+  fresh.clickAria("문서 1 삭제"); fresh.tick();
+  assert.deepEqual(JSON.parse(fresh.values.get(key)).documents, [archive.draft.documents[1]]);
+  assert.equal(fresh.values.get("another-product"), "unchanged");
+}
+
+const documentRecord = { id: "doc-a", sourceId: "employment", label: "Synthetic employer", status: "todo", checkedOn: "", note: "" };
+for (const documents of [null, {}, [null], [{ ...documentRecord, note: 42 }], [documentRecord, documentRecord]]) {
+  const bytes = JSON.stringify({ ...draft, documents });
+  const result = readEofyDraft(() => ({ getItem: () => bytes }));
+  assert.equal(result.kind, "blocked"); assert.equal(result.original, bytes);
+  assert.throws(() => archives.createEofyArchive({ ...draft, documents }));
+}
+for (const [field, value] of [["label", "x".repeat(121)], ["note", "x".repeat(501)], ["checkedOn", "2026-02-30"], ["sourceId", "unknown"], ["id", "x".repeat(101)]]) {
+  const candidateDraft = { ...draft, documents: [{ ...documentRecord, [field]: value }] };
+  assert.deepEqual(readEofyDraft(() => ({ getItem: () => JSON.stringify(candidateDraft) })).draft, candidateDraft, "Unfinished original survives locally");
+  assert.throws(() => archives.createEofyArchive(candidateDraft), /not safe/);
+}
+const boundedDocument = { ...documentRecord, label: "x".repeat(120), note: "x".repeat(500), checkedOn: "2024-02-29" };
+assert.deepEqual(archives.parseEofyArchive(archives.createEofyArchive({ ...draft, documents: [boundedDocument] })).draft.documents, [boundedDocument]);
+const privateDocument = { ...documentRecord, receiptFile: "synthetic-private", accessToken: "synthetic-token" };
+assert.deepEqual(archives.parseEofyArchive(archives.createEofyArchive({ ...draft, documents: [privateDocument] })).draft.documents, [documentRecord]);
+assert.deepEqual(archives.parseEofyArchive(archives.createEofyArchive(draft)).draft, draft, "Legacy v1 has no new mandatory field or default mutation");
+assert.equal(archives.createEofyArchive(draft).version, 1);
+const maxDocuments = Array.from({ length: archives.eofyDocumentLimit }, (_, index) => ({ ...documentRecord, id: `d-${index}` }));
+assert.equal(archives.createEofyArchive({ ...draft, documents: maxDocuments }).draft.documents.length, 100);
+assert.throws(() => archives.createEofyArchive({ ...draft, documents: [...maxDocuments, { ...documentRecord, id: "overflow" }] }));
+const fullDocuments = mount(JSON.stringify({ ...draft, documents: maxDocuments }));
+assert.equal(fullDocuments.button("+ 문서 기록 추가").props.disabled, true);
+fullDocuments.click("+ 문서 기록 추가"); fullDocuments.tick(); assert.equal(fullDocuments.state.writes, 0);
+const invalidDocumentApp = mount(JSON.stringify({ ...draft, documents: [{ ...documentRecord, checkedOn: "2026-02-30" }] }));
+assert.equal(invalidDocumentApp.documentField(0, "직접 확인한 날짜").props.value, "2026-02-30");
+assert.equal(invalidDocumentApp.documentField(0, "직접 확인한 날짜").props['aria-invalid'], true);
+invalidDocumentApp.click("현재 연도 JSON 백업"); assert.equal(invalidDocumentApp.state.requests, 0);
+
+console.log("EOFY storage, document UI/TXT/JSON/legacy/failure flows, readiness and download regressions passed. Browser/device acceptance not run.");

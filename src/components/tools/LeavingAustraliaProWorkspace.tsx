@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { assessLeavingDependencies } from "@/lib/leavingAustraliaDependencies";
 import { describeLeavingAmount, formatLeavingCents, parseLeavingAmount, summarizeLeavingAmounts } from "@/lib/leavingAustraliaProAmounts";
-import { createLeavingArchive, leavingArchiveMaxBytes, parseLeavingArchive, readLeavingDraft, requestLeavingDownload, writeLeavingDraft, type DepartureDraft, type Settlement, type SettlementStatus, type TaskStatus } from "@/lib/leavingAustraliaProStorage";
+import { createLeavingArchive, leavingArchiveMaxBytes, parseLeavingArchive, readLeavingDraft, requestLeavingDownload, writeLeavingDraft, getLeavingTaskNoteIssues, leavingTaskNoteLimits, type LeavingTaskNote, type DepartureDraft, type Settlement, type SettlementStatus, type TaskStatus } from "@/lib/leavingAustraliaProStorage";
 const tasks = [
   { id: "final-pay", phase: "출국 전", title: "최종 급여·Payslip", detail: "마지막 급여일, 미사용 휴가와 고용주 Super 납입 시점을 서면 자료로 확인합니다." },
   { id: "income", phase: "출국 전", title: "Income statement·세금 자료", detail: "해외에서도 myGov와 ATO에 안전하게 접근할 수 있는지 확인하고 기록을 보관합니다." },
@@ -23,6 +23,13 @@ const initialDraft: DepartureDraft = { departureDate: "", destination: "", statu
 const inputClass = "mt-1.5 min-h-11 w-full border border-border bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy focus:ring-2 focus:ring-navy/15";
 const taskLabels: Record<TaskStatus, string> = { todo: "준비 전", waiting: "확인·입금 대기", done: "완료" };
 const settlementLabels: Record<SettlementStatus, string> = { expected: "예정", followup: "확인 필요", received: "수령 완료" };
+const emptyTaskNote: LeavingTaskNote = { nextAction: "", contact: "", followUpOn: "", completionNote: "" };
+const taskNoteFields = [
+  { key: "nextAction", label: "다음 행동·확인할 질문", placeholder: "예: 가상 직장 A에 최종 Payslip 요청" },
+  { key: "contact", label: "연락할 기관·담당 역할", placeholder: "예: 가상 직장 A 급여 담당 · 개인 연락처 제외" },
+  { key: "followUpOn", label: "다시 확인할 날·일정 메모", placeholder: "예: 2026-09-10 · 자동 알림 없음" },
+  { key: "completionNote", label: "확인 결과·완료 근거 메모", placeholder: "예: 확인 메일을 개인 보관함에 보관 · 원문·민감번호 제외" },
+] as const;
 
 function newSettlement(): Settlement {
   return { id: crypto.randomUUID(), kind: "Bond", label: "", dueDate: "", amount: "", status: "expected", note: "" };
@@ -174,6 +181,7 @@ export function LeavingAustraliaProWorkspace() {
   }, [draft.departureDate]);
 
   const updateSettlement = <K extends keyof Settlement>(id: string, key: K, value: Settlement[K]) => setDraft((current) => ({ ...current, settlements: current.settlements.map((item) => item.id === id ? { ...item, [key]: value } : item) }));
+  const updateTaskNote = (id: string, key: keyof LeavingTaskNote, value: string) => setDraft(current => ({ ...current, taskNotes: { ...current.taskNotes, [id]: { ...(current.taskNotes?.[id] ?? emptyTaskNote), [key]: value } } }));
   const addQuestion = () => {
     const value = question.trim();
     if (!value) return;
@@ -216,7 +224,18 @@ export function LeavingAustraliaProWorkspace() {
       "These are sequencing flags based on your entries, not a bank-closure, visa, tax, Super or DASP eligibility decision.",
       "",
       "TASKS",
-      ...tasks.map((task) => `- [${taskLabels[draft.statuses[task.id] ?? "todo"]}] ${task.phase} / ${task.title}`),
+      ...tasks.flatMap((task) => {
+        const note = draft.taskNotes?.[task.id];
+        return [
+          `- [${taskLabels[draft.statuses[task.id] ?? "todo"]}] ${task.phase} / ${task.title}`,
+          ...(note ? [
+            `  Next action / question: ${note.nextAction || "Not recorded"}`,
+            `  Contact organisation / role: ${note.contact || "Not recorded"}`,
+            `  Follow-up date / schedule note (no automatic reminder): ${note.followUpOn || "Not recorded"}`,
+            `  User-recorded result / completion evidence: ${note.completionNote || "Not recorded"}`,
+          ] : []),
+        ];
+      }),
       "",
       "EXPECTED PAYMENTS — user-entered tracking amounts only",
       `미수령 유효 입력 소계 · 검증 안 됨: ${outstandingDisplay}`,
@@ -238,20 +257,54 @@ export function LeavingAustraliaProWorkspace() {
       <section className="border border-border bg-surface p-5 sm:p-7" aria-labelledby="departure-storage-heading">
         <h2 id="departure-storage-heading" className="text-xl font-semibold text-navy">기록 저장·백업</h2>
         <p role="status" className="mt-3 text-sm leading-6 text-navy">{saveStatus === "loading" ? "저장 기록을 확인하고 있습니다." : saveStatus === "blocked" ? "원본 보호 중 · 저장본을 안전하게 읽지 못했거나 다른 화면에서 변경되어 자동 저장을 멈췄습니다." : saveStatus === "failed" ? "저장 실패 · 화면의 변경이 아직 이 브라우저에 저장되지 않았습니다." : saveStatus === "pending" ? "변경 내용을 저장하고 있습니다. 완료 전 화면을 닫지 마세요." : "이 브라우저의 저장 상태를 확인했습니다. 변경 내용은 자동 저장됩니다."}</p>
-        <p className="mt-3 text-xs leading-5 text-muted">백업에는 화면에 추가한 날짜·별칭·작업 상태·정산·질문만 담습니다. 아직 추가하지 않은 질문, 원본 서류, 구매 권한·복구 코드는 포함하지 않습니다. 민감한 번호를 적지 말고 파일을 안전하게 보관하세요. 브라우저와 설치 앱의 저장 공간은 다를 수 있습니다.</p>
+        <p className="mt-3 text-xs leading-5 text-muted">백업에는 화면에 추가한 날짜·별칭·작업 상태·작업별 후속 기록·정산·질문만 담습니다. 아직 추가하지 않은 질문, 원본 서류, 구매 권한·복구 코드는 포함하지 않습니다. 민감한 번호를 적지 말고 파일을 안전하게 보관하세요. 브라우저와 설치 앱의 저장 공간은 다를 수 있습니다.</p>
         <div className="mt-4 flex flex-wrap gap-3">
           <button type="button" disabled={!loaded} onClick={downloadBackup} className="min-h-11 border border-navy px-4 text-sm font-semibold text-navy disabled:opacity-50">현재 기록 백업</button>
           {saveStatus === "failed" || saveStatus === "blocked" ? <button type="button" onClick={() => persistDraft(draft)} className="min-h-11 border border-navy px-4 text-sm font-semibold text-navy">{saveStatus === "blocked" ? "현재 화면으로 저장 재개" : "저장 다시 시도"}</button> : null}
           {saveStatus === "blocked" && original !== null ? <button type="button" onClick={() => setStorageMessage(requestLeavingDownload(original, "hoju-compass-leaving-storage-original.txt", "text/plain;charset=utf-8") ? "원본 다운로드를 요청했습니다. 파일 저장을 확인하세요. 원본에는 읽지 못한 정보가 포함될 수 있으니 공유하지 마세요." : "원본 다운로드를 시작하지 못했습니다. 원본 보호는 유지됩니다.")} className="min-h-11 border border-navy px-4 text-sm font-semibold text-navy">저장 원본 내려받기</button> : null}
         </div>
         <label className="mt-5 block text-sm font-medium text-navy">백업 파일 검토 (JSON · 최대 1 MiB)<input type="file" accept=".json,application/json" disabled={!loaded} className={`${inputClass} file:mr-3 file:min-h-11`} onChange={(event) => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ""; void reviewArchive(file); }} /></label>
-        {archiveDraft ? <div className="mt-4 border border-border bg-white p-4"><h3 className="font-semibold text-navy">복원 후보</h3><p className="mt-2 break-words text-sm text-muted">목적지 {archiveDraft.destination || "미입력"} · 출국일 {archiveDraft.departureDate || "미입력"} · 정산 {archiveDraft.settlements.length}개 · 질문 {archiveDraft.questions.length}개</p><p className="mt-2 text-xs leading-5 text-muted">현재 화면의 기록과 입력 중인 질문을 교체합니다. 필요하면 먼저 현재 기록을 백업하세요. 저장에 성공한 경우에만 화면을 바꿉니다.</p><button type="button" onClick={restoreArchive} className="mt-3 min-h-11 bg-navy px-4 text-sm font-semibold text-white">확인한 백업으로 현재 기록 교체</button></div> : null}
+        {archiveDraft ? <div className="mt-4 border border-border bg-white p-4"><h3 className="font-semibold text-navy">복원 후보</h3><p className="mt-2 break-words text-sm text-muted">목적지 {archiveDraft.destination || "미입력"} · 출국일 {archiveDraft.departureDate || "미입력"} · 작업별 기록 {Object.keys(archiveDraft.taskNotes ?? {}).length}개 · 정산 {archiveDraft.settlements.length}개 · 질문 {archiveDraft.questions.length}개</p><p className="mt-2 text-xs leading-5 text-muted">현재 화면의 기록과 입력 중인 질문을 교체합니다. 필요하면 먼저 현재 기록을 백업하세요. 저장에 성공한 경우에만 화면을 바꿉니다.</p><button type="button" onClick={restoreArchive} className="mt-3 min-h-11 bg-navy px-4 text-sm font-semibold text-white">확인한 백업으로 현재 기록 교체</button></div> : null}
         {readingArchive || archiveDraft ? <button type="button" onClick={() => { readSequence.current++; setReadingArchive(false); setArchiveDraft(null); setStorageMessage("복원 검토를 취소했습니다. 현재 기록은 유지됩니다."); }} className="mt-3 min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">복원 검토 취소</button> : null}
         <p aria-live="polite" className="mt-3 min-h-5 text-sm leading-6 text-muted">{storageMessage}</p>
       </section>
       <section className="border-t border-navy/20 pt-6" aria-labelledby="departure-brief-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Departure brief</p><h2 id="departure-brief-heading" className="mt-2 text-2xl font-semibold text-navy">출국 기준일</h2><p className="mt-3 text-sm leading-6 text-muted">정확한 한국 주소, 항공편과 여권 정보는 입력하지 마세요. 날짜와 내가 알아볼 수 있는 목적지 별칭만 저장합니다.</p><div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium text-navy">출국 예정일<input type="date" className={inputClass} value={draft.departureDate} onChange={(event) => setDraft((current) => ({ ...current, departureDate: event.target.value }))} /></label><label className="text-sm font-medium text-navy">목적지 별칭<input className={inputClass} value={draft.destination} onChange={(event) => setDraft((current) => ({ ...current, destination: event.target.value }))} placeholder="예: 한국 귀국" /></label></div>{daysUntilDeparture !== null ? <p className="mt-4 border-l-2 border-gold pl-3 text-sm text-muted">{daysUntilDeparture >= 0 ? `출국일까지 약 ${daysUntilDeparture}일 남았습니다.` : `입력한 출국일로부터 ${Math.abs(daysUntilDeparture)}일 지났습니다.`}</p> : null}</section>
 
-      <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="departure-task-heading"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Ordered handoff</p><h2 id="departure-task-heading" className="mt-2 text-xl font-semibold text-navy">출국 전후 준비 순서</h2></div><div className="text-right"><p className="font-mono text-3xl text-navy">{progress}%</p><p className="text-xs text-muted">{completed}/{tasks.length} 완료</p></div></div><div className="mt-5 h-1.5 bg-surface"><div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} /></div><ol className="mt-6 divide-y divide-border border-y border-navy/20">{tasks.map((task, index) => { const status = draft.statuses[task.id] ?? "todo"; return <li key={task.id} className="py-5"><div className="grid gap-3 sm:grid-cols-[2rem_1fr_9rem] sm:items-start"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{task.phase}</p><h3 className="mt-1 font-semibold text-navy">{task.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{task.detail}</p></div><label className="text-xs font-medium text-muted">상태<select className="mt-1 min-h-10 w-full border border-border bg-white px-2 text-sm text-navy" value={status} onChange={(event) => setDraft((current) => ({ ...current, statuses: { ...current.statuses, [task.id]: event.target.value as TaskStatus } }))}><option value="todo">준비 전</option><option value="waiting">확인·입금 대기</option><option value="done">완료</option></select></label></div></li>; })}</ol></section>
+      <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="departure-task-heading">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Ordered handoff</p><h2 id="departure-task-heading" className="mt-2 text-xl font-semibold text-navy">출국 전후 준비 순서</h2></div>
+          <div className="text-right"><p className="font-mono text-3xl text-navy">{progress}%</p><p className="text-xs text-muted">{completed}/{tasks.length} 완료</p></div>
+        </div>
+        <p id="departure-task-note-help" className="mt-4 text-xs leading-5 text-muted">각 작업을 펼쳐 다음 행동, 연락할 기관·역할, 다시 확인할 날과 완료 근거를 적으세요. 원본 서류·개인 연락처·TFN·계좌·여권·비자·Super 번호·로그인 정보는 입력하지 마세요. 메모는 TXT·JSON에 포함되며 상태를 자동 변경하거나 알림을 보내지 않습니다. 웹·설치 앱의 저장 공간은 다를 수 있어 기기 이동에는 JSON 백업·복원이 필요합니다.</p>
+        <p className="mt-2 text-xs leading-5 text-muted">기존 v1 백업도 복원할 수 있습니다. 작업별 기록을 담은 v2 백업은 구버전에서 열리지 않으므로 최신 사이트에서 복원하세요.</p>
+        <div className="mt-5 h-1.5 bg-surface"><div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} /></div>
+        <ol className="mt-6 divide-y divide-border border-y border-navy/20">{tasks.map((task, index) => {
+          const status = draft.statuses[task.id] ?? "todo";
+          const note = draft.taskNotes?.[task.id] ?? emptyTaskNote;
+          const issues = getLeavingTaskNoteIssues(note);
+          return <li key={task.id} className="py-5">
+            <div className="grid gap-3 sm:grid-cols-[2rem_1fr_9rem] sm:items-start">
+              <span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span>
+              <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{task.phase}</p><h3 className="mt-1 font-semibold text-navy">{task.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{task.detail}</p></div>
+              <label className="text-xs font-medium text-muted">상태<select aria-label={`${task.title} 상태`} className="mt-1 min-h-11 w-full border border-border bg-white px-2 text-sm text-navy" value={status} onChange={(event) => setDraft((current) => ({ ...current, statuses: { ...current.statuses, [task.id]: event.target.value as TaskStatus } }))}><option value="todo">준비 전</option><option value="waiting">확인·입금 대기</option><option value="done">완료</option></select></label>
+            </div>
+            <details className="mt-3 border border-border p-3" open={issues.length ? true : undefined}>
+              <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-navy focus-visible:outline-2 focus-visible:outline-navy">{task.title} 후속 기록{Object.values(note).some(value => value.trim()) ? " · 기록 있음" : ""}</summary>
+              <fieldset className="min-w-0" aria-describedby="departure-task-note-help">
+                <legend className="sr-only">{task.title} 후속 기록</legend>
+                <div className="mt-3 grid gap-4 sm:grid-cols-2">{taskNoteFields.map(field => {
+                  const id = `departure-${task.id}-${field.key}`;
+                  return <div key={field.key} className="min-w-0">
+                    <label htmlFor={id} className="text-sm font-medium text-navy">{field.label}</label>
+                    <textarea id={id} className={`${inputClass} min-h-20 resize-y`} value={note[field.key]} placeholder={field.placeholder} aria-invalid={issues.includes(field.key)} aria-describedby={`${id}-limit departure-task-note-help`} onChange={event => updateTaskNote(task.id, field.key, event.target.value)} />
+                    <p id={`${id}-limit`} className={`mt-1 text-xs leading-5 ${issues.includes(field.key) ? "text-red-700" : "text-muted"}`}>{note[field.key].length} / {leavingTaskNoteLimits[field.key]}자{issues.includes(field.key) ? " · 백업 전 줄여 주세요. 입력은 유지됩니다." : ""}</p>
+                  </div>;
+                })}</div>
+              </fieldset>
+            </details>
+          </li>;
+        })}</ol>
+      </section>
     </div>
 
     <div className="space-y-8">
@@ -295,7 +348,7 @@ export function LeavingAustraliaProWorkspace() {
           <article className="border border-border bg-white p-4"><h3 className="text-sm font-semibold text-navy">해외 접근 수단</h3><p className="mt-2 text-xs leading-5 text-muted">{dependencyReview.accessContinuityReady ? "은행·myGov·이메일 복구 수단 변경을 완료로 기록했습니다." : "호주 번호 해지 전에 해외에서 쓸 복구 수단을 확인하세요."}</p>{dependencyReview.bankMarkedDoneTooEarly || dependencyReview.daspMarkedDoneTooEarly ? <p className="mt-3 border-l-2 border-red-600 pl-3 text-xs leading-5 text-red-800">완료로 표시한 작업과 남은 전제 기록이 충돌합니다. 상태를 다시 확인하세요.</p> : null}</article>
         </div>
         <button type="button" onClick={() => { setReviewedDraftSignature(draftSignature); setMessage("현재 기록의 출국 정리 의존성을 확인했습니다. 이제 요약을 저장할 수 있습니다."); }} className={dependencyReviewed ? "mt-5 min-h-11 border border-navy px-4 text-sm font-semibold text-navy" : "mt-5 min-h-11 bg-navy px-4 text-sm font-semibold text-white hover:bg-navy-light"}>{dependencyReviewed ? "현재 순서 검토 완료" : "현재 순서 검토 확인"}</button>
-        {dependencyReviewed ? <p className="mt-3 text-xs leading-5 text-muted">상태나 정산 기록을 수정하면 검토 확인이 자동으로 만료됩니다.</p> : null}
+        {dependencyReviewed ? <p className="mt-3 text-xs leading-5 text-muted">작업별 메모, 상태나 정산 기록을 수정하면 검토 확인이 자동으로 만료됩니다.</p> : null}
       </section>
       <section className="bg-navy p-5 text-white sm:p-7" aria-labelledby="departure-summary-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Departure summary</p><h2 id="departure-summary-heading" className="mt-2 text-xl font-semibold">개인 인계 요약</h2><dl className="mt-5 grid grid-cols-3 gap-px bg-white/15 text-center"><div className="bg-navy p-3"><dt className="text-xs text-white/55">완료</dt><dd className="mt-1 text-xl font-semibold">{completed}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">대기</dt><dd className="mt-1 text-xl font-semibold">{waiting.length}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">정산</dt><dd className="mt-1 text-xl font-semibold">{draft.settlements.length}</dd></div></dl><button type="button" onClick={downloadSummary} className="mt-5 min-h-11 bg-gold px-4 text-sm font-semibold text-navy hover:bg-white">귀국 준비 요약 저장</button><p className="mt-4 min-h-5 text-xs leading-5 text-white/60" aria-live="polite">{message}</p></section>
     </div>

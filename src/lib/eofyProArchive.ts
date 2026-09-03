@@ -1,4 +1,5 @@
 import { getEofyExpenseArchiveIssues } from "./eofyProExpenseValidation.mjs";
+import { isEofyCalendarDate } from "./eofyProDate.mjs";
 export { getEofyExpenseArchiveIssues, getEofyAmountCents, eofyExpenseDescriptionMaxLength, eofyExpenseNoteMaxLength } from "./eofyProExpenseValidation.mjs";
 
 export type EofyStatus = "todo" | "review" | "ready";
@@ -6,6 +7,18 @@ export const eofyQuestionLimit = 20;
 export const eofyQuestionMaxLength = 500;
 export const eofyExpenseLimit = 500;
 export const eofyArchiveMaxBytes = 512 * 1024;
+export const eofyDocumentLimit = 100;
+export const eofyDocumentLabelMaxLength = 120;
+export const eofyDocumentNoteMaxLength = 500;
+
+export type EofyDocumentRecord = {
+  id: string;
+  sourceId: string;
+  label: string;
+  status: EofyStatus;
+  checkedOn: string;
+  note: string;
+};
 
 export type EofyExpenseRecord = {
   id: string;
@@ -24,11 +37,13 @@ export type EofyDraft = {
   incomeStatuses: Record<string, EofyStatus>;
   expenses: EofyExpenseRecord[];
   questions: string[];
+  // Optional so existing v1 local drafts/backups remain unchanged until edited.
+  documents?: EofyDocumentRecord[];
 };
 
 export type EofyArchive = {
   format: "hoju-compass-eofy-pro-archive";
-  version: 1;
+  version: 1 | 2;
   exportedAt: string;
   privacy: {
     receiptFilesIncluded: false;
@@ -72,6 +87,30 @@ function parseExpense(value: unknown): EofyExpenseRecord | null {
   };
 }
 
+export function getEofyDocumentArchiveIssues(value: EofyDocumentRecord): (keyof EofyDocumentRecord)[] {
+  const issues: (keyof EofyDocumentRecord)[] = [];
+  if (typeof value.id !== "string" || !value.id || value.id.length > 100) issues.push("id");
+  if (!incomeSourceIds.has(value.sourceId)) issues.push("sourceId");
+  if (boundedString(value.label, eofyDocumentLabelMaxLength) === null) issues.push("label");
+  if (!statuses.has(value.status)) issues.push("status");
+  if (value.checkedOn !== "" && !isEofyCalendarDate(value.checkedOn)) issues.push("checkedOn");
+  if (boundedString(value.note, eofyDocumentNoteMaxLength) === null) issues.push("note");
+  return issues;
+}
+
+function parseDocuments(value: unknown): EofyDocumentRecord[] | null {
+  if (!Array.isArray(value) || value.length > eofyDocumentLimit) return null;
+  const records: EofyDocumentRecord[] = [];
+  const ids = new Set<string>();
+  for (const item of value) {
+    if (!isRecord(item) || getEofyDocumentArchiveIssues(item as EofyDocumentRecord).length || ids.has(item.id as string)) return null;
+    const { id, sourceId, label, status, checkedOn, note } = item as EofyDocumentRecord;
+    ids.add(id);
+    records.push({ id, sourceId, label, status, checkedOn, note });
+  }
+  return records;
+}
+
 function parseDraft(value: unknown): EofyDraft | null {
   if (!isRecord(value) || !validTaxYear(value.taxYear) || !isRecord(value.incomeStatuses)) return null;
   if (!Array.isArray(value.expenses) || value.expenses.length > eofyExpenseLimit || !Array.isArray(value.questions) || value.questions.length > eofyQuestionLimit) return null;
@@ -89,12 +128,15 @@ function parseDraft(value: unknown): EofyDraft | null {
 
   const questions = value.questions.map((question) => boundedString(question, eofyQuestionMaxLength));
   if (questions.some((question) => question === null)) return null;
+  const documents = value.documents === undefined ? undefined : parseDocuments(value.documents);
+  if (documents === null) return null;
 
   return {
     taxYear: value.taxYear,
     incomeStatuses,
     expenses: expenses as EofyExpenseRecord[],
     questions: questions as string[],
+    ...(documents === undefined ? {} : { documents }),
   };
 }
 
@@ -103,7 +145,7 @@ export function createEofyArchive(draft: EofyDraft, exportedAt = new Date().toIS
   if (!normalized) throw new Error("EOFY draft is not safe to archive.");
   return {
     format: "hoju-compass-eofy-pro-archive",
-    version: 1,
+    version: normalized.documents === undefined ? 1 : 2,
     exportedAt,
     privacy: { receiptFilesIncluded: false, credentialsIncluded: false },
     draft: normalized,
@@ -113,7 +155,7 @@ export function createEofyArchive(draft: EofyDraft, exportedAt = new Date().toIS
 export function parseEofyArchive(value: unknown): EofyArchive | null {
   if (!isRecord(value)
     || value.format !== "hoju-compass-eofy-pro-archive"
-    || value.version !== 1
+    || (value.version !== 1 && value.version !== 2)
     || typeof value.exportedAt !== "string"
     || !Number.isFinite(Date.parse(value.exportedAt))
     || !isRecord(value.privacy)
@@ -121,9 +163,10 @@ export function parseEofyArchive(value: unknown): EofyArchive | null {
     || value.privacy.credentialsIncluded !== false) return null;
   const draft = parseDraft(value.draft);
   if (!draft) return null;
+  if ((value.version === 2) !== (draft.documents !== undefined)) return null;
   return {
     format: "hoju-compass-eofy-pro-archive",
-    version: 1,
+    version: value.version,
     exportedAt: value.exportedAt,
     privacy: { receiptFilesIncluded: false, credentialsIncluded: false },
     draft,

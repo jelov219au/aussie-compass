@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import {
   createPayEvidenceCaseArchive,
@@ -76,16 +76,62 @@ export function PayEvidenceWorkspace() {
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
   const [pendingArchive, setPendingArchive] = useState<PayEvidenceCaseArchive | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"loading" | "pending" | "saved" | "failed" | "blocked">("loading");
+  const [storageBlocked, setStorageBlocked] = useState(false);
+  const initialized = useRef(false);
+  const saveTimer = useRef<number | null>(null);
+  const lastSavedDraft = useRef<PayDraft | null>(null);
 
   useEffect(() => {
-    try { const saved = window.localStorage.getItem(STORAGE_KEY); if (saved) setDraft(normaliseDraft(JSON.parse(saved))); } catch {}
+    if (initialized.current) return;
+    initialized.current = true;
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY);
+      if (saved !== null) {
+        const restored = normaliseDraft(JSON.parse(saved));
+        lastSavedDraft.current = restored;
+        setDraft(restored);
+      }
+      setSaveStatus("saved");
+    } catch {
+      setStorageBlocked(true);
+      setSaveStatus("blocked");
+    }
     setLoaded(true);
   }, []);
   useEffect(() => {
-    if (!loaded) return;
-    const timer = window.setTimeout(() => { try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft)); } catch {} }, 350);
-    return () => window.clearTimeout(timer);
-  }, [draft, loaded]);
+    if (!loaded || storageBlocked || lastSavedDraft.current === draft) return;
+    setSaveStatus("pending");
+    const timer = window.setTimeout(() => {
+      saveTimer.current = null;
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+        lastSavedDraft.current = draft;
+        setSaveStatus("saved");
+      } catch { setSaveStatus("failed"); }
+    }, 350);
+    saveTimer.current = timer;
+    return () => { window.clearTimeout(timer); if (saveTimer.current === timer) saveTimer.current = null; };
+  }, [draft, loaded, storageBlocked]);
+
+  const persistDraft = (nextDraft: PayDraft) => {
+    if (!loaded || storageBlocked) {
+      setMessage("저장 원본을 확인할 수 없어 교체하지 않았습니다. 현재 화면을 백업하고 저장 권한·원본을 확인한 뒤 다시 열어 주세요.");
+      return false;
+    }
+    if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
+    saveTimer.current = null;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextDraft));
+      lastSavedDraft.current = nextDraft;
+      setSaveStatus("saved");
+      return true;
+    } catch {
+      setSaveStatus("failed");
+      setMessage("브라우저에 저장하지 못했습니다. 현재 화면, 저장 원본과 검토한 백업은 유지했습니다. 저장 공간·권한을 확인한 뒤 다시 시도하세요.");
+      return false;
+    }
+  };
 
   const evidenceReady = evidenceItems.filter((item) => draft.evidence[item.id] === "ready").length;
   const reviewCount = evidenceItems.filter((item) => draft.evidence[item.id] === "review").length;
@@ -198,12 +244,18 @@ export function PayEvidenceWorkspace() {
   };
   const restoreCaseArchive = () => {
     if (!pendingArchive) return;
-    setDraft(normaliseDraft(pendingArchive.case));
+    const nextDraft = normaliseDraft(pendingArchive.case);
+    if (!persistDraft(nextDraft)) return;
+    setDraft(nextDraft);
     setPendingArchive(null);
-    setMessage("검토한 백업으로 현재 Pay Evidence 기록을 교체했습니다.");
+    setMessage("검토한 백업을 이 브라우저에 저장한 뒤 현재 Pay Evidence 기록을 교체했습니다.");
   };
 
   return <div>
+    <section className="mb-6 border border-border bg-surface p-4" aria-label="Pay 기록 저장 상태">
+      <p role="status" className="text-sm leading-6 text-navy">{saveStatus === "loading" ? "저장 기록을 확인하고 있습니다." : saveStatus === "blocked" ? "원본 보호 중 · 저장 기록을 읽지 못해 자동 저장과 복원을 멈췄습니다. 현재 화면을 JSON으로 백업하고 저장 권한·원본을 확인한 뒤 다시 열어 주세요." : saveStatus === "failed" ? "저장 실패 · 변경 내용이 아직 이 브라우저에 저장되지 않았습니다." : saveStatus === "pending" ? "변경 내용을 저장하고 있습니다. 완료 전 화면을 닫지 마세요." : "이 브라우저의 저장 상태를 확인했습니다."}</p>
+      {saveStatus === "failed" && <button type="button" onClick={() => { if (persistDraft(draft)) setMessage("현재 화면을 이 브라우저에 저장했습니다. 검토 중인 백업은 그대로 유지됩니다."); }} className="mt-3 min-h-11 border border-navy px-4 text-sm font-semibold text-navy">현재 화면 저장 다시 시도</button>}
+    </section>
     <section className="mb-8 grid border-y border-navy/20 sm:grid-cols-2 xl:grid-cols-4" aria-label="급여 기록 요약">
       <div className="border-b border-border px-4 py-5 sm:border-r xl:border-b-0"><p className="text-xs font-semibold text-muted">등록한 Shift</p><p className="mt-2 font-mono text-2xl text-navy">{shiftCount}개</p></div>
       <div className="border-b border-border px-4 py-5 xl:border-b-0 xl:border-r"><p className="text-xs font-semibold text-muted">계산한 근무시간</p><p className="mt-2 font-mono text-2xl text-navy">{calculatedHours.toFixed(2)}h</p></div>

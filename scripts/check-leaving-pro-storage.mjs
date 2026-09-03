@@ -128,6 +128,7 @@ function mount(original = raw, initialFault = "none", componentSource = source) 
     destination: () => find(node => node.type === "input" && node.props.placeholder === "예: 한국 귀국").props.value,
     edit(value) { find(node => node.type === "input" && node.props.placeholder === "예: 한국 귀국").props.onChange({ target: { value } }); settle(); },
     editAmount(value) { find(node => node.type === "input" && node.props.inputMode === "decimal").props.onChange({ target: { value } }); settle(); },
+    editTaskNote(taskId, field, value) { const node = find(node => node.props?.id === `departure-${taskId}-${field}`); assert(node); node.props.onChange({ target: { value } }); settle(); },
     editSettlementStatus(value) { find(node => node.type === "select" && node.props.value === hooks[0].value.settlements[0].status).props.onChange({ target: { value } }); settle(); },
     click(label) { button(label).props.onClick(); settle(); },
     tick(delay = 350) { for (const [id, timer] of [...timers]) { if (timer.delay <= delay) { timers.delete(id); timer.callback(); } } settle(); },
@@ -294,4 +295,66 @@ for (const value of ["", "0", "bad", "1.", "1e", "-1", "1.005", "0.10", "9007199
   assert(app.text().includes("미수령 항목 없음"));
   app.editAmount("bad"); assert(app.text().includes('합계 미포함 · 원문 "bad"'));
 }
-console.log("Leaving draft protection, conflicts, archive/restore/download recovery and amount UI/summary persistence checks passed (synthetic hooks/files/storage; no browser acceptance).");
+// Task records remain independent of settlement notes/amounts and do not change completion.
+{
+  const app = mount();
+  for (const [field, value] of Object.entries({ nextAction: "Ask synthetic employer for final payslip", contact: "Synthetic payroll team", followUpOn: "2026-09-10", completionNote: "Email kept in personal folder" })) app.editTaskNote("final-pay", field, value);
+  app.editTaskNote("utilities", "nextAction", "Return synthetic router");
+  app.tick();
+  const saved = JSON.parse(app.values.get(key));
+  assert.deepEqual(saved.statuses, draft.statuses); assert.deepEqual(saved.settlements, draft.settlements);
+  assert.equal(saved.taskNotes["final-pay"].nextAction, "Ask synthetic employer for final payslip");
+  assert.equal(saved.taskNotes.utilities.nextAction, "Return synthetic router");
+  assert.equal(mount(app.values.get(key)).find(node => node.props?.id === "departure-final-pay-contact").props.value, "Synthetic payroll team");
+  for (const field of Object.keys(storage.leavingTaskNoteLimits)) {
+    const node = app.find(node => node.props?.id === `departure-final-pay-${field}`);
+    assert(node.props.className.includes("min-h-20")); assert.equal(node.props['aria-invalid'], false);
+    assert(app.find(label => label.type === "label" && label.props.htmlFor === node.props.id));
+    for (const id of node.props['aria-describedby'].split(" ")) assert(app.find(item => item.props?.id === id));
+  }
+  app.click("현재 순서 검토 확인"); app.editTaskNote("final-pay", "completionNote", "Updated confirmation note");
+  app.click("귀국 준비 요약 저장"); assert.equal(app.state.requests, 0, "Task-note edits expire review");
+  app.state.fault = "quota"; app.tick(); assert.match(app.status(), /저장 실패/); assert.deepEqual(JSON.parse(app.values.get(key)), saved);
+  app.state.fault = "none"; app.click("저장 다시 시도");
+  app.click("현재 순서 검토 확인"); app.click("귀국 준비 요약 저장");
+  const summary = await app.state.downloads.at(-1).blob.text();
+  for (const value of ["Ask synthetic employer", "Synthetic payroll team", "2026-09-10", "Updated confirmation note", "Return synthetic router", "no automatic reminder"]) assert(summary.includes(value));
+  app.click("현재 기록 백업"); const archive = await app.state.downloads.at(-1).blob.text();
+  assert.equal(JSON.parse(archive).version, 2, "New notes require a version older clients will reject safely");
+  assert.throws(() => parseLeavingArchive(JSON.stringify({ ...JSON.parse(archive), version: 1 })));
+  assert.deepEqual(parseLeavingArchive(archive), JSON.parse(app.values.get(key)));
+  const fresh = mount(raw); await fresh.review(archive); fresh.state.fault = "quota";
+  fresh.click("확인한 백업으로 현재 기록 교체"); assert.equal(fresh.values.get(key), raw); assert.match(fresh.text(), /복원 후보/);
+  fresh.state.fault = "none"; fresh.click("확인한 백업으로 현재 기록 교체");
+  assert.deepEqual(JSON.parse(fresh.values.get(key)), parseLeavingArchive(archive));
+  fresh.click("현재 순서 검토 확인"); fresh.click("귀국 준비 요약 저장");
+  assert.equal(await fresh.state.downloads.at(-1).blob.text(), summary);
+  fresh.editTaskNote("final-pay", "nextAction", "Unsaved update"); fresh.values.set(key, "external change"); fresh.tick();
+  assert.equal(fresh.values.get(key), "external change"); assert.match(fresh.status(), /원본 보호/);
+  assert.equal(fresh.find(node => node.props?.id === "departure-final-pay-nextAction").props.value, "Unsaved update");
+  assert.equal(fresh.values.get("another-product"), "unchanged");
+}
+const taskNote = { nextAction: "", contact: "", followUpOn: "", completionNote: "" };
+for (const taskNotes of [null, [], { bond: null }, { bond: { ...taskNote, nextAction: 1 } }, { bond: {} }]) {
+  const bytes = JSON.stringify({ ...draft, taskNotes });
+  const result = readLeavingDraft(() => ({ getItem: () => bytes }));
+  assert.equal(result.kind, "blocked"); assert.equal(result.original, bytes);
+  assert.throws(() => parseLeavingArchive(JSON.stringify({ format: "hoju-compass-leaving-pro", version: 1, draft: { ...draft, taskNotes } })));
+}
+for (const [field, limit] of Object.entries(storage.leavingTaskNoteLimits)) {
+  const exactDraft = { ...draft, taskNotes: { bond: { ...taskNote, [field]: "x".repeat(limit) } } };
+  assert.deepEqual(parseLeavingArchive(createLeavingArchive(exactDraft)), exactDraft);
+  const overDraft = { ...draft, taskNotes: { bond: { ...taskNote, [field]: "x".repeat(limit + 1) } } };
+  assert.deepEqual(readLeavingDraft(() => ({ getItem: () => JSON.stringify(overDraft) })).draft, overDraft);
+  assert.throws(() => createLeavingArchive(overDraft), /작업별 기록 한도/);
+  assert.throws(() => parseLeavingArchive(JSON.stringify({ format: "hoju-compass-leaving-pro", version: 2, draft: overDraft })));
+  const app = mount(JSON.stringify(overDraft));
+  assert.equal(app.find(node => node.props?.id === `departure-bond-${field}`).props['aria-invalid'], true);
+  app.click("현재 기록 백업"); assert.equal(app.state.requests, 0); assert.match(app.text(), /작업별 기록 한도/);
+}
+const taskExtras = { ...draft, taskNotes: { bond: { ...taskNote, accessToken: "synthetic-private" }, unknown: { ...taskNote, nextAction: "synthetic-hidden" } } };
+const portableTasks = parseLeavingArchive(createLeavingArchive(taskExtras));
+assert.deepEqual(portableTasks, { ...draft, taskNotes: { bond: taskNote } });
+assert.deepEqual(parseLeavingArchive(createLeavingArchive(draft)), draft, "Legacy v1 roundtrip remains exact without the optional field");
+assert.equal(JSON.parse(createLeavingArchive(draft)).version, 1);
+console.log("Leaving draft protection, task-note UI/TXT/JSON/legacy/failure flows, conflicts and amount persistence checks passed (synthetic hooks/files/storage; no browser acceptance).");

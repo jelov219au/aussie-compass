@@ -2,10 +2,12 @@ import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const env = (name) => (process.env[name] ?? "").trim();
+const expectedStripeMode = env("VERCEL_ENV") === "production" ? "live" : "test";
+const stripeKeyMode = env("STRIPE_SECRET_KEY").match(/^(?:sk|rk)_(test|live)_/)?.[1];
 const required = [
   ["PAYMENTS_ENABLED", () => env("PAYMENTS_ENABLED") === "true"],
   ["EOFY_PRO_PAYMENTS_ENABLED", () => env("EOFY_PRO_PAYMENTS_ENABLED") === "true"],
-  ["STRIPE_SECRET_KEY", () => /^sk_(test|live)_/.test(env("STRIPE_SECRET_KEY"))],
+  ["STRIPE_SECRET_KEY", () => stripeKeyMode === expectedStripeMode],
   ["STRIPE_WEBHOOK_SECRET", () => /^whsec_/.test(env("STRIPE_WEBHOOK_SECRET"))],
   ["STRIPE_EOFY_PRO_PRICE_ID", () => /^price_/.test(env("STRIPE_EOFY_PRO_PRICE_ID"))],
   ["STRIPE_MANAGED_PAYMENTS_ENABLED", () => env("STRIPE_MANAGED_PAYMENTS_ENABLED") === "true"],

@@ -28,6 +28,16 @@ function isReadableDraft(value: unknown): value is EofyDraft {
       || typeof expense.evidence !== "string"
       || !["receipt", "calculation", "missing"].includes(String(expense.evidence))) return false;
   }
+  if (value.documents !== undefined) {
+    if (!Array.isArray(value.documents)) return false;
+    const documentIds = new Set<string>();
+    for (const item of value.documents) {
+      if (!isRecord(item) || typeof item.id !== "string" || !item.id || documentIds.has(item.id)
+        || !["sourceId", "label", "checkedOn", "note"].every(field => typeof item[field] === "string")
+        || !["todo", "review", "ready"].includes(String(item.status)) || typeof item.status !== "string") return false;
+      documentIds.add(item.id);
+    }
+  }
   return true;
 }
 

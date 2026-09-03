@@ -1,5 +1,64 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+
+// Execute the real local diagnostics with synthetic inputs only. Never inherit
+// payment credentials or Node preload options from the operator's environment.
+const readinessFixture = {
+  SystemRoot: process.env.SystemRoot ?? "",
+  PAYMENTS_ENABLED: "true",
+  EOFY_PRO_PAYMENTS_ENABLED: "true",
+  LEAVING_AUSTRALIA_PRO_PAYMENTS_ENABLED: "true",
+  STRIPE_WEBHOOK_SECRET: "whsec_readiness_fixture",
+  STRIPE_EOFY_PRO_PRICE_ID: "price_eofy_fixture",
+  STRIPE_LEAVING_AUSTRALIA_PRO_PRICE_ID: "price_leaving_fixture",
+  STRIPE_MANAGED_PAYMENTS_ENABLED: "true",
+  STRIPE_RESUME_PRO_PRICE_ID: "price_resume_fixture",
+  STRIPE_RESUME_PRO_PRODUCT_ID: "prod_resume_fixture",
+  STRIPE_RESUME_PRO_TAX_CODE: "txcd_fixture",
+  PAYMENTS_ENTITLEMENT_STORE: "neon",
+  FIRST_SALE_GATE_ENABLED: "true",
+  ENTITLEMENT_DB_URL: "postgresql://fixture.invalid/unused",
+  ENTITLEMENT_SESSION_SECRET: "synthetic-session-fixture-not-a-secret".repeat(2),
+  BUSINESS_LEGAL_NAME: "Fictional readiness fixture",
+  BUSINESS_ABN: "00000000000",
+  NEXT_PUBLIC_SUPPORT_EMAIL: "fixture@example.invalid",
+  FIRST_SALE_MONITORED_MODE_ENABLED: "true",
+  FIRST_SALE_MONITORED_MODE_OWNER_ACK: "SINGLE_FIRST_SALE_MANUAL_MONITORING_APPROVED",
+};
+
+for (const script of ["check-eofy-launch-readiness.mjs", "check-leaving-australia-launch-readiness.mjs"]) {
+  for (const deployment of ["production", "preview"]) {
+    for (const prefix of ["sk", "rk"]) {
+      for (const mode of ["live", "test"]) {
+        const key = `${prefix}_${mode}_SyntheticReadinessFixture`;
+        const result = spawnSync(process.execPath, [fileURLToPath(new URL(script, import.meta.url))], {
+          env: { ...readinessFixture, VERCEL_ENV: deployment, STRIPE_SECRET_KEY: ` ${key} ` },
+          encoding: "utf8", timeout: 5000, windowsHide: true,
+        });
+        const expectedMode = deployment === "production" ? "live" : "test";
+        assert.equal(result.error, undefined, `${script} must finish without a process error.`);
+        assert.equal(result.status, mode === expectedMode ? 0 : 2, `${script}: ${deployment} must accept only ${expectedMode} ${prefix} keys.`);
+        assert.ok(!result.stdout.includes(key), "Readiness diagnostics must not print the key.");
+        assert.ok(!result.stderr, "Readiness diagnostics must not emit secret-bearing errors.");
+      }
+    }
+  }
+  for (const key of ["", "pk_live_SyntheticPublicFixture", "not-a-key"]) {
+    const rejected = spawnSync(process.execPath, [fileURLToPath(new URL(script, import.meta.url))], {
+      env: { ...readinessFixture, VERCEL_ENV: "production", STRIPE_SECRET_KEY: key },
+      encoding: "utf8", timeout: 5000, windowsHide: true,
+    });
+    assert.equal(rejected.status, 2, `${script} must reject missing, public and malformed server keys.`);
+  }
+  const missing = spawnSync(process.execPath, [fileURLToPath(new URL(script, import.meta.url))], {
+    env: { SystemRoot: process.env.SystemRoot ?? "" },
+    encoding: "utf8", timeout: 5000, windowsHide: true,
+  });
+  assert.equal(missing.status, 2, `${script} must keep missing configuration unready.`);
+  assert.ok(missing.stdout.includes("STRIPE_SECRET_KEY"));
+}
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 const finder = await read("../src/components/tools/ProProductFinder.tsx");

@@ -2,6 +2,16 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
+const { scripts } = JSON.parse(await read("../package.json"));
+const qualitySteps = scripts["quality:gate"].split("&&").map((step) => step.trim());
+for (const [name, file] of [
+  ["test:leaving-pro-storage", "check-leaving-pro-storage.mjs"],
+  ["test:leaving-pro-amounts", "check-leaving-pro-amounts.mjs"],
+]) {
+  assert.equal(scripts[name], `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/${file}`, `${name} must run the preserved Leaving regression`);
+  assert.equal(qualitySteps.filter((step) => step === `npm run ${name}`).length, 1, `${name} must run exactly once in quality:gate`);
+}
+
 const [
   checkout, offer, checkoutForm, commerce, contract, firstSale, webhook,
   entitlementMigration, gateMigration, workspace, success, accessTools, deviceData,
