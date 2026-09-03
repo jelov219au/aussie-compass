@@ -125,7 +125,7 @@ export const articles: Article[] = [
     publishedAt: "2026-08-31",
     quickSummary: ["고용 종료일을 확인하고, 해고 관련 신청을 검토한다면 해고 효력일 기준 21일 기한을 급여 지급일과 별도로 확인하기", "Final pay는 근무급여·Notice·Annual leave·Loading·Redundancy·Long service leave를 항목별로 대조하기", "Unfair dismissal·General protections·Underpayment·Visa·Workers compensation은 기관과 기한이 서로 다르므로 한 결과를 기다리지 않기"],
     toolHref: "/underpayment-guide",
-    toolLabel: "급여·Final pay 기록과 차액 확인하기",
+    toolLabel: "마지막 급여 내역과 차액 확인하기",
     relatedSlugs: ["australia-workplace-injury-workers-compensation-guide", "australia-first-payslip-super-checklist"],
     sections: [
       { heading: "오늘 받은 말부터 정확한 날짜로 바꾸세요", paragraphs: ["‘오늘까지만 나오세요’, ‘이번 주까지만’, ‘Roster가 없습니다’처럼 모호한 말은 Employment가 끝났다는 뜻인지 Shift가 없는 것인지 먼저 확인해야 해요. Employer에게 결정 이유, 통보일, Last day of employment와 Notice를 일하는지 Pay in lieu인지 글로 요청하세요.", "Fair Work Commission의 Dismissal 관련 신청은 일반적으로 Dismissal이 효력을 가진 날 다음 날부터 21일 안에 해야 해요. Final pay 입금일, 해고 편지 수령일 또는 내부 Appeal 결과를 기다린다고 자동으로 기한이 멈추지는 않습니다."] },
