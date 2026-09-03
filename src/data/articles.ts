@@ -1,4 +1,5 @@
 import { carInspectionFollowupArticle } from "./carInspectionFollowupArticle";
+import { rentalInspectionApplicationArticle } from "./rentalInspectionApplicationArticle";
 
 export type Article = {
   slug: string;
@@ -113,16 +114,16 @@ export const articles: Article[] = [
   },
   {
     slug: "australia-job-ending-final-pay-dismissal-guide",
-    title: "호주에서 일을 그만두거나 해고됐다면, 마지막 21일",
-    seoTitle: "호주 퇴사·해고 가이드: Notice, Final Pay, Redundancy와 21일 기한",
-    socialTitle: "Job ended in Australia: notice, final pay and the 21-day deadline",
-    description: "Resignation·Dismissal·Redundancy를 구분하고 Notice, Final pay, Employment Separation Certificate, Fair Work Commission 21일 기한과 Visa·산재 절차를 따로 확인하세요.",
+    title: "호주 퇴사·해고 뒤 확인할 일: 마지막 급여와 별도 신청기한",
+    seoTitle: "호주 퇴사·해고: Final pay와 해고 관련 21일 신청기한",
+    socialTitle: "Leaving a job in Australia: final pay and dismissal application deadlines",
+    description: "퇴사·해고·정리해고의 종료 유형과 마지막 급여를 확인하고, Unfair dismissal·General protections dismissal의 21일 신청기한을 급여 지급일·차액 해결과 구분하세요.",
     category: "직장 권리",
     region: "australia",
     contentType: "official",
     readingTime: "17분",
     publishedAt: "2026-08-31",
-    quickSummary: ["마지막 근무일과 Dismissal이 효력을 갖는 날짜를 서면으로 확인하고 21일 달력을 먼저 만들기", "Final pay는 근무급여·Notice·Annual leave·Loading·Redundancy·Long service leave를 항목별로 대조하기", "Unfair dismissal·General protections·Underpayment·Visa·Workers compensation은 기관과 기한이 서로 다르므로 한 결과를 기다리지 않기"],
+    quickSummary: ["고용 종료일을 확인하고, 해고 관련 신청을 검토한다면 해고 효력일 기준 21일 기한을 급여 지급일과 별도로 확인하기", "Final pay는 근무급여·Notice·Annual leave·Loading·Redundancy·Long service leave를 항목별로 대조하기", "Unfair dismissal·General protections·Underpayment·Visa·Workers compensation은 기관과 기한이 서로 다르므로 한 결과를 기다리지 않기"],
     toolHref: "/underpayment-guide",
     toolLabel: "급여·Final pay 기록과 차액 확인하기",
     relatedSlugs: ["australia-workplace-injury-workers-compensation-guide", "australia-first-payslip-super-checklist"],
@@ -470,6 +471,7 @@ export const articles: Article[] = [
       { label: "Fair Work Ombudsman — Tax and superannuation", href: "https://www.fairwork.gov.au/pay-and-wages/tax-and-superannuation", summary: "PAYG와 Super의 차이, 현재 Super guarantee와 2026년 7월 1일부터 시작된 Payday Super 안내의 공식 출발점이에요." },
     ],
   },
+  rentalInspectionApplicationArticle,
   {
     slug: "rental-application-privacy-australia",
     title: "호주 렌트 신청, 신분증과 개인정보는 어디까지 내야 할까",
