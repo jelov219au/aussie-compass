@@ -3,13 +3,15 @@ import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { runInNewContext } from "node:vm";
-const require=createRequire(import.meta.url), ts=require("typescript"), cache=new Map();
+const require=createRequire(import.meta.url), ts=require("typescript"), cache=new Map(), timers=new Set();
 function load(name){
   if(cache.has(name))return cache.get(name);
   const compiledModule={exports:{}};
   runInNewContext(ts.transpileModule(readFileSync(new URL(`../src/lib/${name}.ts`,import.meta.url),"utf8"),
     {compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2017}}).outputText,
-  {module:compiledModule,exports:compiledModule.exports,Buffer,URL,require:id=>{
+  {module:compiledModule,exports:compiledModule.exports,Buffer,URL,AbortController,
+    setTimeout:(fn,ms)=>{assert.equal(ms,10000);const timer={fn};timers.add(timer);return timer;},
+    clearTimeout:timer=>timers.delete(timer),require:id=>{
     if(id==="server-only")return {}; if(id.startsWith("./"))return load(id.slice(2));
     if(id==="node:crypto")return require(id);throw Error("Unexpected import");
   }});cache.set(name,compiledModule.exports);return compiledModule.exports;
@@ -68,9 +70,9 @@ async function check({changeReport=()=>{},changeWire=()=>{},changeManifest=()=>{
       changeEnvelope(envelope);return envelope;}};
   configure(deps);
   const read=deps.readReport,query=deps.query;
-  if(typeof read==="function")deps.readReport=async id=>{reportReads++;return read(id);};
+  if(typeof read==="function")deps.readReport=async (id,signal)=>{reportReads++;assert.equal(signal.aborted,false);return read(id,signal);};
   if(typeof query==="function")deps.query=async request=>{catalogQueries++;return query(request);};
-  const result=await create(deps)();assert.equal(result.ok,expected);
+  const result=await create(deps)();assert.equal(result.ok,expected);assert.equal(timers.size,0);
   if(expected){assert.equal(result.salesAuthorized,false);assert.equal(Object.hasOwn(result,"accessFunctions"),false);
     assert.equal(reportReads-beforeReports,11);assert.equal(catalogQueries-beforeQueries,1);}
   if(noQuery)assert.equal(catalogQueries,beforeQueries);if(noReports)assert.equal(reportReads,beforeReports);
@@ -137,5 +139,47 @@ const altered=copy(raw);altered.functions[0].definition_sha256=other;
 pending[1].resolve({binding:copy(binding),rows:[altered],challenge:pending[1].request.challenge,observedAt:time});
 pending[0].resolve({binding:copy(binding),rows:[copy(raw)],challenge:pending[0].request.challenge,observedAt:time});
 assert.equal((await first).ok,true);assert.equal((await second).ok,false);checks+=2;
+// A shared report-stage deadline fences first, middle and final stalled reads.
+// Late signed bytes must not start another report read or catalog query.
+let deadlineCases=0;
+for(const stallIndex of [0,5,10]){
+  let resumeRead,readCount=0,queryCount=0;const signals=[];
+  const pendingRead=create({...deps, catalogConfig:copy(config),trustedReportKeys:{issuer_one:publicPem},
+    readReport:(id,signal)=>{signals.push(signal);const index=readCount++;
+      return index===stallIndex ? new Promise(resolve=>{resumeRead=()=>resolve(copy(wires[id]));}) : Promise.resolve(copy(wires[id]));},
+    query:async()=>{queryCount++;throw Error("Must not reach catalog");}})();
+  await new Promise(setImmediate);assert.equal(readCount,stallIndex+1);assert.equal(timers.size,1);checks++;
+  const [timer]=timers;timer.fn();
+  const result=await pendingRead;assert.deepEqual(copy(result),{ok:false,reason:"evidence_unavailable"});checks++;
+  assert(signals.every(signal=>signal===signals[0] && signal.aborted));assert.equal(timers.size,0);checks++;
+  resumeRead();await new Promise(setImmediate);
+  assert.equal(readCount,stallIndex+1);assert.equal(queryCount,0);checks++;deadlineCases++;
+}
+// Slow readers share one budget, rather than receiving eleven new deadlines.
+let budgetReads=0,budgetQueries=0;const budgetTimers=[],budgetSignals=[];
+const budgetResult=await create({...deps,catalogConfig:copy(config),trustedReportKeys:{issuer_one:publicPem},
+  readReport:async id=>{budgetReads++;const [timer]=timers;budgetTimers.push(timer);
+    if(budgetReads===4)timer.fn();return copy(wires[id]);},
+  query:async()=>{budgetQueries++;throw Error("Must not reach catalog");}})();
+assert.equal(budgetResult.ok,false);assert.equal(budgetReads,4);assert.equal(budgetQueries,0);
+assert(budgetTimers.every(timer=>timer===budgetTimers[0]));assert.equal(timers.size,0);checks++;deadlineCases++;
+// Failure cancels the reader scope; no storage error details escape.
+const failedRead=await create({...deps,catalogConfig:copy(config),trustedReportKeys:{issuer_one:publicPem},
+  readReport:async(id,signal)=>{budgetSignals.push(signal);throw Error("SECRET storage path");},
+  query:async()=>{throw Error("Must not reach catalog");}})();
+assert.deepEqual(copy(failedRead),{ok:false,reason:"evidence_unavailable"});assert(budgetSignals[0].aborted);
+assert.equal(timers.size,0);checks++;
+// Timing out one request does not abort a second request's report scope.
+let releaseStalled,otherSignal,stalledSignal;
+const stalled=create({...deps,catalogConfig:copy(config),trustedReportKeys:{issuer_one:publicPem},
+  readReport:(id,signal)=>{stalledSignal=signal;return new Promise(resolve=>{releaseStalled=()=>resolve(copy(wires[id]));});}})();
+const [stalledTimer]=timers;
+const healthy=await create({...deps,catalogConfig:copy(config),trustedReportKeys:{issuer_one:publicPem},
+  readReport:async(id,signal)=>{otherSignal=signal;return copy(wires[id]);},
+  query:async request=>({binding:copy(binding),rows:[copy(raw)],challenge:request.challenge,observedAt:time})})();
+assert.equal(healthy.ok,true);assert.equal(healthy.salesAuthorized,false);assert.equal(otherSignal.aborted,false);checks++;
+stalledTimer.fn();assert.equal((await stalled).ok,false);assert(stalledSignal.aborted);assert.equal(otherSignal.aborted,false);checks++;
+releaseStalled();await new Promise(setImmediate);assert.equal(timers.size,0);checks++;deadlineCases++;
 console.log(JSON.stringify({status:"PASS",checks,reportReads,catalogQueries,interleavedQueries:2,fixtureBootstrapQueries:1,
+  deadlineCases,timing:"deterministic simulated report deadline; no real waits",
   crypto:"real Node Ed25519 with ephemeral synthetic keys",realSqlCalls:0,realApprovals:0,actualMessages:0,productionConnected:false}));

@@ -40,7 +40,9 @@ function keys(value: unknown): Map<string, KeyObject> | null {
 
 // The trusted registry returns only currently approved, immutable report bytes.
 // Reports are never loaded from a caller-supplied URL/path or from webhook input.
-export type CarReadinessReportReader = (id: string) => Promise<unknown>;
+// Readers must stop their underlying I/O when aborted. The envelope also fences
+// late results so an ignored signal cannot start further reads or catalog work.
+export type CarReadinessReportReader = (id: string, signal: AbortSignal) => Promise<unknown>;
 // The approved driver registry returns its independently verified connection and
 // deployment binding plus rows from THAT SAME transaction/connection, not an echo
 // of requested values. The adapter and registry are not implemented here.
@@ -69,28 +71,49 @@ export function createCarReadinessEnvelope(deps: {
           environment: manifest.environment, offer: manifest.offer, databaseName: config.databaseName, inspectionRole: config.inspectionRole };
         const approvedChecks = manifest.inventory.checks as Row[];
         const reports: Row[] = [];
-        for (const id of carReadinessCheckIds) {
-          const pin = approvedChecks.find(c => c.id === id);
-          const result = await readReport(id);
-          if (!pin || !exact(result, ["reportJson", "signature", "issuerKeyId"]) || !keyId(result.issuerKeyId)
-            || typeof result.reportJson !== "string" || typeof result.signature !== "string" || result.signature.length !== 88) throw Error("Readiness unavailable.");
-          const report = parse(result.reportJson, 65_536);
-          if (!record(report)) throw Error("Readiness unavailable.");
-          const bytes = Buffer.from(result.reportJson, "utf8");
-          const publicKey = publicKeys.get(result.issuerKeyId), signature = Buffer.from(result.signature, "base64");
-          if (!publicKey || signature.length !== 64 || signature.toString("base64") !== result.signature
-            || digest(bytes) !== pin.evidenceSha256 || !verify(null, Buffer.concat([domain, bytes]), publicKey, signature)
-            || !exact(report, ["version", "id", "issuerKeyId", "candidateCommit", "environment", "offer",
-              "issuedAt", "expiresAt", "result", "evidenceClass", "artifactSha256"])
-            || report.version !== "car-readiness-report-v1" || report.id !== id || report.issuerKeyId !== result.issuerKeyId
-            || report.candidateCommit !== manifest.candidateCommit || !same(report.environment, manifest.environment)
-            || !same(report.offer, manifest.offer) || report.result !== "PASS" || report.evidenceClass !== "executed"
-            || !sha(report.artifactSha256) || !time(report.issuedAt) || !time(report.expiresAt)
-            || report.issuedAt > (manifest.approvedAt as number) || report.expiresAt <= report.issuedAt) throw Error("Readiness unavailable.");
-          const checkedAt = now();
-          if (!time(checkedAt) || checkedAt < report.issuedAt || checkedAt >= report.expiresAt) throw Error("Readiness unavailable.");
-          reports.push(report);
-        }
+        const reportController = new AbortController();
+        let reportExpired = false;
+        const checkReportDeadline = () => { if (reportExpired) throw Error("Readiness unavailable."); };
+        let reportTimer: ReturnType<typeof setTimeout>;
+        const reportDeadline = new Promise<never>((_, reject) => {
+          reportTimer = setTimeout(() => {
+            reportExpired = true;
+            reportController.abort();
+            reject(Error("Readiness unavailable."));
+          }, 10_000);
+        });
+        const readReports = async () => {
+          for (const id of carReadinessCheckIds) {
+            checkReportDeadline();
+            const pin = approvedChecks.find(c => c.id === id);
+            const result = await readReport(id, reportController.signal);
+            checkReportDeadline();
+            if (!pin || !exact(result, ["reportJson", "signature", "issuerKeyId"]) || !keyId(result.issuerKeyId)
+              || typeof result.reportJson !== "string" || typeof result.signature !== "string" || result.signature.length !== 88) throw Error("Readiness unavailable.");
+            const report = parse(result.reportJson, 65_536);
+            if (!record(report)) throw Error("Readiness unavailable.");
+            const bytes = Buffer.from(result.reportJson, "utf8");
+            const publicKey = publicKeys.get(result.issuerKeyId), signature = Buffer.from(result.signature, "base64");
+            if (!publicKey || signature.length !== 64 || signature.toString("base64") !== result.signature
+              || digest(bytes) !== pin.evidenceSha256 || !verify(null, Buffer.concat([domain, bytes]), publicKey, signature)
+              || !exact(report, ["version", "id", "issuerKeyId", "candidateCommit", "environment", "offer",
+                "issuedAt", "expiresAt", "result", "evidenceClass", "artifactSha256"])
+              || report.version !== "car-readiness-report-v1" || report.id !== id || report.issuerKeyId !== result.issuerKeyId
+              || report.candidateCommit !== manifest.candidateCommit || !same(report.environment, manifest.environment)
+              || !same(report.offer, manifest.offer) || report.result !== "PASS" || report.evidenceClass !== "executed"
+              || !sha(report.artifactSha256) || !time(report.issuedAt) || !time(report.expiresAt)
+              || report.issuedAt > (manifest.approvedAt as number) || report.expiresAt <= report.issuedAt) throw Error("Readiness unavailable.");
+            const checkedAt = now();
+            if (!time(checkedAt) || checkedAt < report.issuedAt || checkedAt >= report.expiresAt) throw Error("Readiness unavailable.");
+            reports.push(report);
+          }
+        };
+        try { await Promise.race([readReports(), reportDeadline]); }
+        catch {
+          reportExpired = true;
+          reportController.abort();
+          throw Error("Readiness unavailable.");
+        } finally { clearTimeout(reportTimer!); }
         let capturedAt: number | null = null;
         const catalog = createCarPrivilegeCatalogCollector({ databaseName: config.databaseName, inspectionRole: config.inspectionRole,
           runtimeRole: manifest.environment.runtimeRole, expectedColumns: config.expectedColumns, expectedSequences: config.expectedSequences,

@@ -21,6 +21,16 @@ module does not implement that registry. Recreate the factory when trusted keys
 or approval configuration change. There is no report cache in this factory.
 Caller-supplied report paths, URLs and webhook data are not accepted as sources.
 
+The report reader receives `(id, signal)`. One 10-second deadline covers the whole
+eleven-report phase, rather than resetting for every report. Timeout or failure
+aborts that request's signal and returns `evidence_unavailable`. A reader that
+resolves after timeout cannot trigger another report read or a catalog query.
+The timer is cleared before the catalog phase; the catalog transaction adapter
+has its own separate 10-second deadline. Concurrent requests have separate
+signals and deadlines. The registry adapter must cancel its underlying I/O when
+aborted: fencing a late promise result does not prove storage/network I/O stopped.
+These timers also cannot preempt synchronous blocking or a stalled event loop.
+
 Each reader result has exactly `reportJson`, `signature` and `issuerKeyId`.
 The JSON bytes are limited to 65,536 UTF-8 bytes and SHA256-pinned by the approved
 manifest. The signature is canonical base64 encoding of 64 bytes, verified using
@@ -65,8 +75,9 @@ The wrapper is detached by a bounded JSON snapshot. Binding must exactly match,
 challenge must belong to the current request, and observation time must fall
 inside the query interval, which must not exceed 60 seconds. The outer evaluator
 also enforces total duration, approval expiry and complete inventory equality.
-This validation rejects an overlong result when returned; the future adapter must
-enforce driver timeouts/cancellation and transaction rollback itself.
+This catalog validation rejects an overlong result when returned; the future
+driver must enforce cancellation and transaction rollback itself. Report reading
+is separately bounded before any catalog request is issued.
 
 Catalog output supplies the actual observed metadata; the approved report hashes
 are included only after signature, identity and expiry checks. No runtime-ready
@@ -74,9 +85,13 @@ boolean or sales authorization is inferred from a matching envelope.
 
 ## Local validation and remaining work
 
-`scripts/check-car-purchase-readiness-envelope.mjs` passes 78 checks with real
+`scripts/check-car-purchase-readiness-envelope.mjs` passes 95 checks with real
 Node Ed25519 operations using ephemeral synthetic keys, 316 mock report reads,
-25 mock catalog queries, two interleaved requests and one fixture bootstrap.
+25 mock catalog queries in the original regression cases, two interleaved requests
+and one fixture bootstrap. Additional deterministic deadline cases exercise first,
+middle and last stalled reads, late signed responses, one shared budget, storage
+failure cancellation, and isolation from a concurrent healthy request. They do
+not wait for real time or access storage/network.
 Cases include tampering, wrong keys/domains, malformed reports, mismatched
 bindings, expired reports, catalog drift and stale/cross-request observations.
 Scoped strict ES2017 TypeScript and changed-file lint pass.
