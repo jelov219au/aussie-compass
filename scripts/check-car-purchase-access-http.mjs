@@ -19,6 +19,7 @@ const http = await load("../src/lib/carPurchaseProAccessHttp.ts", name => {
   if (name === "./carPurchaseProRequestBody") return requestBody;
   throw new Error("Unexpected import: " + name);
 });
+const workspaceAccess = await load("../src/lib/carPurchaseProWorkspaceAccess.ts", name => { throw new Error(name); });
 const origin = "https://hojucompass.com";
 const cookieName = "__Host-hoju_car_purchase_pro_access";
 const accessToken = tokens.encodeCarPurchaseProAccessToken({ id: "101", productCode: "car_purchase_pro", status: "active" }, "s".repeat(43), "synthetic-http-key-".repeat(3));
@@ -84,10 +85,13 @@ assert.equal((await failure.text()).includes("internal detail"), false);
 
 const runtime = await load("../src/lib/carPurchaseProRuntime.ts", name => {
   if (name === "server-only") return {};
+  if (name === "next/headers") return { cookies: async () => { throw new Error("Closed runtime must not read cookies."); } };
   if (name === "./site") return { siteUrl: origin };
   if (name === "./carPurchaseProAccessHttp") return http;
+  if (name === "./carPurchaseProWorkspaceAccess") return workspaceAccess;
   throw new Error("Unexpected import: " + name);
 }, { process: { env: { NODE_ENV: "production", PAYMENTS_ENABLED: "true", CAR_PURCHASE_PRO_ENABLED: "true" } } });
+assert.equal(await runtime.hasCarPurchaseWorkspaceAccess(), false, "mounted workspace runtime remains closed even with environment flags");
 for (const [path, operation] of [["access/activate", "activate"], ["access/release", "release"], ["restore", "restore"], ["restore-code", "restore-code"]]) {
   const route = await load(`../src/app/api/car-purchase-pro/${path}/route.ts`, name => {
     assert.equal(name, "@/lib/carPurchaseProRuntime");
