@@ -59,7 +59,7 @@ export function createCarPurchaseExceptionStore(deps: {
         || row.reference_id !== c.referenceId
         || row.alert_kind !== (disputeTypes.includes(r.eventType) ? "dispute_event" : "fulfillment_attention")
         || row.alert_durable !== true || row.sale_hold_durable !== true
-        || !["OPEN", "RESERVED", "LOCKED"].includes(String(row.gate_state))
+        || typeof row.gate_state !== "string" || !["OPEN", "RESERVED", "LOCKED"].includes(row.gate_state)
         || typeof row.restriction_durable !== "boolean"
         || (row.entitlement_status !== null && !["active", "revoked", "review"].includes(String(row.entitlement_status)))
         || (typeof row.entitlement_status !== "string" && row.entitlement_status !== null)

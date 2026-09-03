@@ -90,6 +90,7 @@ for (const patch of [{ outcome: "ignored_stale" }, { outcome: "tombstoned" }, { 
   { livemode: "false" }, { product_code: "eofy_pro" }, { checkout_session_id: "cs_test_other" }, { payment_intent_id: "pi_other" },
   { charge_id: "ch_other" }, { customer_id: "cus_other" }, { reference_id: "cs_test_other" }, { alert_kind: "payment_completed" },
   { alert_durable: false }, { alert_durable: "true" }, { sale_hold_durable: false }, { gate_state: "PAUSED" },
+  { gate_state: { toString: () => "OPEN" } },
   { restriction_durable: null }, { entitlement_status: "unknown" }, { entitlement_status: {} },
   { entitlement_status: "active", restriction_durable: true }, { entitlement_status: "review", restriction_durable: false }]) {
   rows = [row(pending, patch)]; await reject();

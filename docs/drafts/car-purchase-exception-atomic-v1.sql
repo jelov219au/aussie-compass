@@ -156,7 +156,6 @@ begin
   if not found or v_gate.environment is distinct from (case when p_livemode then 'live' else 'test' end)
     or v_gate.state not in ('OPEN','RESERVED','LOCKED') or v_gate.currency is distinct from 'aud'
     or v_gate.expected_amount_cents is null or v_gate.expected_amount_cents <= 0
-    or (v_gate.state in ('RESERVED','LOCKED') and v_gate.stripe_checkout_session_id is distinct from p_checkout_session_id)
   then raise exception 'Car exception gate identity is unavailable'; end if;
 
   -- The gate serializes all new car writers. Discover an already linked charge
@@ -179,8 +178,8 @@ begin
     where e.stripe_checkout_session_id = p_checkout_session_id or e.stripe_payment_intent_id = p_payment_intent_id
       or (p_charge_id is not null and e.stripe_charge_id = p_charge_id) for update;
   v_has_entitlement := found;
-  if v_gate.state = 'OPEN' and not v_has_entitlement then
-    raise exception 'An open car gate requires an exact existing entitlement';
+  if v_gate.stripe_checkout_session_id is distinct from p_checkout_session_id and not v_has_entitlement then
+    raise exception 'A different car gate checkout requires an exact existing entitlement';
   end if;
   if v_has_entitlement and (v_entitlement.product_code is distinct from p_product_code
     or v_entitlement.stripe_checkout_session_id is distinct from p_checkout_session_id
@@ -268,7 +267,7 @@ begin
     checkout_ref_last8,payment_intent_ref_last8,charge_ref_last8
   ) values(md5(p_event_id),v_kind,p_event_type,right(p_event_id,8),p_livemode,p_product_code,
     right(p_checkout_session_id,8),right(p_payment_intent_id,8),right(p_charge_id,8))
-  on conflict (event_key,alert_kind) do nothing;
+  on conflict on constraint payment_operator_alert_outbox_pkey do nothing;
   select a.* into strict v_alert from public.payment_operator_alert_outbox a
     where a.event_key = md5(p_event_id) and a.alert_kind = v_kind for update;
   if v_alert.event_type is distinct from p_event_type or v_alert.event_ref_last8 is distinct from right(p_event_id,8)
