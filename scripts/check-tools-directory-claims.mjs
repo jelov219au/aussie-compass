@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import { localProjectMetadata } from "../src/lib/localProjectMetadata.ts";
+import { filterDirectoryTools } from "../src/lib/toolsDirectorySearch.ts";
 
 const [toolsPage, directory, homeTools, helpPage] = await Promise.all([
   readFile(new URL("../src/app/tools/page.tsx", import.meta.url), "utf8"),
@@ -33,6 +34,32 @@ assert.deepEqual(filterIds, ["all", "arrival", "work", "money", "home", "annual"
 assert.match(directory, /overflow-x-auto/);
 assert.match(directory, /aria-pressed=\{active===filter\.id\}/);
 assert.match(directory, /focus-visible:outline-none/);
+assert.match(directory, /role="search" aria-label="도구 검색"/);
+assert.match(directory, /이 검색창은 검색어를 저장하거나 전송하지 않아요/);
+assert.match(directory, /검색 결과가 없어요/);
+assert.match(directory, /전체 조건 초기화/);
+
+const searchFixtures = [
+  {
+    title: "중고차 구매처·체크리스트",
+    description: "PPSR와 차량 검사를 거쳐 비교해요.",
+    features: ["대표 구매처 3곳"],
+    eyebrow: "호주에서 첫 차 찾기",
+    categories: ["home", "money"],
+  },
+  {
+    title: "영문 이력서 빌더",
+    description: "영문 이력서를 만들어요.",
+    features: ["PDF 저장"],
+    eyebrow: "호주 취업",
+    categories: ["work"],
+  },
+];
+assert.deepEqual(filterDirectoryTools(searchFixtures, "all", "  ppsr  "), [searchFixtures[0]], "search must trim and match descriptions without reordering results");
+assert.deepEqual(filterDirectoryTools(searchFixtures, "work", "이력서"), [searchFixtures[1]], "category and query must both apply");
+assert.deepEqual(filterDirectoryTools(searchFixtures, "home", "이력서"), [], "a query must not escape the selected category");
+assert.deepEqual(filterDirectoryTools(searchFixtures, "all", "pdf"), [searchFixtures[1]], "features must be searchable case-insensitively");
+assert.deepEqual(filterDirectoryTools(searchFixtures, "all", ""), searchFixtures, "an empty query must preserve the catalogue order");
 
 const homeToolsSource = homeTools.toString("utf8");
 for (const text of [
