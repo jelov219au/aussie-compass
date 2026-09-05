@@ -6,7 +6,7 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 const actions = read("src/components/ui/actionStyles.ts");
 const hero = read("src/components/sections/Hero.tsx");
 const home = read("src/app/page.tsx");
-const premium = read("src/components/sections/PremiumToolsSection.tsx");
+const premium = `${read("src/components/sections/PremiumToolsSection.tsx")}\n${read("src/components/sections/HomePremiumToolExplorer.tsx")}\n${read("src/lib/proCatalogProducts.ts")}`;
 const resources = read("src/components/resources/ResourcesDirectory.tsx");
 const article = read("src/app/resources/[slug]/page.tsx");
 
@@ -19,9 +19,11 @@ assert.match(hero, /로그인 없이 바로 사용/);
 assert.ok(!hero.includes("Hoju Compass를 만든 이유"), "The long origin story must stay out of the hero.");
 
 assert.ok(home.indexOf("<PremiumToolsSection") < home.indexOf("<ArticlesSection"), "The product outcome must appear before the article feed.");
-assert.match(premium, /Resume Pro 보기 · A\$19\.90/);
+assert.match(premium, /product\.name} 보기 · \$\{product\.price}/);
 assert.match(premium, /공고별 이력서/);
-assert.match(premium, /actionClass\("primary"/);
+assert.match(premium, /min-w-0 bg-navy/);
+assert.match(premium, /flex min-w-0 min-h-\[27rem\]/);
+assert.match(premium, /actionClass\(product\.live \? "primary" : "secondary"/);
 assert.match(premium, /actionClass\("secondary"/);
 
 assert.match(resources, /자료 읽기/);

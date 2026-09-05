@@ -11,7 +11,7 @@ const [contract, client, builder, checker, checkerPage, checkerVisitTracker, art
   readFile(new URL("../src/app/resume-job-ad-checker/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/analytics/ResumeJobAdVisitTracker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/resources/ArticleNextStep.tsx", import.meta.url), "utf8"),
-  readFile(new URL("../src/components/sections/PremiumToolsSection.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/sections/HomePremiumToolExplorer.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ProProductFinder.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-pro/page.tsx", import.meta.url), "utf8"),

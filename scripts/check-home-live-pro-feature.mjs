@@ -6,17 +6,18 @@ import * as recommendation from "../src/lib/homePremiumRecommendation.ts";
 
 const require = createRequire(import.meta.url);
 const ts = require("typescript");
-const React = require("react");
+const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
 function load(path, resolve) {
   const loaded = { exports: {} };
-  const source = readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-  const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
-  runInNewContext(code, { module: loaded, exports: loaded.exports, require: resolve, process: { env: {} } });
+  const code = ts.transpileModule(read(path), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  runInNewContext(code, { module: loaded, exports: loaded.exports, require: resolve });
   return loaded.exports;
 }
 
-const state = { resume: false, rental: false, pay: false, eofy: false, leaving: false };
+const state = { pay: false, eofy: false, leaving: false };
 const commerce = {
   resumeProProduct: { priceCents: 1990 },
   rentalApplicationProProduct: { priceCents: 1490 },
@@ -32,89 +33,46 @@ const catalog = load("src/lib/proCatalogProducts.ts", (name) => {
   return commerce;
 });
 
-const Link = ({ children, ...props }) => React.createElement("a", props, children);
-const component = load("src/components/sections/PremiumToolsSection.tsx", (name) => {
-  if (name === "react/jsx-runtime") return require(name);
-  if (name === "next/link") return { default: Link };
-  if (name === "@/components/analytics/TrackedLink") return { TrackedLink: Link };
-  if (name === "@/components/analytics/ResumeProProofLink") return { ResumeProProofLink: ({ children, ...props }) => React.createElement("a", { ...props, href: "/resume-job-ad-checker" }, children) };
-  if (name === "@/components/analytics/ResumeFunnelAnalytics") return { ResumeProCtaLink: Link };
-  if (name === "@/components/ui/Container") return { Container: ({ children, ...props }) => React.createElement("div", props, children) };
-  if (name === "@/components/ui/TopicIcon") return { TopicIcon: ({ name }) => React.createElement("span", { "data-icon": name }) };
-  if (name === "@/components/ui/actionStyles") return { actionClass: (_tone, value) => value };
-  if (name === "@/lib/commerce") return { isResumeProLive: () => state.resume, getRentalApplicationPaymentReadiness: () => ({ ready: state.rental }) };
-  if (name === "@/lib/homePremiumRecommendation") return recommendation;
-  if (name === "@/lib/proCatalogProducts") return catalog;
-  if (name === "@/lib/resumeFunnelAnalyticsContract") return { resumeFunnelContexts: { home: "home" }, resumeFunnelSurfaces: { homePremium: "home-premium" } };
-  assert.fail(`Unexpected import: ${name}`);
-});
-
-function nodes(root) {
-  const result = [];
-  const visit = (node) => {
-    if (node === null || node === undefined || typeof node === "boolean") return;
-    if (Array.isArray(node)) return node.forEach(visit);
-    if (typeof node !== "object") return;
-    result.push(node);
-    visit(node.props?.children);
-  };
-  visit(root);
-  return result;
-}
-function text(node) {
-  if (node === null || node === undefined || typeof node === "boolean") return "";
-  if (typeof node === "string" || typeof node === "number") return String(node);
-  if (Array.isArray(node)) return node.map(text).join("");
-  return text(node.props?.children);
-}
-function renderState(patch) {
-  Object.assign(state, { resume: false, rental: false, pay: false, eofy: false, leaving: false }, patch);
-  const products = catalog.getProCatalogProducts(state.resume, state.rental);
-  const featured = recommendation.selectHomePremiumProduct(products);
-  const tree = component.PremiumToolsSection();
-  const allNodes = nodes(tree);
-  const panel = allNodes.find((node) => node.props?.["data-home-featured-product"] !== undefined);
-  return { products, featured, panel, panelNodes: nodes(panel), panelText: text(panel) };
-}
-
 const matrices = [
-  [{}, null],
-  [{ resume: true }, "resume-pro"],
-  [{ pay: true }, "pay-evidence-pro"],
-  [{ rental: true, pay: true }, "rental-application-pro"],
-  [{ eofy: true }, "eofy-pro"],
-  [{ leaving: true }, "leaving-australia-pro"],
+  [{}, false, false, null],
+  [{}, true, false, "resume-pro"],
+  [{ pay: true }, false, false, "pay-evidence-pro"],
+  [{ pay: true }, false, true, "rental-application-pro"],
+  [{ eofy: true }, false, false, "eofy-pro"],
+  [{ leaving: true }, false, false, "leaving-australia-pro"],
 ];
-for (const [fixture, expectedId] of matrices) {
-  const result = renderState(fixture);
-  assert.equal(result.products.length, 6);
-  assert.equal(result.featured?.id ?? null, expectedId);
-  assert.equal(result.panel.props["data-home-featured-product"], expectedId ?? "none");
-  assert.notEqual(result.featured?.id, "car-purchase-pro", "Car must never be the live home feature");
+
+for (const [packState, resumeLive, rentalLive, expectedId] of matrices) {
+  Object.assign(state, { pay: false, eofy: false, leaving: false }, packState);
+  const products = catalog.getProCatalogProducts(resumeLive, rentalLive);
+  const featured = recommendation.selectHomePremiumProduct(products);
+  assert.equal(products.length, 6);
+  assert.equal(featured?.id ?? null, expectedId);
+  assert.notEqual(featured?.id, "car-purchase-pro", "Car must never be selected as a live home product");
 }
 
-const closed = renderState({});
-assert.ok(closed.panelText.includes("지금 이용 가능한 Pro 없음"));
-assert.ok(closed.panelText.includes("지금 바로 할 수 있는 무료 다음 단계"));
-assert.equal(recommendation.homePremiumFreeActions.length, 3);
-for (const action of recommendation.homePremiumFreeActions) {
-  assert.ok(closed.panelNodes.some((node) => node.props?.href === action.href));
-}
-assert.ok(closed.panelNodes.some((node) => node.props?.href === "/pro"));
-assert.doesNotMatch(closed.panelText, /A\$\d/, "closed fallback must not present a product price as purchasable");
-assert.ok(!closed.panelNodes.some((node) => String(node.props?.href ?? "").includes("from=home-premium")), "closed fallback must not expose a purchase CTA");
+const products = catalog.getProCatalogProducts(true, true);
+const car = products.find((product) => product.id === "car-purchase-pro");
+assert.equal(car?.live, false);
+assert.equal(car?.price, "가격 미정");
 
-const pay = renderState({ pay: true });
-for (const value of ["Pay Evidence Pro", "A$9.90", "현재 이용 가능", "1회 결제 · 구독 없음", "근무시간·Payslip 차이·증빙표·영문 문의문"]) {
-  assert.ok(pay.panelText.includes(value), `Pay-only panel is missing ${value}`);
-}
-assert.ok(pay.panelNodes.some((node) => node.props?.href === "/pay-evidence-pro"));
-assert.ok(pay.panelNodes.some((node) => node.props?.href === "/underpayment-guide"));
-assert.ok(!pay.panelNodes.some((node) => node.props?.entry === "home-premium"), "Pay must not reuse Resume proof analytics");
+const server = read("src/components/sections/PremiumToolsSection.tsx");
+const explorer = read("src/components/sections/HomePremiumToolExplorer.tsx");
+for (const contract of [
+  "selectHomePremiumProduct(products)",
+  "initialProductId={featuredProduct?.id}",
+]) assert.ok(server.includes(contract), `server selection contract missing: ${contract}`);
+for (const contract of [
+  'useState(initialProductId ?? products[0]?.id ?? "")',
+  "products.find((item) => item.id === selectedId)",
+  "onClick={() => setSelectedId(item.id)}",
+  "aria-pressed={selected}",
+  "product.live ?",
+  '"준비 방식 보기"',
+  '<ResumeProProofLink entry="home-premium"',
+  'surface={resumeFunnelSurfaces.homePremium}',
+  'context={resumeFunnelContexts.home}',
+  'properties={{ product: product.id, entry: "home_selected" }}',
+]) assert.ok(explorer.includes(contract), `interactive home contract missing: ${contract}`);
 
-const resume = renderState({ resume: true });
-assert.ok(resume.panelNodes.some((node) => node.props?.href === "/resume-pro?from=home-premium"));
-assert.ok(resume.panelNodes.some((node) => node.props?.entry === "home-premium"), "Resume must retain its proof entry");
-assert.ok(resume.panelNodes.some((node) => node.props?.surface === "home-premium" && node.props?.context === "home"), "Resume must retain its funnel surface and context");
-
-console.log("WEB50 home live-product feature matrix and free fallback passed.");
+console.log("Home Pro selection, live priority, Resume funnel, and Car closed-state contracts passed.");

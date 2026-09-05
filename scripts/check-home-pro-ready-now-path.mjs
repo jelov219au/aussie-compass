@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [section, homePage, catalogPage, finder, proPage, checkerPage, builderPage] = await Promise.all([
+const [section, explorer, homePage, catalogPage, finder, proPage, checkerPage, builderPage] = await Promise.all([
   readFile(new URL("../src/components/sections/PremiumToolsSection.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/sections/HomePremiumToolExplorer.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/ProProductFinder.tsx", import.meta.url), "utf8"),
@@ -10,6 +11,7 @@ const [section, homePage, catalogPage, finder, proPage, checkerPage, builderPage
   readFile(new URL("../src/app/resume-job-ad-checker/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-builder/page.tsx", import.meta.url), "utf8"),
 ]);
+const homePremium = `${section}\n${explorer}`;
 
 assert.ok(homePage.includes("<PremiumToolsSection />"), "the ready-now path must be rendered on the public home page");
 assert.ok(catalogPage.includes("<ProProductFinder resumeProLive={resumeProLive} rentalProLive={rentalProLive} packAvailability={packAvailability} />"), "the public Pro catalog must render the checkout-aware product finder");
@@ -17,18 +19,16 @@ assert.ok(checkerPage.includes("<ResumeJobAdChecker />"), "the primary free path
 assert.ok(builderPage.includes("<ResumeBuilder resumeProLive={resumeProLive} />"), "the secondary free path must open the working saved-draft Builder");
 
 for (const contract of [
-  'data-home-featured-product={featuredProduct?.id ?? "none"}',
-  "지금 이용 가능한 Pro 없음",
-  "지금 바로 할 수 있는 무료 다음 단계",
-  "아래 도구는 제출·신고·구매를 대신 완료하지 않습니다.",
-  "homePremiumFreeActions.map",
-  '<Link href="/pro"',
-  "준비 중인 Pro 상태 비교",
+  "initialProductId={featuredProduct?.id}",
+  'aria-label="Pro 도구 선택"',
+  "aria-pressed={selected}",
+  "border-gold bg-white text-navy",
+  "모든 Pro 도구 비교하기",
   '<ResumeProProofLink entry="home-premium"',
   "결제 전에 내 공고로 무료 확인 →",
-]) assert.ok(section.includes(contract), `the public ready-now path is missing: ${contract}`);
-assert.ok(section.includes('featuredProduct.id === "resume-pro"'), "Resume-specific proof and analytics must run only when Resume is the live feature");
-assert.ok(section.includes("이력서·공고 원문을 서버로 전송하지 않아요"), "the live Resume proof must retain its local-only privacy boundary");
+]) assert.ok(homePremium.includes(contract), `the public ready-now path is missing: ${contract}`);
+assert.ok(explorer.includes('product.id === "resume-pro"'), "Resume-specific proof and analytics must run only for Resume");
+assert.ok(explorer.includes("이력서·공고 원문을 서버로 전송하지 않아요"), "the live Resume proof must retain its local-only privacy boundary");
 
 const unavailableFinderStart = finder.indexOf("const unavailableJobActions = (");
 const unavailableFinderEnd = finder.indexOf("  );", unavailableFinderStart);

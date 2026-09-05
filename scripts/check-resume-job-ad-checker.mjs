@@ -109,7 +109,7 @@ const [component, page, handoff, continuation, offerPage, workspace, visitTracke
   readFile(new URL("../src/components/tools/ContentPerformanceTracker.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/CampaignLinkBuilder.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/ToolsSection.tsx", import.meta.url), "utf8"),
-  readFile(new URL("../src/components/sections/PremiumToolsSection.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/sections/HomePremiumToolExplorer.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/opengraph-image.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/resume-job-ad-checker/twitter-image.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/resumeJobAdCheckerSocialImage.tsx", import.meta.url), "utf8"),
