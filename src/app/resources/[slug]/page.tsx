@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { RelatedVideos } from "@/components/media/RelatedVideos";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PageShareButton } from "@/components/pwa/PageShareButton";
@@ -109,6 +111,16 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                     내 사례를 무료로 저장하기 →
                   </Link>
                 )}
+                {article.slug === "used-car-inspection-report-next-steps" && (
+                  <TrackedLink
+                    href="/used-car-comparison#vehicle-comparison-heading"
+                    eventName="Article Header Action"
+                    properties={{ article: article.slug, destination: "free_tool" }}
+                    className={actionClass("primary", "w-full sm:w-auto")}
+                  >
+                    무료 후보·비용 비교표 열기
+                  </TrackedLink>
+                )}
                 <PageShareButton />
               </div>
             </header>
@@ -135,6 +147,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 <EnergySupportJurisdictionPicker />
               </section>
             )}
+
+            <RelatedVideos context={{ kind: "article", slug: article.slug, slot: "after-summary" }} heading="영상으로 함께 살펴보기" id="article-related-video" />
 
             <ArticleReadingNav
               sections={readingSections}

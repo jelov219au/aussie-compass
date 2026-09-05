@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { VehicleComparison } from "@/components/tools/VehicleComparison";
+import { RelatedVideos } from "@/components/media/RelatedVideos";
 import { VehicleInspectionProviderPicker } from "@/components/tools/VehicleInspectionProviderPicker";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
@@ -125,6 +126,8 @@ export default function UsedCarComparisonPage() {
           </div>
         </section>
 
+        <RelatedVideos context={{ kind: "page", path: "/used-car-comparison", slot: "buying-order" }} heading="영상으로 보는 중고차 구매 사례" id="used-car-buying-video" />
+
         <section className="mt-14 border-t border-navy/20 pt-10" aria-labelledby="inspection-choice-heading">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">04 · 검사 방법 선택</p>
           <h2 id="inspection-choice-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">지인 동행과 독립 사전검사는 역할이 다릅니다</h2>
@@ -192,6 +195,8 @@ export default function UsedCarComparisonPage() {
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">매물을 찾고 판매자에게 기본 질문을 한 다음, 최대 3대의 구매가·Rego·보험·정비·연료비를 같은 기준으로 비교합니다.</p>
           <div className="mt-8"><VehicleComparison /></div>
         </section>
+
+        <RelatedVideos context={{ kind: "page", path: "/used-car-comparison", slot: "after-comparison" }} heading="보험료를 비교할 때 함께 볼 영상" id="used-car-insurance-video" />
 
         <section className="mt-10 rounded-2xl border border-amber-300 bg-amber-50 p-6 text-sm leading-7 text-amber-950">
           <h2 className="font-semibold">중요 안내</h2>

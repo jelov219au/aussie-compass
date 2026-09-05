@@ -96,7 +96,8 @@ for (const source of [builder, checker, articleStep, homeSection, finder, proHub
 assert.ok(finder.includes('freeHref: "/resume-job-ad-checker"') && finder.includes("결제 전에 내 공고로 무료 점검하기"), "the Pro finder must offer the free proof step to job seekers");
 assert.ok(finder.includes('<ResumeProProofLink entry="pro-finder"'), "the Pro finder free proof must retain its fixed acquisition entry");
 assert.ok(finder.includes('href="/resume-builder"') && finder.includes("이력서 초안이 없다면 무료 Builder부터"), "the Pro finder must preserve a free start for visitors without a resume draft");
-assert.ok(proHub.includes('freeHref: "/resume-job-ad-checker"'), "the Resume Pro catalog card must link to the free proof tool");
+const catalogProducts = await readFile(new URL("../src/lib/proCatalogProducts.ts", import.meta.url), "utf8");
+assert.ok(proHub.includes('getProCatalogProducts') && /name: "Resume Pro"[^\n]+freeHref: "\/resume-job-ad-checker"/.test(catalogProducts), "the rendered Resume Pro catalog data must link to the free proof tool");
 assert.ok(proHub.includes('<ResumeProProofLink entry="pro-catalog-card"'), "the Resume Pro catalog free proof must retain its fixed acquisition entry");
 assert.ok(homeSection.includes('<ResumeProProofLink entry="home-premium"'), "the home Resume Pro card must expose the free proof step with its fixed entry");
 assert.ok(homeSection.includes("결제 전에 내 공고로 무료 확인") && homeSection.includes("이력서·공고 원문을 서버로 전송하지 않아요"), "the home proof step must state its free, local-only privacy boundary");

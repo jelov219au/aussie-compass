@@ -20,14 +20,14 @@ export default function MinimumWageGuidePage() {
       <main className="py-12 sm:py-16">
         <Container>
           <Link href="/guides" className="inline-flex text-sm font-medium text-muted transition-colors hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
-            &larr; 도구 목록으로 돌아가기
+            &larr; 급여 가이드로 돌아가기
           </Link>
 
           <div className="mb-10 mt-6 max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">무료 도구</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 최저임금·캐주얼 로딩 가이드</h1>
             <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">
-              고용 형태에 따른 National Minimum Wage와 예상 주급·연봉을 간편하게 확인하세요.
+              일반 성인 중 Award나 Registered agreement 적용을 받지 않는 근로자의 National Minimum Wage 참고 금액입니다. 고용 형태와 근무시간으로 기본 주급·연봉을 확인하세요.
             </p>
           </div>
 
@@ -73,7 +73,7 @@ export default function MinimumWageGuidePage() {
             <h2 className="text-xl font-semibold text-navy">꼭 확인하세요</h2>
             <div className="mt-3 max-w-3xl space-y-3 text-sm leading-7 text-muted sm:text-base">
               <p>
-                이 도구는 2026년 7월 1일부터 적용되는 일반 성인 National Minimum Wage를 기준으로 합니다.
+                이 도구는 2026년 7월 1일 이후 시작하는 첫 Full pay period부터 적용되는 일반 성인 National Minimum Wage를 기준으로 합니다.
                 풀타임·파트타임은 시간당 A$26.44, 캐주얼은 25% 로딩이 포함된 시간당 A$33.05를 사용합니다.
                 공식 풀타임 주급은 38시간 기준 A$1,004.90입니다.
               </p>

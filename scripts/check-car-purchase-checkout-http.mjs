@@ -13,7 +13,9 @@ function load(path, resolve, extra = {}) {
   return compiledModule.exports;
 }
 const requestBody = load("../src/lib/carPurchaseProRequestBody.ts", name => { throw new Error(name); });
+const workspaceAccess = load("../src/lib/carPurchaseProWorkspaceAccess.ts", name => { throw new Error(name); });
 const http = load("../src/lib/carPurchaseProCheckoutHttp.ts", name => {
+  if (name === "./carPurchaseProWorkspaceAccess") return workspaceAccess;
   assert.equal(name, "./carPurchaseProRequestBody"); return requestBody;
 });
 const origin = "https://integration.example", url = origin + "/api/checkout/car-purchase-pro";

@@ -1,5 +1,6 @@
 import type { createCarPurchaseCheckoutCreation } from "./carPurchaseProCheckoutCreation";
 import { readCarPurchaseRequestBody } from "./carPurchaseProRequestBody";
+import { carPurchaseProAccessCookieName } from "./carPurchaseProWorkspaceAccess";
 
 type Service = ReturnType<typeof createCarPurchaseCheckoutCreation>;
 function json(body: object, status: number, extra: Record<string, string> = {}) {
@@ -15,13 +16,29 @@ function safeCheckoutUrl(value: string) {
   } catch { return false; }
 }
 
+function ambiguousAccessCookie(header: string | null, name: string) {
+  // Next's Cookie parser uses a Map, collapsing duplicate names and discarding
+  // undecodable values. Inspect the raw header before either can look absent.
+  const parts = (header ?? "").split(/; */).filter(part => part.split("=", 1)[0].trim() === name);
+  if (parts.length === 0) return false;
+  if (parts.length !== 1) return true;
+  const equal = parts[0].indexOf("=");
+  if (equal < 0 || parts[0].slice(0, equal) !== name) return true;
+  try {
+    const token = decodeURIComponent(parts[0].slice(equal + 1));
+    return token.length > 4096 || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$/.test(token);
+  } catch { return true; }
+}
+
 // JSON response contract for the future checkout UI. No cookie/access grant is
 // issued here, and a successful create is not proof that payment completed.
 export function createCarPurchaseCheckoutHttp(deps: {
   service: Service | null;
   enabled: boolean;
   expectedOrigin: string;
+  environment?: "production" | "development";
 }) {
+  const accessCookieName = carPurchaseProAccessCookieName(deps.environment ?? "production");
   return async function handle(request: Request): Promise<Response> {
     if (request.method !== "POST") return json({ code: "method_not_allowed" }, 405, { Allow: "POST" });
     try {
@@ -44,6 +61,9 @@ export function createCarPurchaseCheckoutHttp(deps: {
       if (fields.get("terms_accepted") !== "yes" || !/^\d{4}-\d{2}-\d{2}$/.test(version)
         || !Number.isFinite(Date.parse(version)) || new Date(version).toISOString().slice(0, 10) !== version) {
         return json({ code: "checkout_invalid_terms" }, 400);
+      }
+      if (ambiguousAccessCookie(request.headers.get("cookie"), accessCookieName)) {
+        return json({ code: "checkout_support_required" }, 503);
       }
       const result = await deps.service(version);
       if (result.ok !== true) {

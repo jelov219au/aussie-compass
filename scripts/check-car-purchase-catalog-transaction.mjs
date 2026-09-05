@@ -27,14 +27,15 @@ const sequence = ["BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY", "SET LOCAL 
 let checks = 0, opened = 0, executed = 0, destroyed = 0;
 function fixture() {
   const f = { calls: [], closes: 0, opens: 0, signals: [], rows: [{ synthetic: true }], binding: { synthetic: "independent registry" },
-    failure: -1, stall: -1, late: -1, closeFailure: false, now: 100000 };
+    failure: -1, stall: -1, late: -1, closeFailure: false, quarantines: 0, now: 100000 };
   f.connection = { binding: f.binding, execute: async (query, values, signal) => {
     const index = f.calls.length; f.calls.push({ query, values }); f.signals.push(signal); executed++;
     if (index === f.failure) throw Error("SECRET driver detail");
     if (index === f.late) return new Promise(resolve => { f.resume = resolve; [...timers].at(-1).fn(); });
     if (index === f.stall) { [...timers].at(-1).fn(); return never(); }
     return query === sql ? f.rows : undefined;
-  }, destroy: () => { f.closes++; destroyed++; if (f.closeFailure) throw Error("SECRET cleanup detail"); } };
+  }, quarantine: () => { f.quarantines++; destroyed++; },
+  close: async () => { assert.equal(f.quarantines, 1); f.closes++; if (f.closeFailure) throw Error("SECRET cleanup detail"); } };
   f.open = async signal => { f.opens++; opened++; f.signal = signal; return f.connection; };
   f.run = request => create({ open: f.open, now: () => f.now })(request ?? input());
   return f;
@@ -102,6 +103,24 @@ const one = first.run(), firstTimer = [...timers][0], two = second.run();
 await two; firstTimer.fn(); await rejects(() => one); releaseFirst(first.connection);
 await new Promise(resolve => setImmediate(resolve));
 assert.equal(first.closes, 1); assert.equal(second.closes, 1); assert(!second.signal.aborted); checks++;
+// Driver shutdown acknowledgement is now asynchronous: rows cannot escape early.
+const closing = fixture(); let finishClose, completed = false;
+closing.connection.close = () => { closing.closes++; return new Promise(resolve => { finishClose = resolve; }); };
+const closingResult = closing.run().then(result => { completed = true; return result; });
+await new Promise(setImmediate);
+assert.equal(completed, false); assert.equal(closing.quarantines, 1); assert.equal(closing.closes, 1); checks++;
+finishClose(); await closingResult; assert.equal(completed, true); checks++;
+// An unconfirmed close consumes the remaining deadline, then fails closed.
+const stuckClose = fixture(); let lateClose;
+stuckClose.connection.close = () => { stuckClose.closes++; return new Promise(resolve => { lateClose = resolve; }); };
+const stuckResult = stuckClose.run(); await new Promise(setImmediate);
+[...timers][0].fn(); await rejects(() => stuckResult);
+assert.equal(stuckClose.quarantines, 1); assert.equal(stuckClose.closes, 1); checks++;
+lateClose(); await new Promise(setImmediate); assert.equal(stuckClose.closes, 1); checks++;
+// Even a broken quarantine hook must not skip the close attempt.
+const badQuarantine = fixture();
+badQuarantine.connection.quarantine = () => { badQuarantine.quarantines++; throw Error("SECRET quarantine detail"); };
+await rejects(() => badQuarantine.run()); assert.equal(badQuarantine.closes, 1); checks++;
 assert.equal(timers.size, 0);
-console.log(JSON.stringify({ status: "PASS", checks, mockOpens: opened, mockStatements: executed, mockDisposals: destroyed,
+console.log(JSON.stringify({ status: "PASS", checks, mockOpens: opened, mockStatements: executed, mockQuarantines: destroyed,
   timing: "deterministic simulated deadline; no real waits", realSqlCalls: 0, productionConnected: false }));

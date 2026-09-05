@@ -20,7 +20,13 @@ export function TrackedLink({
   children: ReactNode;
 }) {
   return (
-    <Link href={href} className={className} onClick={() => track(eventName, properties)}>
+    <Link href={href} className={className} onClick={() => {
+      try {
+        track(eventName, properties);
+      } catch {
+        // Navigation must remain independent from optional analytics.
+      }
+    }}>
       {children}
     </Link>
   );

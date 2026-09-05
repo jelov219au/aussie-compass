@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { phrases } from "@/data/englishPhrases";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
@@ -19,10 +20,10 @@ const steps = [
 ];
 
 const situations = [
-  { id: "bank", label: "은행", title: "수수료가 있는지 물어볼 때", english: "Are there any monthly or ATM fees?", phrase: "bank-fees" },
-  { id: "home", label: "집·렌트", title: "돈을 보내기 전 계약서를 받을 때", english: "Could you send me the agreement before I pay?", phrase: "rent-agreement" },
-  { id: "work", label: "직장·급여", title: "시급과 등급을 글로 확인할 때", english: "Could you confirm my hourly rate in writing?", phrase: "work-rate" },
-  { id: "health", label: "병원·약국", title: "한국어 통역이 필요할 때", english: "I need a Korean interpreter, please.", phrase: "health-interpreter" },
+  { id: "bank", label: "은행", title: "수수료가 있는지 물어볼 때", phrase: "bank-fees" },
+  { id: "home", label: "집·렌트", title: "돈을 보내기 전 계약서를 받을 때", phrase: "rent-agreement" },
+  { id: "work", label: "직장·급여", title: "시급과 등급을 글로 확인할 때", phrase: "work-rate" },
+  { id: "health", label: "병원·약국", title: "한국어 통역이 필요할 때", phrase: "health-interpreter" },
 ] as const;
 
 type SearchParams = Promise<{ situation?: string | string[]; phrase?: string | string[] }>;
@@ -50,7 +51,7 @@ export default async function EnglishPhraseCardsPage({ searchParams }: { searchP
               <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-navy sm:text-5xl">호주 생활 영어,<br /><span className="font-normal text-navy-light">잘 말하는 것보다 정확히 확인하기.</span></h1>
               <p className="mt-5 max-w-3xl text-base leading-7 text-muted sm:text-lg">은행 계좌를 만들 때, 집을 볼 때, 급여를 물을 때, 병원에 갔을 때. 긴 문장을 외우지 않아도 필요한 말부터 골라 쓸 수 있어요.</p>
             </div>
-            <p className="border-l-2 border-gold pl-4 text-sm leading-6 text-muted"><strong className="block text-navy">개인정보를 적지 않아도 돼요.</strong>저장한 문장만 현재 브라우저에 남습니다.</p>
+            <p className="border-l-2 border-gold pl-4 text-sm leading-6 text-muted"><strong className="block text-navy">전체 {phrases.length}개 문장</strong>개인정보를 적지 않아도 돼요. 저장한 문장만 현재 브라우저에 남습니다.</p>
           </div>
 
           <section className="mt-8" aria-labelledby="situation-heading">
@@ -66,7 +67,7 @@ export default async function EnglishPhraseCardsPage({ searchParams }: { searchP
                 <Link key={item.id} href={`/english-phrase-cards?situation=${item.id}&phrase=${item.phrase}#phrase-${item.phrase}`} className="group border border-border bg-white p-5 transition hover:border-gold focus-visible:border-gold focus-visible:outline-none">
                   <span className="text-xs font-semibold text-gold">{item.label}</span>
                   <strong className="mt-2 block text-base leading-6 text-navy">{item.title}</strong>
-                  <span lang="en" className="mt-4 block text-sm leading-6 text-muted group-hover:text-navy">{item.english}</span>
+                  <span lang="en" className="mt-4 block text-sm leading-6 text-muted group-hover:text-navy">{phrases.find(phrase => phrase.id === item.phrase)?.english}</span>
                   <span className="mt-4 block text-sm font-semibold text-navy">이 문장 보기 →</span>
                 </Link>
               ))}
@@ -77,6 +78,7 @@ export default async function EnglishPhraseCardsPage({ searchParams }: { searchP
             {steps.map(([title, body], index) => <li key={title} className="border-t border-navy/20 pt-4"><span className="font-mono text-xs text-gold">0{index + 1}</span><h2 className="mt-2 font-semibold text-navy">{title}</h2><p className="mt-2 text-sm leading-6 text-muted">{body}</p></li>)}
           </ol>
 
+          <p className="mt-6 border-l-2 border-gold bg-surface p-4 text-sm leading-7 text-muted">필요한 질문 하나를 고른 뒤, 상대 답변의 금액·날짜·담당자를 확인하세요. 합의한 다음 조치를 서면으로 받고, 접수번호가 있는 문의라면 번호도 받아 두세요.</p>
           <EnglishPhraseCards initialCategory={matchedSituation?.id} focusPhraseId={matchedSituation?.phrase} />
 
           <section className="mt-10 grid gap-4 md:grid-cols-3" aria-label="함께 확인할 자료">

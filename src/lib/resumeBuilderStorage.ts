@@ -12,6 +12,7 @@ type StatusControllerOptions = {
 
 export type ResumeBuilderStorageStatusController = {
   record: (result: ResumeBuilderSaveResult) => void;
+  reset: () => void;
   dispose: () => void;
   getSnapshot: () => { status: ResumeBuilderStorageStatus; generation: number };
 };
@@ -34,6 +35,12 @@ export function createResumeBuilderStorageStatusController({
   };
 
   return {
+    reset() {
+      if (disposed) return;
+      generation += 1;
+      if (timer !== null) { cancel(timer); timer = null; }
+      emit("idle");
+    },
     record(result) {
       if (disposed) return;
       generation += 1;

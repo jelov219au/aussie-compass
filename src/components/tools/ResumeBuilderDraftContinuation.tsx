@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { resumeStorageKey } from "@/lib/resumeProDeviceStorage";
+import { parseResumeBuilderDraft } from "@/lib/resumeBuilderData";
 import { summarizeResumeBuilderDraft, type ResumeBuilderDraftSummary } from "@/lib/resumeBuilderDraftSummary";
 
 export function ResumeBuilderDraftContinuation({ checkoutAvailable }: { checkoutAvailable: boolean }) {
@@ -10,7 +11,10 @@ export function ResumeBuilderDraftContinuation({ checkoutAvailable }: { checkout
 
   useEffect(() => {
     try {
-      setSummary(summarizeResumeBuilderDraft(window.localStorage.getItem(resumeStorageKey)));
+      const raw = window.localStorage.getItem(resumeStorageKey);
+      if (raw === null) return;
+      parseResumeBuilderDraft(raw);
+      setSummary(summarizeResumeBuilderDraft(raw));
     } catch {
       // Private or unavailable browser storage must not interrupt the offer page.
     }

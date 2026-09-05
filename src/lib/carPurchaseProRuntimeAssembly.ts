@@ -2,7 +2,8 @@ import "server-only";
 import { createCarPurchaseAccessLifecycle } from "./carPurchaseProAccessLifecycle";
 import { createCarPurchaseAccessStore, type CarPurchaseAccessQuery } from "./carPurchaseProAccessStore";
 import { createCarPurchaseAccessHttp } from "./carPurchaseProAccessHttp";
-import { createCarPurchaseCheckoutCreation, type CarPurchaseCheckoutProvider } from "./carPurchaseProCheckoutCreation";
+import { createCarPurchaseCheckoutCreation } from "./carPurchaseProCheckoutCreation";
+import type { CarPurchaseStripeProvider } from "./carPurchaseProStripeProvider";
 import { createCarPurchaseCheckoutGate } from "./carPurchaseProCheckoutGate";
 import { createCarPurchaseCheckoutHttp } from "./carPurchaseProCheckoutHttp";
 import { isCarPurchaseApprovedOffer, type CarPurchaseApprovedOffer } from "./carPurchaseProCheckoutContract";
@@ -12,9 +13,6 @@ import { carPurchaseProAccessCookieName, createCarPurchaseWorkspaceAccess } from
 
 type Mode = "test" | "live";
 type CookieReader = Parameters<typeof createCarPurchaseWorkspaceAccess>[0]["readCookies"];
-type Provider = CarPurchaseCheckoutProvider & {
-  retrieveSession(id: string, options: { expand: ["line_items"] }): Promise<unknown>;
-};
 const record = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
 const offerFields = ["productCode", "currency", "billing", "priceCents", "stripePriceId", "stripeProductId", "termsVersion"] as const;
@@ -35,7 +33,7 @@ export function createCarPurchaseRuntimeAssembly(deps: {
   expectedOrigin: string;
   secret: string | null;
   query: CarPurchaseAccessQuery | null;
-  provider: Provider | null;
+  provider: CarPurchaseStripeProvider | null;
   readCookies: CookieReader;
   readReadiness: ((offer: Readonly<CarPurchaseApprovedOffer>, mode: Mode) => Promise<unknown>) | null;
   now?: () => number;
@@ -44,7 +42,7 @@ export function createCarPurchaseRuntimeAssembly(deps: {
   const environment = deps.environment;
   const closed = () => ({
     handleAccess: createCarPurchaseAccessHttp({ service: null, enabled: false, expectedOrigin: origin, environment }),
-    handleCheckout: createCarPurchaseCheckoutHttp({ service: null, enabled: false, expectedOrigin: origin }),
+    handleCheckout: createCarPurchaseCheckoutHttp({ service: null, enabled: false, expectedOrigin: origin, environment }),
     hasWorkspaceAccess: async () => false,
   });
   const mode = deps.expectedMode;
@@ -121,7 +119,7 @@ export function createCarPurchaseRuntimeAssembly(deps: {
     checkPrerequisites: () => ready("checkout"), hasActiveAccess, now });
   return {
     handleAccess: createCarPurchaseAccessHttp({ service: access, enabled: true, expectedOrigin: origin, environment }),
-    handleCheckout: createCarPurchaseCheckoutHttp({ service: checkout, enabled: salesEnabled, expectedOrigin: origin }),
+    handleCheckout: createCarPurchaseCheckoutHttp({ service: checkout, enabled: salesEnabled, expectedOrigin: origin, environment }),
     hasWorkspaceAccess: createCarPurchaseWorkspaceAccess({ service: access, enabled: true, environment, readCookies }),
   };
 }

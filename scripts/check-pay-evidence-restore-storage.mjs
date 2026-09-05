@@ -54,10 +54,14 @@ function mount(original = JSON.stringify(caseA)) {
     edit(value) { find(node => node.type === "input" && node.props.placeholder === "예: 카페 A").props.onChange({ target: { value } }); settle(); },
     click(label) { const button = find(node => node.type === "button" && text(node) === label); assert(button, `Button exists: ${label}`); button.props.onClick(); settle(); },
     tick() { for (const [id, callback] of [...timers]) { timers.delete(id); callback(); } settle(); },
-    async review() { await find(node => node.type === "input" && node.props.type === "file").props.onChange({ target: { value: "synthetic.json", files: [{ size: new Blob([archiveB]).size, text: async () => archiveB }] } }); settle(); },
+    async review(file = { size: new Blob([archiveB]).size, text: async () => archiveB }) {
+      const reading = find(node => node.type === "input" && node.props.type === "file").props.onChange({ target: { value: "synthetic.json", files: file ? [file] : [] } });
+      settle(); await reading; settle();
+    },
   };
 }
 
+if (!process.argv.includes("--read-race-only")) {
 const app = mount(); app.tick();
 app.edit("Synthetic case A pending edit");
 await app.review(); app.state.fault = true;
@@ -81,3 +85,42 @@ assert.equal(JSON.parse(app.values.get(key)).employerLabel, "B pending save");
 const blocked = mount("{broken original"); blocked.edit("Unsaved local working copy"); blocked.tick();
 assert.equal(blocked.values.get(key), "{broken original"); assert.match(blocked.text(), /원본 보호/);
 console.log("Pay A -> B restore failure/retry, pending timer cancellation, re-open and JSON/TXT passed (synthetic hooks/storage only).");
+}
+
+// Real component handlers; control completion order to reproduce stale previews.
+const archiveA = JSON.stringify(archives.createPayEvidenceCaseArchive(caseA));
+const deferredFile = () => {
+  let resolve, reject;
+  const promise = new Promise((done, fail) => { resolve = done; reject = fail; });
+  return { file: { size: archiveA.length, text: () => promise }, resolve, reject };
+};
+let raceChecks = 0;
+for (const replacement of ["cancel", "oversize", "invalid", "read-error", "empty"]) {
+  const app = mount(), old = deferredFile(); app.edit("Current unsaved edit");
+  const reading = app.review(old.file);
+  if (replacement === "cancel") { await app.review(); app.click("취소하고 현재 기록 유지"); }
+  if (replacement === "oversize") await app.review({ size: archives.MAX_PAY_EVIDENCE_ARCHIVE_BYTES + 1, text: () => assert.fail("Oversize read") });
+  if (replacement === "invalid") await app.review({ size: 7, text: async () => "{broken" });
+  if (replacement === "read-error") await app.review({ size: 1, text: async () => { throw Error("Synthetic read failure"); } });
+  if (replacement === "empty") await app.review(null);
+  const messageBefore = app.text();
+  old.resolve(archiveA); await reading;
+  assert(!app.hasCandidate(), `${replacement}: obsolete file must not recreate a preview`);
+  assert.equal(app.text(), messageBefore, `${replacement}: obsolete result must not replace current notice`);
+  assert.equal(app.draft().employerLabel, "Current unsaved edit");
+  assert.equal(app.values.get(key), JSON.stringify(caseA)); assert.equal(app.state.writes, 0); raceChecks++;
+}
+const latest = mount(), older = deferredFile();
+const oldRead = latest.review(older.file); await latest.review();
+older.resolve(archiveA); await oldRead;
+assert(latest.text().includes(caseB.employerLabel), "Latest selected backup stays in preview");
+latest.click("현재 기록을 이 백업으로 교체");
+assert.deepEqual(latest.draft(), caseB); assert.deepEqual(JSON.parse(latest.values.get(key)), caseB); raceChecks++;
+const staleError = mount(), failed = deferredFile();
+const failedRead = staleError.review(failed.file); await staleError.review();
+const previewBefore = staleError.text(); failed.reject(Error("Old read failed")); await failedRead;
+assert.equal(staleError.text(), previewBefore); assert(staleError.hasCandidate()); raceChecks++;
+const cancelled = mount(), slow = deferredFile(); const slowRead = cancelled.review(slow.file);
+cancelled.click("파일 읽기 취소"); slow.resolve(archiveB); await slowRead;
+assert(!cancelled.hasCandidate()); assert.deepEqual(cancelled.draft(), caseA); assert.equal(cancelled.state.writes, 0); raceChecks++;
+console.log(`PASS Pay archive read races: ${raceChecks} scenario groups; real TSX handlers, synthetic hooks/storage/files; DOM/browser/PWA NOT_RUN.`);

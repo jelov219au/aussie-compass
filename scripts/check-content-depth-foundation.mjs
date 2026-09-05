@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { loadArticleCatalog } from "./lib/load-article-catalog.mjs";
+import { validateArticleDepth } from "./lib/article-depth-contract.mjs";
 
-const [articlesSource, articlePage, minimumWage, minimumWageCalculator, casualLoading, movingChecklist, jurisdictionPicker] = await Promise.all([
-  readFile(new URL("../src/data/articles.ts", import.meta.url), "utf8"),
+const [articlePage, minimumWage, minimumWageCalculator, casualLoading, movingChecklist, jurisdictionPicker] = await Promise.all([
   readFile(new URL("../src/app/resources/[slug]/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/minimum-wage-guide/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/MinimumWageCalculator.tsx", import.meta.url), "utf8"),
@@ -11,20 +12,7 @@ const [articlesSource, articlePage, minimumWage, minimumWageCalculator, casualLo
   readFile(new URL("../src/components/tools/MovingJurisdictionPicker.tsx", import.meta.url), "utf8"),
 ]);
 
-const articleBlocks = articlesSource.split(/\n\s*\{\s*\n\s*slug: "/).slice(1);
-assert.equal(articleBlocks.length, 35, "the resource library article count changed; audit the content-depth baseline");
-
-let totalSections = 0;
-let totalSources = 0;
-for (const block of articleBlocks) {
-  const slug = block.slice(0, block.indexOf('"'));
-  const sectionCount = (block.match(/\{ heading:/g) ?? []).length;
-  const sourceCount = (block.match(/\{ label:/g) ?? []).length;
-  assert.ok(sectionCount >= 6, `${slug} needs at least six substantive sections`);
-  assert.ok(sourceCount >= 3, `${slug} needs at least three official source entry points`);
-  totalSections += sectionCount;
-  totalSources += sourceCount;
-}
+const { articleCount, totalSections, totalSources } = validateArticleDepth(loadArticleCatalog());
 
 assert.ok(articlePage.includes("article.sections.map"), "resource pages must render every audited section");
 assert.ok(articlePage.includes("article.sources.map"), "resource pages must render every audited source");
@@ -49,4 +37,4 @@ for (const source of [minimumWage, casualLoading, movingChecklist, jurisdictionP
   assert.doesNotMatch(source, /checkout|stripe|paymentReadiness|createCheckout/i, "content-depth changes must remain outside checkout and payment-integration flows");
 }
 
-console.log(`CONTENT_DEPTH_FOUNDATION=PASS articles=${articleBlocks.length} sections=${totalSections} sources=${totalSources}`);
+console.log(`CONTENT_DEPTH_FOUNDATION=PASS articles=${articleCount} sections=${totalSections} sources=${totalSources}`);

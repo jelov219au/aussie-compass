@@ -31,7 +31,7 @@ const steps = [
   {
     title: "실제 지급액과 비교하기",
     description:
-      "Payslip의 Gross Pay와 은행 입금액을 기간별로 맞춰 보세요. 받을 세전 금액에서 실제 세전 지급액을 빼면 우선 확인할 차액을 정리할 수 있습니다.",
+      "같은 급여 기간의 예상 Gross와 Payslip Gross를 비교하고, Payslip Net과 은행 입금액은 따로 맞춰 보세요. 시급이나 근무시간이 확인되지 않았다면 차액을 확정하지 말고 확인할 항목으로 남깁니다.",
   },
   {
     title: "고용주에게 서면으로 문의하기",
@@ -53,6 +53,33 @@ const records = [
   "Award·Classification과 적용 시급 자료",
   "고용주와 주고받은 문자·이메일",
 ];
+
+const comparisons = [
+  ["시간·시급", "근무 기록으로 계산한 예상 Gross ↔ Payslip Gross", "시간, 시급, 수당, Overtime이 어떻게 반영됐는지"],
+  ["입금", "Payslip Net ↔ 같은 급여의 은행 입금 합계", "지급일, 분할 입금, 입금 계좌가 맞는지"],
+  ["공제", "공제 항목·금액 ↔ 공제 근거", "항목 설명과 동의 또는 법적 근거가 있는지"],
+  ["Super", "Payslip 표시 ↔ Super fund 거래 내역", "납부 완료인지 예정인지, 대상 기간과 납부일은 언제인지"],
+];
+
+const followUps = [
+  ["다음 급여에 수정하겠다는 답변", "어느 지급일에 어떤 항목을 수정하는지", "답변, 수정 Payslip, 실제 입금 내역"],
+  ["근무시간이 맞다는 답변", "출퇴근·휴게시간 기록을 내 기록과 대조", "시간 차이의 설명과 근거 기록"],
+  ["시급이 맞다는 답변", "Award·Classification·적용 기간을 확인", "적용 기준과 해당 기간의 공식 시급 자료"],
+  ["답변이 없거나 해결되지 않음", "요청 내용과 원본 자료를 모아 Fair Work·노조·관련 전문가에게 문의", "연락 날짜, 담당자, 답변과 다음 행동"],
+];
+
+const enquiryEmail = `Subject: Please check my pay for [start date–end date]
+
+Hi [name],
+
+Could you check the pay for [period]? My records show [hours] paid hours on [date], while my payslip shows [hours]. I have attached the relevant time record and payslip.
+
+Could you confirm the award or agreement, classification and rates used, and explain the difference? If a correction is needed, please confirm when I will receive the corrected payslip and any back payment.
+
+Please reply by [requested date], or let me know when you can review it.
+
+Thank you,
+[name]`;
 
 export default function UnderpaymentGuidePage() {
   return (
@@ -88,6 +115,27 @@ export default function UnderpaymentGuidePage() {
             </p>
           </section>
 
+          <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="comparison-heading">
+            <h2 id="comparison-heading" className="text-2xl font-semibold text-navy">같은 기간, 같은 종류의 금액을 비교하세요</h2>
+            <p className="mt-3 leading-7 text-muted">Gross는 공제 전, Net은 공제 후 금액입니다. Gross에서 은행 입금액을 바로 빼면 세금 등 공제까지 미지급으로 오해할 수 있습니다.</p>
+            <div className="mt-5 overflow-x-auto rounded-xl border border-border" role="region" aria-label="급여 비교 기준 표" tabIndex={0}>
+              <table className="w-full min-w-[34rem] text-left text-sm leading-6">
+                <thead className="bg-surface text-navy"><tr>{["확인 항목", "비교할 자료", "확인 질문"].map((heading) => <th key={heading} scope="col" className="p-4">{heading}</th>)}</tr></thead>
+                <tbody>{comparisons.map(([item, basis, question]) => <tr key={item} className="border-t border-border"><th scope="row" className="p-4 align-top text-navy">{item}</th><td className="p-4 align-top text-muted">{basis}</td><td className="p-4 align-top text-muted">{question}</td></tr>)}</tbody>
+              </table>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-muted">Payslip의 Super는 이미 납부한 금액 또는 납부 예정 금액일 수 있습니다. 표시만으로 fund 입금 완료를 판단하지 마세요. <a href="https://www.fairwork.gov.au/pay-and-wages/paying-wages/pay-slips" target="_blank" rel="noreferrer" className="font-semibold text-navy underline">Fair Work Payslip 안내</a></p>
+          </section>
+
+          <section className="mt-8 rounded-2xl border border-gold/40 bg-gold/10 p-6 sm:p-8" aria-labelledby="example-heading">
+            <h2 id="example-heading" className="text-2xl font-semibold text-navy">예시: 입금은 맞지만 근무시간이 다른 경우</h2>
+            <p className="mt-3 text-sm leading-6 text-muted">아래 시급 A$30과 PAYG 공제 A$70은 설명을 위한 가상 숫자입니다. 법정 시급이나 올바른 세금 계산을 뜻하지 않습니다.</p>
+            <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+              {[["내 근무 기록의 예상 Gross", "20시간 × A$30 = A$600"], ["Payslip Gross", "19시간 × A$30 = A$570"], ["Payslip Net", "A$570 − PAYG A$70 − 기타 공제 A$0 = A$500"], ["은행 입금", "A$500 → Payslip Net과 일치"]].map(([label, value]) => <div key={label} className="rounded-xl bg-white p-4"><dt className="text-sm text-muted">{label}</dt><dd className="mt-2 font-semibold text-navy">{value}</dd></div>)}
+            </dl>
+            <p className="mt-5 leading-7 text-muted">확인할 항목은 근무 기록과 Payslip의 <strong className="text-navy">1시간·세전 A$30 차이</strong>입니다. 예상 Gross A$600에서 입금 A$500을 뺀 A$100을 미지급액으로 적지 마세요. 기록과 적용 시급이 맞는지 먼저 확인하며, 추가 지급 시 세후 입금액은 A$30과 다를 수 있습니다.</p>
+          </section>
+
           <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="steps-heading">
             <h2 id="steps-heading" className="text-2xl font-semibold tracking-tight text-navy">확인부터 문의까지 6단계</h2>
             <ol className="mt-7 space-y-5">
@@ -114,6 +162,33 @@ export default function UnderpaymentGuidePage() {
                 </li>
               ))}
             </ul>
+          </section>
+
+          <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="missing-records-heading">
+            <h2 id="missing-records-heading" className="text-2xl font-semibold text-navy">자료가 부족하면 확인된 것부터 남기세요</h2>
+            <ul className="mt-5 list-disc space-y-3 pl-5 text-sm leading-7 text-muted">
+              <li>대상 급여 기간, 근무 날짜, 시작·종료 시각, 실제 무급 휴게시간, 기록 출처와 Payslip을 함께 정리하세요. 모르는 값은 미확인으로 표시합니다.</li>
+              <li>Roster는 예정 근무이며 실제 근무와 다를 수 있습니다. 기억으로 적은 내용은 그렇게 표시하고 원본을 수정하지 마세요. 다른 사람의 비공개 기록을 가져오지 않습니다.</li>
+              <li>Payslip이 없다면 해당 기간의 급여 내역을 요청하세요. Award·Level이 불명확하면 이름·분류·적용 기간을 묻고, 가장 높은 시급을 임의로 넣지 마세요.</li>
+              <li>휴게시간이 자동 차감됐다면 실제 쉰 시간과 대조하세요. 여러 주가 섞였다면 기록이 가장 분명한 한 기간부터 정리합니다.</li>
+            </ul>
+          </section>
+
+          <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="email-heading">
+            <h2 id="email-heading" className="text-2xl font-semibold text-navy">복사해서 다듬는 Payroll 문의 이메일</h2>
+            <p className="mt-3 leading-7 text-muted">대괄호를 내 기록으로 바꾸고, 해당 근무 기록과 Payslip만 첨부하세요. 시간 차이의 이유와 적용 기준, 수정이 필요한 경우 지급일을 묻는 문장입니다. 요청 답변일은 내가 제안하는 날짜이며 법정 답변 기한이 아닙니다.</p>
+            <pre className="mt-5 whitespace-pre-wrap break-words rounded-xl bg-surface p-5 font-sans text-sm leading-7 text-navy" lang="en">{enquiryEmail}</pre>
+          </section>
+
+          <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="follow-up-heading">
+            <h2 id="follow-up-heading" className="text-2xl font-semibold text-navy">답변을 받으면 다음 행동까지 기록하세요</h2>
+            <div className="mt-5 overflow-x-auto rounded-xl border border-border" role="region" aria-label="급여 문의 답변별 다음 행동 표" tabIndex={0}>
+              <table className="w-full min-w-[34rem] text-left text-sm leading-6">
+                <thead className="bg-surface text-navy"><tr>{["받은 답변", "다음 확인", "남길 자료"].map((heading) => <th key={heading} scope="col" className="p-4">{heading}</th>)}</tr></thead>
+                <tbody>{followUps.map(([reply, action, evidence]) => <tr key={reply} className="border-t border-border"><th scope="row" className="p-4 align-top text-navy">{reply}</th><td className="p-4 align-top text-muted">{action}</td><td className="p-4 align-top text-muted">{evidence}</td></tr>)}</tbody>
+              </table>
+            </div>
+            <p className="mt-4 leading-7 text-muted">원래 Payslip과 수정본을 함께 보관하고 실제 입금과 다음 급여 항목을 다시 확인하세요. ‘설명 받음’, ‘수정 지급 예정’, ‘입금 확인’을 구분해 기록하면 약속만 받은 상태를 완료로 오해하지 않습니다.</p>
           </section>
 
           <section className="mt-8 border border-navy/20 bg-white p-5 sm:p-6" aria-labelledby="pay-evidence-pro-cta">
@@ -162,6 +237,7 @@ export default function UnderpaymentGuidePage() {
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href="/award-guide" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-navy px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-light">Award 확인하기</Link>
               <Link href="/payslip-guide" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-navy bg-white px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-surface">Payslip 읽는 법</Link>
+              <Link href="/resources/first-payslip-checklist-australia" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-navy bg-white px-5 py-2.5 text-sm font-semibold text-navy transition hover:bg-surface">첫 Payslip 체크리스트</Link>
             </div>
           </section>
 

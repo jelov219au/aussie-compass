@@ -40,8 +40,14 @@ assert.doesNotMatch(taxTracker, /fetch\(|sendBeacon|XMLHttpRequest|FormData/, "t
 assert.ok(taxPage.includes("7월의 숙제를, 매달 작은 기록으로 바꾸세요") && taxPage.includes("<TaxPrepTracker />"), "the tax tracker page must lead with the year-round habit and render the working tool");
 assert.ok(taxGuide.includes('href="/tax-prep-tracker"'), "the existing EOFY guide must lead into the year-round tracker");
 for (const discoverySurface of [sitemap, searchPage, toolsPage]) assert.ok(discoverySurface.includes("/tax-prep-tracker"), "the new tracker must be discoverable from sitemap, search and tools");
-for (const changedRoute of ["/tools", "/used-car-comparison", "/tax-prep-tracker", "/tax-return-guide"]) assert.ok(sitemap.includes(`"${changedRoute}": "2026-08-29"`), `the significantly updated route needs an evidence-based lastmod: ${changedRoute}`);
+for (const [changedRoute, lastModified] of Object.entries({
+  "/tools": "2026-09-05",
+  "/used-car-comparison": "2026-08-30",
+  "/tax-prep-tracker": "2026-08-29",
+  "/tax-return-guide": "2026-08-29",
+})) assert.ok(sitemap.includes(`"${changedRoute}": "${lastModified}"`), `the significantly updated route needs its evidence-based lastmod: ${changedRoute}`);
 assert.ok(taxStorage.includes("hoju-compass-tax-prep-records-v1"), "the tax tracker needs a stable storage key");
-for (const continuationSurface of [dataTransfer, dashboard, returnVisit]) assert.ok(continuationSurface.includes("taxPrepRecordsStorageKey"), "tax records must be backed up and visible on return visits");
+assert.ok(dataTransfer.includes("taxPrepRecordsStorageKey"), "tax records must remain in the explicit device backup");
+assert.ok(dashboard.includes("readCompassRecords") && returnVisit.includes("readCompassRecords") && (await readFile(new URL("../src/lib/compassRecords.ts", import.meta.url), "utf8")).includes("taxPrepRecordsStorageKey"), "dashboard and home must reuse the validated tax-record summary");
 
 console.log("Retention content foundation contract passed.");

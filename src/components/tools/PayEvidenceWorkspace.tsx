@@ -76,11 +76,13 @@ export function PayEvidenceWorkspace() {
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
   const [pendingArchive, setPendingArchive] = useState<PayEvidenceCaseArchive | null>(null);
+  const [archiveReading, setArchiveReading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"loading" | "pending" | "saved" | "failed" | "blocked">("loading");
   const [storageBlocked, setStorageBlocked] = useState(false);
   const initialized = useRef(false);
   const saveTimer = useRef<number | null>(null);
   const lastSavedDraft = useRef<PayDraft | null>(null);
+  const archiveReadSequence = useRef(0);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -222,16 +224,22 @@ export function PayEvidenceWorkspace() {
     }
   };
   const reviewCaseArchive = async (event: ChangeEvent<HTMLInputElement>) => {
+    const sequence = ++archiveReadSequence.current;
     const file = event.target.files?.[0];
     event.target.value = "";
     setPendingArchive(null);
+    setArchiveReading(false);
     if (!file) return;
     if (file.size > MAX_PAY_EVIDENCE_ARCHIVE_BYTES) {
       setMessage("백업 파일이 허용 크기인 512KB를 초과해 현재 기록은 변경하지 않았습니다.");
       return;
     }
+    setArchiveReading(true);
+    setMessage("백업 파일을 읽고 있습니다. 다른 파일을 선택하거나 읽기를 취소할 수 있습니다.");
     try {
-      const result = parsePayEvidenceCaseArchive(await file.text());
+      const raw = await file.text();
+      if (sequence !== archiveReadSequence.current) return;
+      const result = parsePayEvidenceCaseArchive(raw);
       if (!result.ok) {
         setMessage(`${result.error} 현재 기록은 변경하지 않았습니다.`);
         return;
@@ -239,13 +247,23 @@ export function PayEvidenceWorkspace() {
       setPendingArchive(result.archive);
       setMessage("백업을 읽었습니다. 아래 요약을 검토한 뒤 교체 여부를 선택하세요.");
     } catch {
+      if (sequence !== archiveReadSequence.current) return;
       setMessage("백업 파일을 읽을 수 없어 현재 기록은 변경하지 않았습니다.");
+    } finally {
+      if (sequence === archiveReadSequence.current) setArchiveReading(false);
     }
+  };
+  const cancelArchiveReview = () => {
+    archiveReadSequence.current++;
+    setArchiveReading(false);
+    setPendingArchive(null);
+    setMessage("백업 검토를 취소해 현재 기록을 유지했습니다.");
   };
   const restoreCaseArchive = () => {
     if (!pendingArchive) return;
     const nextDraft = normaliseDraft(pendingArchive.case);
     if (!persistDraft(nextDraft)) return;
+    archiveReadSequence.current++;
     setDraft(nextDraft);
     setPendingArchive(null);
     setMessage("검토한 백업을 이 브라우저에 저장한 뒤 현재 Pay Evidence 기록을 교체했습니다.");
@@ -330,6 +348,7 @@ export function PayEvidenceWorkspace() {
           <label className="inline-flex min-h-11 cursor-pointer items-center border border-navy px-4 text-sm font-semibold text-navy">백업 파일 검토<input type="file" accept="application/json,.json" onChange={reviewCaseArchive} className="sr-only" /></label>
         </div>
         <p className="mt-3 text-xs leading-5 text-muted">파일을 선택해도 즉시 복원하지 않습니다. 형식·크기·항목 수를 검사하고 아래 요약을 보여준 뒤, 별도 확인 버튼을 눌러야 현재 기록이 교체됩니다.</p>
+        {archiveReading && <button type="button" onClick={cancelArchiveReview} className="mt-4 min-h-11 border border-navy px-4 text-sm font-semibold text-navy">파일 읽기 취소</button>}
         {pendingArchive && <div className="mt-5 border-l-2 border-gold bg-surface px-4 py-4" aria-live="polite">
           <p className="text-sm font-semibold text-navy">복원 전 검토</p>
           <dl className="mt-3 grid gap-2 text-xs leading-5 text-muted sm:grid-cols-2">
@@ -340,7 +359,7 @@ export function PayEvidenceWorkspace() {
           </dl>
           <div className="mt-4 flex flex-wrap gap-3">
             <button type="button" onClick={restoreCaseArchive} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white">현재 기록을 이 백업으로 교체</button>
-            <button type="button" onClick={() => { setPendingArchive(null); setMessage("백업 검토를 취소해 현재 기록을 유지했습니다."); }} className="min-h-11 border border-navy px-4 text-sm font-semibold text-navy">취소하고 현재 기록 유지</button>
+            <button type="button" onClick={cancelArchiveReview} className="min-h-11 border border-navy px-4 text-sm font-semibold text-navy">취소하고 현재 기록 유지</button>
           </div>
         </div>}
       </section>

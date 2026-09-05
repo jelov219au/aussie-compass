@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  readWeeklyReadingGoal,
+  readWeeklyReadingGoalState,
   saveWeeklyReadingGoal,
+  readingThisWeek,
+  ARTICLE_READING_UPDATED_EVENT,
   type ReadArticleRecord,
   type WeeklyReadingTarget,
 } from "@/lib/articleProgress";
@@ -27,12 +29,6 @@ function getRecommendations(articles: ResourceSummary[], readHrefs: Set<string>,
   return ordered.filter((article) => !readHrefs.has(article.href)).slice(0, 3);
 }
 
-function startOfThisWeek() {
-  const now = new Date();
-  const daysSinceMonday = (now.getDay() + 6) % 7;
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysSinceMonday).getTime();
-}
-
 export function ResourceReadingProgress({
   articles,
   readArticles,
@@ -41,28 +37,39 @@ export function ResourceReadingProgress({
   readArticles: ReadArticleRecord[];
 }) {
   const [weeklyGoal, setWeeklyGoal] = useState<WeeklyReadingTarget>(3);
+  const [goalMessage, setGoalMessage] = useState("");
+  const [goalBlocked, setGoalBlocked] = useState(false);
+  const [goalRaw, setGoalRaw] = useState<string | null>(null);
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
-    setWeeklyGoal(readWeeklyReadingGoal());
+    const refresh = () => {
+      const result = readWeeklyReadingGoalState();
+      setNow(new Date());
+      setWeeklyGoal(result.status === "valid" ? result.value : 3);
+      const blocked = result.status === "invalid" || result.status === "unavailable";
+      setGoalBlocked(blocked); setGoalRaw(blocked ? result.raw : null);
+      setGoalMessage(blocked ? "저장 목표를 확인하지 못했습니다. 화면에는 기본 3개를 표시하며 원문은 교체하지 않았습니다." : result.status === "valid" ? "기기에 저장한 목표를 불러왔습니다." : "기본 목표입니다. 원하는 수를 선택하면 기기 저장을 시도합니다.");
+    };
+    refresh(); window.addEventListener("focus", refresh); window.addEventListener("storage", refresh); window.addEventListener(ARTICLE_READING_UPDATED_EVENT, refresh);
+    return () => { window.removeEventListener("focus", refresh); window.removeEventListener("storage", refresh); window.removeEventListener(ARTICLE_READING_UPDATED_EVENT, refresh); };
   }, []);
 
   if (!articles.length) return null;
 
   const availableHrefs = new Set(articles.map((article) => article.href));
-  const readHrefs = new Set(readArticles.map((article) => article.href).filter((href) => availableHrefs.has(href)));
+  const readHrefs = new Set(readArticles.filter(article => now && Date.parse(article.completedAt) <= now.getTime()).map((article) => article.href).filter((href) => availableHrefs.has(href)));
   const completed = readHrefs.size;
   const progress = Math.round((completed / articles.length) * 100);
   const recommendations = getRecommendations(articles, readHrefs, readArticles[0]?.href);
-  const weekStart = startOfThisWeek();
-  const completedThisWeek = readArticles.filter((article) => {
-    const completedAt = new Date(article.completedAt).getTime();
-    return availableHrefs.has(article.href) && Number.isFinite(completedAt) && completedAt >= weekStart;
-  }).length;
+  const completedThisWeek = now ? readingThisWeek(readArticles.filter(article => availableHrefs.has(article.href)), now) : 0;
   const weeklyProgress = Math.min(100, Math.round((completedThisWeek / weeklyGoal) * 100));
   const weeklyGoalComplete = completedThisWeek >= weeklyGoal;
-  const chooseWeeklyGoal = (target: WeeklyReadingTarget) => {
+  const chooseWeeklyGoal = (target: WeeklyReadingTarget, replaceInvalid = false) => {
     setWeeklyGoal(target);
-    saveWeeklyReadingGoal(target);
+    const result = saveWeeklyReadingGoal(target, replaceInvalid);
+    if (result.status === "saved") { setGoalMessage("목표를 기기에 저장했습니다."); setGoalBlocked(false); setGoalRaw(null); }
+    else { setGoalMessage("화면 선택은 바뀌었지만 기기에 저장되지 않았습니다. 기존 목표 원문은 유지됩니다."); setGoalRaw(result.raw); setGoalBlocked(result.status === "invalid" || result.status === "unavailable"); }
   };
 
   return (
@@ -78,7 +85,7 @@ export function ResourceReadingProgress({
         <div
           className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/15"
           role="progressbar"
-          aria-label="실용 자료 완독률"
+          aria-label="실용 자료 아래까지 본 비율"
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={progress}
@@ -86,7 +93,7 @@ export function ResourceReadingProgress({
           <span className="block h-full bg-gold transition-[width]" style={{ width: `${progress}%` }} />
         </div>
         <p className="mt-3 text-sm leading-6 text-white/65">
-          글을 거의 다 읽으면 이 기기에 읽은 기록이 자동으로 남아요.
+          본문을 90% 이상 내려 보고 기기 저장에 성공한 기록입니다. 이해나 행동 완료를 뜻하지 않습니다.
         </p>
         <Link href="/resources" className="mt-5 inline-flex min-h-11 items-center border-b border-gold text-sm font-semibold">
           전체 자료 보기 →
@@ -119,8 +126,11 @@ export function ResourceReadingProgress({
               ))}
             </div>
           </fieldset>
+          <p className="mt-3 text-xs leading-5 text-white/75" role="status">{goalMessage}</p>
+          {goalRaw !== null && <label className="mt-2 block text-xs">주간 목표 원문 백업<textarea readOnly value={goalRaw} onFocus={event => event.target.select()} className="mt-1 min-h-20 w-full border bg-white p-2 text-navy" /></label>}
+          <button type="button" onClick={() => { if (goalBlocked && !window.confirm("필요한 원문을 백업했나요? 기존 기기 목표를 현재 선택으로 교체합니다.")) return; chooseWeeklyGoal(weeklyGoal, goalBlocked); }} className="mt-2 min-h-11 text-xs underline">{goalBlocked ? "현재 선택으로 목표 저장 복구" : "현재 목표 저장 다시 확인"}</button>
           <p className="mt-3 text-xs leading-5 text-white/60" aria-live="polite">
-            {weeklyGoalComplete ? "이번 주 목표를 채웠어요. 천천히 잘 이어가고 있어요." : `이번 주에 ${weeklyGoal - completedThisWeek}개만 더 읽으면 목표를 채울 수 있어요.`}
+            {weeklyGoalComplete ? "이번 주 아래까지 본 기록이 목표 수에 도달했습니다." : `이번 주 목표까지 아래까지 본 기록 ${weeklyGoal - completedThisWeek}개가 남았습니다.`}
           </p>
         </div>
         <WeeklyCalendarReminder />
@@ -131,7 +141,7 @@ export function ResourceReadingProgress({
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">다음으로 볼 자료</p>
             <h3 className="mt-1 text-xl font-semibold text-navy">
-              {recommendations.length ? "이어서 읽어볼까요?" : "공개된 자료를 모두 읽었어요"}
+              {recommendations.length ? "이어서 읽어볼까요?" : "모든 자료에 아래까지 본 기록이 있어요"}
             </h3>
           </div>
           {recommendations.length > 0 && <span className="font-mono text-xs text-muted">약 {recommendations.reduce((total, article) => total + Number.parseInt(article.readingTime, 10), 0)}분</span>}
@@ -155,7 +165,7 @@ export function ResourceReadingProgress({
           </ol>
         ) : (
           <div className="py-8">
-            <p className="text-lg font-semibold text-navy">여기까지 모두 읽었어요.</p>
+            <p className="text-lg font-semibold text-navy">모든 자료를 아래까지 살펴본 기록이 있어요.</p>
             <p className="mt-2 text-sm leading-7 text-muted">새로운 자료가 올라오면 실용 자료 목록과 RSS에서 만날 수 있어요.</p>
             <Link href="/feed.xml" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold underline-offset-4">새 글 RSS 열기 →</Link>
           </div>

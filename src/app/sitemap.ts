@@ -37,6 +37,7 @@ const routes = [
   "/public-transport-guide",
   "/rail-work-alerts",
   "/overseas-driver-licence-guide",
+  "/car-purchase-pro",
   "/used-car-comparison",
   "/moving-checklist",
   "/service-price-log",
@@ -58,8 +59,14 @@ const routes = [
 // Keep these dates manual and evidence-based. Google only uses lastmod when it
 // reflects a significant page update, so do not replace them with new Date().
 const acquisitionRouteUpdates: Record<string, string> = {
-  "": "2026-08-29",
-  "/tools": "2026-08-29",
+  "": "2026-09-05",
+  "/tools": "2026-09-05",
+  "/pro": "2026-09-05",
+  "/privacy": "2026-09-05",
+  "/terms": "2026-09-05",
+  "/disclaimer": "2026-09-05",
+  "/resources": "2026-09-05",
+  "/car-purchase-pro": "2026-09-05",
   "/used-car-comparison": "2026-08-30",
   "/minimum-wage-guide": "2026-08-30",
   "/casual-loading-guide": "2026-08-30",

@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 import ts from "typescript";
+import { loadArticleCatalog } from "./lib/load-article-catalog.mjs";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const aliasesSource = await read("src/lib/articleAliases.mjs");
 const historySource = await read("src/lib/articleProgress.ts");
-const articlesSource = await read("src/data/articles.ts");
 const storage = new Map();
 let writes = 0;
 const localStorage = {
@@ -26,7 +26,7 @@ const load = (source, dependencies = {}) => {
 
 const aliases = load(aliasesSource);
 const config = load(await read("next.config.ts"), { "./src/lib/articleAliases.mjs": aliases }).default;
-const { articles } = load(articlesSource);
+const articles = loadArticleCatalog();
 const legacySlug = "australia-public-holiday-pay-guide";
 const canonicalSlug = "australia-public-holiday-work-pay-guide";
 const legacyHref = `/resources/${legacySlug}`;
@@ -53,7 +53,8 @@ for (const suffix of ["", "/opengraph-image"]) {
 }
 assert.equal(aliases.canonicalArticleHref("/resources/unrelated"), "/resources/unrelated");
 
-const history = load(historySource, { "./articleAliases.mjs": aliases });
+const recordState = load(await read("src/lib/localRecordState.ts"));
+const history = load(historySource, { "./articleAliases.mjs": aliases, "@/lib/localRecordState": recordState });
 const records = [
   { href: legacyHref, title: "이전 제목", completedAt: "2026-08-31T03:00:00Z" },
   { href: canonicalHref, title: canonical.title, completedAt: "2026-08-30T03:00:00Z" },

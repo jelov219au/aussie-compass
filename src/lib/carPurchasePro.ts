@@ -3,6 +3,10 @@ export const carArchiveMaxBytes = 1024 * 1024;
 export const maxCarCandidates = 3;
 export const maxCarIssues = 20;
 export const maxCarSnapshots = 5;
+// A valid candidate can contain 20 issues with six 1,000-character notes each,
+// plus candidate notes and export labels. Preserve that whole snapshot; the
+// serialized archive still has its independent 1MB UTF-8 limit.
+const maxCarSnapshotCharacters = 160_000;
 export const inspectionLabels = { uninspected: "검사 전", partial: "일부만 검사", reported: "보고서 받음" } as const;
 export const issueLabels = { waiting: "답변 기다림", answered: "답변 받음", promised: "수리 약속", verified: "증빙·재확인 완료" } as const;
 export const decisionLabels = { checking: "추가 확인", considering: "구매 검토", excluded: "후보 제외", purchased: "구매·인도 완료 기록" } as const;
@@ -174,7 +178,7 @@ export function validCarDraft(value: unknown): value is CarDraft {
     Array.isArray(value.snapshots) && value.snapshots.length <= maxCarSnapshots && value.snapshots.every(snapshot =>
       object(snapshot) && keysMatch(snapshot, ["id", "recordedAt", "candidateAlias", "text"]) &&
       id(snapshot.id) && text(snapshot.recordedAt, 30) && /^\d{4}-\d{2}-\d{2}T/.test(snapshot.recordedAt) &&
-      Number.isFinite(Date.parse(snapshot.recordedAt)) && text(snapshot.candidateAlias, 80) && text(snapshot.text, 80000)) &&
+      Number.isFinite(Date.parse(snapshot.recordedAt)) && text(snapshot.candidateAlias, 80) && text(snapshot.text, maxCarSnapshotCharacters)) &&
     new Set(value.snapshots.map(snapshot => snapshot.id)).size === value.snapshots.length;
 }
 export function serializeCarDraft(draft: CarDraft) {

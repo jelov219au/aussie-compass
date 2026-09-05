@@ -13,7 +13,7 @@ const tasks = [
   { id: "access", phase: "출국 전", title: "전화번호·2단계 인증", detail: "호주 번호 해지 전에 은행·myGov·이메일의 복구 수단을 해외에서 사용할 방법으로 바꿉니다." },
   { id: "super", phase: "출국 전", title: "모든 Super 계정 확인", detail: "펀드명과 연락처, 마지막 납입 여부를 본인의 안전한 기록에서 확인합니다." },
   { id: "departed", phase: "출국 후", title: "실제 출국 확인", detail: "DASP는 호주를 떠난 뒤에만 제출할 수 있습니다." },
-  { id: "visa", phase: "출국 후", title: "임시비자 종료 확인", detail: "DASP 제출에는 비자가 더 이상 유효하지 않아야 합니다. 비자 취소 결정은 별도로 신중히 확인하세요." },
+  { id: "visa", phase: "출국 후", title: "모든 임시비자 종료 확인", detail: "DASP 제출에는 보유한 모든 임시비자가 더 이상 유효하지 않아야 합니다. 비자 취소 결정은 별도로 신중히 확인하세요." },
   { id: "dasp", phase: "출국 후", title: "DASP 신청·확인 메일", detail: "ATO 공식 시스템에서 신청하고 제출 확인과 지급 명세를 보관합니다." },
   { id: "tax", phase: "출국 후", title: "마지막 Tax return 일정", detail: "대부분 6월 30일 뒤 해외에서도 신고할 수 있습니다. 조기 신고 대상은 ATO 조건을 확인합니다." },
 ] as const;

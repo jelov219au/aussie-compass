@@ -4,12 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { Container } from "@/components/ui/Container";
-import {
-  rentalApplicationProProduct,
-  rentalApplicationProPurchaseTermsVersion,
-  resumeProProduct,
-  resumeProPurchaseTermsVersion,
-} from "@/lib/commerce";
+import { getProPurchaseInformation } from "@/lib/proPurchaseInformation";
 import { getPublicSellerDetails } from "@/lib/publicSeller";
 import { createPageMetadata } from "@/lib/site";
 
@@ -29,8 +24,7 @@ const freeToolConditions = [
 
 export default function TermsPage() {
   const seller = getPublicSellerDetails();
-  const price = `A$${(resumeProProduct.priceCents / 100).toFixed(2)}`;
-  const rentalPrice = `A$${(rentalApplicationProProduct.priceCents / 100).toFixed(2)}`;
+  const products = getProPurchaseInformation();
 
   return (
     <>
@@ -48,16 +42,14 @@ export default function TermsPage() {
             </div>
             <aside className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted">
               <strong className="block text-navy">현재 적용 버전</strong>
-              <span className="mt-1 block">Resume Pro · {resumeProPurchaseTermsVersion}</span>
-              <span className="block">Rental Pack · {rentalApplicationProPurchaseTermsVersion}</span>
+              {products.map(product => <span key={product.id} className="mt-1 block">{product.name} · {product.termsVersion}</span>)}
               <span className="mt-2 block text-xs">결제할 때 확인한 버전이 구매 기록에 함께 남습니다.</span>
             </aside>
           </div>
 
-          <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4" aria-label="핵심 이용 조건">
+          <section className="mt-10 grid gap-5 md:grid-cols-3" aria-label="핵심 이용 조건">
             <article className="border-t-2 border-gold bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Free tools</p><h2 className="mt-3 text-xl font-semibold text-navy">무료 도구는 계속 무료</h2><p className="mt-2 text-sm leading-6 text-muted">기본 이력서 작성, 계산기와 체크리스트는 별도의 결제 없이 이용할 수 있습니다.</p></article>
-            <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Resume Pro</p><h2 className="mt-3 text-xl font-semibold text-navy">{price} AUD 1회 결제</h2><p className="mt-2 text-sm leading-6 text-muted">자동 갱신 구독이 아니며 실제 총액과 세금 표시는 Stripe 결제 화면에서 최종 확인합니다.</p></article>
-            <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Rental Pack Pro</p><h2 className="mt-3 text-xl font-semibold text-navy">{rentalPrice} AUD 1회 결제</h2><p className="mt-2 text-sm leading-6 text-muted">검증을 통과해 결제가 열린 환경에서만 구매할 수 있으며 자동 갱신되지 않습니다.</p></article>
+            <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">제품별 AUD 가격</p><h2 className="mt-3 text-xl font-semibold text-navy">자동 갱신 없는 1회 결제</h2><ul className="mt-3 space-y-2 text-sm leading-6 text-navy">{products.map(product => <li key={product.id}><Link href={product.href} className="underline decoration-gold underline-offset-4">{product.name}</Link> · {product.price}</li>)}</ul><p className="mt-3 text-sm leading-6 text-muted">결제가 열린 제품만 구매할 수 있습니다. 실제 총액과 세금 표시는 Stripe 결제 화면에서 최종 확인합니다.</p></article>
             <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Consumer rights</p><h2 className="mt-3 text-xl font-semibold text-navy">법에서 보장하는 권리는 그대로</h2><p className="mt-2 text-sm leading-6 text-muted">이 조건은 Australian Consumer Law에 따른 소비자 보장 권리를 제한하지 않습니다.</p></article>
           </section>
 
@@ -72,22 +64,28 @@ export default function TermsPage() {
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>Resume Pro는 프리미엄 이력서 레이아웃, 커버레터 작성 도구, 채용 공고 표현 점검과 회사별 지원서 정리를 제공하는 브라우저 기반 디지털 작업 공간입니다.</p>
                 <p>Rental Application Pack Pro는 렌트 신청 서류의 준비 상태, 개인정보 점검, 영문 소개문과 집 후보별 준비 요약을 제공하는 브라우저 기반 디지털 작업 공간입니다. 신분증·Payslip·은행 서류 원본은 받거나 제출하지 않습니다.</p>
+                <p>Pay Evidence Pack Pro는 근무 기록과 Payslip 금액의 대조, 증빙 상태와 영문 확인 요청문을 정리하는 작업 공간입니다.</p>
+                <p>EOFY Pack Pro는 회계연도별 소득·공제 준비 자료와 세무사에게 물을 질문을 정리하는 작업 공간입니다.</p>
+                <p>Leaving Australia Pack Pro는 출국 준비 작업과 Bond·마지막 급여·DASP 등 후속 정산의 질문·연락·결과 메모를 정리하는 작업 공간입니다.</p>
                 <p>채용 합격, 면접 기회, 고용주 응답 또는 특정 결과를 보장하지 않습니다. 사용자는 생성된 문장을 자신의 실제 경험과 지원 직무에 맞게 확인하고 수정해야 합니다.</p>
                 <p>Rental Application Pack Pro도 임대 승인, 에이전트 응답 또는 특정 집의 계약을 보장하지 않으며 신청서 제출이나 법률 자문을 대신하지 않습니다.</p>
+                <p>Pay Evidence Pack Pro는 임금 지급이나 체불 여부를 판정·보장하거나 신고를 대행하지 않습니다. 사용자는 기록을 정리한 뒤 문의·신고에 쓸 자료를 확인하고 Fair Work 또는 전문가의 답변을 확인해야 합니다.</p>
+                <p>EOFY Pack Pro는 세금 신고 결과·공제 가능 여부·환급액을 판정하거나 신고를 대행하지 않습니다. 사용자는 기록과 질문을 정리한 뒤 ATO 자료 또는 등록 세무사의 답변을 확인해야 합니다.</p>
+                <p>Leaving Australia Pack Pro는 Bond 반환, 마지막 급여 또는 DASP 처리를 판정·보장하거나 대신 신청하지 않습니다. 사용자는 후속 기록을 정리하고 문의에 쓸 자료를 확인한 뒤 관련 기관 또는 전문가의 답변을 확인해야 합니다.</p>
               </div>
             </section>
 
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
               <div><p className="font-mono text-xs text-gold">03 / PAYMENT</p><h2 className="mt-2 text-xl font-semibold text-navy">결제와 제공 방식</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
-                <p>Resume Pro는 {price} AUD, Rental Application Pack Pro는 {rentalPrice} AUD의 1회 결제 상품입니다. 제품별 결제가 열린 경우에만 Stripe 화면으로 이동하며, 결제 전에 최종 금액·결제수단·인보이스 정보를 확인할 수 있습니다. Hoju Compass는 전체 카드번호나 CVC를 직접 받지 않습니다.</p>
+                <p>위 가격표의 Pro 제품은 AUD 기준 1회 결제 상품입니다. 제품별 결제가 열린 경우에만 Stripe 화면으로 이동하며, 결제 전에 최종 금액·결제수단·인보이스 정보를 확인할 수 있습니다. Hoju Compass는 전체 카드번호나 CVC를 직접 받지 않습니다. Car Purchase Pack Pro의 가격·구매 조건은 준비 중이며 현재 구매할 수 없습니다.</p>
                 <p>Hoju Compass는 Pro 디지털 제품 제공과 이용권·접근·기능 지원을 담당합니다. Stripe 공식 안내 기준으로, Managed Payments Checkout에서는 Stripe의 Link가 거래상 판매자(Merchant of Record)로 표시되고 거래 단위 지원을 제공합니다. Stripe는 Managed Payments를 운영하며 지원되는 국가의 간접세 계산·징수·신고·납부를 처리합니다.</p>
                 <p>실제 거래의 판매자 명칭, 문서 발행자와 거래 지원 경로는 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만 그 문서를 기준으로 확인합니다. 명확하지 않으면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요.</p>
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-5">
                   <a href="https://docs.stripe.com/payments/managed-payments/set-up#testing" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Stripe 공식 Checkout 역할 안내 ↗</a>
                   <a href="https://docs.stripe.com/payments/managed-payments/how-it-works" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Managed Payments 처리 범위 ↗</a>
                 </div>
-                <p>결제가 확인되면 현재 기기에 30일짜리 접근 세션을 발급합니다. 30일은 구매 이용권의 소멸일이 아니라 이 기기의 이용 확인 기간이며, 활성 이용권은 복구 절차를 통해 다시 연결할 수 있습니다.</p>
+                <p>결제가 확인되면 현재 기기에 해당 제품 전용 30일 접근 세션을 발급합니다. 30일은 구매 이용권의 소멸일이 아니라 이 기기의 이용 확인 기간이며, 활성 이용권은 제품별 복구 절차를 통해 다시 연결할 수 있습니다. 한 제품의 이용권·접근 쿠키·복구 코드는 다른 Pro 제품을 열지 않습니다.</p>
                 <p>새 기기로 옮길 때 사용하는 복구 코드는 발급 후 30일 안에 한 번만 사용할 수 있습니다. 새 코드를 만들면 이전에 사용하지 않은 코드는 무효화됩니다.</p>
                 <Link href="/purchase-information" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">가격·제공·환불 안내 자세히 보기 →</Link>
               </div>
@@ -96,8 +94,8 @@ export default function TermsPage() {
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
               <div><p className="font-mono text-xs text-gold">04 / YOUR DATA</p><h2 className="mt-2 text-xl font-semibold text-navy">작성 내용과 백업</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
-                <p>이력서·커버레터와 렌트 신청 준비 내용은 별도 안내가 없는 한 현재 브라우저에서 처리됩니다. 결제 이용권 데이터베이스에는 작업 공간의 문서 원문이나 원본 증빙을 저장하지 않습니다.</p>
-                <p>브라우저 사이트 데이터를 지우거나 기기를 바꾸면 로컬 작성 내용이 사라질 수 있습니다. 중요한 결과물은 PDF, 텍스트 또는 백업 파일로 직접 보관해 주세요.</p>
+                <p>이력서·커버레터, 렌트 신청 준비, Pay Evidence 급여 대조, EOFY 세금 준비, Leaving 출국·정산 기록과 현재 준비 중인 Car Purchase 작업 공간의 재사용 초안은 별도 안내가 없는 한 현재 브라우저에서 처리됩니다. 결제 이용권 데이터베이스에는 작업 공간의 문서 원문이나 원본 증빙을 저장하지 않습니다. Car Purchase Pack Pro는 가격·구매 조건 준비 중이고 결제 미오픈이므로 현재 구매 이용권을 제공하지 않습니다.</p>
+                <p>브라우저 사이트 데이터를 지우거나 기기를 바꾸면 로컬 작성 내용이 사라질 수 있습니다. 중요한 결과물은 도구별 PDF·TXT·archive로 보관하거나 <Link href="/data-transfer" className="font-semibold text-navy underline decoration-gold underline-offset-4">데이터 백업·이전</Link>에서 선택한 작성 원문을 JSON으로 백업해 주세요. 이 기기 백업에는 구매 이용권·접근 쿠키·복구 코드나 nonce가 포함되지 않으며, 이용권은 <Link href="/payment-help" className="font-semibold text-navy underline decoration-gold underline-offset-4">제품별 결제·접근 복구 절차</Link>로 다시 연결해야 합니다.</p>
                 <Link href="/privacy" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내 보기 →</Link>
               </div>
             </section>

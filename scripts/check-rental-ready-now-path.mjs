@@ -131,11 +131,13 @@ assert.doesNotMatch(closedBranch, /유료 검증 준비 중|disabled|checkout|�
 assert.ok(freePage.includes('id="house-hunt-project"') && freePage.includes('className="mt-10 scroll-mt-24"'), "the direct free-project link needs a stable, offset destination");
 assert.ok(freePage.indexOf('id="house-hunt-project"') < freePage.indexOf('<LocalProjectChecklist storageKey="house-hunt-project"'), "the destination must wrap the working project checklist");
 for (const capability of [
-  "localStorage.getItem(storageKey)",
-  "localStorage.setItem(storageKey",
+  "useLocalPlan(storageKey, emptyProjectProgress, codec.parse, codec.serialize",
+  "<ProjectChecklist key={props.storageKey}",
   "checked, targetDate",
   "캘린더 리마인더 받기",
 ]) assert.ok(freeProject.includes(capability), `the promoted free project is missing its working capability: ${capability}`);
+const projectStorage = await readFile(new URL("../src/lib/useLocalPlan.ts", import.meta.url), "utf8");
+assert.ok(projectStorage.includes("localStorage.getItem(key)") && projectStorage.includes("localStorage.setItem(key, raw)"), "the shared project storage must retain local read/write support");
 
 assert.ok(offerPage.includes("Rental Pack 결제는 아직 열리지 않았어요."), "the free-first state must remain explicit that payment is unavailable");
 assert.ok(offerPage.includes("지원·계약·입주 체크 상태와 목표일을 현재 브라우저에 저장"), "the landing must name the immediate free result accurately");

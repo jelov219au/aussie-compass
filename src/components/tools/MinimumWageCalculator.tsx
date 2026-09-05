@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const PERMANENT_HOURLY_RATE = 26.44;
 const PERMANENT_38_HOUR_WEEKLY_RATE = 1004.9;
@@ -46,7 +47,7 @@ export function MinimumWageCalculator() {
   return (
     <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
       <section className="rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-sm font-semibold text-gold">2026년 7월 1일부터 적용</p>
+        <p className="text-sm font-semibold text-gold">2026년 7월 1일 이후 시작하는 첫 Full pay period부터 적용</p>
         <h2 className="mt-2 text-xl font-semibold text-navy">근무 조건</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">
           고용 형태와 평소 주당 근무 시간을 선택해 주세요.
@@ -109,8 +110,10 @@ export function MinimumWageCalculator() {
       <section className="rounded-2xl bg-navy p-6 text-white shadow-sm sm:p-8" aria-live="polite">
         <h2 className="text-xl font-semibold">National Minimum Wage 예상 금액</h2>
         <p className="mt-2 text-sm leading-relaxed text-white/70">
-          세전 금액이며 일반 성인 award-free 근로자 기준입니다.
+          세전 금액이며 일반 성인 Award·Agreement-free 근로자 참고 기준입니다.
         </p>
+        <p className="mt-3 rounded-xl bg-white/10 p-4 text-sm leading-6 text-white/80">기본 시급만 곱한 금액이며 주말·야간·초과근무 가산은 포함하지 않습니다. 연봉은 같은 시간으로 52주 일한다는 가정입니다. Casual의 52주 유급근무를 보장하지 않습니다.</p>
+        {!error && hours > 38 && <p className="mt-3 text-sm leading-6 text-white/80">38시간을 넘는 입력에는 초과근무 가산이 계산되지 않습니다. <Link href="/award-guide" className="font-semibold text-gold underline">적용 Award와 근무 조건 확인 →</Link></p>}
         {usesOfficialPermanentWeeklyRate ? (
           <p className="mt-3 border-l-2 border-gold pl-3 text-xs leading-6 text-white/70">
             38시간 주급은 Fair Work가 공표한 A$1,004.90을 사용합니다. 표시 시급은 센트 단위로 반올림되어 단순 곱셈과 소액 차이가 날 수 있어요.

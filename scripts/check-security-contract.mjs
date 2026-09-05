@@ -24,11 +24,12 @@ else process.env.NODE_ENV = originalNodeEnv;
 if (originalVercelEnv === undefined) delete process.env.VERCEL_ENV;
 else process.env.VERCEL_ENV = originalVercelEnv;
 
-const [requestSecurity, cspDecision, jsonLdComponent, dashboard, jobTracker, serviceWorker, serviceWorkerRegistration, nswProvider, nswRoute, railPlanner] = await Promise.all([
+const [requestSecurity, cspDecision, jsonLdComponent, dashboard, bookmarkStorage, jobTracker, serviceWorker, serviceWorkerRegistration, nswProvider, nswRoute, railPlanner] = await Promise.all([
   projectFile("src/lib/requestSecurity.ts"),
   projectFile("docs/csp-hardening.md"),
   projectFile("src/components/seo/JsonLd.tsx"),
   projectFile("src/components/dashboard/MyCompassDashboard.tsx"),
+  projectFile("src/lib/bookmarks.ts"),
   projectFile("src/components/tools/JobApplicationTracker.tsx"),
   projectFile("public/sw.js"),
   projectFile("src/components/pwa/ServiceWorkerRegistration.tsx"),
@@ -149,7 +150,7 @@ for (const unsafeUrl of ["javascript:alert(1)", "data:text/html,<script>alert(1)
   assert.equal(safeExternalHttpUrl(unsafeUrl), null, `Unsafe external URL was accepted: ${unsafeUrl}`);
 }
 
-assert.ok(dashboard.includes("safeInternalNavigationPath(bookmark.href)"), "Imported bookmark links must be constrained to local paths");
+assert.ok(dashboard.includes("readCompassRecords") && bookmarkStorage.includes("safeInternalNavigationPath"), "Imported bookmark links must be validated before the dashboard renders them");
 assert.ok(jobTracker.includes("safeApplications(JSON.parse(stored))"), "Imported job records must be validated before rendering");
 assert.ok(jobTracker.includes("safeExternalHttpUrl(item.link)"), "Imported job links must be constrained to HTTP(S)");
 

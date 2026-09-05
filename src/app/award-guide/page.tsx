@@ -111,8 +111,17 @@ export default function AwardGuidePage() {
           <section className="mt-8 rounded-2xl border border-gold/40 bg-gold/10 p-6 sm:p-8" aria-labelledby="check-rate-heading">
             <h2 id="check-rate-heading" className="text-xl font-semibold text-navy">2026년 7월 이후 기준도 다시 확인하세요</h2>
             <p className="mt-3 max-w-4xl leading-7 text-muted">
-              2026년 7월 1일부터 National Minimum Wage는 시간당 A$26.44이며 Award 최저임금은 4.75% 인상됐습니다. 일반적으로 첫 번째 전체 급여 기간부터 새 기준이 적용되므로 Fair Work 계산기에서 최신 날짜를 선택하세요.
+              새 기준은 2026년 7월 1일 이후 시작하는 첫 전체 급여 기간부터 적용됩니다. 과거 급여를 확인할 때는 오늘 날짜가 아니라 실제로 일한 기간을 선택하세요. Award별 최저기준·분류가 다르므로 기존 시급에 4.75%만 곱해 확정하지 말고 해당 기간의 공식 Pay guide 또는 계산 결과를 확인하세요.
             </p>
+            <a href="https://www.fairwork.gov.au/about-us/workplace-laws/annual-wage-review/annual-wage-review-2026" target="_blank" rel="noreferrer" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline">Fair Work 2026 Annual Wage Review 안내</a>
+          </section>
+
+          <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="award-notes-heading">
+            <h2 id="award-notes-heading" className="text-2xl font-semibold text-navy">찾은 결과를 이렇게 기록하세요</h2>
+            <p className="mt-3 leading-7 text-muted">다음 항목을 메모로 남기면 나중에 다른 시급이 나와도 어디가 달랐는지 확인할 수 있습니다.</p>
+            <p className="mt-4 rounded-xl bg-surface p-5 text-sm leading-7 text-navy">대상 근무기간 / 적용 Agreement 또는 Award 이름 / Classification·Level / 고용형태 / 기본 Rate·Loading 포함 여부 / 토·일·공휴일·Overtime 조건 / 확인 날짜·링크</p>
+            <p className="mt-4 leading-7 text-muted">실제 업무가 분류 설명과 맞는지 확인하기 전에는 Level을 확정하지 마세요. 아래 문장에 주요 업무를 적어 적용 문서·Level과 Loading 포함 여부를 물어볼 수 있습니다.</p>
+            <blockquote className="mt-4 break-words border-l-4 border-gold bg-surface p-5 text-sm leading-7 text-navy" lang="en">Could you confirm the award or agreement and classification used for my role? My main duties are [duties]. Please also confirm whether the quoted hourly rate includes casual loading.</blockquote>
           </section>
 
           <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="official-tools-heading">

@@ -21,7 +21,7 @@ const groups: ProjectGroup[] = [
   ]},
   { title: "첫 7일", items: [
     { id: "bank", label: "은행 계좌 개설·카드 수령·급여 정보 확인", detail: "신분 확인이 끝났는지, 카드 배송 주소와 예상일, 전체 수수료를 확인하고 BSB·계좌번호를 Payroll에 옮긴 뒤 보안 알림을 설정하세요." },
-    { id: "tfn", label: "근로 예정이라면 공식 ATO에서 TFN 신청", detail: "호주에 도착한 뒤 본인에게 맞는 신청 경로를 사용하고 TFN을 구직 사이트나 고용주 외 제3자에게 공개하지 마세요." },
+    { id: "tfn", label: "근로 예정이라면 공식 ATO에서 TFN 신청", detail: "호주 도착 후 본인에게 맞는 신청 경로를 이용하세요. TFN은 구직 공고·메신저에 노출하지 말고 실제 고용주의 Payroll·은행·등록 세무사처럼 정당하게 필요한 상대의 공식 경로로만 제출하세요." },
     { id: "student-address", label: "학생은 학교 주소 신고 의무 확인", detail: "비자 조건과 학교 안내에서 도착 후 주소 통지 기한을 확인하고 공식 학생 포털로 업데이트하세요." },
     { id: "usi", label: "학생은 입국 후 USI 생성 여부 확인", detail: "호주에서 VET·고등교육을 이수하는 국제학생은 입국 후 USI를 만들고 학교에 전달하세요. 출국 뒤에는 호주 비자를 이용한 신규 생성이 불가능할 수 있어 졸업·수료증 발급에 문제가 생길 수 있습니다. 기존 USI와 면제 여부는 공식 안내에서 먼저 확인하세요." },
   ]},
@@ -34,7 +34,7 @@ const groups: ProjectGroup[] = [
   { title: "첫 30일", items: [
     { id: "bank-first-statement", label: "첫 은행 명세서와 자동출금 대조", detail: "급여·수수료·Direct debit·카드 결제를 청구서와 맞추고 중복·모르는 거래는 즉시 은행에 신고해 Reference를 받으세요." },
     { id: "health-first-claim", label: "첫 의료 영수증·보험 청구와 결과 일정 대조", detail: "Tax invoice의 Provider·서비스·납부액, Medicare·보험 benefit과 남은 Gap을 맞추고 검사 결과일·재진·Claim reference를 함께 보관하세요." },
-    { id: "work-records", label: "첫 직장 근무기록 방식 준비", detail: "시작·종료·휴게시간, 업무와 약속된 시급을 고용주 기록과 별도로 보관하세요." },
+    { id: "work-records", label: "첫 직장 근무기록 방식 준비", detail: "첫 근무 전 시급·고용 형태·근무 조건을 확인하고, 첫 근무일부터 시작·종료·휴게시간과 업무를 고용주 기록과 별도로 보관하세요." },
     { id: "super", label: "Super fund 선택·납부 정보 준비", detail: "새 계좌를 만들기 전 기존 계좌 유무와 수수료·보험을 확인하고 myGov 연결은 공식 경로만 이용하세요." },
     { id: "payslip", label: "첫 Payslip과 입금액 비교", detail: "Award·분류, 시급, 근무시간, PAYG와 Super 항목을 확인하고 이상하면 기록을 바탕으로 질문하세요." },
     { id: "budget", label: "실제 한 달 생활비로 예산 갱신", detail: "처음 예상과 실제 주거·교통·식비를 비교하고 비상금과 다음 달 저축액을 조정하세요." },
@@ -52,7 +52,7 @@ const officialLinks = [
 
 export default function ArrivalChecklistPage() { return <><BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "호주 도착 후 30일", path: "/arrival-checklist" }]} /><Header /><main className="py-12 sm:py-16"><Container>
   <Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 도구 목록으로 돌아가기</Link>
-  <div className="mt-5 max-w-4xl"><p className="text-sm font-semibold text-gold">비자 승인 뒤, 이제 호주 생활을 시작할 차례</p><h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 도착 후 첫 30일, 필요한 것부터 차근차근</h1><p className="mt-4 text-base leading-7 text-muted sm:text-lg">도착하자마자 모든 일을 끝낼 필요는 없어요. 첫날에는 연락과 이동을 챙기고, 첫 주에는 비자 조건과 은행·TFN을 확인하는 식으로 여유 있게 따라가 보세요.</p></div>
+  <div className="mt-5 max-w-4xl"><p className="text-sm font-semibold text-gold">비자 승인 뒤, 이제 호주 생활을 시작할 차례</p><h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 도착 후 첫 30일, 필요한 것부터 차근차근</h1><p className="mt-4 text-base leading-7 text-muted sm:text-lg">도착하자마자 모든 일을 끝낼 필요는 없어요. 첫날에는 연락과 이동을 챙기고, 첫 주에는 비자 조건과 은행·TFN을 확인하세요. 첫 30일은 우선순위 예시입니다. 근로 조건은 첫 근무 전에, 첫 Payslip과 입금은 첫 급여일에 대조하고 의료 도움은 필요할 때 즉시 받으세요. 문제를 30일째까지 기다리지 마세요.</p></div>
 
   <div className="my-8 grid gap-4 md:grid-cols-4">{[["DAY 1–2", "연락·교통", "숙소 도착, 전화번호와 이동수단"], ["WEEK 1", "공식 등록", "VEVO, 은행, TFN과 학생 절차"], ["WEEK 2", "생활 기반", "의료, 장기 주거와 사기 예방"], ["DAY 30", "첫 점검", "Payslip, Super와 실제 생활비"]].map(([time, title, body], index) => <article key={time} className={`rounded-2xl border p-5 ${index === 0 ? "border-gold/40 bg-gold/5" : "border-border bg-white"}`}><p className="text-xs font-semibold text-gold">{time}</p><h2 className="mt-2 font-semibold text-navy">{title}</h2><p className="mt-2 text-sm leading-6 text-muted">{body}</p></article>)}</div>
 

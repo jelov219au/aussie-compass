@@ -15,10 +15,10 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
-        <HomeInstallBanner />
         <ToolsSection />
         <PersonalRouteFinder />
         <ReturnVisitSection />
+        <HomeInstallBanner />
         <PremiumToolsSection />
         <ArticlesSection />
         <HomeTrustBar />

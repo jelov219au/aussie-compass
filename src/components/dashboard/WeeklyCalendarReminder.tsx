@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { foldLine } from "@/lib/lifeReminders";
 
 const weekdays = [
   { value: 1, code: "MO", label: "월요일" },
@@ -33,6 +34,7 @@ function nextOccurrence(weekday: number, time: string) {
 }
 
 function createCalendarFile(weekday: number, weekdayCode: string, time: string) {
+  if (!weekdays.some(day => day.value === weekday && day.code === weekdayCode) || !reminderTimes.some(value => value === time)) throw new Error("요일과 시간을 다시 선택하세요.");
   const createdAt = new Date();
   const start = nextOccurrence(weekday, time);
   return [
@@ -57,27 +59,29 @@ function createCalendarFile(weekday: number, weekdayCode: string, time: string) 
     "END:VALARM",
     "END:VEVENT",
     "END:VCALENDAR",
-  ].join("\r\n");
+  ].map(foldLine).join("\r\n") + "\r\n";
 }
 
 export function WeeklyCalendarReminder() {
   const [weekday, setWeekday] = useState(0);
   const [time, setTime] = useState<(typeof reminderTimes)[number]>("19:00");
   const [message, setMessage] = useState("");
+  const [fallback, setFallback] = useState("");
 
   const downloadReminder = () => {
-    const selectedDay = weekdays.find((day) => day.value === weekday) ?? weekdays[2];
-    const contents = createCalendarFile(selectedDay.value, selectedDay.code, time);
-    const blob = new Blob([contents], { type: "text/calendar;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "hoju-compass-weekly-reading.ics";
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
-    setMessage(`${selectedDay.label} ${time} 일정 파일을 만들었어요. 내려받은 파일을 열면 캘린더에 저장할 수 있어요.`);
+    let contents = "", url: string | undefined, anchor: HTMLAnchorElement | undefined;
+    try {
+      const selectedDay = weekdays.find((day) => day.value === weekday);
+      if (!selectedDay) throw new Error("요일을 다시 선택하세요.");
+      contents = createCalendarFile(selectedDay.value, selectedDay.code, time);
+      url = URL.createObjectURL(new Blob([contents], { type: "text/calendar;charset=utf-8" }));
+      anchor = document.createElement("a"); anchor.href = url; anchor.download = "hoju-compass-weekly-reading.ics";
+      document.body.appendChild(anchor); anchor.click(); setFallback("");
+      setMessage(`첫 일정 ${nextOccurrence(weekday, time).toLocaleDateString("ko-KR")} ${time}, 매주 ${selectedDay.label} 반복 파일을 요청했습니다. 캘린더 등록 여부는 앱에서 확인하세요.`);
+    } catch {
+      setFallback(contents);
+      setMessage(contents ? "다운로드하지 못했습니다. 아래 내용을 .ics 파일로 보관하거나 달력 앱에서 직접 일정을 만드세요." : "요일과 시간을 다시 선택하세요.");
+    } finally { anchor?.remove(); if (url) URL.revokeObjectURL(url); }
   };
 
   return (
@@ -110,9 +114,10 @@ export function WeeklyCalendarReminder() {
         캘린더 일정 파일 받기
       </button>
       <p className="mt-3 text-xs leading-5 text-white/55">
-        파일을 열면 사용하는 캘린더 앱에 매주 반복 일정을 넣을 수 있어요. 알림은 캘린더 앱에서 보내며 Hoju Compass는 이메일을 보내지 않아요.
+        파일을 열면 사용하는 캘린더 앱에 매주 반복 일정을 넣을 수 있어요. 20분 일정과 15분 전 알림이며, 가져온 뒤 앱의 시간대·알림을 확인하세요. 반복 일정 수정·삭제도 앱에서 합니다. 알림은 캘린더 앱에서 보내며 Hoju Compass는 이메일을 보내지 않아요.
       </p>
       {message && <p className="mt-3 border-l-2 border-gold pl-3 text-xs leading-5 text-white/75" role="status">{message}</p>}
+      {fallback && <label className="mt-3 block text-xs">캘린더 파일 내용<textarea readOnly value={fallback} onFocus={event => event.target.select()} className="mt-1 min-h-32 w-full border bg-white p-2 text-navy" /></label>}
     </div>
   );
 }

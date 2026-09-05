@@ -52,11 +52,24 @@ export default function TaxReturnGuidePage() {
 
         <section className="mb-8 grid gap-5 border-y border-navy/20 bg-white p-6 sm:grid-cols-[1fr_auto] sm:items-center sm:p-8" aria-labelledby="tax-year-tracker-cta"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">7월 전에 시작하기</p><h2 id="tax-year-tracker-cta" className="mt-2 text-2xl font-semibold text-navy">한꺼번에 기억하지 말고, 매달 준비 기록을 쌓으세요</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-muted">소득·지출 후보와 증빙 위치를 현재 브라우저에 기록하고 회계연도별 CSV로 백업할 수 있어요.</p></div><Link href="/tax-prep-tracker" className="inline-flex min-h-12 shrink-0 items-center justify-center bg-gold px-5 text-sm font-semibold text-navy">연중 준비 장부 열기 &rarr;</Link></section>
 
+        <section className="mb-8 rounded-2xl border border-border bg-surface p-6 sm:p-8" aria-labelledby="tax-record-example">
+          <p className="text-xs font-semibold text-gold">가상 사례 · 신고 전 자료 대조 연습</p>
+          <h2 id="tax-record-example" className="mt-2 text-2xl font-semibold text-navy">통장 입금과 소득 자료를 두 번 더하지 않기</h2>
+          <ol className="mt-5 space-y-5 text-sm leading-7 text-muted">
+            <li><strong className="text-navy">1. 기간별 폴더를 나눕니다.</strong> 2025-07-01~2026-06-30 폴더 안에 고용주별 Income statement, 은행별 이자명세, 비용 증빙을 구분합니다. 2026-07-01 이후 금액은 다음 2026–27 장부로 분리하세요.</li>
+            <li><strong className="text-navy">2. 원본별 금액을 한 번씩 대조합니다.</strong> 한 고용주의 Gross $30,000, PAYG withheld $3,000과 별도 은행 이자 $120이 있다고 가정해요. 소득 자료 대조 대상은 $30,000과 $120입니다. 통장에 들어온 급여 $27,000은 같은 급여의 세후 입금이므로 다시 소득으로 더하지 않습니다. PAYG $3,000은 소득에 더하지 않고 이미 원천징수한 세금 기록으로 따로 비교합니다. 고용주나 은행이 여러 곳이면 각각 한 번씩 대조하세요.</li>
+            <li><strong className="text-navy">3. 영수증과 공제 가능성은 구분합니다.</strong> 지출 $100 영수증이 있어도 업무·개인 사용 비율, 회사 환급과 적용할 공제 방식을 확인하기 전에는 $100 공제가 확정되지 않습니다. 장부에는 지출 후보로 두고 원본 보관 위치, 업무 관련성, 회사 보전 여부를 적어 세무사에게 질문하세요.</li>
+            <li><strong className="text-navy">4. Tax ready 뒤에도 숫자를 확인합니다.</strong> Tax ready는 고용주가 자료를 finalise한 상태이지 수치가 정확하거나 모든 은행 자료까지 준비됐다는 보장은 아닙니다. 불일치가 있으면 급여 기간과 Gross·withheld의 차액을 적어 고용주에게 문의하고, 미해결 내용을 남겨 확정 전에 검토하세요. 예상 환급액을 단정하기보다 Gross, withheld, 기타 소득 순서로 대조합니다.</li>
+          </ol>
+          <p className="mt-5 border-l-2 border-gold pl-3 text-xs leading-6 text-muted">다른 항목이 없는 교육용 예시입니다. 환급액·실제 총세금 계산이나 실제 신고 칸을 확정하는 예시가 아닙니다.</p>
+          <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-navy"><a href="https://my.gov.au/en/services/work/currently-employed/tax-when-you-work/tax-time/what-to-do-at-tax-time" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center underline">myGov 세금 신고 준비 순서 ↗</a><a href="https://www.ato.gov.au/businesses-and-organisations/hiring-and-paying-your-workers/single-touch-payroll/single-touch-payroll-for-employees/accessing-your-income-statement-online" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center underline">ATO Income statement 확인 ↗</a></div>
+        </section>
+
         <TaxReturnChecklist />
 
-        <section className="mt-8 border-y border-navy/20 bg-white p-6 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-8"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">다음 단계 · Pro 미리보기</p><h2 className="mt-2 text-xl font-semibold text-navy">소득·공제 증빙과 확인 질문을 한 묶음으로 정리하세요</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-muted">영수증을 업로드하지 않고 공제 후보 기록과 등록 세무사 전달용 요약을 만드는 제품 구성을 확인할 수 있습니다.</p></div><Link href="/eofy-pro" className="mt-4 inline-flex min-h-11 shrink-0 items-center bg-navy px-4 text-sm font-semibold text-white sm:mt-0">EOFY Pack 구성 보기 &rarr;</Link></section>
+        <section className="mt-8 border-y border-navy/20 bg-white p-6 sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-8"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">EOFY 구성과 구매·이용조건 확인</p><h2 className="mt-2 text-xl font-semibold text-navy">소득·공제 증빙과 확인 질문을 한 묶음으로 정리하세요</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-muted">공제 후보 기록과 등록 세무사 전달용 요약의 구성, 구매 가능 여부와 이용조건을 제품 페이지에서 확인하세요. 이 안내만으로 구매·사용이 가능하다고 확정하지 않습니다.</p></div><Link href="/eofy-pro" className="mt-4 inline-flex min-h-11 shrink-0 items-center bg-navy px-4 text-sm font-semibold text-white sm:mt-0">EOFY Pack 구성·조건 보기 &rarr;</Link></section>
 
-        <div className="mt-8"><TaxTimeReminder /></div>
+        <div className="mt-8"><TaxTimeReminder purpose="recent-return" /></div>
 
         <section className="mt-10 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
           <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8">

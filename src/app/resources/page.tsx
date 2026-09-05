@@ -61,21 +61,24 @@ export default function ResourcesPage() {
           <section className="mt-12" aria-labelledby="new-life-tips-heading">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">이번 주 생활 팁</p>
-                <h2 id="new-life-tips-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">오늘 바로 써볼 수 있는 정보</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">최근 확인·수정한 자료</p>
+                <h2 id="new-life-tips-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">다음 행동을 정하는 데 도움이 되는 정보</h2>
               </div>
               <Link href="/editorial-policy" className={actionClass("tertiary")}>출처를 확인하는 기준 →</Link>
             </div>
             <ol className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {featuredArticles.map((article) => (
-                <li key={article.slug}>
-                  <Link href={`/resources/${article.slug}`} className="group grid h-full min-h-60 grid-rows-[auto_1fr_auto] rounded-2xl border-2 border-navy/10 bg-white p-5 shadow-[0_8px_20px_rgba(26,39,68,0.04)] transition hover:-translate-y-0.5 hover:border-gold sm:p-6">
-                    <span className="flex items-center justify-between text-xs"><TopicIcon name="guide" size="sm" /><span className="font-semibold text-gold-ink">{article.category}</span></span>
-                    <span className="py-7"><strong className="block text-lg leading-7 text-navy">{article.title}</strong><span className="mt-3 block text-sm leading-6 text-muted">{article.quickSummary[0]}</span></span>
-                    <span className="inline-flex min-h-10 items-center justify-center rounded-lg bg-navy px-4 text-sm font-semibold text-white">자세히 보기 <span className="ml-2 transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
-                  </Link>
-                </li>
-              ))}
+              {featuredArticles.map((article) => {
+                const dateLabel = article.updatedAt ? `수정 ${article.updatedAt}` : `발행 ${article.publishedAt}`;
+                return (
+                  <li key={article.slug}>
+                    <Link href={`/resources/${article.slug}`} className="group grid h-full min-h-60 grid-rows-[auto_1fr_auto] rounded-2xl border-2 border-navy/10 bg-white p-5 shadow-[0_8px_20px_rgba(26,39,68,0.04)] transition hover:-translate-y-0.5 hover:border-gold sm:p-6">
+                      <span className="flex items-center justify-between gap-3 text-xs"><TopicIcon name="guide" size="sm" /><span className="text-right font-semibold text-gold-ink">{article.category}</span></span>
+                      <span className="py-6"><span className="inline-flex border border-border bg-surface px-2.5 py-1 text-[0.68rem] font-semibold text-muted">{dateLabel}</span><strong className="mt-4 block text-lg leading-7 text-navy">{article.title}</strong><span className="mt-3 block text-sm leading-6 text-muted">{article.quickSummary[0]}</span></span>
+                      <span className="inline-flex min-h-10 items-center justify-center rounded-lg bg-navy px-4 text-sm font-semibold text-white">자세히 보기 <span className="ml-2 transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ol>
           </section>
         </Container>

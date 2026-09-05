@@ -24,13 +24,15 @@ const rules: LicenceRule[] = [
     short: "NSW",
     name: "New South Wales",
     timing: "2023년 7월 1일 이후 NSW에 도착한 임시 해외 방문자는 원칙적으로 6개월 기준을 먼저 확인합니다.",
-    visitor: "임시 비자 소지자는 도착일, 비자 상태, 이전 NSW 체류에 따라 해외면허 사용 기한이 달라질 수 있습니다.",
-    resident: "호주 시민·영주권자 또는 뉴질랜드 시민은 NSW 거주 시작 후 일반적으로 3개월 안에 전환합니다.",
+    visitor: "임시 비자 소지자는 도착일, 비자 상태, 이전 NSW 체류에 따라 기한이 달라집니다. 2023년 7월 1일 전에 도착해 2025년 3월 1일 이후에도 남은 사람은 2025년 3월 1일 전에 전환해야 했으므로, 지금부터 6개월이 새로 시작한다고 보지 마세요.",
+    resident: "호주 시민·영주권자는 NSW 거주 시작 후 일반적으로 3개월 안에 전환합니다. 뉴질랜드 운전면허 소지자도 별도의 해외면허 전환 경로에서 3개월 기준을 확인합니다. 뉴질랜드 시민권과 뉴질랜드 면허 소지는 서로 다른 조건입니다.",
     korea: "한국 면허의 시험 여부는 신청자의 나이·운전 경력·현재 인정 상태를 Service NSW 신청 단계에서 다시 확인합니다.",
-    documents: ["한국 운전면허증 원본", "공인 영문 번역 또는 인정되는 영문 서류", "여권·비자와 NSW 주소 증빙"],
+    documents: ["한국 운전면허증 원본", "영문이 아니면 Transport for NSW 승인 기관의 번역과 해당 신청 경로의 원본 요건 확인", "여권·비자와 NSW 주소 증빙"],
     action: "NSW에 처음 생활하기 시작한 날짜와 비자 종류를 적은 뒤, 그 날짜를 기준으로 전환 마감일을 확인하세요.",
     href: "https://www.service.nsw.gov.au/transaction/apply-for-a-nsw-licence-as-a-temporary-overseas-visitor",
     authority: "Service NSW",
+    checkpoints: ["면허 전환용 번역은 승인 기관에 한합니다. 공식 목록은 Multicultural NSW, Department of Home Affairs, 한국 면허용 시드니 한국 총영사관, 대만 면허용 Taipei Economic and Cultural Office입니다. 모든 NAATI 번역이 인정된다고 가정하지 마세요.", "임시 해외 방문자 신청 안내는 번역 원본 또는 JP가 인증한 사본을 요구합니다. 일반 해외면허 전환 안내는 번역 원본을 요구하며 복사본을 받지 않는다고 명시합니다. 본인이 사용할 신청 경로를 먼저 선택해 제출 형식을 확인하세요.", "여행 운전용 IDP와 NSW 면허 전환용 번역은 구별하세요. 한국 면허 번역을 맡기기 전에 승인 기관 여부와 제출 형식을 Service NSW에 확인하고 답변을 보관하세요."],
+    supportingSource: { label: "Service NSW 일반 해외면허 전환·번역 요건", href: "https://www.service.nsw.gov.au/transaction/transfer-an-overseas-driver-licence" },
   },
   {
     id: "vic",
@@ -174,7 +176,7 @@ export function DriverLicenceGuide() {
             <h4 className="font-semibold text-navy">예약 전에 놓치기 쉬운 조건</h4>
             <ul className="mt-3 list-disc space-y-3 pl-5 text-sm leading-7 text-muted">{selected.checkpoints.map((checkpoint) => <li key={checkpoint}>{checkpoint}</li>)}</ul>
             {selected.supportingSource ? <a href={selected.supportingSource.href} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-12 items-center font-semibold text-navy underline decoration-gold underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4">{selected.supportingSource.label} ↗</a> : null}
-            <p className="mt-3 text-xs leading-6 text-muted">이 추가 조건 확인: 2026-08-31 · 위 공식 안내와 대조했습니다. 외부 페이지는 인터넷 연결이 필요하며, 예약일의 원문과 본인 면허 조건이 우선합니다.</p>
+            <p className="mt-3 text-xs leading-6 text-muted">{selected.id === "nsw" ? "NSW 대상 구분·번역·경과조치 확인: 2026-09-05" : "이 추가 조건 확인: 2026-08-31"} · 위 공식 안내와 대조했습니다. 외부 페이지는 인터넷 연결이 필요하며, 예약일의 원문과 본인 면허 조건이 우선합니다.</p>
           </aside> : null}
         </div>
       </div>

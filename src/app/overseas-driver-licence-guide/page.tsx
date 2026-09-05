@@ -51,6 +51,7 @@ export default function OverseasDriverLicenceGuidePage() {
         <ol className="mt-8 grid border-y border-navy/20 sm:grid-cols-2 lg:grid-cols-4">{steps.map(([number, title, description], index) => <li key={number} className={`p-5 sm:p-6 ${index < 3 ? "lg:border-r" : ""} ${index < 2 ? "max-lg:border-b" : ""}`}><span className="font-mono text-sm text-gold">{number} / 04</span><h2 className="mt-5 font-semibold text-navy">{title}</h2><p className="mt-2 text-sm leading-6 text-muted">{description}</p></li>)}</ol>
 
         <DriverLicenceGuide />
+        <p className="mt-4 text-sm leading-6 text-muted">NSW 패널의 대상 구분·번역 제출 형식·이전 도착자 경과조치만 2026년 9월 5일 추가 대조했습니다. 다른 주·준주의 전체 요건을 같은 날짜에 재검증했다는 뜻은 아닙니다.</p>
 
         <section className="mt-10 border-y border-navy/20 py-8 sm:py-10">
           <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr]">

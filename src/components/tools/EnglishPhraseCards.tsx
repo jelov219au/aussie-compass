@@ -2,77 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-export type PhraseCategory = "essential" | "bank" | "home" | "work" | "health";
-
-type Phrase = {
-  id: string;
-  category: PhraseCategory;
-  context: string;
-  english: string;
-  korean: string;
-};
-
-const storageKey = "hoju-compass-english-phrase-cards-v1";
-
-const categories: Array<{ id: PhraseCategory | "saved"; label: string }> = [
-  { id: "essential", label: "먼저 외울 문장" },
-  { id: "bank", label: "은행·휴대폰" },
-  { id: "home", label: "집·렌트" },
-  { id: "work", label: "직장·급여" },
-  { id: "health", label: "병원·약국" },
-  { id: "saved", label: "저장한 문장" },
-];
-
-const phrases: Phrase[] = [
-  { id: "slowly", category: "essential", context: "말이 너무 빠를 때", english: "Sorry, could you say that more slowly?", korean: "죄송하지만 조금 천천히 말씀해 주실 수 있나요?" },
-  { id: "different-way", category: "essential", context: "다른 설명이 필요할 때", english: "Could you say that in a different way?", korean: "다른 표현으로 설명해 주실 수 있나요?" },
-  { id: "write-down", category: "essential", context: "숫자나 이름을 적어 달라고 할 때", english: "Could you write that down for me?", korean: "그 내용을 적어 주실 수 있나요?" },
-  { id: "understood", category: "essential", context: "내가 이해한 내용을 확인할 때", english: "Let me check if I understood correctly.", korean: "제가 제대로 이해했는지 확인해 볼게요." },
-  { id: "next-step", category: "essential", context: "다음 행동을 물을 때", english: "What do I need to do next?", korean: "제가 다음으로 무엇을 해야 하나요?" },
-  { id: "bank-id", category: "bank", context: "계좌 개설 서류", english: "I’d like to open a transaction account. What ID do I need?", korean: "거래 계좌를 만들고 싶은데 어떤 신분증이 필요한가요?" },
-  { id: "bank-fees", category: "bank", context: "계좌 수수료", english: "Are there any monthly, ATM or international transaction fees?", korean: "월 관리비, ATM 또는 해외 결제 수수료가 있나요?" },
-  { id: "bank-id-check", category: "bank", context: "신원 확인", english: "Do I need to visit a branch to finish the ID check?", korean: "신원 확인을 끝내려면 지점에 가야 하나요?" },
-  { id: "bank-details", category: "bank", context: "계좌 정보", english: "Could you show me where to find my BSB and account number?", korean: "BSB와 계좌번호를 어디에서 확인하는지 보여주실 수 있나요?" },
-  { id: "bank-transaction", category: "bank", context: "모르는 거래", english: "I didn’t authorise this transaction. What should I do now?", korean: "제가 승인하지 않은 거래인데 지금 무엇을 해야 하나요?" },
-  { id: "rent-inclusions", category: "home", context: "렌트비 포함 항목", english: "Is electricity, gas, water or internet included in the rent?", korean: "전기, 가스, 수도나 인터넷이 렌트비에 포함되나요?" },
-  { id: "rent-bond", category: "home", context: "Bond 접수", english: "Who will hold the bond, and how will it be lodged?", korean: "Bond는 누가 보관하고 어떤 방식으로 접수하나요?" },
-  { id: "rent-agreement", category: "home", context: "송금 전 계약서", english: "Could you send me the agreement before I pay anything?", korean: "돈을 보내기 전에 계약서를 보내주실 수 있나요?" },
-  { id: "rent-condition", category: "home", context: "입주 상태 기록", english: "Could you confirm you received my condition report and photos?", korean: "Condition Report와 사진을 받았는지 확인해 주실 수 있나요?" },
-  { id: "rent-notice", category: "home", context: "퇴거 통지", english: "How much notice do I need to give before moving out?", korean: "퇴거 전에 얼마 동안의 통지를 해야 하나요?" },
-  { id: "work-rate", category: "work", context: "시급과 등급", english: "Could you confirm my hourly rate and classification in writing?", korean: "시급과 Classification을 글로 확인해 주실 수 있나요?" },
-  { id: "work-payslip", category: "work", context: "Payslip 발급", english: "When should I receive my payslip?", korean: "Payslip은 언제 받게 되나요?" },
-  { id: "work-hours", category: "work", context: "근무시간과 휴게시간", english: "Which hours and breaks are included here?", korean: "여기에 어떤 근무시간과 휴게시간이 포함됐나요?" },
-  { id: "work-difference", category: "work", context: "Roster와 Payslip 차이", english: "I think there may be a difference between my roster and payslip. Could we check it together?", korean: "Roster와 Payslip에 차이가 있는 것 같은데 같이 확인해 볼 수 있을까요?" },
-  { id: "work-payroll", category: "work", context: "급여 문의 담당자", english: "Who should I contact if I have a payroll question?", korean: "급여 질문은 누구에게 연락해야 하나요?" },
-  { id: "health-interpreter", category: "health", context: "통역 요청", english: "I need a Korean interpreter, please.", korean: "한국어 통역이 필요합니다." },
-  { id: "health-form", category: "health", context: "양식 설명", english: "I don’t understand this form. Could you explain this section?", korean: "이 양식을 이해하지 못했는데 이 부분을 설명해 주실 수 있나요?" },
-  { id: "health-worse", category: "health", context: "증상이 심해질 때", english: "What should I do if my symptoms get worse?", korean: "증상이 심해지면 어떻게 해야 하나요?" },
-  { id: "health-medicine", category: "health", context: "약 이름과 복용법", english: "Could you write down the medicine name and instructions?", korean: "약 이름과 복용 방법을 적어 주실 수 있나요?" },
-  { id: "health-avoid", category: "health", context: "복용 중 주의사항", english: "Is there anything I should avoid while taking this medicine?", korean: "이 약을 복용하는 동안 피해야 할 것이 있나요?" },
-];
+import { categories, findPhrases, parseSavedPhrases, serializeSavedPhrases, type Phrase, type PhraseCategory } from "@/data/englishPhrases";
+import { useLocalPlan } from "@/lib/useLocalPlan";
+export type { PhraseCategory } from "@/data/englishPhrases";
+const initialSaved: string[] = [];
 
 export function EnglishPhraseCards({ initialCategory = "essential", focusPhraseId }: { initialCategory?: PhraseCategory; focusPhraseId?: string }) {
-  const [category, setCategory] = useState<PhraseCategory | "saved">(initialCategory);
+  const [category, setCategory] = useState<PhraseCategory | "saved" | "all">(initialCategory);
   const [query, setQuery] = useState("");
-  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const { data: savedIds, update: setSavedIds, storage, saveState, reset } = useLocalPlan("hoju-compass-english-phrase-cards-v1", initialSaved, parseSavedPhrases, serializeSavedPhrases, { initial: "아직 저장한 문장 없음", reset: "문장 선택과 저장본을 초기화했습니다" });
   const [focusedPhraseId, setFocusedPhraseId] = useState(focusPhraseId);
-  const [hydrated, setHydrated] = useState(false);
+  const [copyFallback, setCopyFallback] = useState("");
   const [status, setStatus] = useState("");
-
-  useEffect(() => {
-    try {
-      const stored = JSON.parse(window.localStorage.getItem(storageKey) ?? "[]");
-      if (Array.isArray(stored)) setSavedIds(stored.filter((id): id is string => typeof id === "string"));
-    } catch {
-      // 저장값을 읽을 수 없으면 빈 목록으로 안전하게 시작합니다.
-    }
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    window.localStorage.setItem(storageKey, JSON.stringify(savedIds));
-  }, [hydrated, savedIds]);
 
   useEffect(() => {
     setCategory(initialCategory);
@@ -88,27 +29,22 @@ export function EnglishPhraseCards({ initialCategory = "essential", focusPhraseI
     return () => window.clearTimeout(timer);
   }, [category, focusedPhraseId, initialCategory]);
 
-  const visiblePhrases = useMemo(() => {
-    const normalisedQuery = query.trim().toLocaleLowerCase();
-    return phrases.filter((phrase) => {
-      const matchesCategory = category === "saved" ? savedIds.includes(phrase.id) : phrase.category === category;
-      const matchesQuery = !normalisedQuery || `${phrase.context} ${phrase.english} ${phrase.korean}`.toLocaleLowerCase().includes(normalisedQuery);
-      return matchesCategory && matchesQuery;
-    });
-  }, [category, query, savedIds]);
+  const visiblePhrases = useMemo(() => findPhrases(category, query, savedIds), [category, query, savedIds]);
 
   function toggleSaved(phrase: Phrase) {
     const isSaved = savedIds.includes(phrase.id);
     setSavedIds((current) => isSaved ? current.filter((id) => id !== phrase.id) : [...current, phrase.id]);
-    setStatus(isSaved ? `‘${phrase.context}’ 문장을 저장 목록에서 뺐어요.` : `‘${phrase.context}’ 문장을 이 기기에 저장했어요.`);
+    setStatus(isSaved ? `‘${phrase.context}’ 문장을 화면 목록에서 뺐어요. 저장 상태를 확인하세요.` : `‘${phrase.context}’ 문장을 화면 목록에 골랐어요. 저장 상태를 확인하세요.`);
   }
 
   async function copyText(text: string, successMessage: string) {
     try {
       await navigator.clipboard.writeText(text);
+      setCopyFallback("");
       setStatus(successMessage);
     } catch {
-      setStatus("자동 복사가 되지 않았어요. 문장을 길게 눌러 직접 복사해 주세요.");
+      setCopyFallback(text);
+      setStatus("자동 복사가 되지 않았어요. 아래 요약을 선택해 직접 복사해 주세요.");
     }
   }
 
@@ -131,13 +67,16 @@ export function EnglishPhraseCards({ initialCategory = "essential", focusPhraseI
         </div>
         <label className="block text-sm font-semibold text-navy" htmlFor="phrase-search">
           문장 찾기
-          <input id="phrase-search" type="search" value={query} onChange={(event) => setQuery(event.target.value.slice(0, 80))} placeholder="예: 수수료, bond, payslip" className="mt-2 min-h-12 w-full border border-border bg-white px-3 text-sm font-normal text-navy outline-none placeholder:text-muted focus:border-gold" />
+          <input id="phrase-search" type="search" value={query} onChange={(event) => { setQuery(event.target.value.slice(0, 80)); if (category !== "saved") setCategory("all"); setFocusedPhraseId(undefined); }} placeholder="예: 수수료, bond, payslip" className="mt-2 min-h-12 w-full border border-border bg-white px-3 text-sm font-normal text-navy outline-none placeholder:text-muted focus:border-gold" />
         </label>
       </div>
 
+      <p role="status" className="mt-4 text-sm text-navy">{saveState}</p>
+      {storage === "blocked" && <p className="mt-2 rounded-lg bg-amber-50 p-3 text-sm leading-6 text-amber-900">기존 문장 목록을 읽거나 확인하지 못해 원문을 보존하고 자동 저장을 중지했습니다. 문장 검색과 읽기는 계속할 수 있지만 새 선택은 저장되지 않습니다.</p>}
+      <p className="mt-3 text-sm text-muted">검색 범위: {category === "saved" ? "저장한 문장 목록" : query.trim() || category === "all" ? "전체 문장" : categories.find(item => item.id === category)?.label}. 상황 버튼을 누르면 검색어를 지우고 해당 상황으로 이동합니다.</p>
       <div className="mt-6 flex gap-x-6 gap-y-2 overflow-x-auto border-b border-border pb-2" role="group" aria-label="상황별 문장 필터">
         {categories.map((item) => (
-          <button key={item.id} type="button" aria-pressed={category === item.id} onClick={() => { setCategory(item.id); setFocusedPhraseId(undefined); }} className={`min-h-11 shrink-0 border-b-2 px-0 text-sm font-semibold transition ${category === item.id ? "border-gold text-navy" : "border-transparent text-muted hover:border-border hover:text-navy"}`}>
+          <button key={item.id} type="button" aria-pressed={category === item.id} onClick={() => { setCategory(item.id); setQuery(""); setFocusedPhraseId(undefined); }} className={`min-h-11 shrink-0 border-b-2 px-0 text-sm font-semibold transition ${category === item.id ? "border-gold text-navy" : "border-transparent text-muted hover:border-border hover:text-navy"}`}>
             {item.label}{item.id === "saved" ? ` ${savedIds.length}` : ""}
           </button>
         ))}
@@ -157,7 +96,7 @@ export function EnglishPhraseCards({ initialCategory = "essential", focusPhraseI
               <li id={`phrase-${phrase.id}`} key={phrase.id} className={`scroll-mt-24 grid min-h-64 grid-rows-[auto_1fr_auto] border bg-white p-5 sm:p-6 ${isFocused ? "border-gold ring-2 ring-gold/20" : "border-border"}`}>
                 <div className="flex items-start justify-between gap-4">
                   <div><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><p className="mt-2 text-xs font-semibold text-muted">{phrase.context}</p>{isFocused ? <p className="mt-2 text-xs font-semibold text-navy">카드에서 본 문장</p> : null}</div>
-                  <button type="button" aria-pressed={isSaved} onClick={() => toggleSaved(phrase)} className={`inline-flex min-h-10 items-center border px-3 text-xs font-semibold transition ${isSaved ? "border-gold bg-gold text-navy" : "border-border text-muted hover:border-gold hover:text-navy"}`}>{isSaved ? "저장됨" : "저장"}</button>
+                  <button type="button" aria-pressed={isSaved} disabled={storage === "loading"} onClick={() => toggleSaved(phrase)} className={`inline-flex min-h-10 items-center border px-3 text-xs font-semibold transition ${isSaved ? "border-gold bg-gold text-navy" : "border-border text-muted hover:border-gold hover:text-navy"}`}>{isSaved ? "선택됨" : "저장목록에 추가"}</button>
                 </div>
                 <div className="self-center py-6">
                   <p lang="en" className="text-xl font-semibold leading-8 tracking-tight text-navy sm:text-2xl">{phrase.english}</p>
@@ -171,11 +110,13 @@ export function EnglishPhraseCards({ initialCategory = "essential", focusPhraseI
       ) : (
         <div className="mt-4 border border-dashed border-border bg-surface p-8 text-center">
           <p className="font-semibold text-navy">조건에 맞는 문장이 없어요.</p>
-          <p className="mt-2 text-sm leading-6 text-muted">검색어를 지우거나 다른 상황을 선택해 보세요.</p>
+          <p className="mt-2 text-sm leading-6 text-muted">검색어를 지우거나 다른 상황을 선택해 보세요.</p><button type="button" onClick={() => { setQuery(""); setCategory("all"); setFocusedPhraseId(undefined); }} className="mt-3 min-h-11 border border-navy px-4 text-sm font-semibold text-navy">전체 문장 보기</button>
         </div>
       )}
 
       <p className="mt-4 min-h-6 text-sm leading-6 text-muted" role="status" aria-live="polite">{status}</p>
+      {copyFallback && <label className="mt-3 block text-sm text-navy">직접 복사할 문장<textarea readOnly rows={6} value={copyFallback} onFocus={event => event.target.select()} className="mt-2 w-full border border-border p-3 text-sm" /></label>}
+      <button type="button" disabled={storage === "loading"} onClick={() => { if (window.confirm("이 브라우저의 저장한 문장 선택 목록을 지울까요?")) reset(); }} className="mt-3 min-h-11 border border-border px-4 text-sm text-navy">문장 저장목록 초기화</button>
       <p className="mt-2 border-l-2 border-gold bg-surface p-4 text-xs leading-6 text-muted">저장한 문장 목록은 지금 사용하는 브라우저에만 남아요. 이름, 전화번호, 계좌번호나 건강 정보는 입력받지 않습니다. 브라우저 데이터를 지우면 저장 목록도 함께 사라질 수 있어요.</p>
     </section>
   );

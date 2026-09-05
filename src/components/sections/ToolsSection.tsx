@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Container } from "@/components/ui/Container";
 import { TopicIcon } from "@/components/ui/TopicIcon";
 import { actionClass } from "@/components/ui/actionStyles";
+import { phrases } from "@/data/englishPhrases";
 import { sectionIds } from "@/lib/utils";
 
 const essentials = [
@@ -14,7 +14,7 @@ const essentials = [
 
 export function ToolsSection() {
   return <section id={sectionIds.tools} className="scroll-mt-20 bg-background py-8 sm:py-16" aria-labelledby="essential-tools-heading"><Container>
-    <div className="flex items-end justify-between gap-3"><div><p className="text-sm font-semibold text-gold-ink">바로 써볼 수 있어요</p><h2 id="essential-tools-heading" className="mt-2 text-xl font-semibold tracking-[-0.025em] text-navy sm:text-4xl">처음이라면 여기부터</h2></div><Link href="/tools" className={actionClass("tertiary", "shrink-0")}>전체 도구 <span aria-hidden="true">→</span></Link></div>
+    <div className="flex items-end justify-between gap-3"><div><p className="text-sm font-semibold text-gold-ink">바로 써볼 수 있어요</p><h2 id="essential-tools-heading" className="mt-2 text-xl font-semibold tracking-[-0.025em] text-navy sm:text-4xl">처음이라면 여기부터</h2></div><TrackedLink href="/tools" eventName="Home Navigation" properties={{ section: "essential_tools", destination: "tools" }} className={actionClass("tertiary", "shrink-0")}>전체 도구 <span aria-hidden="true">→</span></TrackedLink></div>
 
     <ol className="mt-6 grid grid-cols-2 gap-3 sm:gap-5">{essentials.map((tool)=><li key={tool.href}><TrackedLink href={tool.href} eventName="Home Navigation" properties={{ section: "essential_tools", destination: tool.href.slice(1) }} className="group grid h-full grid-rows-[auto_1fr_auto] rounded-2xl border border-navy/15 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:border-gold hover:shadow-[0_18px_40px_rgba(26,39,68,0.11)] sm:p-7"><div className="flex flex-wrap items-center gap-2"><TopicIcon name={tool.icon} size="sm" /><span className="text-xs font-semibold text-gold-ink">{tool.eyebrow}</span></div><div className="py-4"><h3 className="text-base font-semibold tracking-tight text-navy sm:text-2xl">{tool.title}</h3><p className="mt-2 max-w-md text-xs leading-5 text-muted sm:text-sm sm:leading-6">{tool.description}</p></div><span className="flex min-h-11 items-center justify-between gap-1 border-t border-border pt-2 text-xs font-semibold text-navy sm:text-sm"><span>{tool.action}</span><span className="text-lg transition group-hover:translate-x-1" aria-hidden="true">→</span></span></TrackedLink></li>)}</ol>
 
@@ -30,7 +30,7 @@ export function ToolsSection() {
           <strong className="block text-lg leading-7 sm:text-2xl" lang="en">Sorry, could you say that more slowly?</strong>
           <span className="mt-2 block text-sm leading-6 text-white/70">죄송하지만 조금 천천히 말씀해 주실 수 있나요?</span>
         </span>
-        <span className="inline-flex min-h-12 items-center justify-center border border-gold bg-gold px-5 py-3 text-sm font-semibold text-navy transition group-hover:bg-white">상황별 25개 문장 보기 <span className="ml-3 transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
+        <span className="inline-flex min-h-12 items-center justify-center border border-gold bg-gold px-5 py-3 text-sm font-semibold text-navy transition group-hover:bg-white">상황별 {phrases.length}개 문장 보기 <span className="ml-3 transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
       </span>
     </TrackedLink>
     <TrackedLink href="/resume-job-ad-checker" eventName="Home Navigation" properties={{ section: "resume_job_ad_evidence", destination: "resume-job-ad-checker" }} className="group mt-4 block rounded-2xl border border-navy/20 bg-surface transition hover:border-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">

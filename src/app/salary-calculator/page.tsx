@@ -19,7 +19,7 @@ export default function SalaryCalculatorPage() {
       <Header />
       <main className="py-12 sm:py-16">
         <Container>
-          <Link href="/#tools" className="inline-flex text-sm font-medium text-muted transition-colors hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">&larr; 도구 목록으로 돌아가기</Link>
+          <Link href="/tools" className="inline-flex text-sm font-medium text-muted transition-colors hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">&larr; 도구 목록으로 돌아가기</Link>
           <div className="mb-10 mt-6 max-w-3xl">
             <p className="text-sm font-semibold text-gold">이번 주 급여가 궁금할 때</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 통합 급여 계산기</h1>
@@ -27,6 +27,7 @@ export default function SalaryCalculatorPage() {
           </div>
 
           <SalaryCalculator />
+          <section className="mt-8 rounded-2xl border border-border bg-surface p-6"><h2 className="text-xl font-semibold text-navy">일하는 주의 급여와 연간 평균 월액은 달라요</h2><p className="mt-3 text-sm leading-7 text-muted">가상 예시: 시급 $30 × 주 20시간 × 연 26주 = 세전 $15,600입니다. 일하는 주에는 $600이지만 연간 평균 월소득은 $1,300입니다. 남은 26주에도 같은 급여가 들어온다는 뜻이 아니므로 렌트 같은 고정비는 그 기간도 따로 확인하세요.</p><p className="mt-3 text-sm leading-7 text-muted">이 도구의 Net은 연세액을 나눈 예상치입니다. 실제 급여일의 원천징수액은 Payroll의 PAYG 표와 신고사항으로 정해지므로 Payslip의 Net과 다를 수 있습니다.</p><p className="mt-4 rounded-lg bg-white p-4 text-sm leading-7 text-navy">Could you confirm the base salary excluding super, the pay cycle and any other amounts included in the package?</p><p className="mt-2 text-sm leading-7 text-muted">Super를 뺀 기본급, 급여 주기와 패키지에 포함된 다른 금액을 확인해 주세요.</p><Link href="/super-guide" className="mt-3 inline-flex min-h-11 items-center font-semibold text-navy underline">$70,000 plus super와 총 패키지의 차이 확인하기 →</Link></section>
 
           <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="result-meaning-heading">
             <div className="max-w-3xl">
@@ -115,19 +116,20 @@ export default function SalaryCalculatorPage() {
           <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8">
             <h2 className="text-xl font-semibold text-navy">계산 기준 및 주의사항</h2>
             <div className="mt-3 max-w-4xl space-y-3 text-sm leading-7 text-muted sm:text-base">
-              <p>시급 입력 방식의 세전 연봉은 시급, 주당 근무시간, 연간 근무 주 수를 곱해 계산합니다. 주급과 격주급은 실제 근무 주 기준이며, 월급은 연간 급여를 12개월로 나눈 평균입니다. 연봉 입력 방식은 입력한 연봉을 각 지급 주기로 환산합니다. Super는 2026–27 일반 SG 비율 12%를 적용합니다.</p>
-              <p>호주 세법상 거주자 유형은 2026–27 기본 개인소득세율을 사용합니다. 입력 급여를 과세소득으로 가정해 LITO(저소득 세액공제)를 자동 적용하며, Medicare Levy 선택 시 일반 개인 2%와 저소득 감면 구간을 적용합니다. HELP/HECS 선택 시 입력 급여만 상환소득으로 가정해 2026–27 한계상환 기준을 적용합니다.</p>
+              <p>시급 입력 방식의 세전 연봉은 시급, 주당 근무시간, 연간 근무 주 수를 곱해 계산합니다. 주급과 격주급은 실제 근무 주 기준이며, 월급은 연간 급여를 12개월로 나눈 평균입니다. 연봉 입력 방식은 입력한 연봉을 각 지급 주기로 환산합니다. 두 회계연도의 Super는 급여 전체 × 12%의 단순 추정이며 법정 SG 대상 소득을 직접 판정하지 않습니다.</p>
+              <p>호주 세법상 거주자 유형은 선택한 회계연도(2025–26 또는 2026–27)의 기본 개인소득세율을 사용합니다. 입력 급여를 과세소득으로 가정해 LITO(저소득 세액공제)를 자동 적용하며, Medicare Levy 선택 시 일반 개인 2%와 저소득 감면 구간을 적용합니다. HELP/HECS 선택 시 입력 급여만 상환소득으로 가정해 선택한 회계연도의 한계상환 기준을 적용합니다.</p>
               <p>Working Holiday Maker 유형은 일반적인 세법상 비거주자 WHM을 가정해 첫 A$45,000에 15%를 적용하고 이후 WHM 구간별 세율을 적용합니다. 이 유형에서는 LITO, Medicare Levy와 HELP/HECS 예상액을 포함하지 않습니다. 고용주 등록 여부에 따라 실제 급여 원천징수액은 달라질 수 있습니다.</p>
               <p>LITO는 환급형 공제가 아니므로 예상 소득세를 A$0 아래로 낮추지 않습니다. 실제 과세소득과 거주자 자격에 따라 적용 여부가 달라질 수 있습니다. 가족소득 감면, Medicare 면제·Surcharge, 급여 외 HELP 상환소득, 실제 대출 잔액, LITO 이외의 세액공제와 소득공제는 포함하지 않습니다.</p>
-              <p>실제 세금과 Super는 개인 상황과 Ordinary Time Earnings에 따라 달라질 수 있으므로 ATO, Fair Work 또는 등록 전문가의 공식 자료를 확인하세요.</p>
+              <p>Super의 실제 기준은 2025–26의 OTE와 2026년 7월 1일 이후의 QE(qualifying earnings)를 구분해야 합니다. 이 계산기는 QE/OTE 내역, 실제 납부일이나 예외를 판정하지 않습니다. 선택한 연도와 개인 상황에 맞는 ATO 안내를 확인하세요.</p>
             </div>
             <div className="mt-4 flex flex-wrap gap-4">
+              <a href="https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO 거주자 세율 · 회계연도별 확인</a>
               <a href="https://www.ato.gov.au/law/view/pdf/acts/20250028.pdf" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO 2026–27 세율 근거</a>
               <a href="https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO Super 비율 확인</a>
               <a href="https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy/medicare-levy-reduction/medicare-levy-reduction-for-low-income-earners" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO Medicare Levy 안내</a>
               <a href="https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO LITO 안내</a>
               <a href="https://www.ato.gov.au/tax-rates-and-codes/tax-rates-working-holiday-makers" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">ATO WHM 세율 안내</a>
-              <a href="https://www.studyassist.gov.au/managing-and-repaying-your-loan/loan-repayments" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">2026–27 HELP 상환 기준</a>
+              <a href="https://www.studyassist.gov.au/managing-and-repaying-your-loan/loan-repayments" target="_blank" rel="noreferrer" className="text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">StudyAssist 연도별 HELP 상환 안내</a>
             </div>
           </section>
         </Container>

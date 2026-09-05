@@ -32,7 +32,13 @@ function normalize(value: string) {
     .toLocaleLowerCase("en-AU")
     .replace(/[’']/g, "")
     .replace(/[^a-z0-9+#.]+/g, " ")
-    .trim();
+    .trim()
+    .split(/\s+/)
+    .map((token) => token.startsWith(".") && token.length > 1
+      ? `.${token.slice(1).replace(/\.+$/, "")}`
+      : token.replace(/\.+$/, ""))
+    .filter(Boolean)
+    .join(" ");
 }
 
 function countOccurrences(text: string, term: string) {
@@ -51,7 +57,10 @@ function countOccurrences(text: string, term: string) {
 export function analyseResumeJobAd(resumeText: string, jobAdText: string) {
   const resume = normalize(resumeText);
   const jobAd = normalize(jobAdText);
-  const jobTokens = jobAd.match(/[a-z][a-z0-9+#.]{2,}/g) ?? [];
+  const jobTokens = jobAd.split(" ").filter((token) => (
+    /^(?:\.[a-z][a-z0-9+#.]*|[a-z][a-z0-9+#.]*)$/.test(token)
+    && (token.length >= 3 || /^[a-z][+#]+$/.test(token))
+  ));
   const positions = new Map<string, number>();
   const frequencies = new Map<string, number>();
 

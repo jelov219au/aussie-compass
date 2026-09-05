@@ -8,4 +8,5 @@ export const handleCarPurchaseCheckout = createCarPurchaseCheckoutHttp({
   service: null,
   enabled: false,
   expectedOrigin: new URL(siteUrl).origin,
+  environment: process.env.NODE_ENV === "development" ? "development" : "production",
 });

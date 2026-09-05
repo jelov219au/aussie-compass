@@ -1,15 +1,8 @@
 "use client";
+import { amount, budgetResult, frequencyLabels, money, parseBudget, serializeBudget, type BudgetData, type BudgetFrequency } from "@/lib/personalPlans";
+import { useLocalPlan } from "@/lib/useLocalPlan";
 
-import { useEffect, useMemo, useState } from "react";
-
-type Frequency = "weekly" | "monthly" | "yearly";
-type Expense = { id: string; name: string; amount: number; frequency: Frequency; removable?: boolean };
-type BudgetData = { income: number; incomeFrequency: Frequency; expenses: Expense[] };
-
-const STORAGE_KEY = "aussie-compass-living-budget-v1";
-const weeksPerYear = 52;
-const monthsPerYear = 12;
-const defaultExpenses: Expense[] = [
+const initial: BudgetData = { income: 1200, incomeFrequency: "weekly", expenses: [
   { id: "housing", name: "주거비", amount: 350, frequency: "weekly" },
   { id: "groceries", name: "식료품", amount: 120, frequency: "weekly" },
   { id: "transport", name: "교통", amount: 50, frequency: "weekly" },
@@ -18,122 +11,52 @@ const defaultExpenses: Expense[] = [
   { id: "insurance", name: "보험·의료", amount: 80, frequency: "monthly" },
   { id: "lifestyle", name: "외식·여가", amount: 80, frequency: "weekly" },
   { id: "other", name: "기타", amount: 30, frequency: "weekly" },
-];
-const emptyBudget: BudgetData = { income: 1200, incomeFrequency: "weekly", expenses: defaultExpenses };
-const inputClass = "min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy outline-none transition focus:border-navy focus:ring-2 focus:ring-navy/15";
-
-function toWeekly(amount: number, frequency: Frequency) {
-  if (frequency === "monthly") return amount * monthsPerYear / weeksPerYear;
-  if (frequency === "yearly") return amount / weeksPerYear;
-  return amount;
-}
-
-function currency(value: number) {
-  return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 }).format(value);
-}
+] };
+const inputClass = "mt-1.5 min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy focus:ring-2 focus:ring-navy/15";
+const options = Object.entries(frequencyLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>);
 
 export function CostOfLivingCalculator() {
-  const [budget, setBudget] = useState<BudgetData>(emptyBudget);
-  const [loaded, setLoaded] = useState(false);
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as BudgetData;
-        if (Array.isArray(parsed.expenses)) setBudget(parsed);
-      }
-    } catch {
-      // Keep the calculator available when local storage is unavailable.
-    }
-    setLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (!loaded) return;
-    const timer = window.setTimeout(() => {
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(budget));
-        setSaved(true);
-        window.setTimeout(() => setSaved(false), 1500);
-      } catch {
-        // Calculations still work without persistence.
-      }
-    }, 500);
-    return () => window.clearTimeout(timer);
-  }, [budget, loaded]);
-
-  const results = useMemo(() => {
-    const weeklyExpenses = budget.expenses.reduce((sum, item) => sum + toWeekly(Math.max(0, item.amount || 0), item.frequency), 0);
-    const weeklyIncome = toWeekly(Math.max(0, budget.income || 0), budget.incomeFrequency);
-    return {
-      weeklyExpenses,
-      monthlyExpenses: weeklyExpenses * weeksPerYear / monthsPerYear,
-      yearlyExpenses: weeklyExpenses * weeksPerYear,
-      weeklyIncome,
-      weeklyBalance: weeklyIncome - weeklyExpenses,
-    };
-  }, [budget]);
-
-  const updateExpense = (id: string, field: "name" | "amount" | "frequency", value: string | number) =>
-    setBudget((current) => ({ ...current, expenses: current.expenses.map((item) => item.id === id ? { ...item, [field]: value } : item) }));
-
-  const addExpense = () => setBudget((current) => ({ ...current, expenses: [...current.expenses, { id: `custom-${Date.now()}`, name: "새 항목", amount: 0, frequency: "monthly", removable: true }] }));
-  const resetBudget = () => {
-    if (!window.confirm("입력한 생활비를 기본 예시로 되돌릴까요?")) return;
-    setBudget({ ...emptyBudget, expenses: defaultExpenses.map((item) => ({ ...item })) });
-    window.localStorage.removeItem(STORAGE_KEY);
-  };
-
-  return (
-    <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(340px,0.72fr)]">
-      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="budget-input-heading">
-        <div className="flex items-start justify-between gap-4"><div><h2 id="budget-input-heading" className="text-xl font-semibold text-navy">수입과 생활비</h2><p className="mt-1 text-sm leading-6 text-muted">금액과 결제 주기를 실제 상황에 맞게 바꾸세요.</p></div><span className="min-w-16 text-right text-xs text-muted" aria-live="polite">{saved ? "저장됨" : "자동 저장"}</span></div>
-
-        <fieldset className="mt-7 rounded-xl bg-surface p-4">
-          <legend className="px-1 text-base font-semibold text-navy">세후 수입</legend>
-          <div className="mt-2 grid grid-cols-[minmax(0,1fr)_110px] gap-3">
-            <label className="text-sm font-medium text-navy">금액 (AUD)<input className={`${inputClass} mt-1.5`} type="number" min="0" step="10" value={budget.income} onChange={(e) => setBudget((current) => ({ ...current, income: Number(e.target.value) }))} /></label>
-            <label className="text-sm font-medium text-navy">주기<select className={`${inputClass} mt-1.5`} value={budget.incomeFrequency} onChange={(e) => setBudget((current) => ({ ...current, incomeFrequency: e.target.value as Frequency }))}><option value="weekly">매주</option><option value="monthly">매월</option><option value="yearly">매년</option></select></label>
-          </div>
-          <p className="mt-3 text-xs leading-5 text-muted">통장에 실제로 들어오는 세후 금액을 입력하면 남는 예산을 더 정확히 볼 수 있습니다.</p>
-        </fieldset>
-
-        <fieldset className="mt-8">
-          <legend className="text-base font-semibold text-navy">지출 항목</legend>
-          <div className="mt-4 space-y-3">
-            {budget.expenses.map((item) => (
-              <div key={item.id} className="grid gap-2 rounded-xl border border-border p-3 sm:grid-cols-[minmax(130px,1fr)_130px_105px_auto] sm:items-end">
-                <label className="text-xs font-medium text-muted">항목<input className={`${inputClass} mt-1`} value={item.name} onChange={(e) => updateExpense(item.id, "name", e.target.value)} /></label>
-                <label className="text-xs font-medium text-muted">금액 (AUD)<input className={`${inputClass} mt-1`} type="number" min="0" step="5" value={item.amount} onChange={(e) => updateExpense(item.id, "amount", Number(e.target.value))} /></label>
-                <label className="text-xs font-medium text-muted">주기<select className={`${inputClass} mt-1`} value={item.frequency} onChange={(e) => updateExpense(item.id, "frequency", e.target.value as Frequency)}><option value="weekly">매주</option><option value="monthly">매월</option><option value="yearly">매년</option></select></label>
-                <button type="button" disabled={!item.removable} onClick={() => setBudget((current) => ({ ...current, expenses: current.expenses.filter((expense) => expense.id !== item.id) }))} className="min-h-11 rounded-lg px-3 text-sm text-muted underline underline-offset-4 disabled:invisible" aria-label={`${item.name} 삭제`}>삭제</button>
-              </div>
-            ))}
-          </div>
-          <button type="button" onClick={addExpense} className="mt-4 min-h-11 rounded-lg border border-navy px-4 py-2 text-sm font-semibold text-navy hover:bg-surface">+ 지출 항목 추가</button>
-        </fieldset>
-      </section>
-
-      <aside id="living-budget-results" className="rounded-2xl bg-navy p-6 text-white shadow-lg sm:p-8 lg:sticky lg:top-24" aria-labelledby="budget-results-heading">
-        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-gold">예상 생활 예산</p>
-        <h2 id="budget-results-heading" className="mt-2 text-2xl font-semibold">생활비 요약</h2>
-        <dl className="mt-7 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-          <div className="rounded-xl bg-white/8 p-4"><dt className="text-sm text-white/65">주간 생활비</dt><dd className="mt-1 text-2xl font-semibold">{currency(results.weeklyExpenses)}</dd></div>
-          <div className="rounded-xl bg-white/8 p-4"><dt className="text-sm text-white/65">월간 생활비</dt><dd className="mt-1 text-2xl font-semibold">{currency(results.monthlyExpenses)}</dd></div>
-          <div className="rounded-xl bg-white/8 p-4"><dt className="text-sm text-white/65">연간 생활비</dt><dd className="mt-1 text-2xl font-semibold">{currency(results.yearlyExpenses)}</dd></div>
-        </dl>
-        <div className={`mt-5 rounded-xl border p-5 ${results.weeklyBalance >= 0 ? "border-emerald-300/30 bg-emerald-300/10" : "border-rose-300/30 bg-rose-300/10"}`}>
-          <p className="text-sm text-white/70">수입에서 생활비를 뺀 주간 잔액</p><p className="mt-1 text-3xl font-semibold">{currency(results.weeklyBalance)}</p><p className="mt-2 text-sm leading-6 text-white/70">{results.weeklyBalance >= 0 ? `수입의 ${results.weeklyIncome ? Math.round(results.weeklyBalance / results.weeklyIncome * 100) : 0}%가 남습니다.` : "현재 입력 기준으로 지출이 수입보다 많습니다."}</p>
+  const { data: budget, update, reset, storage, saveState } = useLocalPlan("aussie-compass-living-budget-v1", initial, parseBudget, serializeBudget);
+  const result = budgetResult(budget), validRows = result.rows.filter(item => item.weekly !== null);
+  const updateExpense = (id: string, field: "name" | "amount" | "frequency", value: string) => update(current => ({ ...current, expenses: current.expenses.map(item => item.id === id ? { ...item, [field]: value } : item) }));
+  return <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(340px,0.72fr)]">
+    <section className="min-w-0 rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="budget-input-heading">
+      <h2 id="budget-input-heading" className="text-xl font-semibold text-navy">수입과 생활비</h2>
+      <p className="mt-2 text-sm leading-6 text-muted">기본 주급 A$1,200·주세 A$350 등은 가상 예시이며 호주 평균이나 내게 맞는 금액이 아닙니다. 저장본을 불러온 경우에는 기존 내 기록입니다. 실제 금액으로 바꿔 보세요.</p>
+      <p className="mt-3 text-sm leading-6 text-muted" role="status">{saveState}</p>
+      {storage === "blocked" && <p className="mt-3 rounded-lg bg-gold/10 p-4 text-sm leading-6 text-navy">저장본을 안전하게 읽지 못했습니다. 원본을 덮어쓰거나 지우지 않고 자동 저장을 중지했습니다. 화면에는 예시가 표시되며 새 입력은 화면에서만 사용합니다. 필요한 내용은 별도로 보관하세요.</p>}
+      <p className="mt-2 text-xs leading-6 text-muted">빈칸·오류가 있으면 저장을 보류하고 마지막 정상 저장본을 유지합니다. 새로 입력한 미완료 내용은 다시 열 때 복구되지 않습니다.</p>
+      <fieldset disabled={storage === "loading"} className="mt-6 rounded-xl bg-surface p-4">
+        <legend className="font-semibold text-navy">세후 수입</legend>
+        <div className="grid grid-cols-[minmax(0,1fr)_100px] gap-3">
+          <label className="text-sm text-navy">금액 (AUD)<input className={inputClass} inputMode="decimal" value={budget.income} aria-invalid={amount(budget.income) === null} aria-describedby="budget-income-hint" onChange={event => update(current => ({ ...current, income: event.target.value }))} /></label>
+          <label className="text-sm text-navy">주기<select className={inputClass} value={budget.incomeFrequency} onChange={event => update(current => ({ ...current, incomeFrequency: event.target.value as BudgetFrequency }))}>{options}</select></label>
         </div>
-        <div className="mt-6">
-          <h3 className="text-sm font-semibold text-white">항목별 주간 환산</h3>
-          <ul className="mt-3 space-y-2 text-sm">{budget.expenses.filter((item) => item.amount > 0).sort((a, b) => toWeekly(b.amount, b.frequency) - toWeekly(a.amount, a.frequency)).map((item) => <li key={item.id} className="flex items-center justify-between gap-4"><span className="truncate text-white/70">{item.name}</span><span className="shrink-0 font-medium">{currency(toWeekly(item.amount, item.frequency))}</span></li>)}</ul>
-        </div>
-        <div className="living-budget-print-hide mt-7 flex flex-wrap gap-3"><button type="button" onClick={() => window.print()} className="min-h-11 rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-navy hover:bg-gold/90">결과 인쇄</button><button type="button" onClick={resetBudget} className="min-h-11 rounded-lg border border-white/25 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">기본값으로 초기화</button></div>
-        <p className="mt-5 text-xs leading-5 text-white/50">기본 금액은 기능을 보여주기 위한 예시이며 공식 생활비 기준이 아닙니다.</p>
-      </aside>
-    </div>
-  );
+        <p id="budget-income-hint" className={`mt-2 text-xs leading-6 ${amount(budget.income) === null ? "text-red-700" : "text-muted"}`}>{amount(budget.income) === null ? "0~1조 사이의 유효한 숫자를 입력하세요. 빈칸은 0이 아닙니다." : "통장에 실제로 들어오는 세후 금액을 입력하세요."}</p>
+      </fieldset>
+      <fieldset disabled={storage === "loading"} className="mt-7">
+        <legend className="font-semibold text-navy">지출 항목</legend>
+        <div className="mt-3 space-y-3">{budget.expenses.map((item, index) => <div key={item.id} className="rounded-xl border border-border p-3">
+          <div className="grid gap-3 sm:grid-cols-[minmax(100px,1fr)_110px_90px]">
+            <label className="text-xs text-muted">항목<input maxLength={100} className={inputClass} value={item.name} aria-invalid={!item.name.trim()} onChange={event => updateExpense(item.id, "name", event.target.value)} /></label>
+            <label className="text-xs text-muted">금액 (AUD)<input className={inputClass} inputMode="decimal" value={item.amount} aria-invalid={amount(item.amount) === null} aria-describedby={amount(item.amount) === null ? `expense-error-${index}` : undefined} onChange={event => updateExpense(item.id, "amount", event.target.value)} /></label>
+            <label className="text-xs text-muted">주기<select className={inputClass} value={item.frequency} onChange={event => updateExpense(item.id, "frequency", event.target.value)}>{options}</select></label>
+          </div>
+          {amount(item.amount) === null && <p id={`expense-error-${index}`} className="mt-2 text-xs leading-6 text-red-700">금액 미확인: 0~1조 사이의 유효한 숫자를 입력하세요. 이 항목은 소계에 포함되지 않습니다.</p>}
+          {!item.name.trim() && <p className="mt-2 text-xs text-red-700">항목 이름을 입력하세요.</p>}
+          {item.removable && <button type="button" onClick={() => update(current => ({ ...current, expenses: current.expenses.filter(expense => expense.id !== item.id) }))} className="mt-2 min-h-11 px-3 text-sm text-muted underline" aria-label={`${item.name} 삭제`}>삭제</button>}
+        </div>)}</div>
+        <button type="button" disabled={budget.expenses.length >= 50} onClick={() => update(current => ({ ...current, expenses: [...current.expenses, { id: crypto.randomUUID(), name: "새 항목", amount: "", frequency: "monthly", removable: true }] }))} className="mt-4 min-h-11 rounded-lg border border-navy px-4 text-sm font-semibold text-navy disabled:opacity-50">+ 지출 항목 추가 (최대 50개)</button>
+      </fieldset>
+    </section>
+    <aside id="living-budget-results" className="min-w-0 rounded-2xl bg-navy p-6 text-white sm:p-8 lg:sticky lg:top-24" aria-labelledby="budget-results-heading">
+      <p className="text-sm text-gold">입력 기준 생활 예산</p><h2 id="budget-results-heading" className="mt-2 text-2xl font-semibold">{result.complete ? "생활비 요약" : "입력한 항목 소계"}</h2>
+      <p className="mt-3 text-sm text-white/70">금액 입력 {validRows.length}/{budget.expenses.length}개 · 빈칸과 오류는 합산하지 않습니다.</p>
+      <dl className="mt-5 space-y-3">{[["주간 생활비", result.weeklyExpenses], ["연간 평균 월액", result.weeklyExpenses * 52 / 12], ["연간 생활비", result.weeklyExpenses * 52]].map(([label, value]) => <div key={label} className="rounded-xl bg-white/8 p-4"><dt className="text-sm text-white/65">{label}</dt><dd className="mt-1 break-all text-2xl font-semibold">{validRows.length ? money(Number(value)) : "지출 금액을 입력하세요"}</dd></div>)}</dl>
+      {result.weeklyBalance !== null ? <div className="mt-5 rounded-xl border border-white/20 p-5"><p className="text-sm text-white/70">입력 기준 주간 잔액</p><p className="mt-1 break-all text-3xl font-semibold">{money(result.weeklyBalance)}</p><p className="mt-2 text-sm leading-6 text-white/70">{result.weeklyBalance < 0 ? "현재 입력 지출이 수입보다 많습니다." : result.weeklyIncome! > 0 ? `입력 수입의 ${Math.round(result.weeklyBalance / result.weeklyIncome! * 100)}%가 남습니다.` : "입력 수입이 0이므로 남는 비율은 계산하지 않습니다."}</p></div> : <p className="mt-5 rounded-xl border border-gold/30 p-4 text-sm leading-7">수입과 모든 지출의 금액·항목 이름을 확인하면 주간 잔액을 계산합니다.</p>}
+      <p className="mt-4 text-xs leading-6 text-white/70">월액은 주간 금액 × 52 ÷ 12의 연간 평균입니다. 이번 달 실제 청구액이나 오늘 계좌에서 쓸 수 있는 돈을 뜻하지 않습니다.</p>
+      <h3 className="mt-6 text-sm font-semibold">항목별 주간 환산</h3><ul className="mt-3 space-y-2 text-sm">{validRows.map(item => <li key={item.id} className="flex flex-wrap justify-between gap-3"><span className="min-w-0 break-words text-white/70">{item.name || "이름 미입력"}</span><span className="break-all">{money(item.weekly!)}</span></li>)}</ul>
+      <div className="living-budget-print-hide mt-6 flex flex-wrap gap-3"><button type="button" onClick={() => window.print()} className="min-h-11 rounded-lg bg-gold px-4 font-semibold text-navy">결과 인쇄</button><button type="button" disabled={storage === "loading"} onClick={() => { if (window.confirm("저장된 생활비를 지우고 기본 가상 예시로 되돌릴까요?")) reset(); }} className="min-h-11 rounded-lg border border-white/30 px-4 text-sm">기본 예시로 초기화</button></div>
+    </aside>
+  </div>;
 }

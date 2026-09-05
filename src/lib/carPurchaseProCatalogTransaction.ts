@@ -3,12 +3,14 @@ import { carPrivilegeCatalogSql } from "./carPurchaseProReadinessPrivilegeCatalo
 import type { CarBoundCatalogQuery } from "./carPurchaseProReadinessEnvelope";
 
 // A fresh, exclusively leased physical connection, already independently bound
-// by the approved registry. Never share it with application requests. destroy()
-// must synchronously quarantine/terminate it, not return it to a reusable pool.
+// by the approved registry. quarantine() synchronously blocks reuse/results;
+// close() separately confirms asynchronous driver shutdown. Neither a timeout
+// nor application quarantine proves the remote server has stopped its query.
 export type CarCatalogConnection = {
   binding: unknown;
   execute: (sql: string, values: readonly unknown[], signal: AbortSignal) => Promise<unknown>;
-  destroy: () => void;
+  quarantine: () => void;
+  close: () => Promise<void>;
 };
 export type CarCatalogConnectionOpener = (signal: AbortSignal) => Promise<CarCatalogConnection>;
 const unavailable = () => new Error("Catalog transaction unavailable.");
@@ -48,10 +50,24 @@ export function createCarCatalogTransaction(deps: {
       || request.options.lockTimeoutMs !== 1000) throw unavailable();
     const values = Object.freeze([request.values[0], Object.freeze([...request.values[1]]), Object.freeze([...request.values[2]])]);
     const challenge = request.challenge, controller = new AbortController();
-    let connection: CarCatalogConnection | null = null, destroyed = false, expired = false;
+    let connection: CarCatalogConnection | null = null, expired = false;
+    let closing: Promise<void> | null = null;
     let began = false, rollbackAttempted = false;
-    const destroy = () => {
-      if (connection && !destroyed) { destroyed = true; connection.destroy(); }
+    const dispose = (): Promise<void> => {
+      if (!connection) return Promise.resolve();
+      if (!closing) {
+        const lease = connection;
+        // Quarantine happens synchronously even if close() never settles.
+        let quarantineFailed = false;
+        try { lease.quarantine(); } catch { quarantineFailed = true; }
+        closing = Promise.resolve().then(async () => {
+          await lease.close();
+          if (quarantineFailed) throw unavailable();
+        });
+        // Deadline/late-acquisition cleanup may outlive the caller.
+        void closing.catch(() => {});
+      }
+      return closing;
     };
     const check = () => { if (expired) throw unavailable(); };
     const execute = async (sql: string, parameters: readonly unknown[] = []) => {
@@ -65,7 +81,7 @@ export function createCarCatalogTransaction(deps: {
       timer = setTimeout(() => {
         expired = true;
         controller.abort();
-        try { destroy(); } catch { /* No result may escape on cleanup failure. */ }
+        void dispose();
         reject(unavailable());
       }, 10_000);
     });
@@ -73,7 +89,8 @@ export function createCarCatalogTransaction(deps: {
       try {
         connection = await open(controller.signal);
         check();
-        if (!connection || typeof connection.execute !== "function" || typeof connection.destroy !== "function") throw unavailable();
+        if (!connection || typeof connection.execute !== "function" || typeof connection.quarantine !== "function"
+          || typeof connection.close !== "function") throw unavailable();
         const binding = snapshot(connection.binding, 8192);
         await execute("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
         began = true;
@@ -86,15 +103,17 @@ export function createCarCatalogTransaction(deps: {
         return { binding, rows, challenge, observedAt };
       } catch {
         // Only issue cleanup SQL after a settled error. A timed-out in-flight
-        // query is destroyed; never enqueue ROLLBACK behind that query.
+        // query is quarantined; never enqueue ROLLBACK behind that query.
         if (began && !rollbackAttempted && !expired) {
           rollbackAttempted = true;
-          try { await execute("ROLLBACK"); } catch { /* Destroy below. */ }
+          try { await execute("ROLLBACK"); } catch { /* Close below. */ }
         }
         throw unavailable();
       } finally {
-        // Also disposes a lease that arrives AFTER the acquisition deadline.
-        destroy();
+        // Success cannot escape before close acknowledgement. Also closes a
+        // late lease; after timeout this work may finish only in the background.
+        await dispose();
+        check();
       }
     };
     try { return await Promise.race([work(), deadline]); }

@@ -144,24 +144,55 @@ const loadPage = environment => {
     require: path => path === "react/jsx-runtime" ? require(path) :
       path === "next/navigation" ? { redirect: target => { throw Error("redirect:" + target); } } :
       path === "next/link" ? { default: props => React.createElement("a", props) } :
+      path === "@/lib/carPurchaseProRuntime" ? { hasCarPurchaseWorkspaceAccess: async () => false } :
       new Proxy({}, { get: () => props => React.createElement("div", null, props?.children) }),
   });
   return result.exports.default;
 };
-check("Production, test and missing env cannot open an unpaid workspace", () => {
-  for (const environment of ["production", "test", undefined]) {
-    assert.throws(() => loadPage(environment)(), /redirect:\/car-purchase-pro/);
-  }
-  assert(renderToStaticMarkup(loadPage("development")()).includes("내 중고차 거래노트"));
-});
+for (const environment of ["production", "test", undefined]) {
+  await assert.rejects(loadPage(environment)(), /redirect:\/car-purchase-pro/);
+}
+assert(renderToStaticMarkup(await loadPage("development")()).includes("내 중고차 거래노트"));
+checks++;
+console.log("PASS Production, test and missing env cannot open an unpaid workspace");
 const articleSource = await readFile(new URL("../src/data/carInspectionFollowupArticle.ts", import.meta.url), "utf8");
+const articlePageSource = await readFile(new URL("../src/app/resources/[slug]/page.tsx", import.meta.url), "utf8");
 const articleModule = { exports: {} };
 runInNewContext(compile(articleSource), { exports: articleModule.exports, module: articleModule });
 check("Article distinguishes official facts, synthetic costs and unreleased product", () => {
   const article = articleModule.exports.carInspectionFollowupArticle;
   assert.equal(article.toolHref, "/used-car-comparison#vehicle-comparison-heading");
-  assert.equal(article.sources.length, 2);
+  assert.equal(article.sources.length, 3);
+  for (const expected of [
+    {
+      label: "NSW Government — Vehicle inspections checklist",
+      href: "https://www.nsw.gov.au/driving-boating-and-transport/buying-and-selling-vehicles/buying-a-used-vehicle/vehicle-inspections-checklist",
+      summary: ["독립적인 면허 보유", "검사 안내"],
+    },
+    {
+      label: "PPSR — Do a used car or vehicle search",
+      href: "https://www.ppsr.gov.au/carcheck",
+      summary: ["기계 상태", "차량 등록"],
+    },
+    {
+      label: "NSW Government — Vehicle repairs and maintenance",
+      href: "https://www.nsw.gov.au/driving-boating-and-transport/buying-and-selling-vehicles/vehicle-repairs-and-maintenance",
+      summary: ["비용·기간 견적", "추가 작업 승인"],
+    },
+  ]) {
+    const source = article.sources.find(({ href }) => href === expected.href);
+    assert(source, `Missing official source: ${expected.href}`);
+    assert.equal(source.label, expected.label);
+    for (const phrase of expected.summary) assert(source.summary.includes(phrase), `${expected.label} summary is missing: ${phrase}`);
+  }
   const text = JSON.stringify(article);
   for (const phrase of ["가상 예시", "아직 가격 확정이나 판매", "Hoju Compass가 제안", "미확정"]) assert(text.includes(phrase));
+});
+check("Only the inspection follow-up article gets the header free-tool action", () => {
+  assert(articlePageSource.includes('article.slug === "used-car-inspection-report-next-steps"'));
+  assert(articlePageSource.includes('href="/used-car-comparison#vehicle-comparison-heading"'));
+  assert(articlePageSource.includes('eventName="Article Header Action"'));
+  assert(articlePageSource.includes('properties={{ article: article.slug, destination: "free_tool" }}'));
+  assert(articlePageSource.includes("무료 후보·비용 비교표 열기"));
 });
 console.log(checks + " scenario groups passed. No build, server start, external API, payment or publication.");

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { loadArticleCatalog } from "./lib/load-article-catalog.mjs";
 
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
@@ -15,10 +16,18 @@ const expect = (condition, message) => checks.push({ condition, message });
 const energyStart = articles.indexOf('slug: "australia-energy-plan-moving-home-guide"');
 const energyEnd = articles.indexOf('slug: "australia-grocery-unit-price-budget-guide"', energyStart);
 const energyArticle = articles.slice(energyStart, energyEnd);
+const energyRecord = loadArticleCatalog().find(article => article.slug === "australia-energy-plan-moving-home-guide");
 
 expect(energyStart >= 0 && energyEnd > energyStart, "energy guide exists as a bounded article");
 expect(energyArticle.includes('readingTime: "15분"'), "energy guide keeps the expanded reading time");
-expect(energyArticle.includes('updatedAt: "2026-08-30"'), "energy guide records the latest official-source review date");
+const editedAt = energyRecord?.updatedAt;
+expect(typeof editedAt === "string" && /^\d{4}-\d{2}-\d{2}$/.test(editedAt)
+  && Number.isFinite(Date.parse(editedAt)) && new Date(editedAt).toISOString().slice(0, 10) === editedAt
+  && editedAt >= "2026-09-05" && editedAt >= energyRecord.publishedAt,
+"energy guide records a valid editorial date covering the Sep 5 worked-example revision, not a blanket official-source review date");
+expect(energyRecord.sections.some(section => section.heading === "첫 전기요금 청구서를 계산해 보는 가상 예시")
+  && energyRecord.sections.some(section => section.heading === "내 계산과 다른 금액은 차이를 물어보세요"), "the dated revision retains both the worked bill example and the practical follow-up");
+expect(resourcePage.includes("modifiedTime: article.updatedAt ?? article.publishedAt"), "editorial updatedAt remains page modification metadata rather than an inferred source-review timestamp");
 expect(energyArticle.includes('relatedSlugs: ["rental-condition-report-bond-first-week-australia", "casual-income-budget-australia", "emergency-fund-australia-guide"]'), "energy guide links to the intended next-step articles");
 expect(energyArticle.includes("Can you confirm the plan name, tariff, supply charge and usage rates in writing?"), "connection questions include copy-ready English and Korean meaning");
 expect(energyArticle.includes("Actual meter read인지 Estimated usage인지"), "first-bill review distinguishes actual and estimated readings");

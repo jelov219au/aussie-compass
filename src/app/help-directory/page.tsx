@@ -12,7 +12,7 @@ export const metadata = createPageMetadata({
 });
 
 const urgent = [
-  { number: "000", href: "tel:000", title: "생명·안전이 위급한 상황", body: "경찰·소방·구급차가 즉시 필요하거나 범죄가 진행 중인 시간 긴급 상황에 사용합니다.", source: "https://www.infrastructure.gov.au/media-communications/phone/triple-zero/using-other-emergency-numbers" },
+  { number: "000", href: "tel:000", title: "생명·안전이 위급한 상황", body: "범죄가 진행 중이거나 경찰·소방·구급차가 즉시 필요한 긴급 상황에 사용합니다.", source: "https://www.infrastructure.gov.au/media-communications/phone/triple-zero/using-other-emergency-numbers" },
   { number: "13 11 14", href: "tel:131114", title: "Lifeline 위기지원", body: "감당하기 어렵거나 안전을 유지하기 힘들 때 24시간 위기지원 상담을 받을 수 있습니다. 생명이 위험하면 000을 먼저 이용하세요.", source: "https://www.lifeline.org.au/get-help/national-services/lifeline-crisis-support" },
 ];
 
@@ -29,7 +29,7 @@ const services = [
 const callSteps = [
   ["내 위치", "주소, 도로명, 건물·역 이름 또는 눈에 띄는 지점을 먼저 말할 준비를 합니다."],
   ["무슨 상황인지", "누가 위험한지, 어떤 일이 생겼는지, 지금도 진행 중인지 짧게 설명합니다."],
-  ["통역이 필요한지", "가능하면 ‘Korean interpreter, please’라고 말하거나 TIS National을 먼저 이용합니다."],
+  ["통역이 필요한지", "긴급하면 통역을 먼저 찾느라 기다리지 말고 000에 전화해 Police, Fire 또는 Ambulance를 요청하세요. 연결을 유지하며 Korean interpreter, please라고 알립니다. 비긴급 기관 상담은 그 기관의 통역 번호 또는 TIS 131 450을 이용하세요."],
   ["상담원의 질문", "먼저 끊지 말고 안내를 따릅니다. 안전하지 않다면 통화 가능한 장소로 이동합니다."],
 ];
 
@@ -43,7 +43,7 @@ export default function HelpDirectoryPage() { return <><BreadcrumbJsonLd items={
 
   <section className="mt-12" aria-labelledby="services-heading"><div className="flex items-end justify-between border-b border-navy/20 pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">급하지 않지만 도움이 필요할 때</p><h2 id="services-heading" className="mt-2 text-2xl font-semibold text-navy">생활 중 자주 찾는 도움</h2></div><span className="hidden font-mono text-xs text-muted sm:block">공식 기관 연락처</span></div><ul>{services.map((item,index)=><li key={item.title} className="border-b border-border"><div className="grid gap-5 py-7 sm:grid-cols-[3rem_1fr_1.2fr_auto] sm:items-center sm:px-3"><span className="font-mono text-sm text-gold">0{index+1}</span><div><span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{item.kind}</span><h3 className="mt-1 text-xl font-semibold text-navy">{item.title}</h3></div><p className="text-sm leading-6 text-muted">{item.body}</p><div className="flex gap-3 sm:flex-col sm:items-end"><a href={item.call} target={item.call.startsWith("http")?"_blank":undefined} rel={item.call.startsWith("http")?"noreferrer":undefined} className="inline-flex min-h-11 items-center border-b-2 border-gold font-mono text-sm font-semibold text-navy">{item.number}</a><a href={item.source} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center text-xs font-semibold text-muted">공식 안내 ↗</a></div></div></li>)}</ul></section>
 
-  <section className="mt-12 bg-surface p-6 sm:p-8"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Before you call</p><h2 className="mt-2 text-2xl font-semibold text-navy">전화 전에 준비할 네 가지</h2><ol className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">{callSteps.map(([title,body],index)=><li key={title} className="border-t border-navy/20 pt-4"><span className="font-mono text-sm text-gold">0{index+1}</span><h3 className="mt-2 font-semibold text-navy">{title}</h3><p className="mt-2 text-sm leading-6 text-muted">{body}</p></li>)}</ol></section>
+  <section className="mt-12 bg-surface p-6 sm:p-8"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Before you call</p><h2 className="mt-2 text-2xl font-semibold text-navy">전화 전에 준비할 네 가지</h2><p className="mt-3 text-sm leading-7 text-navy">위급한 상황에서는 준비를 다 마칠 때까지 기다리지 마세요. 즉시 000에 전화하고 아는 위치와 상황부터 설명하세요.</p><ol className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">{callSteps.map(([title,body],index)=><li key={title} className="border-t border-navy/20 pt-4"><span className="font-mono text-sm text-gold">0{index+1}</span><h3 className="mt-2 font-semibold text-navy">{title}</h3><p className="mt-2 text-sm leading-6 text-muted">{body}</p></li>)}</ol><p className="mt-6 text-xs leading-6 text-muted">긴급통화·통역 순서 확인: 2026-09-05 · <a href="https://www.infrastructure.gov.au/media-communications/phone/triple-zero/how-call-triple-zero-000" target="_blank" rel="noreferrer" className="underline">000 공식 안내</a></p></section>
 
   <section className="mt-8 border border-gold/40 bg-gold/10 p-6 text-sm leading-7 text-navy"><h2 className="font-semibold">휴대폰이나 인터넷 사용이 감시될 수 있다면</h2><p className="mt-1">1800RESPECT 통화·문자 기록이 기기, 전화요금 명세나 연결된 다른 기기에 남을 수 있습니다. 안전한 다른 기기나 장소를 이용할 수 있는지 먼저 판단하고, 기록을 지우는 행동 자체가 위험을 높일 수 있다면 무리하지 마세요. 1800RESPECT에서 본인 상황에 맞는 안전한 연락 방법을 상담할 수 있습니다.</p></section>
 

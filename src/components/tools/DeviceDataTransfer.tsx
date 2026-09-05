@@ -1,7 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { carPurchaseStorageKey } from "@/lib/carPurchasePro";
+import {
+  applyDeviceImport,
+  clearDeviceRecord,
+  createDeviceBackup,
+  deviceBackupMaxBytes,
+  prepareDeviceImport,
+  type DeviceBackupDocument,
+  type DeviceImportPlan,
+} from "@/lib/deviceDataTransfer";
 import { RAIL_WORK_ALERT_STORAGE_KEY } from "@/lib/railWorkAlerts";
 import {
   clearRentalApplicationProDeviceData,
@@ -18,15 +28,6 @@ type StoredRecord = {
   sensitive?: boolean;
 };
 
-type BackupDocument = {
-  format: "hoju-compass-device-backup";
-  version: 1;
-  exportedAt: string;
-  sourceOrigin: string;
-  entries: Record<string, string>;
-};
-
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
 const payEvidenceProStorageKey = "hoju-compass-pay-evidence-pro-v1";
 const eofyProStorageKey = "hoju-compass-eofy-pro-v1";
 const leavingAustraliaProStorageKey = "hoju-compass-leaving-pro-v1";
@@ -65,14 +66,23 @@ const storedRecords: StoredRecord[] = [
   { key: "aussie-compass-service-quotes-v1", label: "서비스 견적 비교", group: "생활 서비스", sensitive: true },
   { key: "aussie-compass-service-price-log-v1", label: "서비스 가격 기록", group: "생활 서비스", sensitive: true },
   { key: "aussie-compass-vehicle-comparison-v1", label: "중고차 비교", group: "주거·이동", sensitive: true },
+  { key: carPurchaseStorageKey, label: "중고차 구매 점검 패키지", group: "주거·이동", sensitive: true },
 ];
 
 const allowedKeys = new Set(storedRecords.map((record) => record.key));
+const carDeviceRecord = storedRecords.find((record) => record.key === carPurchaseStorageKey)!;
 
-function isBackupDocument(value: unknown): value is BackupDocument {
+function isBackupDocument(value: unknown): value is DeviceBackupDocument {
   if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<BackupDocument>;
+  const candidate = value as Partial<DeviceBackupDocument>;
   if (candidate.format !== "hoju-compass-device-backup" || candidate.version !== 1) return false;
+  if (typeof candidate.exportedAt !== "string" || !Number.isFinite(Date.parse(candidate.exportedAt))) return false;
+  try {
+    if (new Date(candidate.exportedAt).toISOString() !== candidate.exportedAt) return false;
+    if (typeof candidate.sourceOrigin !== "string") return false;
+    const source = new URL(candidate.sourceOrigin);
+    if (!(["http:", "https:"].includes(source.protocol)) || source.origin !== candidate.sourceOrigin) return false;
+  } catch { return false; }
   if (!candidate.entries || typeof candidate.entries !== "object" || Array.isArray(candidate.entries)) return false;
   return Object.entries(candidate.entries).every(([key, entry]) => allowedKeys.has(key) && typeof entry === "string");
 }
@@ -84,10 +94,15 @@ export function DeviceDataTransfer() {
   const [mode, setMode] = useState<"preserve" | "overwrite">("preserve");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [exportFallback, setExportFallback] = useState("");
+  const [importPreview, setImportPreview] = useState<{ fileName: string; plan: DeviceImportPlan } | null>(null);
+  const [importConfirmed, setImportConfirmed] = useState(false);
   const [rentalDeleteConfirmed, setRentalDeleteConfirmed] = useState(false);
+  const [carDeleteConfirmed, setCarDeleteConfirmed] = useState(false);
   const [payEvidenceDeleteConfirmed, setPayEvidenceDeleteConfirmed] = useState(false);
   const [eofyDeleteConfirmed, setEofyDeleteConfirmed] = useState(false);
   const [leavingAustraliaDeleteConfirmed, setLeavingAustraliaDeleteConfirmed] = useState(false);
+  const importGenerationRef = useRef(0);
 
   const refresh = (selectAll = false) => {
     const saved = storedRecords.filter((record) => {
@@ -114,61 +129,95 @@ export function DeviceDataTransfer() {
   const exportBackup = () => {
     setError("");
     setMessage("");
-    const entries: Record<string, string> = {};
-    selected.forEach((key) => {
-      const value = localStorage.getItem(key);
-      if (value !== null) entries[key] = value;
-    });
-    if (!Object.keys(entries).length) {
+    setExportFallback("");
+    const result = createDeviceBackup(window.localStorage, selectedRecords, window.location.origin);
+    if (result.kind === "read_error") {
+      setError(`선택한 기록을 모두 읽지 못해 불완전한 백업을 만들지 않았습니다: ${result.failedLabels.join(" · ")}. 해당 항목을 선택 해제하거나 저장공간을 확인한 뒤 다시 시도해 주세요.`);
+      return;
+    }
+    if (result.kind === "empty") {
       setError("내보낼 기록을 하나 이상 선택해 주세요.");
       return;
     }
-    const backup: BackupDocument = {
-      format: "hoju-compass-device-backup",
-      version: 1,
-      exportedAt: new Date().toISOString(),
-      sourceOrigin: window.location.origin,
-      entries,
-    };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `hoju-compass-device-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-    setMessage(`${Object.keys(entries).length}개 기록을 백업 파일로 저장했습니다.`);
+    if (result.kind === "serialise_error") {
+      setError("선택한 기록으로 JSON을 만들지 못했습니다. 현재 기록을 유지하고 다시 시도해 주세요.");
+      return;
+    }
+    if (result.kind === "too_large") {
+      setError(`백업이 ${(result.bytes / 1024 / 1024).toFixed(2)}MB여서 이 도구의 2MB 복원 한도를 넘습니다. 항목을 나눠 백업하거나 각 유료 작업공간의 자체 보관 파일을 사용해 주세요.`);
+      return;
+    }
+    try {
+      const reparsed: unknown = JSON.parse(result.json);
+      if (!isBackupDocument(reparsed)) throw new Error("self-check");
+      const blob = new Blob([result.json], { type: "application/json" });
+      if (blob.size > deviceBackupMaxBytes) throw new Error("blob-size");
+      const url = URL.createObjectURL(blob);
+      try {
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `hoju-compass-device-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        anchor.click();
+      } catch (downloadError) {
+        URL.revokeObjectURL(url);
+        throw downloadError;
+      }
+      window.setTimeout(() => { try { URL.revokeObjectURL(url); } catch { /* Download request already left the page context. */ } }, 30_000);
+      setMessage(`${result.count}개 기록의 백업 다운로드를 요청했습니다. 브라우저 다운로드 목록에서 파일과 크기를 확인하고, 새 기기에서 실제 내용을 확인할 때까지 원본 기록을 유지하세요.`);
+    } catch {
+      setExportFallback(result.json);
+      setError("백업 다운로드를 시작하지 못했습니다. 아래 전체 JSON을 선택해 2MB 이하의 .json 파일로 직접 저장해 주세요.");
+    }
   };
 
   const importBackup = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
+    const generation = ++importGenerationRef.current;
+    const selectedMode = mode;
     setError("");
     setMessage("");
-    if (file.size > MAX_FILE_SIZE) {
+    setImportPreview(null);
+    setImportConfirmed(false);
+    if (file.size > deviceBackupMaxBytes) {
       setError("백업 파일이 너무 큽니다. 2MB 이하의 Hoju Compass JSON 파일을 선택해 주세요.");
       return;
     }
     try {
       const parsed: unknown = JSON.parse(await file.text());
+      if (generation !== importGenerationRef.current) return;
       if (!isBackupDocument(parsed)) throw new Error("invalid");
-      let imported = 0;
-      let skipped = 0;
-      for (const [key, value] of Object.entries(parsed.entries)) {
-        if (mode === "preserve" && localStorage.getItem(key) !== null) {
-          skipped += 1;
-          continue;
-        }
-        localStorage.setItem(key, value);
-        imported += 1;
+      const prepared = prepareDeviceImport(window.localStorage, parsed, selectedMode, storedRecords);
+      if (prepared.kind === "read_error") {
+        setError(`현재 기록을 모두 읽지 못해 가져오기 미리보기를 만들지 않았습니다: ${prepared.failedLabels.join(" · ")}. 어떤 기록도 변경하지 않았습니다.`);
+        return;
       }
-      refresh(true);
-      window.dispatchEvent(new Event("storage"));
-      setMessage(`${imported}개 기록을 불러왔습니다.${skipped ? ` 기존 기록 ${skipped}개는 유지했습니다.` : ""}`);
+      setImportPreview({ fileName: file.name, plan: prepared.plan });
     } catch {
+      if (generation !== importGenerationRef.current) return;
       setError("파일을 읽을 수 없습니다. Hoju Compass에서 내려받은 원본 JSON 백업인지 확인해 주세요.");
     }
+  };
+
+  const applyImport = () => {
+    if (!importPreview || !importConfirmed) return;
+    setError("");
+    setMessage("");
+    const result = applyDeviceImport(window.localStorage, importPreview.plan);
+    if (result.kind === "success") {
+      refresh(true);
+      window.dispatchEvent(new Event("storage"));
+      setMessage(`${result.imported}개 기록을 검증해 불러왔습니다.${result.preserved ? ` 기존 기록 ${result.preserved}개는 유지했습니다.` : ""} 나의 진행과 각 중요 도구에서 실제 내용을 확인한 뒤 원본 기기 정리를 결정하세요.`);
+      setImportPreview(null);
+      setImportConfirmed(false);
+      return;
+    }
+    if (result.kind === "rolled_back") {
+      setError("가져오기에 실패했지만 이번 시도 전의 기존 기록으로 복원했습니다. 현재 기록을 백업하고 저장공간을 확인한 뒤 다시 시도해 주세요.");
+      return;
+    }
+    setError(`가져오기와 일부 되돌리기를 확인하지 못했습니다. 바뀌었을 수 있는 항목: ${result.rollbackLabels.join(" · ")}. 즉시 현재 상태를 별도 백업하고 해당 도구를 열어 확인해 주세요.`);
   };
 
   const deleteRentalDeviceData = () => {
@@ -185,6 +234,28 @@ export function DeviceDataTransfer() {
     setMessage(result.removedKeys.length
       ? `이 브라우저의 Rental 로컬 기록 ${result.removedKeys.length}개를 삭제했습니다.`
       : "이 브라우저에 남은 Rental 로컬 기록이 없습니다.");
+  };
+
+  const deleteCarDeviceData = () => {
+    setError("");
+    setMessage("");
+    const result = clearDeviceRecord(window.localStorage, carDeviceRecord);
+    if (result.kind === "read_error") {
+      setError("중고차 구매 점검 기록의 존재 여부를 읽지 못해 삭제하지 않았습니다. 브라우저 저장공간 설정을 확인해 주세요.");
+      return;
+    }
+    if (result.kind === "delete_failed") {
+      setError("중고차 구매 점검 기록을 삭제하고 확인하지 못했습니다. 이 브라우저의 Car workspace를 다시 열어 확인해 주세요.");
+      return;
+    }
+    setCarDeleteConfirmed(false);
+    refresh();
+    if (result.kind === "removed") {
+      window.dispatchEvent(new Event("storage"));
+      setMessage("이 브라우저의 중고차 구매 점검 재사용 초안을 삭제했습니다. 구매 이용권·결제 증빙·서버 Report와 다른 Car·유료 도구 기록은 변경하지 않았습니다.");
+    } else {
+      setMessage("이 브라우저에 남은 중고차 구매 점검 재사용 초안이 없습니다. 다른 기록과 구매 이용권은 변경하지 않았습니다.");
+    }
   };
 
   const deletePayEvidenceDeviceData = () => {
@@ -247,8 +318,8 @@ export function DeviceDataTransfer() {
           <p className="mt-2 text-sm leading-6 text-muted">{host || "현재 주소 확인 중"}에 저장된 Hoju Compass 기록만 표시합니다. 다른 웹사이트의 데이터에는 접근하지 않습니다.</p>
         </div>
         <div className={`border-l-2 px-4 py-2 text-sm leading-6 ${legacyHost ? "border-gold bg-gold/10 text-navy" : "border-navy/25 text-muted"}`}>
-          <strong className="block text-navy">{legacyHost ? "기존 주소에서 접속 중" : "새 공식 주소에서 접속 중"}</strong>
-          {legacyHost ? "먼저 백업 파일을 받은 뒤 새 주소에서 불러오세요." : "기존 주소에서 받은 백업 파일을 여기서 불러올 수 있습니다."}
+          <strong className="block text-navy">{legacyHost ? "기존 주소에서 접속 중" : "기기·브라우저 기록 이전"}</strong>
+          {legacyHost ? "먼저 백업 파일을 받은 뒤 새 주소에서 불러오세요." : "처음 작성한 브라우저에서 받은 백업 파일을 여기서 불러올 수 있습니다."}
         </div>
       </section>
 
@@ -265,10 +336,12 @@ export function DeviceDataTransfer() {
           <p className="mt-3 text-lg font-semibold">선택한 {selected.length}개 기록</p>
           <p className="mt-3 text-sm leading-6 text-white/65">JSON 파일 한 개로 기기에 저장합니다. 파일은 Hoju Compass 서버로 전송되지 않습니다.</p>
           {hasSensitiveSelection && <p className="mt-4 border-l-2 border-gold pl-3 text-xs leading-5 text-white/75">이력서의 이름·연락처나 급여·예산 금액이 포함될 수 있습니다. 개인 기기에 보관하고 이전을 마치면 안전하게 삭제하세요.</p>}
+          {selected.includes(carPurchaseStorageKey) && <p className="mt-4 text-xs leading-5 text-white/75">중고차 구매 점검 패키지의 재사용 초안을 정확한 원문 값으로 감쌉니다. Car workspace의 자체 JSON 보관 파일과 형식·용도가 다르며 구매 이용권·활성화·복구 정보는 포함하지 않습니다.</p>}
           <button type="button" disabled={!selected.length} onClick={exportBackup} className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-gold px-4 text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-40">백업 파일 받기</button>
           {legacyHost && <a href="https://hojucompass.com/data-transfer" className="mt-3 inline-flex min-h-11 w-full items-center justify-center border border-white/25 px-4 text-center text-sm font-semibold text-white hover:border-gold">새 주소에서 불러오기 →</a>}
         </aside>
       </section>
+      {exportFallback ? <label className="block border border-gold bg-gold/5 p-5"><span className="text-sm font-semibold text-navy">전체 백업 JSON · 선택해서 .json 파일로 저장</span><span className="mt-2 block text-xs leading-5 text-muted">자동 다운로드를 시작하지 못했습니다. 아래 전체 내용을 복사해 2MB 이하의 JSON 파일로 보관하세요.</span><textarea value={exportFallback} readOnly rows={14} onFocus={(event) => event.currentTarget.select()} className="mt-3 w-full resize-y border border-border bg-white p-3 font-mono text-xs leading-5 text-navy" /></label> : null}
 
       <section className="border-t border-navy/20 pt-8" aria-labelledby="import-heading">
         <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
@@ -282,12 +355,39 @@ export function DeviceDataTransfer() {
             <p className="mt-3 text-center text-xs leading-5 text-muted">최대 2MB · 파일은 브라우저 안에서만 처리</p>
           </div>
         </div>
+        {importPreview ? <div className="mt-6 border border-gold bg-gold/5 p-5" aria-labelledby="import-preview-heading">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">적용 전 미리보기</p>
+          <h3 id="import-preview-heading" className="mt-2 text-lg font-semibold text-navy">{importPreview.fileName} · {importPreview.plan.mode === "overwrite" ? "백업으로 덮어쓰기" : "기존 기록 유지"}</h3>
+          <div className="mt-4 grid gap-4 text-sm leading-6 sm:grid-cols-3">
+            <div><strong className="text-navy">새로 가져올 {importPreview.plan.importedLabels.length}개</strong><p className="mt-1 text-muted">{importPreview.plan.importedLabels.join(" · ") || "없음"}</p></div>
+            <div><strong className="text-navy">교체할 {importPreview.plan.replacedLabels.length}개</strong><p className="mt-1 text-muted">{importPreview.plan.replacedLabels.join(" · ") || "없음"}</p></div>
+            <div><strong className="text-navy">유지할 {importPreview.plan.preservedLabels.length}개</strong><p className="mt-1 text-muted">{importPreview.plan.preservedLabels.join(" · ") || "없음"}</p></div>
+          </div>
+          {importPreview.plan.replacedLabels.length ? <p className="mt-4 border-l-2 border-red-500 bg-white p-3 text-sm leading-6 text-red-800">현재 기록 {importPreview.plan.replacedLabels.length}개가 교체됩니다. 적용하기 전에 새 기기의 현재 기록을 별도 백업해 두세요.</p> : null}
+          <label className="mt-4 flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-6 text-navy"><input type="checkbox" checked={importConfirmed} onChange={(event) => setImportConfirmed(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-[var(--color-gold)]" />가져올·유지할·교체할 목록을 확인했습니다</label>
+          <div className="mt-3 flex flex-wrap gap-3"><button type="button" disabled={!importConfirmed || importPreview.plan.operations.length === 0} onClick={applyImport} className="min-h-12 bg-navy px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">확인한 기록 적용하기</button><button type="button" onClick={() => { importGenerationRef.current += 1; setImportPreview(null); setImportConfirmed(false); }} className="min-h-12 border border-border px-5 text-sm font-semibold text-muted">취소 · 현재 기록 유지</button></div>
+        </div> : null}
+      </section>
+
+      <section className="border-t border-navy/20 pt-8" aria-labelledby="car-purchase-delete-heading">
+        <div className="grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
+          <div>
+            <p className="font-mono text-sm text-gold">03</p>
+            <h2 id="car-purchase-delete-heading" className="mt-1 text-2xl font-semibold text-navy">공용 기기의 중고차 구매 점검 기록 삭제</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">Car workspace의 차량 후보, 확인 이슈와 점검 스냅샷이 담긴 재사용 초안만 이 브라우저에서 삭제합니다. 무료 중고차 비교, 다른 유료 작업공간, 구매 이용권·활성화·복구 정보, 결제 증빙과 서버 Report는 변경하지 않습니다.</p>
+            <p className="mt-3 max-w-3xl text-xs leading-5 text-muted">일반 기기 백업은 이 재사용 초안을 다른 허용 기록과 함께 옮깁니다. Car workspace 자체 JSON archive는 해당 화면에서 Car 기록만 보관하는 별도 형식입니다.</p>
+          </div>
+          <div className="border border-red-200 bg-red-50/60 p-5">
+            <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm font-medium leading-6 text-navy"><input type="checkbox" checked={carDeleteConfirmed} onChange={(event) => setCarDeleteConfirmed(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-red-700" />삭제할 대상이 이 브라우저의 Car 재사용 초안뿐임을 확인했습니다</label>
+            <button type="button" disabled={!carDeleteConfirmed} onClick={deleteCarDeviceData} className="mt-3 inline-flex min-h-12 w-full items-center justify-center bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">Car 재사용 초안 삭제</button>
+          </div>
+        </div>
       </section>
 
       <section className="border-t border-navy/20 pt-8" aria-labelledby="rental-delete-heading">
         <div className="grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
           <div>
-            <p className="font-mono text-sm text-gold">03</p>
+            <p className="font-mono text-sm text-gold">04</p>
             <h2 id="rental-delete-heading" className="mt-1 text-2xl font-semibold text-navy">공용 기기의 Rental 기록 삭제</h2>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">집 방문 점검, Rental workspace의 모든 집 후보와 내부 가져오기 표식, 남은 이어보기 정보와 로컬 완료 표식을 이 브라우저에서 한 번에 삭제합니다. 구매 이용권·결제 증빙·서버 기록과 다른 기기의 데이터는 변경하지 않습니다.</p>
             <p className="mt-3 max-w-3xl text-xs leading-5 text-muted">일반 백업에는 다시 사용할 집 방문 점검과 Rental workspace가 포함되며, workspace 안의 집 후보와 내부 가져오기 표식도 함께 옮겨집니다. 일시적인 이어보기 정보와 로컬 완료 표식은 이전 대상이 아닙니다. 설치형 앱과 일반 브라우저에서 기록이 따로 보이면 각 환경에서 각각 백업하거나 삭제하세요.</p>
@@ -305,7 +405,7 @@ export function DeviceDataTransfer() {
       <section className="border-t border-navy/20 pt-8" aria-labelledby="pay-evidence-delete-heading">
         <div className="grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
           <div>
-            <p className="font-mono text-sm text-gold">04</p>
+            <p className="font-mono text-sm text-gold">05</p>
             <h2 id="pay-evidence-delete-heading" className="mt-1 text-2xl font-semibold text-navy">공용 기기의 Pay Evidence 기록 삭제</h2>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">급여기간, 근무시간, 확인한 시급, Payslip·입금 대조와 증빙 메모를 이 브라우저에서 삭제합니다. 구매 이용권·결제 증빙·서버 기록과 다른 기기의 데이터는 변경하지 않습니다.</p>
           </div>
@@ -322,7 +422,7 @@ export function DeviceDataTransfer() {
       <section className="border-t border-navy/20 pt-8" aria-labelledby="eofy-delete-heading">
         <div className="grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
           <div>
-            <p className="font-mono text-sm text-gold">05</p>
+            <p className="font-mono text-sm text-gold">06</p>
             <h2 id="eofy-delete-heading" className="mt-1 text-2xl font-semibold text-navy">공용 기기의 EOFY 기록 삭제</h2>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">소득 준비 상태, 공제 후보, 회계사 질문과 검토 확인을 이 브라우저에서 삭제합니다. 구매 이용권·결제 증빙·서버 기록과 다른 기기의 데이터는 변경하지 않습니다.</p>
           </div>
@@ -339,7 +439,7 @@ export function DeviceDataTransfer() {
       <section className="border-t border-navy/20 pt-8" aria-labelledby="leaving-australia-delete-heading">
         <div className="grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
           <div>
-            <p className="font-mono text-sm text-gold">06</p>
+            <p className="font-mono text-sm text-gold">07</p>
             <h2 id="leaving-australia-delete-heading" className="mt-1 text-2xl font-semibold text-navy">공용 기기의 출국 준비 기록 삭제</h2>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">출국일 별칭, 작업 상태, 받을 돈·마지막 정산, 확인 질문과 의존성 검토 기록을 이 브라우저에서 삭제합니다. 구매 이용권·결제 증빙·서버 기록과 다른 기기의 데이터는 변경하지 않습니다.</p>
           </div>
@@ -356,7 +456,7 @@ export function DeviceDataTransfer() {
       {(message || error) && <div role="status" aria-live="polite" className={`border-l-4 p-5 text-sm leading-6 ${error ? "border-red-500 bg-red-50 text-red-800" : "border-gold bg-gold/10 text-navy"}`}>{error || message}{message && <Link href="/my-compass" className="ml-2 font-semibold underline underline-offset-4">나의 진행에서 확인 →</Link>}</div>}
 
       <section className="grid gap-5 border-t border-border pt-7 sm:grid-cols-3">
-        {["기존 주소에서 백업 파일 받기", "새 주소 또는 새 기기에서 파일 선택", "나의 진행에서 기록 확인"].map((step, index) => <div key={step}><span className="font-mono text-xs text-gold">0{index + 1}</span><p className="mt-2 text-sm font-semibold leading-6 text-navy">{step}</p></div>)}
+        {["처음 작성한 브라우저에서 백업 받기", "새 기기·브라우저에서 파일 선택", "각 도구에서 중요한 기록 확인"].map((step, index) => <div key={step}><span className="font-mono text-xs text-gold">0{index + 1}</span><p className="mt-2 text-sm font-semibold leading-6 text-navy">{step}</p></div>)}
       </section>
     </div>
   );

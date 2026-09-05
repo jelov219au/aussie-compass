@@ -51,7 +51,9 @@ assert.match(homePage, /<ToolsSection \/>/, "the homepage must expose the public
 assert.match(homePage, /<ReturnVisitSection \/>/, "the homepage must expose resumable local work");
 assert.match(toolsSection, /href="\/tools"/, "web and installed PWA must share the same tools-directory entry");
 assert.match(toolsPage, /href: "\/rail-work-alerts"/, "the tools directory must expose the canonical rail route");
-assert.match(returnVisitSection, /RAIL_WORK_ALERT_STORAGE_KEY/, "saved rail areas must remain resumable from the homepage");
+const compassRecords = await read("src/lib/compassRecords.ts");
+assert.match(returnVisitSection, /readCompassRecords/, "home must use the shared validated summary");
+assert.match(compassRecords, /item\(RAIL_WORK_ALERT_STORAGE_KEY[\s\S]*parseWatchAreas/, "saved rail areas must remain resumable through their original validator");
 assert.doesNotMatch(`${toolsSection}\n${toolsPage}\n${returnVisitSection}`, /display-mode|standalone\)\.matches/, "the feature must not be hidden from either surface");
 assert.match(railRegistry, /RAIL_WORK_ALERT_ROUTE = "\/rail-work-alerts"/, "the canonical transport route must remain explicit");
 assert.match(deviceTransfer, /RAIL_WORK_ALERT_STORAGE_KEY/, "browser and installed-PWA storage must have an explicit manual transfer path");

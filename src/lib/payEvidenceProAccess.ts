@@ -73,6 +73,32 @@ export async function getActivePayEvidenceProEntitlement() {
   });
 }
 
+// A missing cookie and an unverifiable existing cookie are different checkout
+// states. Only a definite absence may proceed to a new payment reservation.
+export async function getPayEvidenceProCheckoutAccess(cookieHeader: string | null): Promise<"none" | "active" | "unknown"> {
+  try {
+    const values = (await cookies()).getAll(accessCookieName);
+    // RequestCookies may collapse duplicate names, so also check the raw header.
+    const rawCount = (cookieHeader ?? "").split(";")
+      .filter(part => part.split("=", 1)[0].trim() === accessCookieName).length;
+    if (rawCount !== values.length || rawCount > 1) return "unknown";
+    if (values.length === 0) return "none";
+    if (values.length !== 1) return "unknown";
+    const payload = decodePayEvidenceProAccessToken(values[0]?.value, getSessionSecret());
+    if (!payload || !/^[1-9]\d{0,18}$/.test(payload.entitlementId)
+      || BigInt(payload.entitlementId) > BigInt("9223372036854775807")) return "unknown";
+    const store = getConfiguredEntitlementStore();
+    if (!store) return "unknown";
+    const entitlement = await store.findActiveByAccessSession({
+      entitlementId: payload.entitlementId, productCode: "pay_evidence_pro",
+      accessSessionHash: hashPayEvidenceProAccessSessionId(payload.accessSessionId),
+    });
+    if (entitlement === null) return "none";
+    return entitlement?.id === payload.entitlementId && entitlement.productCode === "pay_evidence_pro"
+      && entitlement.status === "active" ? "active" : "unknown";
+  } catch { return "unknown"; }
+}
+
 export function createPayEvidenceAccessSession(source: "activation" | "restore", sourceHash: string) {
   const secret = getSessionSecret();
   if (!secret) throw new Error("Pay Evidence Pack Pro access sessions are not configured.");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 
 const issues = {
   payment: {
@@ -39,19 +40,21 @@ const issues = {
 
 type IssueKey = keyof typeof issues;
 
-const products = {
-  resume_pro: "Resume Pro",
-  rental_application_pro: "Rental Application Pack Pro",
-} as const;
+export type PaymentSupportProduct = {
+  id: string;
+  name: string;
+  href: string | null;
+  restoreHref: string | null;
+  preparing?: boolean;
+};
 
-type ProductKey = keyof typeof products;
-
-export function PaymentSupportHelper({ supportEmail }: { supportEmail: string | null }) {
-  const [product, setProduct] = useState<ProductKey>("resume_pro");
+export function PaymentSupportHelper({ supportEmail, products }: { supportEmail: string | null; products: readonly PaymentSupportProduct[] }) {
+  const [product, setProduct] = useState(products[0]?.id ?? "unknown");
   const [issue, setIssue] = useState<IssueKey>("payment");
   const [status, setStatus] = useState("");
   const selected = issues[issue];
-  const productLabel = products[product];
+  const selectedProduct = products.find(item => item.id === product);
+  const productLabel = selectedProduct?.name ?? "제품명 확인 필요";
   const template = useMemo(() => [
     `Hoju Compass ${productLabel} 지원 요청`,
     "",
@@ -62,7 +65,7 @@ export function PaymentSupportHelper({ supportEmail }: { supportEmail: string | 
     "발생한 문제: [개인정보를 제외하고 설명]",
     "이미 시도한 방법: [직접 입력]",
     "",
-    "카드번호 전체·일부, CVC, 비밀번호, 영수증 전체, 신분증 사본은 포함하지 않았습니다.",
+    "카드번호 전체·일부, CVC, 비밀번호, 이용권 복구 코드, 영수증 전체, 신분증 사본은 포함하지 않았습니다.",
   ].join("\n"), [productLabel, selected]);
 
   async function copyTemplate() {
@@ -82,12 +85,14 @@ export function PaymentSupportHelper({ supportEmail }: { supportEmail: string | 
     <section className="border border-navy/15 bg-white p-5 sm:p-7" aria-labelledby="payment-support-helper-heading">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Support request helper</p>
       <h2 id="payment-support-helper-heading" className="mt-2 text-2xl font-semibold text-navy">문제 유형에 맞는 문의를 준비하세요.</h2>
-      <label className="mt-6 block text-sm font-semibold text-navy" htmlFor="payment-product">구매한 제품</label>
-      <select id="payment-product" value={product} onChange={(event) => setProduct(event.target.value as ProductKey)} className="mt-2 min-h-12 w-full border border-border bg-surface px-3 text-sm text-navy outline-none focus:border-gold">
-        {Object.entries(products).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+      <label className="mt-6 block text-sm font-semibold text-navy" htmlFor="payment-product">문의할 제품</label>
+      <select id="payment-product" value={product} onChange={(event) => { setProduct(event.target.value); setStatus(""); }} className="mt-2 min-h-12 w-full border border-border bg-surface px-3 text-sm text-navy outline-none focus:border-gold">
+        {products.map(item => <option key={item.id} value={item.id}>{item.id === "unknown" ? "제품명을 모르겠어요" : `${item.name}${item.preparing ? " · 출시 준비 문의" : ""}`}</option>)}
       </select>
+      {selectedProduct?.restoreHref && <Link href={selectedProduct.restoreHref} className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline">{productLabel} 이용권 복구 →</Link>}
+      {selectedProduct?.preparing && <p className="mt-3 text-sm leading-6 text-muted">현재 출시 준비 문의만 받습니다. 구매·이용권 복구 제공을 뜻하지 않습니다. {selectedProduct.href && <Link href={selectedProduct.href} className="font-semibold text-navy underline">제품 준비 상태 보기</Link>}</p>}
       <label className="mt-5 block text-sm font-semibold text-navy" htmlFor="payment-issue">현재 상황</label>
-      <select id="payment-issue" value={issue} onChange={(event) => setIssue(event.target.value as IssueKey)} className="mt-2 min-h-12 w-full border border-border bg-surface px-3 text-sm text-navy outline-none focus:border-gold">
+      <select id="payment-issue" value={issue} onChange={(event) => { setIssue(event.target.value as IssueKey); setStatus(""); }} className="mt-2 min-h-12 w-full border border-border bg-surface px-3 text-sm text-navy outline-none focus:border-gold">
         {Object.entries(issues).map(([value, item]) => <option key={value} value={value}>{item.label}</option>)}
       </select>
       <ol className="mt-5 space-y-3" aria-live="polite" aria-atomic="true" aria-label={`${selected.label} 확인 순서`}>

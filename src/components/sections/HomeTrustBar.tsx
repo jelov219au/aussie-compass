@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Container } from "@/components/ui/Container";
 import { actionClass } from "@/components/ui/actionStyles";
 
@@ -35,9 +35,9 @@ export function HomeTrustBar() {
             <p className="text-xs font-semibold tracking-[0.14em] text-gold-ink">정보를 고르는 기준</p>
             <h2 id="home-trust-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">어떻게 확인한 정보인지 숨기지 않아요.</h2>
           </div>
-          <Link href="/editorial-policy" className={actionClass("tertiary")}>
+          <TrackedLink href="/editorial-policy" eventName="Home Navigation" properties={{ section: "trust", destination: "editorial-policy" }} className={actionClass("tertiary")}>
             전체 운영 원칙 보기 →
-          </Link>
+          </TrackedLink>
         </div>
 
         <ol className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -45,9 +45,9 @@ export function HomeTrustBar() {
             <li key={item.number} className="rounded-2xl border-2 border-navy/10 bg-white p-5 shadow-[0_10px_24px_rgba(26,39,68,0.05)] sm:p-6">
               <div className="flex items-center justify-between gap-4">
                 <span className="font-mono text-xs text-gold-ink">{item.number}</span>
-                <Link href={item.href} className="inline-flex min-h-9 items-center rounded-lg border border-navy/15 px-3 text-xs font-semibold text-navy transition hover:border-gold hover:bg-surface">
+                <TrackedLink href={item.href} eventName="Home Navigation" properties={{ section: "trust", destination: item.href.slice(1) }} className="inline-flex min-h-9 items-center rounded-lg border border-navy/15 px-3 text-xs font-semibold text-navy transition hover:border-gold hover:bg-surface">
                   {item.linkLabel} →
-                </Link>
+                </TrackedLink>
               </div>
               <h3 className="mt-5 text-lg font-semibold text-navy">{item.title}</h3>
               <p className="mt-2 text-sm leading-6 text-muted">{item.description}</p>

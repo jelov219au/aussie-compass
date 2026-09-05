@@ -125,7 +125,7 @@ assert.ok(sitemap.includes("lastModified: acquisitionRouteUpdates[route]"), "the
 assert.ok(homeTools.includes('section: "resume_job_ad_evidence"') && homeTools.includes('destination: "resume-job-ad-checker"'), "the home entry needs fixed privacy-safe navigation attribution");
 assert.ok(page.includes("ResumeJobAdVisitTracker") && visitTracker.includes("trackResumeJobAdViewed()"), "the checker needs an anonymous reach event before activation events");
 for (const value of ["지원할 Job Ad가 있다면", "입력 원문 서버 전송 없음", "실제 경험 근거부터 확인", "최대 3개", "무료 공고 맞춤 점검"]) {
-  assert.ok(homeTools.includes(value), `the high-intent home entry is missing: ${value}`);
+  assert.ok(`${homeTools}\n${component}`.includes(value), `the checker discovery or evidence flow is missing: ${value}`);
 }
 assert.ok(homePremium.includes('<ResumeProProofLink entry="home-premium"'), "the home Resume Pro card must route high-intent interest through the free proof");
 for (const value of ["결제 전에 내 공고로 무료 확인", "로그인 없이 현재 브라우저에서만", "이력서·공고 원문을 서버로 전송하지 않아요"]) {

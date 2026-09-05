@@ -10,7 +10,7 @@ import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
   title: "호주 영문 이력서 빌더 | Hoju Compass",
-  description: "한국어로 정리한 경험을 자연스러운 영문 문장으로 바꾸고, 호주 구직에 맞는 이력서를 만들어 PDF로 저장할 수 있어요.",
+  description: "직접 확인한 업무와 목표 직무를 영문 초안으로 정리하고, 호주 구직용 이력서를 만들어 인쇄 창에서 PDF로 저장할 수 있어요.",
   path: "/resume-builder",
 });
 
@@ -27,9 +27,9 @@ export default function ResumeBuilderPage() {
           <div className="mb-10 mt-5 max-w-3xl">
             <p className="text-sm font-semibold text-[#806515]">영문 이력서가 막막할 때</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">호주 영문 이력서 빌더</h1>
-            <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">경험과 강점을 먼저 한국어로 적어도 괜찮아요. 영문 예시를 참고해 문장을 다듬고, 마음에 드는 색상과 레이아웃으로 정리해보세요. 입력한 내용은 이 브라우저에만 남습니다.</p>
+            <p className="mt-4 text-base leading-relaxed text-muted sm:text-lg">한국어 메모로 생각을 정리하고, 목표 직무와 실제로 한 일을 직접 영문으로 입력하세요. 도우미의 초안과 예시를 내 사실에 맞게 수정해 이력서로 정리할 수 있어요. 메모는 이 탭에만 남고, 이력서에 추가한 내용은 기기 저장 상태를 확인해 주세요.</p>
             <ul className="mt-6 grid gap-px border-y border-navy/15 bg-border text-sm sm:grid-cols-3" aria-label="무료 이력서 빌더에서 남길 수 있는 결과">
-              <li className="bg-white px-4 py-4"><strong className="block text-navy">브라우저 자동 저장</strong><span className="mt-1 block text-xs leading-5 text-muted">입력한 실제 경험을 현재 기기에 이어서 보관해요.</span></li>
+              <li className="bg-white px-4 py-4"><strong className="block text-navy">브라우저 자동 저장</strong><span className="mt-1 block text-xs leading-5 text-muted">기기 저장이 가능하면 입력한 실제 경험을 보관해요. 오류가 있으면 백업 안내를 확인하세요.</span></li>
               <li className="bg-white px-4 py-4"><strong className="block text-navy">PDF·백업 내보내기</strong><span className="mt-1 block text-xs leading-5 text-muted">완성본과 수정 가능한 JSON 백업을 직접 저장해요.</span></li>
               <li className="bg-white px-4 py-4"><strong className="block text-navy">실제 경험 다시 사용</strong><span className="mt-1 block text-xs leading-5 text-muted">저장한 경험을 다음 지원 때 불러와 다시 다듬어요.</span></li>
             </ul>

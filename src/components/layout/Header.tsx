@@ -52,11 +52,21 @@ export function Header() {
               {link.label}
             </Link>
           ))}
-          <Link href="/search" className="ml-1 inline-flex min-h-11 items-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-navy transition hover:border-navy/25 hover:bg-surface">검색</Link>
+          <Link href="/search" aria-label="통합 검색" className="ml-1 inline-flex min-h-11 items-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-navy transition hover:border-navy/25 hover:bg-surface">검색</Link>
         </nav>
 
         <div className="flex shrink-0 items-center gap-2 md:hidden">
-          <Link href="/search" className="hidden min-h-11 items-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-navy min-[420px]:inline-flex">검색</Link>
+          <Link
+            href="/search"
+            aria-label="통합 검색"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-border bg-white text-sm font-semibold text-navy transition hover:border-navy/25 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 min-[420px]:px-4"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5 min-[420px]:hidden" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.75" />
+              <path d="m16 16 4 4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+            </svg>
+            <span className="hidden min-[420px]:inline">검색</span>
+          </Link>
           <button
             ref={menuButtonRef}
             type="button"
@@ -118,7 +128,6 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link href="/search" className="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-navy px-4 text-sm font-semibold text-white min-[420px]:hidden" onClick={() => setMenuOpen(false)}>검색</Link>
           </Container>
         </nav>
       ) : null}

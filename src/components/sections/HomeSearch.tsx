@@ -1,6 +1,7 @@
 "use client";
 
 import { track } from "@vercel/analytics";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { actionClass } from "@/components/ui/actionStyles";
@@ -11,6 +12,8 @@ const popularSearches = [
   { label: "집 구하기", topic: "housing" },
   { label: "이력서", topic: "jobs" },
   { label: "세후 급여", topic: "pay" },
+  { label: "커버레터", topic: "jobs" },
+  { label: "이력서 양식", topic: "jobs" },
 ];
 
 const searchTopics = [
@@ -33,6 +36,7 @@ function classifySearch(value: string) {
 export function HomeSearch() {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [transferError, setTransferError] = useState(false);
 
   function openSearch(value: string, topic: string, entry: "free_text" | "popular") {
     const transferredQuery = sanitizeTransferredSearch(value);
@@ -44,9 +48,11 @@ export function HomeSearch() {
         sessionStorage.removeItem(SEARCH_TRANSFER_STORAGE_KEY);
       }
     } catch {
-      // Search terms never fall back to URLs or network requests when storage is unavailable.
+      setTransferError(true);
+      return;
     }
 
+    setTransferError(false);
     try {
       track("Home Search", { topic, entry });
     } catch {
@@ -75,7 +81,10 @@ export function HomeSearch() {
                 type="search"
                 autoComplete="off"
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setTransferError(false);
+                }}
                 placeholder="예: 집 구하기"
                 className="min-w-0 flex-1 rounded-lg bg-transparent px-2 py-3 text-base text-navy outline-none placeholder:text-muted"
               />
@@ -83,6 +92,11 @@ export function HomeSearch() {
                 검색
               </button>
             </div>
+            {transferError && (
+              <p className="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-navy" role="alert" aria-live="assertive">
+                이 탭에서 검색어를 안전하게 옮기지 못했어요. 입력한 내용은 그대로 두었습니다. <Link href="/search" className="font-semibold underline decoration-gold underline-offset-4">검색 페이지에서 다시 입력하기</Link>
+              </p>
+            )}
             <div className="mt-2 grid grid-cols-2 gap-2 min-[380px]:grid-cols-4 sm:flex sm:flex-wrap" aria-label="바로 찾는 주제">
               {popularSearches.map(({ label, topic }) => (
                 <button

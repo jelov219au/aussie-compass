@@ -22,8 +22,8 @@ for (const contract of [
   "이 개수는 합격 점수가 아니에요.",
   "이번 한 번만 고치면 무료 TXT와 Builder로 끝내고",
   "같은 근거를 회사별 지원서로 다시 열어 비교해야 하면 Pro 저장 결과를 확인하세요.",
-  "무료 점검의 이력서·공고 원문은 저장되지 않고",
-  "표현 후보와 확인 상태만 현재 탭에 최대 30분 남아요.",
+  "무료 점검의 이력서·공고 원문은 저장되지 않습니다.",
+  "이 실제 비교의 표현 후보와 확인 상태만 현재 탭에 최대 30분 남아요.",
   "근거 메모 TXT 저장",
   "원문 없이 표현 후보와 근거 질문을 저장해 다음 지원에서 파일로 다시 열어요.",
   "경력 + 실제 공고 저장",
@@ -48,7 +48,7 @@ assert.ok(decision.includes("이번 이력서만 무료로 수정하기"), "the 
 const focusRings = decision.match(/focus-visible:ring-2/g) ?? [];
 assert.equal(focusRings.length, 3, "the copy action and both decision links need an explicit keyboard focus indicator");
 const tapTargets = decision.match(/min-h-12/g) ?? [];
-assert.equal(tapTargets.length, 3, "the copy action and both mobile decision links need a 48px minimum target");
+assert.equal(tapTargets.length, 4, "the copy action, enabled Pro action, disabled Pro state and free link need a 48px minimum target");
 
 assert.doesNotMatch(decision, /원문과 결과는 이 화면을 떠나면 남지 않아요/, "the decision must not hide the 30-minute evidence-only handoff");
 assert.doesNotMatch(decision, /track\(|sendBeacon|fetch\(|resumeText|jobAdText/, "the decision section must not create duplicate analytics or expose pasted inputs");

@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { readLocalRecord, LOCAL_RECORD_UPDATED_EVENT } from "@/lib/localRecordState";
+import { parsePersonalPlan, parseRoutePreference, personalPlanCalendar, type StageId, type ConcernId, type SavedPlan } from "@/lib/personalRoutePlan";
 import Link from "next/link";
 import { track } from "@vercel/analytics";
+import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { Container } from "@/components/ui/Container";
-
-type StageId = "prepare" | "arrive" | "live" | "depart";
-type ConcernId = "admin" | "work" | "home" | "money" | "safety";
 
 type RouteTool = {
   href: string;
@@ -16,21 +16,33 @@ type RouteTool = {
   concerns: ConcernId[];
 };
 
-type SavedPlan = {
-  stage: StageId;
-  concern: ConcernId;
-  stageLabel: string;
-  concernLabel: string;
-  steps: Array<{ href: string; title: string }>;
-  completed: string[];
-  savedAt: string;
-};
-
 const storageKey = "hoju-compass-route-finder-v1";
 const planStorageKey = "hoju-compass-personal-plan-v1";
+const routePlanActions = {
+  save: "save_plan",
+  viewSaved: "view_saved_plan",
+  viewCurrent: "view_current_recommendations",
+  markComplete: "mark_step_complete",
+  markIncomplete: "mark_step_incomplete",
+  share: "share_recommendations",
+  reminder: "download_reminder",
+} as const;
 
-const icsEscape = (value: string) => value.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
-const icsDate = (date: Date) => `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+function trackRoutePlanAction(action: typeof routePlanActions[keyof typeof routePlanActions], stage: StageId, concern: ConcernId) {
+  try {
+    track("Route Plan Action", { action, stage, concern });
+  } catch {
+    // Plan actions must remain independent from optional analytics.
+  }
+}
+
+function trackRecommendation(destination: string, stage: StageId, concern: ConcernId) {
+  try {
+    track("Route Recommendation Opened", { destination, stage, concern });
+  } catch {
+    // Navigation must remain independent from optional analytics.
+  }
+}
 
 const stages: Array<{ id: StageId; label: string; detail: string }> = [
   { id: "prepare", label: "출국 준비 중", detail: "비자 신청부터 출발 전" },
@@ -84,43 +96,38 @@ export function PersonalRouteFinder() {
   const [actionMessage, setActionMessage] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [taxSeason, setTaxSeason] = useState(false);
+  const [planStatus, setPlanStatus] = useState<"missing" | "saved" | "failed" | "blocked">("missing");
+  const [planRaw, setPlanRaw] = useState<string | null>(null);
+  const [preferenceIssue, setPreferenceIssue] = useState("");
+  const [preferenceRaw, setPreferenceRaw] = useState<string | null>(null);
+  const [viewSaved, setViewSaved] = useState(false);
+  const [shareFallback, setShareFallback] = useState("");
+  const [calendarFallback, setCalendarFallback] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const sharedStage = params.get("stage") as StageId | null;
-    const sharedConcern = params.get("concern") as ConcernId | null;
-    const hasSharedRoute = stages.some((item) => item.id === sharedStage) && concerns.some((item) => item.id === sharedConcern);
-    if (hasSharedRoute) {
-      setStage(sharedStage as StageId);
-      setConcern(sharedConcern as ConcernId);
-      setActionMessage("공유받은 추천 경로를 열었어요. 저장하기 전까지 기존 계획은 그대로 남아 있어요.");
-    } else {
-      try {
-        const saved = JSON.parse(localStorage.getItem(storageKey) ?? "null") as { stage?: StageId; concern?: ConcernId } | null;
-        if (saved && stages.some((item) => item.id === saved.stage)) setStage(saved.stage as StageId);
-        if (saved && concerns.some((item) => item.id === saved.concern)) setConcern(saved.concern as ConcernId);
-      } catch { /* Invalid preferences fall back to the first route. */ }
-    }
-    try {
-      const savedPlan = JSON.parse(localStorage.getItem(planStorageKey) ?? "null") as SavedPlan | null;
-      if (savedPlan && Array.isArray(savedPlan.steps) && Array.isArray(savedPlan.completed)) setPlan(savedPlan);
-    } catch { /* Invalid plan data is ignored. */ }
+    const shared = parseRoutePreference(JSON.stringify({ stage: params.get("stage"), concern: params.get("concern") }));
+    const preferences = readLocalRecord(storageKey, parseRoutePreference);
+    const saved = readLocalRecord(planStorageKey, parsePersonalPlan);
+    if (preferences.status === "invalid" || preferences.status === "unavailable") { setPreferenceIssue("이전 선택을 확인하지 못했습니다. 원문은 보존하며 화면에서 고른 내용만 사용합니다."); setPreferenceRaw(preferences.raw); }
+    if (saved.status === "valid") { setPlan(saved.value); setPlanStatus("saved"); }
+    else if (saved.status !== "missing") { setPlanStatus("blocked"); setPlanRaw(saved.raw); setActionMessage("기존 계획을 읽거나 검증하지 못했습니다. 원문을 백업한 뒤 명시적으로 교체할 수 있습니다."); }
+    if (params.get("plan") === "saved" && saved.status === "valid") { setStage(saved.value.stage); setConcern(saved.value.concern); setViewSaved(true); }
+    else if (shared) { setStage(shared.stage); setConcern(shared.concern); setActionMessage("공유받은 추천 경로를 열었어요. 저장하기 전까지 기존 계획은 그대로 남아 있어요."); }
+    else if (preferences.status === "valid") { setStage(preferences.value.stage); setConcern(preferences.value.concern); }
     const sydneyMonth = Number(new Intl.DateTimeFormat("en-AU", { month: "numeric", timeZone: "Australia/Sydney" }).format(new Date()));
     setTaxSeason(sydneyMonth >= 7 && sydneyMonth <= 10);
     setLoaded(true);
   }, []);
 
-  useEffect(() => {
-    if (!loaded) return;
-    try { localStorage.setItem(storageKey, JSON.stringify({ stage, concern })); }
-    catch { /* Saving a preference is optional. */ }
-  }, [stage, concern, loaded]);
-
-  useEffect(() => {
-    if (!loaded || !plan) return;
-    try { localStorage.setItem(planStorageKey, JSON.stringify(plan)); }
-    catch { /* Saving a plan is optional. */ }
-  }, [plan, loaded]);
+  const savePreference = (nextStage: StageId, nextConcern: ConcernId, replaceInvalid = false) => {
+    const existing = readLocalRecord(storageKey, parseRoutePreference);
+    if ((existing.status === "invalid" || existing.status === "unavailable") && !replaceInvalid) { setPreferenceIssue("화면의 선택만 바뀌었습니다. 이전 선택 원문을 보호해 저장하지 않았습니다."); setPreferenceRaw(existing.raw); return; }
+    try { localStorage.setItem(storageKey, JSON.stringify({ stage: nextStage, concern: nextConcern })); setPreferenceIssue(""); setPreferenceRaw(null); }
+    catch { setPreferenceIssue("화면의 선택은 유지되지만 기기에는 저장되지 않았습니다."); }
+  };
+  const chooseStage = (value: StageId) => { setStage(value); setViewSaved(false); savePreference(value, concern); };
+  const chooseConcern = (value: ConcernId) => { setConcern(value); setViewSaved(false); savePreference(stage, value); };
 
   const recommendations = useMemo(() => tools.map((tool, index) => ({
     ...tool,
@@ -133,21 +140,41 @@ export function PersonalRouteFinder() {
   const concernLabel = concerns.find((item) => item.id === concern)?.label;
   const currentSteps = recommendations.map(({ href, title }) => ({ href, title }));
   const matchesCurrentPlan = Boolean(plan && plan.stage === stage && plan.concern === concern && plan.steps.map((step) => step.href).join("|") === currentSteps.map((step) => step.href).join("|"));
-  const completedCount = matchesCurrentPlan && plan ? plan.completed.filter((href) => currentSteps.some((step) => step.href === href)).length : 0;
+  const showPlan = Boolean(plan && (viewSaved || matchesCurrentPlan));
+  const completedCount = showPlan && plan ? plan.completed.length : 0;
+  const displayedTools = showPlan && plan ? plan.steps.map(step => ({ ...step, description: tools.find(tool => tool.href === step.href)?.description ?? "저장했던 단계입니다." })) : recommendations;
+  const displayedStageLabel = showPlan && plan ? plan.stageLabel : stageLabel;
+  const displayedConcernLabel = showPlan && plan ? plan.concernLabel : concernLabel;
 
-  const saveCurrentPlan = () => {
-    if (!stageLabel || !concernLabel) return;
-    setPlan({ stage, concern, stageLabel, concernLabel, steps: currentSteps, completed: [], savedAt: new Date().toISOString() });
-    track("Route Plan Saved", { stage, concern });
-    window.dispatchEvent(new Event("storage"));
+  const persistPlan = (next: SavedPlan, replaceInvalid = false) => {
+    const existing = readLocalRecord(planStorageKey, parsePersonalPlan);
+    setPlan(next); setViewSaved(true);
+    if ((existing.status === "invalid" || existing.status === "unavailable") && !replaceInvalid) {
+      setPlanStatus("blocked"); setPlanRaw(existing.raw); setActionMessage("현재 계획은 화면에만 있습니다. 기존 계획 원문은 교체하지 않았습니다."); return false;
+    }
+    try { localStorage.setItem(planStorageKey, JSON.stringify(next)); }
+    catch { setPlanStatus("failed"); setActionMessage("현재 계획은 화면에 남아 있지만 기기에 저장되지 않았습니다. 백업하거나 다시 저장하세요."); return false; }
+    setPlanStatus("saved"); setPlanRaw(null); setActionMessage("계획을 기기에 저장했습니다.");
+    window.dispatchEvent(new Event(LOCAL_RECORD_UPDATED_EVENT));
+    return true;
   };
-
+  const saveCurrentPlan = () => {
+    if (!loaded || !stageLabel || !concernLabel) return;
+    if (plan && !window.confirm("현재 계획의 완료 표시 " + plan.completed.length + "개를 포함한 " + plan.steps.length + "단계를 현재 추천으로 교체할까요? 취소하면 기존 계획이 유지됩니다.")) return;
+    const blocked = planStatus === "blocked";
+    if (blocked && !window.confirm("기존 계획을 확인하지 못했습니다. 필요한 원문을 백업한 뒤 현재 추천으로 교체할까요?")) return;
+    const next = { stage, concern, stageLabel, concernLabel, steps: currentSteps, completed: [], savedAt: new Date().toISOString() };
+    if (persistPlan(next, blocked)) trackRoutePlanAction(routePlanActions.save, stage, concern);
+  };
   const toggleCompleted = (href: string) => {
-    setPlan((current) => current ? { ...current, completed: current.completed.includes(href) ? current.completed.filter((item) => item !== href) : [...current.completed, href] } : current);
-    window.dispatchEvent(new Event("storage"));
+    if (!plan || !plan.steps.some(step => step.href === href)) return;
+    const wasCompleted = plan.completed.includes(href);
+    persistPlan({ ...plan, completed: wasCompleted ? plan.completed.filter(item => item !== href) : [...plan.completed, href] });
+    trackRoutePlanAction(wasCompleted ? routePlanActions.markIncomplete : routePlanActions.markComplete, plan.stage, plan.concern);
   };
 
   const shareRecommendations = async () => {
+    trackRoutePlanAction(routePlanActions.share, stage, concern);
     const url = new URL("https://hojucompass.com/");
     url.searchParams.set("stage", stage);
     url.searchParams.set("concern", concern);
@@ -167,25 +194,23 @@ export function PersonalRouteFinder() {
         await navigator.clipboard.writeText(url.toString());
         setActionMessage("추천 링크를 복사했어요.");
       } catch {
-        setActionMessage("브라우저 주소를 복사해 공유해 주세요.");
+        setShareFallback(url.toString());
+        setActionMessage("아래 생성된 추천 링크를 직접 선택해 복사하세요.");
       }
     }
   };
 
   const downloadReminder = () => {
-    if (!matchesCurrentPlan || !plan) return;
-    const reminderDate = new Date();
-    reminderDate.setDate(reminderDate.getDate() + 7);
-    const remaining = plan.steps.filter((step) => !plan.completed.includes(step.href)).map((step) => step.title);
-    const description = [`${plan.stageLabel} · ${plan.concernLabel}`, `${completedCount}/3개 완료`, remaining.length ? `남은 단계: ${remaining.join(", ")}` : "모든 단계를 마쳤어요.", "https://hojucompass.com/#route-finder"].join("\n");
-    const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Hoju Compass//Personal Plan//KO", "CALSCALE:GREGORIAN", "BEGIN:VEVENT", `UID:personal-plan-${icsDate(reminderDate)}-${stage}-${concern}@hojucompass.com`, `DTSTART;VALUE=DATE:${icsDate(reminderDate)}`, "SUMMARY:Hoju Compass 3단계 계획 점검", `DESCRIPTION:${icsEscape(description)}`, "URL:https://hojucompass.com/#route-finder", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
-    const url = URL.createObjectURL(new Blob([body], { type: "text/calendar;charset=utf-8" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "hoju-compass-7-day-plan-reminder.ics";
-    anchor.click();
-    URL.revokeObjectURL(url);
-    setActionMessage("7일 뒤 다시 볼 수 있도록 캘린더 파일을 저장했어요.");
+    if (!showPlan || !plan) return;
+    trackRoutePlanAction(routePlanActions.reminder, plan.stage, plan.concern);
+    let contents = "", url: string | undefined;
+    try {
+      const calendar = personalPlanCalendar(plan); contents = calendar.contents;
+      url = URL.createObjectURL(new Blob([contents], { type: "text/calendar;charset=utf-8" }));
+      const anchor = document.createElement("a"); anchor.href = url; anchor.download = "hoju-compass-7-day-plan-reminder.ics"; anchor.click();
+      setCalendarFallback(""); setActionMessage(calendar.date + " 점검 파일 다운로드를 요청했습니다. 달력 앱에서 가져온 뒤 날짜와 알림을 확인하세요. 현재 계획의 사본이며 이후 변경은 자동 반영되지 않습니다. 법정 기한 확인을 대신하지 않습니다.");
+    } catch { setCalendarFallback(contents); setActionMessage("파일을 다운로드하지 못했습니다. 아래 내용을 .ics 파일로 보관하거나 달력 앱에 직접 입력하세요."); }
+    finally { if (url) URL.revokeObjectURL(url); }
   };
 
   return <section id="route-finder" className="scroll-mt-20 border-b border-border bg-white py-16 sm:py-24" aria-labelledby="route-finder-heading"><Container>
@@ -195,19 +220,24 @@ export function PersonalRouteFinder() {
         <h2 id="route-finder-heading" className="mt-2 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">지금 단계와 고민을<br/>하나씩 골라보세요.</h2>
         <p className="mt-4 max-w-xl text-base leading-7 text-muted">모든 정보를 처음부터 읽지 않아도 괜찮아요. 지금 필요한 순서에 맞춰 먼저 볼 세 가지를 보여드려요.</p>
 
-        <fieldset className="mt-8"><legend className="text-sm font-semibold text-navy"><span className="mr-2 text-gold-ink">01</span>지금 어느 단계인가요?</legend><div className="mt-3 grid gap-2 sm:grid-cols-2">{stages.map((item) => <label key={item.id} className={`cursor-pointer rounded-xl border px-4 py-3 transition ${stage === item.id ? "border-navy bg-surface" : "border-border bg-white hover:border-navy/30"}`}><input type="radio" name="route-stage" value={item.id} checked={stage === item.id} onChange={() => setStage(item.id)} className="sr-only"/><span className="block text-sm font-semibold text-navy">{item.label}</span><span className="mt-1 block text-xs text-muted">{item.detail}</span></label>)}</div></fieldset>
+        <fieldset className="mt-8"><legend className="text-sm font-semibold text-navy"><span className="mr-2 text-gold-ink">01</span>지금 어느 단계인가요?</legend><div className="mt-3 grid gap-2 sm:grid-cols-2">{stages.map((item) => <label key={item.id} className={`cursor-pointer rounded-xl border has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold has-[:focus-visible]:ring-offset-2 px-4 py-3 transition ${stage === item.id ? "border-navy bg-surface" : "border-border bg-white hover:border-navy/30"}`}><input type="radio" name="route-stage" value={item.id} checked={stage === item.id} onChange={() => chooseStage(item.id)} className="sr-only"/><span className="block text-sm font-semibold text-navy">{item.label}</span><span className="mt-1 block text-xs text-muted">{item.detail}</span></label>)}</div></fieldset>
 
-        <fieldset className="mt-7"><legend className="text-sm font-semibold text-navy"><span className="mr-2 text-gold-ink">02</span>요즘 가장 마음 쓰이는 일은 무엇인가요?</legend><div className="mt-3 flex flex-wrap gap-2">{concerns.map((item) => <label key={item.id} className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-4 text-sm font-semibold transition ${concern === item.id ? "border-gold bg-gold/15 text-navy" : "border-border bg-white text-muted hover:border-navy/30 hover:text-navy"}`}><input type="radio" name="route-concern" value={item.id} checked={concern === item.id} onChange={() => setConcern(item.id)} className="sr-only"/>{item.label}</label>)}</div></fieldset>
-        <p className="mt-4 text-xs leading-5 text-muted">고른 내용은 현재 브라우저에만 저장돼요. 이름이나 연락처는 받지 않아요.</p>
+        <fieldset className="mt-7"><legend className="text-sm font-semibold text-navy"><span className="mr-2 text-gold-ink">02</span>요즘 가장 마음 쓰이는 일은 무엇인가요?</legend><div className="mt-3 flex flex-wrap gap-2">{concerns.map((item) => <label key={item.id} className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-gold has-[:focus-visible]:ring-offset-2 px-4 text-sm font-semibold transition ${concern === item.id ? "border-gold bg-gold/15 text-navy" : "border-border bg-white text-muted hover:border-navy/30 hover:text-navy"}`}><input type="radio" name="route-concern" value={item.id} checked={concern === item.id} onChange={() => chooseConcern(item.id)} className="sr-only"/>{item.label}</label>)}</div></fieldset>
+        <p className="mt-4 text-xs leading-5 text-muted">선택과 계획은 각각 기기 저장 상태를 확인하세요. 이름이나 연락처는 받지 않아요.</p>
       </div>
 
-      <div className="self-start rounded-3xl bg-navy p-6 text-white sm:p-8" aria-live="polite">
-        <div className="flex items-end justify-between gap-4 border-b border-white/15 pb-5"><div><p className="text-xs font-semibold text-gold">이 순서로 시작해보세요</p><h3 className="mt-2 text-2xl font-semibold">{stageLabel} · {concernLabel}</h3></div><span className="shrink-0 text-xs text-white/45">{matchesCurrentPlan ? `${completedCount}/3 완료` : "먼저 볼 3가지"}</span></div>
-        <ol>{recommendations.map((tool, index) => { const done = Boolean(matchesCurrentPlan && plan?.completed.includes(tool.href)); return <li key={tool.href} className="border-b border-white/15"><div className="grid sm:grid-cols-[1fr_auto] sm:items-center"><Link href={tool.href} onClick={() => track("Route Recommendation Opened", { destination: tool.href.slice(1), route: `${stage}_${concern}` })} className="group grid gap-3 py-6 sm:grid-cols-[2rem_1fr_auto] sm:items-center"><span className="font-mono text-xs text-gold">0{index + 1}</span><span><strong className={`block text-lg text-white ${done ? "line-through decoration-gold/70" : ""}`}>{tool.title}</strong><span className="mt-1 block text-sm leading-6 text-white/60">{tool.description}</span></span><span className="text-xl text-gold transition group-hover:translate-x-1" aria-hidden="true">→</span></Link>{matchesCurrentPlan && <button type="button" aria-pressed={done} onClick={() => toggleCompleted(tool.href)} className={`mb-4 ml-8 inline-flex min-h-10 items-center justify-center border px-3 text-xs font-semibold sm:mb-0 sm:ml-4 ${done ? "border-gold bg-gold text-navy" : "border-white/25 text-white hover:border-gold"}`}>{done ? "완료됨" : "완료 표시"}</button>}</div></li>; })}</ol>
-        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3"><button type="button" disabled={matchesCurrentPlan} onClick={saveCurrentPlan} className="inline-flex min-h-11 items-center rounded-full bg-gold px-5 text-sm font-semibold text-navy disabled:cursor-default disabled:bg-white/10 disabled:text-white/55">{matchesCurrentPlan ? "나의 계획에 저장됨" : plan ? "현재 추천으로 계획 바꾸기" : "3단계 계획으로 저장"}</button><Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-semibold text-white">전체 도구 보기 →</Link></div>
-        <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2"><button type="button" onClick={shareRecommendations} className="inline-flex min-h-10 items-center text-sm font-semibold text-white/75 hover:text-white">추천 경로 공유 ↗</button>{matchesCurrentPlan && <button type="button" onClick={downloadReminder} className="inline-flex min-h-10 items-center text-sm font-semibold text-white/75 hover:text-white">7일 뒤 점검 알림 +</button>}</div>
+      <div className="min-w-0 [overflow-wrap:anywhere] self-start rounded-3xl bg-navy p-6 text-white sm:p-8" aria-live="polite">
+        <div className="flex items-end justify-between gap-4 border-b border-white/15 pb-5"><div><p className="text-xs font-semibold text-gold">이 순서로 시작해보세요</p><h3 className="mt-2 text-2xl font-semibold">{displayedStageLabel} · {displayedConcernLabel}</h3></div><span className="shrink-0 text-xs text-white/45">{showPlan && plan ? `${completedCount}/${plan.steps.length} 직접 표시` : "먼저 볼 3가지"}</span></div>
+        <p className="mt-3 text-xs leading-5 text-white/65">{showPlan ? "저장한 단계입니다. 필요한 행동을 해 본 뒤 직접 완료 표시하세요." : "현재 선택의 추천입니다. 기존 계획과 구분해서 확인하세요."}</p><ol>{displayedTools.map((tool, index) => { const done = Boolean(showPlan && plan?.completed.includes(tool.href)); return <li key={tool.href} className="border-b border-white/15"><div className="grid sm:grid-cols-[1fr_auto] sm:items-center"><Link href={tool.href} onClick={() => trackRecommendation(tool.href.slice(1), showPlan && plan ? plan.stage : stage, showPlan && plan ? plan.concern : concern)} className="group grid gap-3 py-6 sm:grid-cols-[2rem_1fr_auto] sm:items-center"><span className="font-mono text-xs text-gold">0{index + 1}</span><span><strong className={`block text-lg text-white ${done ? "line-through decoration-gold/70" : ""}`}>{tool.title}</strong><span className="mt-1 block text-sm leading-6 text-white/60">{tool.description}</span></span><span className="text-xl text-gold transition group-hover:translate-x-1" aria-hidden="true">→</span></Link>{showPlan && <button type="button" aria-pressed={done} onClick={() => toggleCompleted(tool.href)} className={`mb-4 ml-8 inline-flex min-h-10 items-center justify-center border px-3 text-xs font-semibold sm:mb-0 sm:ml-4 ${done ? "border-gold bg-gold text-navy" : "border-white/25 text-white hover:border-gold"}`}>{done ? "완료됨" : "완료 표시"}</button>}</div></li>; })}</ol>
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3"><button type="button" disabled={!loaded || showPlan} onClick={saveCurrentPlan} className="inline-flex min-h-11 items-center rounded-full bg-gold px-5 text-sm font-semibold text-navy disabled:cursor-default disabled:bg-white/10 disabled:text-white/55">{showPlan ? planStatus === "saved" ? "나의 계획에 저장됨" : "현재 화면의 계획 · 저장 확인 필요" : plan ? "현재 추천으로 계획 바꾸기" : "3단계 계획으로 저장"}</button><TrackedLink href="/tools" eventName="Home Navigation" properties={{ section: "route_finder", destination: "tools" }} className="inline-flex min-h-11 items-center text-sm font-semibold text-white">전체 도구 보기 →</TrackedLink></div>
+        {plan && <div className="mt-3 flex flex-wrap gap-4"><button type="button" onClick={() => { trackRoutePlanAction(routePlanActions.viewSaved, plan.stage, plan.concern); setViewSaved(true); setStage(plan.stage); setConcern(plan.concern); }} className="min-h-11 text-sm underline">저장한 계획 보기</button><button type="button" onClick={() => { trackRoutePlanAction(routePlanActions.viewCurrent, stage, concern); setViewSaved(false); }} className="min-h-11 text-sm underline">현재 선택의 추천 보기</button><TrackedLink href="/my-compass" eventName="Home Navigation" properties={{ section: "route_finder", destination: "my_compass" }} className="min-h-11 text-sm underline">내 Compass에서 확인</TrackedLink></div>}
+        <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2"><button type="button" onClick={shareRecommendations} className="inline-flex min-h-10 items-center text-sm font-semibold text-white/75 hover:text-white">추천 경로 공유 ↗</button>{showPlan && <button type="button" onClick={downloadReminder} className="inline-flex min-h-10 items-center text-sm font-semibold text-white/75 hover:text-white">7일 뒤 점검 알림 +</button>}</div>
+        {preferenceIssue && <div className="mt-4 border border-amber-300 p-3 text-xs"><p role="status">{preferenceIssue}</p>{preferenceRaw !== null && <label className="mt-2 block">이전 선택 원문<textarea readOnly value={preferenceRaw} onFocus={event => event.target.select()} className="mt-1 min-h-20 w-full bg-white p-2 text-navy" /></label>}<button type="button" onClick={() => { if (window.confirm("현재 화면의 단계·고민 선택으로 이전 선택 기록을 교체할까요? 계획 기록은 바뀌지 않습니다.")) savePreference(stage, concern, true); }} className="min-h-11 underline">현재 선택 저장 다시 확인</button></div>}
+        {(planStatus === "failed" || planStatus === "blocked") && <div className="mt-4 border border-amber-300 p-3 text-xs"><p>계획 저장 확인이 필요합니다. 화면의 계획과 기존 원문을 각각 보관할 수 있습니다.</p>{planRaw !== null && <label className="mt-2 block">기존 계획 원문 백업<textarea readOnly value={planRaw} onFocus={event => event.target.select()} className="mt-1 min-h-24 w-full bg-white p-2 text-navy" /></label>}{plan && <><label className="mt-2 block">현재 계획 JSON 백업<textarea readOnly value={JSON.stringify(plan, null, 2)} onFocus={event => event.target.select()} className="mt-1 min-h-24 w-full bg-white p-2 text-navy" /></label><button type="button" onClick={() => { if (planStatus === "blocked" && !window.confirm("원문 백업 후 현재 화면의 계획으로 교체할까요?")) return; persistPlan(plan, planStatus === "blocked"); }} className="min-h-11 underline">현재 계획 다시 저장</button></>}</div>}
+        {shareFallback && <label className="mt-3 block text-xs">직접 복사할 추천 링크<input readOnly value={shareFallback} onFocus={event => event.target.select()} className="mt-1 min-h-11 w-full bg-white p-2 text-navy" /></label>}
+        {calendarFallback && <label className="mt-3 block text-xs">계획 캘린더 파일 내용<textarea readOnly value={calendarFallback} onFocus={event => event.target.select()} className="mt-1 min-h-24 w-full bg-white p-2 text-navy" /></label>}
         {actionMessage && <p className="mt-3 text-xs leading-5 text-white/60" role="status" aria-live="polite">{actionMessage}</p>}
-        {matchesCurrentPlan && completedCount === 3 && <p className="mt-5 border-l-2 border-gold pl-3 text-sm leading-6 text-white/75">세 단계를 모두 마쳤어요. 다른 고민을 골라 새 계획을 만들 수도 있어요.</p>}
+        {showPlan && plan && completedCount === plan.steps.length && <p className="mt-5 border-l-2 border-gold pl-3 text-sm leading-6 text-white/75">세 단계를 모두 마쳤어요. 다른 고민을 골라 새 계획을 만들 수도 있어요.</p>}
       </div>
     </div>
   </Container></section>;

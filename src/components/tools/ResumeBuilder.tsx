@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type SyntheticEvent, type SetStateAction } from "react";
 import Link from "next/link";
 import { track } from "@vercel/analytics";
 import { ResumeProCtaLink, trackResumeBuilderStarted } from "@/components/analytics/ResumeFunnelAnalytics";
 import { resumeFunnelContexts, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
+import { emptyResume, parseResumeBuilderDraft, splitResumeSkills, resumeEssentialCount, resumePlainText, hasExperience, hasEducation, createFactBasedEnglishDraft, hasWritingPlaceholder, type ResumeData, type Experience, type Education, type Accent } from "@/lib/resumeBuilderData";
 import {
   createResumeBuilderStorageStatusController,
   persistResumeBuilderDraft,
@@ -12,46 +13,7 @@ import {
   type ResumeBuilderStorageStatusController,
 } from "@/lib/resumeBuilderStorage";
 
-type Experience = { id: string; role: string; company: string; period: string; details: string };
-type Education = { id: string; course: string; school: string; period: string };
-type Accent = "navy" | "forest" | "burgundy" | "charcoal";
-type LayoutStyle = "classic" | "compact";
-type ResumeData = {
-  name: string;
-  title: string;
-  phone: string;
-  email: string;
-  location: string;
-  link: string;
-  summary: string;
-  skills: string;
-  licences: string;
-  languages: string;
-  showReferences: boolean;
-  accent: Accent;
-  layoutStyle: LayoutStyle;
-  experiences: Experience[];
-  education: Education[];
-};
-
 const STORAGE_KEY = "aussie-compass-resume-v1";
-const emptyResume: ResumeData = {
-  name: "",
-  title: "",
-  phone: "",
-  email: "",
-  location: "",
-  link: "",
-  summary: "",
-  skills: "",
-  licences: "",
-  languages: "",
-  showReferences: false,
-  accent: "navy",
-  layoutStyle: "classic",
-  experiences: [{ id: "experience-1", role: "", company: "", period: "", details: "" }],
-  education: [{ id: "education-1", course: "", school: "", period: "" }],
-};
 
 const inputClass = "mt-1.5 min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy outline-none transition placeholder:text-muted/60 focus:border-navy focus:ring-2 focus:ring-navy/15";
 const labelClass = "block text-sm font-medium text-navy";
@@ -82,26 +44,52 @@ function moveItem<T>(items: T[], from: number, to: number) {
 }
 
 export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
-  const [resume, setResume] = useState<ResumeData>(emptyResume);
+  const [resume, setResumeState] = useState<ResumeData>(emptyResume);
   const [loaded, setLoaded] = useState(false);
   const [returnToResumeProWorkspace, setReturnToResumeProWorkspace] = useState(false);
   const [storageStatus, setStorageStatus] = useState<ResumeBuilderStorageStatus>("idle");
   const [actionMessage, setActionMessage] = useState("");
   const [koreanDraft, setKoreanDraft] = useState("");
   const [englishSuggestion, setEnglishSuggestion] = useState("");
+  const [targetRole, setTargetRole] = useState("");
+  const [experienceChoice, setExperienceChoice] = useState<"none" | "confirmed">("none");
+  const [confirmedWork, setConfirmedWork] = useState("");
+  const [writingConfirmed, setWritingConfirmed] = useState(false);
+  const [exampleOriginal, setExampleOriginal] = useState("");
+  const [storageBlock, setStorageBlock] = useState("");
+  const [blockedRaw, setBlockedRaw] = useState<string | null>(null);
+  const [fallback, setFallback] = useState<{ label: string; text: string } | null>(null);
+  const storageAllowedRef = useRef(false);
+  const dirtyRef = useRef(false);
+  const autosaveRef = useRef<number | null>(null);
+  const importingRef = useRef(false);
+  const revisionRef = useRef(0);
   const importInputRef = useRef<HTMLInputElement>(null);
   const completionTrackedRef = useRef(false);
   const storageStatusControllerRef = useRef<ResumeBuilderStorageStatusController | null>(null);
 
+  const cancelAutosave = () => {
+    if (autosaveRef.current !== null) window.clearTimeout(autosaveRef.current);
+    autosaveRef.current = null;
+  };
+  const setResume = (next: SetStateAction<ResumeData>) => {
+    revisionRef.current += 1;
+    dirtyRef.current = true;
+    if (storageStatusControllerRef.current?.getSnapshot().status === "saved") storageStatusControllerRef.current.reset();
+    setResumeState(next);
+  };
+
   const persistResume = useCallback((draft: ResumeData) => {
     const controller = storageStatusControllerRef.current;
-    if (!controller) return false;
-    return persistResumeBuilderDraft(
+    if (!controller || !storageAllowedRef.current || importingRef.current) return false;
+    const saved = persistResumeBuilderDraft(
       () => window.localStorage,
       STORAGE_KEY,
       JSON.stringify(draft),
       controller,
     ) === "saved";
+    if (saved) dirtyRef.current = false;
+    return saved;
   }, []);
 
   useEffect(() => {
@@ -122,28 +110,34 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
   }, []);
 
   useEffect(() => {
+    let stored: string | null = null;
     try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) setResume({ ...emptyResume, ...JSON.parse(stored) });
+      stored = window.localStorage.getItem(STORAGE_KEY);
+      if (stored !== null) setResumeState(parseResumeBuilderDraft(stored));
+      storageAllowedRef.current = true;
     } catch {
-      // A corrupt or unavailable local store should not stop the builder.
+      storageAllowedRef.current = false;
+      setBlockedRaw(stored);
+      setStorageBlock(stored === null ? "기기 저장소를 읽지 못했습니다. 기존 자료를 보호하기 위해 자동 저장을 중지했습니다." : "저장된 작성본 형식을 확인할 수 없어 원문을 그대로 두고 자동 저장을 중지했습니다.");
     }
     setLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || !dirtyRef.current || !storageAllowedRef.current || importingRef.current) return;
     const timer = window.setTimeout(() => {
+      autosaveRef.current = null;
       persistResume(resume);
     }, 500);
+    autosaveRef.current = timer;
     return () => window.clearTimeout(timer);
   }, [loaded, persistResume, resume]);
 
-  const skills = useMemo(() => resume.skills.split(",").map((skill) => skill.trim()).filter(Boolean), [resume.skills]);
+  const skills = useMemo(() => splitResumeSkills(resume.skills), [resume.skills]);
   const licences = useMemo(() => resume.licences.split("\n").map((item) => item.trim()).filter(Boolean), [resume.licences]);
   const languages = useMemo(() => resume.languages.split(",").map((item) => item.trim()).filter(Boolean), [resume.languages]);
   const activeAccent = accentOptions.find((option) => option.id === resume.accent) ?? accentOptions[0];
-  const completedEssentials = [resume.name, resume.title, resume.phone, resume.email, resume.summary, resume.experiences[0]?.role, resume.skills].filter(Boolean).length;
+  const completedEssentials = resumeEssentialCount(resume);
   const resumeReady = completedEssentials === 7;
   const setField = (field: keyof Omit<ResumeData, "experiences" | "education">, value: string) =>
     setResume((current) => ({ ...current, [field]: value }));
@@ -155,12 +149,58 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
 
   const clearResume = () => {
     if (!window.confirm("작성한 내용을 모두 지울까요? 이 작업은 되돌릴 수 없습니다.")) return;
-    setResume({ ...emptyResume, experiences: [{ ...emptyResume.experiences[0] }], education: [{ ...emptyResume.education[0] }] });
-    window.localStorage.removeItem(STORAGE_KEY);
+    cancelAutosave();
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+      revisionRef.current += 1;
+      dirtyRef.current = false;
+      storageAllowedRef.current = true;
+      setResumeState(emptyResume);
+      setStorageBlock("");
+      setBlockedRaw(null);
+      storageStatusControllerRef.current?.reset();
+      setActionMessage("현재 내용과 기기 저장본을 지웠습니다.");
+    } catch {
+      storageAllowedRef.current = false;
+      setStorageBlock("기기 저장본을 삭제하지 못했습니다. 현재 내용은 유지되며 자동 저장은 중지했습니다.");
+      setActionMessage("삭제하지 못했습니다. 현재 작성본을 먼저 백업해 주세요.");
+    }
+  };
+
+  const recoverStorage = () => {
+    if (!window.confirm("기존 기기 저장본을 현재 화면의 작성본으로 교체할까요? 필요한 원문과 현재 작성본을 먼저 백업하세요.")) return;
+    cancelAutosave();
+    storageAllowedRef.current = true;
+    if (persistResume(resume)) {
+      setStorageBlock("");
+      setBlockedRaw(null);
+      setActionMessage("현재 작성본을 기기에 저장했습니다.");
+    } else {
+      storageAllowedRef.current = false;
+      setActionMessage("저장하지 못했습니다. 원문 보호와 자동 저장 중지를 유지합니다.");
+    }
+  };
+
+  const retryRead = () => {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      setBlockedRaw(raw);
+      if (raw === null) { setActionMessage("기기에 저장본이 없습니다. 현재 작성본으로 저장 재개를 선택할 수 있습니다."); return; }
+      const draft = parseResumeBuilderDraft(raw);
+      if (!window.confirm("기기 저장본을 확인했습니다. 현재 화면의 내용을 이 저장본으로 바꿀까요?")) return;
+      cancelAutosave();
+      dirtyRef.current = false;
+      storageAllowedRef.current = true;
+      setResumeState(draft);
+      revisionRef.current += 1;
+      setStorageBlock("");
+      setBlockedRaw(null);
+      setActionMessage("확인한 기기 저장본을 불러왔습니다.");
+    } catch { setActionMessage("저장본을 읽거나 검증하지 못했습니다. 현재 내용과 기존 저장본은 교체하지 않았습니다."); }
   };
 
   const loadExample = () => {
-    if (!window.confirm("현재 작성 내용을 예시로 바꿀까요?")) return;
+    if (!window.confirm("가상의 예시로 현재 작성 내용을 바꿀까요? 이름·연락처·경력·자격·성과는 모두 본인의 사실로 바꾼 뒤 사용하세요.")) return;
     setResume({
       name: "Jiwon Kim", title: "Barista", phone: "0412 345 678", email: "jiwon.kim@email.com", location: "Sydney, NSW", link: "linkedin.com/in/jiwon-kim",
       summary: "Friendly and reliable barista with two years of experience in busy cafes. Skilled in espresso preparation, customer service and maintaining a clean, efficient workspace.",
@@ -168,88 +208,82 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
       experiences: [{ id: makeId("experience"), role: "Barista", company: "Compass Cafe", period: "Mar 2024 – Present", details: "Prepare up to 150 coffee orders per shift while maintaining quality\nTrain new team members in POS and closing procedures\nBuild positive relationships with regular customers" }],
       education: [{ id: makeId("education"), course: "Certificate III in Hospitality", school: "TAFE NSW", period: "2023 – 2024" }],
     });
+    setActionMessage("가상의 예시입니다. 제출 전에 모든 항목을 본인의 사실로 바꾸세요.");
   };
 
-  const plainTextResume = useMemo(() => {
-    const lines = [resume.name, resume.title, [resume.phone, resume.email, resume.location, resume.link].filter(Boolean).join(" | ")];
-    if (resume.summary) lines.push("", "PROFESSIONAL SUMMARY", resume.summary);
-    lines.push("", "EXPERIENCE");
-    resume.experiences.forEach((item) => {
-      lines.push([item.role, item.company].filter(Boolean).join(" — "), item.period);
-      item.details.split("\n").filter(Boolean).forEach((detail) => lines.push(`• ${detail}`));
-    });
-    lines.push("", "EDUCATION & TRAINING");
-    resume.education.forEach((item) => lines.push([item.course, item.school].filter(Boolean).join(" — "), item.period));
-    if (skills.length) lines.push("", "SKILLS", skills.join(", "));
-    if (licences.length) lines.push("", "LICENCES & CERTIFICATIONS", ...licences);
-    if (languages.length) lines.push("", "LANGUAGES", languages.join(", "));
-    if (resume.showReferences) lines.push("", "REFERENCES", "Available upon request");
-    return lines.filter((line, index) => line || lines[index - 1]).join("\n").trim();
-  }, [resume, skills, licences, languages]);
+  const plainTextResume = useMemo(() => resumePlainText(resume), [resume]);
 
   const copyTextResume = async () => {
     try {
       await navigator.clipboard.writeText(plainTextResume);
       setActionMessage("텍스트 이력서를 복사했습니다.");
     } catch {
-      setActionMessage("복사하지 못했습니다. 브라우저 권한을 확인해 주세요.");
+      setFallback({ label: "직접 복사할 전체 이력서 텍스트", text: plainTextResume });
+      setActionMessage("복사하지 못했습니다. 아래 전체 텍스트를 선택해 직접 복사하세요.");
     }
   };
 
   const exportDraft = () => {
-    const file = new Blob([JSON.stringify(resume, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(file);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${resume.name.trim().replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "resume"}-draft.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-    setActionMessage("작성본 백업을 저장했습니다.");
+    let url: string | undefined;
+    try {
+      const file = new Blob([JSON.stringify(resume, null, 2)], { type: "application/json" });
+      url = URL.createObjectURL(file);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${resume.name.trim().replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "resume"}-draft.json`;
+      anchor.click();
+      setActionMessage("작성본 백업 다운로드를 요청했습니다. 다운로드 폴더에서 파일을 확인하세요.");
+    } catch {
+      setFallback({ label: "직접 복사할 Builder v1 JSON 백업", text: JSON.stringify(resume, null, 2) });
+      setActionMessage("다운로드하지 못했습니다. 아래 JSON 전체를 복사해 .json 파일로 보관하세요.");
+    } finally {
+      if (url) URL.revokeObjectURL(url);
+    }
   };
 
   const importDraft = async (file?: File) => {
-    if (!file) return;
+    if (!file || importingRef.current) return;
+    cancelAutosave();
+    importingRef.current = true;
+    const revision = revisionRef.current;
     try {
-      const parsed = JSON.parse(await file.text()) as Partial<ResumeData>;
-      if (typeof parsed.name !== "string" || !Array.isArray(parsed.experiences) || !Array.isArray(parsed.education)) throw new Error("invalid");
-      if (!window.confirm("현재 작성 내용을 선택한 백업으로 바꿀까요?")) return;
-      setResume({ ...emptyResume, ...parsed } as ResumeData);
-      setActionMessage("작성본 백업을 불러왔습니다.");
+      const parsed = parseResumeBuilderDraft(await file.text());
+      if (revision !== revisionRef.current) { setActionMessage("파일을 읽는 동안 작성 내용이 바뀌었습니다. 현재 내용을 유지합니다. 필요하면 백업을 다시 선택하세요."); return; }
+      if (!window.confirm("현재 작성 내용을 선택한 백업으로 바꿀까요?")) { setActionMessage("가져오기를 취소했습니다. 현재 내용과 기기 저장본은 그대로입니다."); return; }
+      setResume(parsed);
+      setActionMessage("백업을 현재 화면에 불러왔습니다. 기기 저장 상태도 확인해 주세요.");
     } catch {
-      setActionMessage("Hoju Compass 이력서 백업 파일을 확인해 주세요.");
+      setActionMessage("Builder v1 JSON 백업 전체 형식을 확인해 주세요. 현재 내용과 저장본은 교체하지 않았습니다. 기기 전체 백업은 /data-transfer에서 복원하세요.");
     } finally {
+      importingRef.current = false;
       if (importInputRef.current) importInputRef.current.value = "";
     }
   };
 
   const createEnglishSuggestion = () => {
-    const text = koreanDraft.trim();
-    if (!text) return;
-    const years = text.match(/(\d+)\s*년/)?.[1];
-    const roleMap = [
-      ["바리스타", "barista"], ["카페", "hospitality professional"], ["주방", "kitchen team member"], ["요리", "cook"],
-      ["판매", "retail team member"], ["고객", "customer service professional"], ["청소", "cleaner"], ["개발", "software developer"],
-      ["회계", "accounting professional"], ["간호", "nursing professional"], ["사무", "administration professional"],
-    ] as const;
-    const role = roleMap.find(([keyword]) => text.includes(keyword))?.[1] ?? "motivated professional";
-    const strengths = [
-      text.includes("친절") && "friendly customer service",
-      (text.includes("책임") || text.includes("성실")) && "a reliable and responsible approach",
-      text.includes("팀") && "strong teamwork",
-      (text.includes("소통") || text.includes("의사소통")) && "clear communication",
-      (text.includes("빠르") || text.includes("신속")) && "the ability to work efficiently in fast-paced environments",
-      (text.includes("꼼꼼") || text.includes("정확")) && "strong attention to detail",
-    ].filter(Boolean);
-    const experience = years ? ` with ${years} years of experience` : "";
-    const strengthText = strengths.length ? ` Skilled in ${strengths.slice(0, 3).join(", ")}.` : " Quick to learn, dependable and ready to contribute to a supportive team.";
-    setEnglishSuggestion(`${role.charAt(0).toUpperCase()}${role.slice(1)}${experience}.${strengthText}`);
+    setWritingConfirmed(false);
+    setExampleOriginal("");
+    try {
+      setEnglishSuggestion(createFactBasedEnglishDraft(targetRole, experienceChoice, confirmedWork));
+      setActionMessage("아래 영문 초안을 직접 수정하고 사실 확인을 한 뒤 추가하세요.");
+    } catch (error) {
+      setEnglishSuggestion("");
+      setActionMessage(error instanceof Error ? error.message : "영문 입력을 확인해 주세요.");
+      document.getElementById(targetRole.trim() ? "resume-confirmed-work" : "resume-target-role")?.focus();
+    }
   };
 
   const insertWriting = (text: string, target: "summary" | "experience") => {
+    if (!text.trim() || hasWritingPlaceholder(text) || !writingConfirmed || (exampleOriginal && text.trim() === exampleOriginal)) {
+      setActionMessage("영문 초안의 안내·예시 문구를 본인의 사실로 수정하고 사실 확인을 선택하세요.");
+      document.getElementById("resume-english-draft")?.focus();
+      return;
+    }
     if (target === "summary") setField("summary", [resume.summary, text].filter(Boolean).join(" "));
     else {
       const first = resume.experiences[0];
       if (first) updateExperience(first.id, "details", [first.details, text].filter(Boolean).join("\n"));
+      else setResume((current) => ({ ...current, experiences: [{ id: makeId("experience"), role: "", company: "", period: "", details: text.trim() }] }));
     }
     setActionMessage(target === "summary" ? "Professional summary에 추가했습니다." : "첫 번째 경력의 주요 성과에 추가했습니다.");
   };
@@ -261,8 +295,22 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
   }, [resumeReady]);
 
   const saveAsPdf = (entry: "completion_choice" | "builder_actions") => {
+    if (!plainTextResume) {
+      setActionMessage("인쇄할 내용이 없습니다. 이름이나 실제 경험을 먼저 입력해 주세요.");
+      document.getElementById("resume-name")?.focus();
+      return;
+    }
     track("Resume Export Started", { format: "pdf", entry });
     window.print();
+  };
+
+  const persistBeforeContinuation = (event: SyntheticEvent) => {
+    cancelAutosave();
+    if (!persistResume(resume)) {
+      event.preventDefault();
+      event.stopPropagation();
+      setActionMessage("현재 초안을 기기에 저장하지 못해 Pro로 이동하지 않았습니다. 작성본을 백업하고 저장 상태를 복구하세요.");
+    }
   };
 
   const trackBuilderInteraction = (event: SyntheticEvent<HTMLElement>) => {
@@ -288,14 +336,24 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
   };
 
   return (
-    <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(620px,1.1fr)]">
-      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-form-heading" onClickCapture={trackBuilderInteraction} onInputCapture={trackBuilderInteraction}>
+    <div className="grid min-w-0 items-start gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(620px,1.1fr)]">
+      <section className="min-w-0 rounded-2xl border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-form-heading" onClickCapture={trackBuilderInteraction} onInputCapture={trackBuilderInteraction}>
         <div className="flex items-start justify-between gap-4">
           <div><h2 id="resume-form-heading" className="text-xl font-semibold text-navy">이력서 내용</h2><p className="mt-1 text-sm leading-6 text-muted">영문으로 작성하면 오른쪽에 바로 반영됩니다.</p></div>
           <span className={`max-w-48 text-right text-xs leading-5 ${storageStatus === "failed" ? "font-semibold text-red-700" : "text-muted"}`} aria-live="polite" aria-atomic="true">
-            {storageStatus === "failed" ? "기기에 저장되지 않음 — PDF·작성본 백업 권장" : storageStatus === "saved" ? "저장됨" : "자동 저장"}
+            {storageBlock ? "자동 저장 중지 — 원문 보호 중" : storageStatus === "failed" ? "기기에 저장되지 않음 — PDF·작성본 백업 권장" : storageStatus === "saved" ? "저장됨" : loaded ? "입력 후 자동 저장" : "기기 저장본 확인 중"}
           </span>
         </div>
+        {storageBlock && <section className="mt-4 rounded-lg border border-amber-500 bg-amber-50 p-4 text-sm" aria-label="기기 저장 복구">
+          <p role="status">{storageBlock}</p>
+          <p className="mt-2">현재 입력은 이 탭에서만 유지됩니다. 필요한 원문과 작성본을 백업한 뒤 저장을 재개하세요.</p>
+          {blockedRaw !== null && <label className="mt-3 block">보존된 저장 원문 — 전체 선택 후 복사<textarea readOnly className={`${inputClass} min-h-32`} value={blockedRaw} onFocus={(event) => event.target.select()} /></label>}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" onClick={exportDraft} className="min-h-11 rounded border px-3">현재 작성본 백업</button>
+            <button type="button" onClick={retryRead} className="min-h-11 rounded border px-3">기기 저장본 다시 읽기</button>
+            <button type="button" onClick={recoverStorage} className="min-h-11 rounded border px-3">현재 작성본으로 저장 재개</button>
+          </div>
+        </section>}
         {storageStatus === "failed" && <section data-resume-storage-status="failed" className="mt-4 border-l-4 border-red-600 bg-red-50 p-4 text-sm text-red-900" aria-labelledby="resume-storage-failure-heading">
           <h3 id="resume-storage-failure-heading" className="font-semibold">현재 탭에서는 유지되지만 닫거나 새로고침하면 사라질 수 있어요.</h3>
           <p className="mt-1 leading-6">지금 보이는 내용을 PDF나 Builder 작성본 백업으로 먼저 보관해 주세요.</p>
@@ -312,7 +370,7 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
 
         <section className="mt-4 border-l-2 border-gold bg-gold/5 p-3 sm:mt-5 sm:p-4" aria-labelledby="resume-quick-start-heading">
           <h3 id="resume-quick-start-heading" className="text-lg font-semibold leading-7 text-navy">내 경험 한 줄부터 저장하세요.</h3>
-          <p id="resume-quick-start-help" className="mt-2 text-sm leading-6 text-muted">AI 예시 대신, 내가 한 행동과 확인 가능한 결과를 적어요. 브라우저에 자동 저장되고 아래 경력란에도 이어집니다.</p>
+          <p id="resume-quick-start-help" className="mt-2 text-sm leading-6 text-muted">AI 예시 대신, 내가 한 행동과 확인 가능한 결과를 적어요. 아래 경력란에도 이어집니다. 기기 저장 여부는 위 상태 안내를 확인하세요.</p>
           <Link href="/resources/english-resume-achievement-examples" className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
             실제 경험을 STAR로 정리하는 법 →
           </Link>
@@ -329,23 +387,27 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
 
         <section className="mt-8 rounded-2xl border border-gold/40 bg-gold/5 p-5" aria-labelledby="writing-helper-heading">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#806515]">영문 작성 도우미</p>
-          <h2 id="writing-helper-heading" className="mt-2 text-lg font-semibold text-navy">한국어 강점을 영문 초안으로</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">직무, 경력 연수, 강점 키워드를 한국어로 적으면 이력서용 영문 초안을 만듭니다. 내용은 외부로 전송되지 않습니다.</p>
+          <h2 id="writing-helper-heading" className="mt-2 text-lg font-semibold text-navy">내가 확인한 사실로 영문 초안 만들기</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">한국어 메모는 참고용이며 자동 번역하거나 경력으로 해석하지 않습니다. 목표 직무와 직접 수행한 업무를 영문으로 입력하면 짧은 초안으로 정리합니다. 이 도우미는 외부로 전송하거나 저장하지 않습니다.</p>
           <label className="mt-4 block text-sm font-medium text-navy">한국어 메모<textarea className={`${inputClass} mt-1.5 min-h-24 resize-y`} value={koreanDraft} onChange={(e) => setKoreanDraft(e.target.value)} placeholder="예: 카페에서 2년 일했고 친절하며 바쁜 시간에도 빠르고 정확하게 일합니다." /></label>
+          <label className={`${labelClass} mt-4`}>목표 직무 (영문)<input id="resume-target-role" className={inputClass} value={targetRole} onChange={(e) => { setTargetRole(e.target.value); setWritingConfirmed(false); }} placeholder="예: hospitality — 희망 분야이며 경력 주장이 아닙니다" /></label>
+          <label className={`${labelClass} mt-4`}>실제 수행 경험<select className={inputClass} value={experienceChoice} onChange={(e) => { setExperienceChoice(e.target.value as "none" | "confirmed"); setWritingConfirmed(false); }}><option value="none">경험 없음 / 목표 직무만 작성</option><option value="confirmed">직접 수행한 업무를 입력</option></select></label>
+          {experienceChoice === "confirmed" && <label className={`${labelClass} mt-4`}>직접 수행한 업무·결과 (영문)<textarea id="resume-confirmed-work" className={`${inputClass} min-h-24`} value={confirmedWork} onChange={(e) => { setConfirmedWork(e.target.value); setWritingConfirmed(false); }} placeholder="실제로 한 일만 영문 문장으로 입력하세요. 연수·자격·수치는 확인된 경우에만 포함하세요." /></label>}
           <button type="button" onClick={createEnglishSuggestion} className="mt-3 min-h-11 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-light">영문 초안 만들기</button>
-          {englishSuggestion && <div className="mt-4 rounded-xl bg-white p-4"><p className="text-sm leading-6 text-navy">{englishSuggestion}</p><div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => insertWriting(englishSuggestion, "summary")} className="min-h-11 rounded-lg border border-navy px-3 py-2 text-sm font-semibold text-navy">Summary에 추가</button><button type="button" onClick={() => insertWriting(englishSuggestion, "experience")} className="min-h-11 rounded-lg border border-border px-3 py-2 text-sm font-medium text-navy">경력에 추가</button></div></div>}
-          <p className="mt-3 text-xs leading-5 text-muted">직역 도구가 아닌 이력서 문장 제안 기능입니다. 사실과 경력 연수는 반드시 직접 확인하세요.</p>
+          {englishSuggestion && <div className="mt-4 rounded-xl bg-white p-4"><label className={labelClass}>수정할 영문 초안<textarea id="resume-english-draft" className={`${inputClass} min-h-32`} value={englishSuggestion} onChange={(e) => { setEnglishSuggestion(e.target.value); setWritingConfirmed(false); }} /></label><label className="mt-3 flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={writingConfirmed} onChange={(e) => setWritingConfirmed(e.target.checked)} />목표와 실제 경력을 구분했고, 문장 전체가 내 사실과 일치합니다.</label><div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => insertWriting(englishSuggestion, "summary")} className="min-h-11 rounded-lg border border-navy px-3 py-2 text-sm font-semibold text-navy">Summary에 추가</button><button type="button" onClick={() => insertWriting(englishSuggestion, "experience")} className="min-h-11 rounded-lg border border-border px-3 py-2 text-sm font-medium text-navy">경력에 추가</button></div></div>}
+          <p className="mt-3 text-xs leading-5 text-muted">자동 번역·사실 검증 기능이 아닙니다. 입력하지 않은 성향·자격·경력 연수는 추가하지 않습니다.</p>
         </section>
 
         <section className="mt-6" aria-labelledby="example-sentences-heading">
-          <h2 id="example-sentences-heading" className="text-base font-semibold text-navy">바로 쓰는 예시 문장</h2>
-          <div className="mt-3 space-y-3">{writingExamples.map((example) => <article key={example.en} className="rounded-xl border border-border p-4"><p className="text-xs leading-5 text-muted">{example.ko}</p><p className="mt-1 text-sm leading-6 text-navy">{example.en}</p><button type="button" onClick={() => insertWriting(example.en, example.target)} className="mt-2 min-h-11 text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">{example.target === "summary" ? "Summary에 추가" : "경력에 추가"}</button></article>)}</div>
+          <h2 id="example-sentences-heading" className="text-base font-semibold text-navy">본인 사실로 바꿔 쓸 예시 문장</h2>
+          <p className="mt-2 text-sm text-muted">예시는 경력 증거가 아닙니다. 도우미에서 실제 업무·결과로 수정하고 확인해야 추가할 수 있습니다.</p>
+          <div className="mt-3 space-y-3">{writingExamples.map((example) => <article key={example.en} className="rounded-xl border border-border p-4"><p className="text-xs leading-5 text-muted">{example.ko}</p><p className="mt-1 text-sm leading-6 text-navy">{example.en}</p><button type="button" onClick={() => { setEnglishSuggestion(example.en); setExampleOriginal(example.en); setWritingConfirmed(false); setActionMessage("예시를 영문 도우미에 열었습니다. 본인의 구체적인 사실로 바꿔 주세요."); }} className="mt-2 min-h-11 text-sm font-semibold text-navy underline decoration-gold decoration-2 underline-offset-4">예시를 도우미에서 수정</button></article>)}</div>
         </section>
 
         <fieldset className="mt-7 space-y-4">
           <legend className="text-base font-semibold text-navy">기본 정보</legend>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className={labelClass}>이름<input className={inputClass} value={resume.name} onChange={(e) => setField("name", e.target.value)} placeholder="Jiwon Kim" /></label>
+            <label className={labelClass}>이름<input id="resume-name" className={inputClass} value={resume.name} onChange={(e) => setField("name", e.target.value)} placeholder="Jiwon Kim" /></label>
             <label className={labelClass}>희망 직무<input className={inputClass} value={resume.title} onChange={(e) => setField("title", e.target.value)} placeholder="Barista" /></label>
             <label className={labelClass}>전화번호<input className={inputClass} type="tel" value={resume.phone} onChange={(e) => setField("phone", e.target.value)} placeholder="04xx xxx xxx" /></label>
             <label className={labelClass}>이메일<input className={inputClass} type="email" value={resume.email} onChange={(e) => setField("email", e.target.value)} placeholder="name@email.com" /></label>
@@ -409,17 +471,18 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
                 저장한 경험을 STAR로 다시 정리하기
               </Link>
             </div>
+            <div onClickCapture={persistBeforeContinuation} onAuxClickCapture={persistBeforeContinuation}>
             {returnToResumeProWorkspace ? (
               <Link href="/resume-pro/workspace#resume-pro-workspace" className="flex min-h-24 flex-col items-start justify-center border border-navy bg-white px-5 py-4 text-left text-navy hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
                 <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#806515]">Resume Pro 작업공간에서 이어온 작성</span>
                 <strong className="mt-1 text-base">Pro 첫 지원서 계속하기</strong>
-                <span className="mt-2 text-xs leading-5 text-muted">구매 화면을 다시 거치지 않고 저장한 이력서를 첫 회사별 지원서에 연결해요.</span>
+                <span className="mt-2 text-xs leading-5 text-muted">현재 초안의 기기 저장을 확인한 뒤 첫 회사별 지원서에 연결해요.</span>
               </Link>
             ) : (
               <ResumeProCtaLink href="/resume-pro?from=resume-builder-complete" surface={resumeFunnelSurfaces.builderCompletion} context={resumeFunnelContexts.resumeBuilder} className="flex min-h-24 flex-col items-start justify-center border border-navy bg-white px-5 py-4 text-left text-navy hover:bg-surface">
-                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#806515]">이 기기의 완성본으로 바로 이어서</span>
+                <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#806515]">현재 초안을 저장하고 이어서</span>
                 <strong className="mt-1 text-base">{resumeProLive ? "이 초안을 첫 공고용 지원서 묶음으로 만들기" : "이 초안을 공고별로 쓰는 방식 보기"}</strong>
-                <span className="mt-2 text-xs leading-5 text-muted">지금 저장된 경력 {resume.experiences.filter((item) => item.role.trim() || item.company.trim() || item.details.trim()).length}개와 Skills {skills.length}개를 다시 입력하지 않고 시작해요.</span>
+                <span className="mt-2 text-xs leading-5 text-muted">현재 화면의 경력 {resume.experiences.filter((item) => item.role.trim() || item.company.trim() || item.details.trim()).length}개와 Skills {skills.length}개를 기기에 저장할 수 있을 때 이어갑니다.</span>
                 <span className="mt-3 grid gap-1 text-xs leading-5 text-navy/75">
                   <span>✓ 공고 표현과 현재 이력서 비교</span>
                   <span>✓ 회사별 버전과 STAR 경험 저장·재사용</span>
@@ -427,6 +490,7 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
                 </span>
               </ResumeProCtaLink>
             )}
+            </div>
           </div>
           <p className="mt-4 text-xs leading-5 text-muted">무료 이력서는 그대로 이용할 수 있어요. Resume Pro는 경력을 새로 만들거나 취업 결과를 보장하는 기능이 아니에요.</p>
         </section>}
@@ -439,24 +503,26 @@ export function ResumeBuilder({ resumeProLive }: { resumeProLive: boolean }) {
           <button type="button" onClick={clearResume} className="min-h-12 rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-muted hover:border-navy/30 hover:text-navy">내용 지우기</button>
         </div>
         <p className="mt-3 min-h-5 text-sm text-muted" aria-live="polite">{actionMessage}</p>
+        {fallback && <label className="mt-3 block text-sm">{fallback.label}<textarea readOnly className={`${inputClass} min-h-52`} value={fallback.text} onFocus={(event) => event.target.select()} /></label>}
       </section>
 
-      <div className="xl:sticky xl:top-24">
+      <div className="min-w-0 xl:sticky xl:top-24">
         <div className="mb-3 flex items-center justify-between gap-3"><h2 className="text-lg font-semibold text-navy">미리보기</h2><p className="text-xs text-muted">A4 형식</p></div>
-        <article id="resume-preview" className={`min-h-[877px] bg-white text-[#202636] shadow-lg ring-1 ring-black/5 ${resume.layoutStyle === "compact" ? "px-7 py-8 sm:px-10 sm:py-9" : "px-8 py-10 sm:px-12 sm:py-12"}`} aria-label="이력서 미리보기">
+        {!plainTextResume && <p className="mb-3 text-sm text-muted print:hidden">입력한 내용만 미리보기와 인쇄에 나타납니다. 이름이나 실제 경험부터 적어 보세요.</p>}
+        <article id="resume-preview" className={`min-h-[877px] min-w-0 [overflow-wrap:anywhere] bg-white text-[#202636] shadow-lg ring-1 ring-black/5 ${resume.layoutStyle === "compact" ? "px-5 py-8 sm:px-10 sm:py-9" : "px-5 py-10 sm:px-12 sm:py-12"}`} aria-label="이력서 미리보기">
           <header className={`${resume.layoutStyle === "compact" ? "border-b pb-3" : "border-b-2 pb-5"}`} style={{ borderColor: activeAccent.colour }}>
-            <p className={`${resume.layoutStyle === "compact" ? "text-2xl" : "text-3xl"} font-bold tracking-tight`} style={{ color: activeAccent.colour }}>{resume.name || "Your Name"}</p>
-            <p className="mt-1 text-base font-semibold" style={{ color: activeAccent.secondary }}>{resume.title || "Target Role"}</p>
-            <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#50586b]">{[resume.phone || "Phone", resume.email || "Email", resume.location || "City, State", resume.link].filter(Boolean).map((value, index) => <span key={index}>{value}</span>)}</p>
+            <p className={`${resume.layoutStyle === "compact" ? "text-2xl" : "text-3xl"} font-bold tracking-tight`} style={{ color: activeAccent.colour }}>{resume.name.trim()}</p>
+            <p className="mt-1 text-base font-semibold" style={{ color: activeAccent.secondary }}>{resume.title.trim()}</p>
+            <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#50586b]">{[resume.phone, resume.email, resume.location, resume.link].map((value) => value.trim()).filter(Boolean).map((value, index) => <span className="min-w-0" key={index}>{value}</span>)}</p>
           </header>
           <div className={resume.layoutStyle === "compact" ? "mt-4 space-y-4" : "mt-6 space-y-6"} style={{ "--resume-accent": activeAccent.colour } as React.CSSProperties}>
-            {(resume.summary || !resume.name) && <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Professional Summary</h2><p className="mt-2 whitespace-pre-line text-sm leading-6 text-[#3f4655]">{resume.summary || "Write a concise summary of your experience, strengths and the value you bring to the role."}</p></section>}
-            <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Experience</h2><div className="mt-3 space-y-5">{resume.experiences.map((item) => <div key={item.id}><div className="flex items-start justify-between gap-5"><div><h3 className="text-sm font-bold">{item.role || "Role"}</h3><p className="text-sm text-[#50586b]">{item.company || "Company"}</p></div><p className="shrink-0 text-xs text-[#50586b]">{item.period || "Dates"}</p></div>{item.details && <ul className="mt-2 space-y-1 text-sm leading-5 text-[#3f4655]">{item.details.split("\n").filter(Boolean).map((line, i) => <li key={i} className="flex gap-2"><span aria-hidden="true">•</span><span>{line}</span></li>)}</ul>}</div>)}</div></section>
-            <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Education & Training</h2><div className="mt-3 space-y-4">{resume.education.map((item) => <div key={item.id} className="flex items-start justify-between gap-5"><div><h3 className="text-sm font-bold">{item.course || "Course or qualification"}</h3><p className="text-sm text-[#50586b]">{item.school || "Institution"}</p></div><p className="shrink-0 text-xs text-[#50586b]">{item.period || "Dates"}</p></div>)}</div></section>
-            {(skills.length > 0 || !resume.name) && <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Skills</h2><ul className="mt-3 flex flex-wrap gap-2">{(skills.length ? skills : ["Customer service", "Teamwork", "Communication"]).map((skill) => <li key={skill} className="rounded bg-[#f1efe9] px-2.5 py-1 text-xs text-[#303747]">{skill}</li>)}</ul></section>}
+            {resume.summary.trim() && <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Professional Summary</h2><p className="mt-2 whitespace-pre-line text-sm leading-6 text-[#3f4655]">{resume.summary.trim()}</p></section>}
+            {resume.experiences.some(hasExperience) && <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Experience</h2><div className="mt-3 space-y-5">{resume.experiences.filter(hasExperience).map((item) => <div key={item.id}><div className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><h3 className="text-sm font-bold">{item.role.trim()}</h3><p className="text-sm text-[#50586b]">{item.company.trim()}</p></div><p className="min-w-0 text-xs text-[#50586b]">{item.period.trim()}</p></div>{item.details.trim() && <ul className="mt-2 space-y-1 text-sm leading-5 text-[#3f4655]">{item.details.split("\n").map((line) => line.trim()).filter(Boolean).map((line, i) => <li key={i} className="flex gap-2"><span aria-hidden="true">•</span><span className="min-w-0">{line}</span></li>)}</ul>}</div>)}</div></section>}
+            {resume.education.some(hasEducation) && <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Education & Training</h2><div className="mt-3 space-y-4">{resume.education.filter(hasEducation).map((item) => <div key={item.id} className="flex flex-wrap items-start justify-between gap-2"><div className="min-w-0"><h3 className="text-sm font-bold">{item.course.trim()}</h3><p className="text-sm text-[#50586b]">{item.school.trim()}</p></div><p className="min-w-0 text-xs text-[#50586b]">{item.period.trim()}</p></div>)}</div></section>}
+            {skills.length > 0 && <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Skills</h2><ul className="mt-3 flex flex-wrap gap-2">{skills.map((skill, index) => <li key={index} className="min-w-0 rounded bg-[#f1efe9] px-2.5 py-1 text-xs text-[#303747]">{skill}</li>)}</ul></section>}
             {licences.length > 0 && <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Licences & Certifications</h2><ul className="mt-3 grid gap-1 text-sm text-[#3f4655]">{licences.map((item) => <li key={item}>{item}</li>)}</ul></section>}
             {languages.length > 0 && <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">Languages</h2><p className="mt-3 text-sm text-[#3f4655]">{languages.join(" · ")}</p></section>}
-            {resume.showReferences && <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">References</h2><p className="mt-3 text-sm text-[#3f4655]">Available upon request</p></section>}
+            {resume.showReferences && plainTextResume && <section><h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[#1a2744]">References</h2><p className="mt-3 text-sm text-[#3f4655]">Available upon request</p></section>}
           </div>
         </article>
       </div>

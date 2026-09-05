@@ -42,23 +42,22 @@ function removeStoredSummary() {
   try {
     window.sessionStorage.removeItem(proofSummaryKey);
     window.sessionStorage.removeItem(proofEvidenceKey);
-  } catch {
-    // Storage availability must never interrupt the local checker or offer page.
-  }
+    return window.sessionStorage.getItem(proofSummaryKey) === null && window.sessionStorage.getItem(proofEvidenceKey) === null;
+  } catch { return false; }
 }
 
 export function clearResumeJobAdProofSummary() {
-  if (typeof window === "undefined") return;
-  removeStoredSummary();
+  if (typeof window === "undefined") return false;
+  return removeStoredSummary();
 }
 
 export function saveResumeJobAdProofSummary(summary: Pick<ResumeJobAdProofSummary, "matchedCount" | "missingCount"> & { terms: ResumeJobAdProofTerm[] }) {
-  if (typeof window === "undefined") return;
-  if (!validCount(summary.matchedCount) || !validCount(summary.missingCount)) return;
-  if (summary.matchedCount + summary.missingCount < 1 || summary.matchedCount + summary.missingCount > maxResultCount) return;
+  if (typeof window === "undefined") return false;
+  if (!validCount(summary.matchedCount) || !validCount(summary.missingCount)) return false;
+  if (summary.matchedCount + summary.missingCount < 1 || summary.matchedCount + summary.missingCount > maxResultCount) return false;
   const terms = normaliseResumeJobAdProofTerms(summary.terms);
-  if (terms.length !== summary.matchedCount + summary.missingCount) return;
-  if (terms.filter((item) => item.matched).length !== summary.matchedCount) return;
+  if (terms.length !== summary.matchedCount + summary.missingCount) return false;
+  if (terms.filter((item) => item.matched).length !== summary.matchedCount) return false;
 
   try {
     const checkedAt = Date.now();
@@ -71,9 +70,10 @@ export function saveResumeJobAdProofSummary(summary: Pick<ResumeJobAdProofSummar
       terms,
       checkedAt,
     } satisfies ResumeJobAdEvidenceHandoff));
+    return readResumeJobAdEvidenceHandoff() !== null;
   } catch {
     removeStoredSummary();
-    // The handoff is optional and must fail silently in restricted browsers.
+    return false;
   }
 }
 

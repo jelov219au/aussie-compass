@@ -13,7 +13,7 @@ import { getProCatalogProducts } from "@/lib/proCatalogProducts";
 import { resumeFunnelContexts, resumeFunnelSurfaces } from "@/lib/resumeFunnelAnalyticsContract";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata = createPageMetadata({ title: "취업·렌트·급여·세금 준비 도구 비교 | Hoju Compass Pro", description: "호주 취업 지원, 렌트 신청, 급여 확인, 택스 리턴과 귀국 정리에서 반복 작업을 줄이고 바로 쓸 결과물을 만드는 Pro 도구를 비교하세요.", path: "/pro" });
+export const metadata = createPageMetadata({ title: "취업·렌트·급여·세금·중고차 준비 도구 비교 | Hoju Compass Pro", description: "호주 취업 지원, 렌트 신청, 급여 확인, 택스 리턴, 귀국 정리와 중고차 구매에서 반복 작업을 줄이는 Pro 도구의 결과물과 판매 준비 상태를 비교하세요.", path: "/pro" });
 
 const principles = [
   ["꼭 필요한 정보에는 가격표를 붙이지 않아요", "권리와 공식 출처, 기본 계산기와 핵심 체크리스트는 누구나 계속 무료로 볼 수 있어요."],
@@ -33,7 +33,7 @@ export default function ProPage() {
   const availabilityDetail = liveProducts.length > 0
     ? `${liveProducts.map((product) => product.name).join(" · ")} — 구독 없이 1회 결제로 이용해요.`
     : "각 도구의 기능과 무료 대안은 지금 살펴볼 수 있어요.";
-  const priceSummary = "각 카드에서 현재 이용 상태와 1회 가격을 확인하세요. ‘결제 미오픈’인 도구는 아직 구매할 수 없습니다.";
+  const priceSummary = "각 카드에서 현재 이용 상태와 가격 표시를 확인하세요. ‘가격 미정’ 또는 ‘결제 미오픈’인 도구는 아직 구매할 수 없습니다.";
   const packAvailability = {
     pay: products.some((product) => product.id === "pay-evidence-pro" && product.live),
     tax: products.some((product) => product.id === "eofy-pro" && product.live),

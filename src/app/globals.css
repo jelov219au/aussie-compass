@@ -181,9 +181,17 @@ body {
     box-shadow: none !important;
   }
 
-  #resume-preview section,
   #resume-preview header {
     break-inside: avoid;
+  }
+
+  #resume-preview section {
+    break-inside: auto;
+  }
+
+  #resume-preview h2,
+  #resume-preview h3 {
+    break-after: avoid;
   }
 
   #resume-pro-preview,

@@ -7,10 +7,10 @@ import { runInNewContext } from "node:vm";
 const require = createRequire(import.meta.url), ts = require("typescript"), modules = new Map();
 const boundaryErrors = [];
 let realProviderCalls = 0;
-for (const name of ["carPurchaseProCheckoutContract", "carPurchaseProTokens", "carPurchaseProRequestBody",
+for (const name of ["carPurchaseProCheckoutContract", "carPurchaseProTokens", "carPurchaseProRequestBody", "carPurchaseProWorkspaceAccess",
   "firstSaleGate", "carPurchaseProCheckoutCreation", "carPurchaseProCheckoutGate", "carPurchaseProCheckoutHttp",
   "carPurchaseProAccessStore", "carPurchaseProAccessLifecycle", "carPurchaseProPurchase", "carPurchaseProAccessHttp",
-  "carPurchaseProWorkspaceAccess", "carPurchaseProRuntimeAssembly"]) {
+  "carPurchaseProRuntimeAssembly"]) {
   const compiledModule = { exports: {} };
   const source = readFileSync(new URL(`../src/lib/${name}.ts`, import.meta.url), "utf8");
   runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2017 } }).outputText,

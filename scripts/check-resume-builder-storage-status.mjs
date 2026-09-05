@@ -15,7 +15,8 @@ function assertStorageStatusContract(source) {
   assert.match(source, /createResumeBuilderStorageStatusController\(\{/);
   assert.match(source, /controller\.dispose\(\)/);
 
-  assert.match(source, /window\.setTimeout\(\(\) => \{\s*persistResume\(resume\);\s*\}, 500\)/s);
+  assert.match(source, /window\.setTimeout\(\(\) => \{\s*autosaveRef\.current = null;\s*persistResume\(resume\);\s*\}, 500\)/s);
+  assert.match(source, /!dirtyRef\.current \|\| !storageAllowedRef\.current/, "autosave must require an edit and a safe initial read");
   assert.match(source, /onClick=\{\(\) => persistResume\(resume\)\}[\s\S]*다시 저장 확인/);
 
   const failureStart = source.indexOf('data-resume-storage-status="failed"');

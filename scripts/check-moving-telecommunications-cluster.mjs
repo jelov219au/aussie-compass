@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
+import { loadArticleCatalog } from "./lib/load-article-catalog.mjs";
+import { validateArticleDepth } from "./lib/article-depth-contract.mjs";
 
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
@@ -7,7 +9,8 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const articles = read("src/data/articles.ts");
 const movingPage = read("src/app/moving-checklist/page.tsx");
 const resourcePage = read("src/app/resources/[slug]/page.tsx");
-const depthContract = read("scripts/check-content-depth-foundation.mjs");
+const catalog = loadArticleCatalog();
+const internetRecord = catalog.find(article => article.slug === "australia-home-internet-moving-guide");
 
 const checks = [];
 const expect = (condition, message) => checks.push({ condition, message });
@@ -21,8 +24,8 @@ expect(article.includes('readingTime: "14분"'), "the guide records its expanded
 expect(article.includes('updatedAt: "2026-08-30"'), "the guide records its official-source review date");
 expect(article.includes('toolHref: "/moving-checklist"'), "the guide returns to the shared moving checklist");
 expect(article.includes('relatedSlugs: ["australia-energy-plan-moving-home-guide", "australia-sim-esim-setup-guide", "rental-condition-report-bond-first-week-australia"]'), "the guide has a deliberate next-step sequence");
-expect((article.match(/\{ heading:/g) ?? []).length >= 12, "the guide covers the full address-to-dispute decision path");
-expect((article.match(/\{ label:/g) ?? []).length >= 8, "the guide exposes at least eight direct official source entries");
+expect(internetRecord.sections.length >= 12, "the actual guide covers the full address-to-dispute decision path");
+expect(new Set(internetRecord.sources.map(source => source.href)).size >= 8, "the actual guide exposes at least eight distinct official source entries");
 
 for (const phrase of [
   "주소 검색 결과와 실제 개통 가능일은 같은 말이 아니에요",
@@ -69,7 +72,8 @@ expect(movingPage.includes("주소별 NBN·대체망·기술과 설치·임시 �
 expect(movingPage.includes("NBN·Provider 장비 구분"), "the moving checklist distinguishes address-bound and provider equipment");
 expect(movingPage.includes("<LocalProjectChecklist"), "the existing local moving checklist remains intact");
 expect(movingPage.includes("<EnergySupportJurisdictionPicker/>"), "the existing energy support flow remains intact");
-expect(depthContract.includes("articleBlocks.length, 36"), "the content-depth baseline is updated for the complete audited library");
+const depth = validateArticleDepth(catalog);
+expect(depth.articleCount === 37, "the current runtime catalog includes the 35 post-merge articles and both later imported articles with unchanged minimum depth");
 expect(resourcePage.includes("generateStaticParams"), "the resource route statically includes the new article");
 expect(resourcePage.includes("article.sources.map"), "the resource route renders every official source");
 expect(resourcePage.includes("getRelatedArticles(article.slug)"), "the resource route renders deliberate related content");

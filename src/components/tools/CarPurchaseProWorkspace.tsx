@@ -144,13 +144,19 @@ export function CarPurchaseProWorkspace() {
   const loadSample = () => {
     setPendingChange({ kind: "sample" });
   };
+  const clearImportReview = () => {
+    setPendingImport(null);
+    // A replacement or cancelled preview also invalidates its final confirmation.
+    setPendingChange(previous => previous?.kind === "import" ? null : previous);
+  };
   const reviewImport = (raw: string) => {
+    clearImportReview();
     try { const next = parseCarArchive(raw); setPendingImport(next); setNotice("복원 미리보기를 확인한 뒤 적용하세요. 아직 현재 기록을 바꾸지 않았습니다."); }
     catch (error) { setPendingImport(null); setNotice(errorMessage(error)); }
   };
   const readFile = async (file: File | undefined) => {
     const sequence = ++importSequence.current;
-    setPendingImport(null);
+    clearImportReview();
     if (!file) return;
     if (file.size > carArchiveMaxBytes) { setNotice("1MB 이하의 백업을 선택하세요."); return; }
     setReadingImport(true);
@@ -321,7 +327,7 @@ export function CarPurchaseProWorkspace() {
       {pendingImport && <div className="mt-5 rounded-xl border border-gold p-4">
         <p className="font-semibold">복원할 후보 {pendingImport.candidates.length}대 · 보관 기록 {pendingImport.snapshots.length}개</p>
         <ul className="mt-2 list-inside list-disc text-sm">{pendingImport.candidates.map(car => <li key={car.id} className="break-words">{car.alias || "이름 미입력"} · 검사 항목 {car.issues.length}개 · {decisionLabels[car.decision]}</li>)}</ul>
-        <div className="mt-3 flex flex-wrap gap-3"><button type="button" className={button} onClick={applyImport}>이 백업을 화면에 적용</button><button type="button" className={button} onClick={() => setPendingImport(null)}>취소</button></div>
+        <div className="mt-3 flex flex-wrap gap-3"><button type="button" className={button} onClick={applyImport}>이 백업을 화면에 적용</button><button type="button" className={button} onClick={clearImportReview}>취소</button></div>
       </div>}
       <button type="button" className={`${button} mt-5`} disabled={!ready} onClick={() => setShowBackupText(!showBackupText)}>현재 백업 텍스트 보기</button>
       {showBackupText && <><label htmlFor="car-backup-output" className="mt-4 block text-sm font-semibold">현재 기록의 백업 JSON · 직접 선택해 복사</label><textarea id="car-backup-output" readOnly value={backupText} rows={6} className={control} /></>}

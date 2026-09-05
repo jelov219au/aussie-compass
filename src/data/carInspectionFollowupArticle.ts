@@ -10,6 +10,7 @@ export const carInspectionFollowupArticle: Article = {
   contentType: "official",
   readingTime: "6분",
   publishedAt: "2026-09-03",
+  updatedAt: "2026-09-05",
   quickSummary: [
     "보고서의 빈칸·미검사 항목을 ‘문제 없음’으로 읽지 말고 검사자에게 남은 확인을 묻기",
     "판매자의 답변, 수리 약속, 증빙·재확인을 서로 다른 단계로 기록하기",
@@ -78,6 +79,11 @@ export const carInspectionFollowupArticle: Article = {
       label: "PPSR — Do a used car or vehicle search",
       href: "https://www.ppsr.gov.au/carcheck",
       summary: "2026-09-03 확인. PPSR 검색과 별도로 기계 상태·차량 등록을 확인하도록 안내합니다. 공식 조회를 이 거래노트가 대신하지 않습니다.",
+    },
+    {
+      label: "NSW Government — Vehicle repairs and maintenance",
+      href: "https://www.nsw.gov.au/driving-boating-and-transport/buying-and-selling-vehicles/vehicle-repairs-and-maintenance",
+      summary: "2026-09-05에 비용·기간 견적과 작업 확인 부분을 확인했습니다. NSW의 정비 견적을 부품·공임과 함께 서면으로 받고, 수리 소요 시간과 추가 작업 승인 범위를 묻는 안내입니다. 이 글의 견적·증빙 기록에 대한 근거이며 다른 주나 개인 계약의 결과를 보장하지 않습니다.",
     },
   ],
 };

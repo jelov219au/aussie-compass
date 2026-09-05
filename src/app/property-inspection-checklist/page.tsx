@@ -83,6 +83,10 @@ export default function PropertyInspectionChecklistPage() {
         <section className="mt-10 grid gap-px overflow-hidden rounded-3xl border-2 border-amber-300 bg-amber-300 lg:grid-cols-[0.8fr_1.2fr]" aria-labelledby="stop-before-paying-heading"><div className="bg-amber-50 p-6 sm:p-8"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-800">멈추고 다시 확인</p><h2 id="stop-before-paying-heading" className="mt-2 text-2xl font-semibold text-amber-950">하나라도 해당하면 송금하지 마세요.</h2><ul className="mt-5 space-y-3 text-sm leading-7 text-amber-950">{stopSignals.map((signal) => <li key={signal} className="flex gap-3"><span aria-hidden="true">!</span><span>{signal}</span></li>)}</ul></div><div className="bg-navy p-6 text-white sm:p-8"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">그대로 보내는 핵심 질문</p><div className="mt-5 space-y-5">{bookingQuestions.map(([english, korean]) => <blockquote key={english} className="border-l-2 border-gold pl-4"><p className="text-sm font-semibold leading-6">{english}</p><p className="mt-1 text-xs leading-6 text-white/65">({korean})</p></blockquote>)}</div></div></section>
 
         <div id="inspection-tool" className="mt-10 scroll-mt-24"><PropertyInspectionChecklist /></div>
+        <section className="mt-8 border-l-4 border-gold bg-surface p-5 sm:p-7" aria-labelledby="inspection-follow-up-example">
+          <h2 id="inspection-follow-up-example" className="text-xl font-semibold text-navy">방문 뒤 확인을 끝내는 예시: 창가의 물얼룩</h2>
+          <p className="mt-3 text-sm leading-7 text-muted">물얼룩을 발견했다면 우려로 표시하고, 담당자에게 원인·수리 완료일·완료 증거를 서면으로 요청하세요. 방문 메모에 답변을 받기로 한 날짜를 적고, 입주할 때 사진과 condition report의 상태를 다시 대조합니다. 여러 항목을 괜찮음으로 표시했어도 미확인 전기 위험이나 누수 원인이 해결된 것은 아닙니다.</p>
+        </section>
 
         <section className="mt-8 rounded-3xl border-2 border-navy/10 bg-white p-6 sm:p-8" aria-labelledby="inspection-application-heading">
           <h2 id="inspection-application-heading" className="text-2xl font-semibold text-navy">집은 마음에 드는데, 신청서는 지금 보내도 될까</h2>

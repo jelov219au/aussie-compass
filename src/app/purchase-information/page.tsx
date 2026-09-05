@@ -4,14 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { Container } from "@/components/ui/Container";
-import {
-  getPaymentReadiness,
-  getRentalApplicationPaymentReadiness,
-  rentalApplicationProProduct,
-  rentalApplicationProPurchaseTermsVersion,
-  resumeProProduct,
-  resumeProPurchaseTermsVersion,
-} from "@/lib/commerce";
+import { getProPurchaseInformation } from "@/lib/proPurchaseInformation";
 import { getPublicSellerDetails } from "@/lib/publicSeller";
 import { createPageMetadata } from "@/lib/site";
 
@@ -25,10 +18,7 @@ export const dynamic = "force-dynamic";
 
 export default function PurchaseInformationPage() {
   const seller = getPublicSellerDetails();
-  const readiness = getPaymentReadiness();
-  const rentalReadiness = getRentalApplicationPaymentReadiness();
-  const price = `A$${(resumeProProduct.priceCents / 100).toFixed(2)}`;
-  const rentalPrice = `A$${(rentalApplicationProProduct.priceCents / 100).toFixed(2)}`;
+  const products = getProPurchaseInformation();
   const sellerReady = Boolean(seller.tradingName && seller.legalName && seller.abn && seller.email);
 
   return (
@@ -46,13 +36,12 @@ export default function PurchaseInformationPage() {
             </div>
             <aside className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted">
               <strong className="block text-navy">현재 상태</strong>
-              {readiness.ready && sellerReady ? "Resume Pro 결제 이용 가능" : "Resume Pro 결제 준비 중"}
-              <span className="mt-1 block">{rentalReadiness.ready && sellerReady ? "Rental Pack Pro 결제 이용 가능" : "Rental Pack Pro 유료 검증 중"}</span>
+              {products.map(product => <span key={product.id} className="mt-2 block">{product.name} · {product.ready && sellerReady ? "결제 이용 가능" : "현재 결제 미오픈"}</span>)}
             </aside>
           </div>
 
           <section className="mt-10 grid gap-5 md:grid-cols-3" aria-label="Pro 제품 구매 요약">
-            <article className="border-t-2 border-gold bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">제품별 1회 가격</p><p className="mt-3 text-xl font-semibold text-navy">Resume Pro · {price}</p><p className="mt-1 text-xl font-semibold text-navy">Rental Pack · {rentalPrice}</p><p className="mt-2 text-sm leading-6 text-muted">AUD 기준이며 자동 갱신 구독이 아닙니다. 결제가 열린 제품만 구매할 수 있습니다.</p></article>
+            <article className="border-t-2 border-gold bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">제품별 1회 가격</p><dl className="mt-3 space-y-3">{products.map(product => <div key={product.id}><dt className="text-sm font-semibold text-navy"><Link href={product.href} className="underline decoration-gold underline-offset-4">{product.name}</Link></dt><dd className="mt-1 text-lg font-semibold text-navy">{product.price}</dd></div>)}</dl><p className="mt-3 text-sm leading-6 text-muted">AUD 기준이며 자동 갱신 구독이 아닙니다. 결제가 열린 제품만 구매할 수 있습니다. Car Purchase Pack Pro는 가격·구매 조건 준비 중이며 이 가격표에 포함되지 않습니다.</p></article>
             <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">제공 방식</p><p className="mt-3 text-xl font-semibold text-navy">디지털 작업 공간</p><p className="mt-2 text-sm leading-6 text-muted">결제와 서버 이용권 확인 후 현재 브라우저에 접근 세션을 발급합니다.</p></article>
             <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">이용권 복구</p><p className="mt-3 text-xl font-semibold text-navy">1회용 복구 코드</p><p className="mt-2 text-sm leading-6 text-muted">작업 공간에서 발급한 코드는 30일 안에 한 번만 사용할 수 있습니다.</p></article>
           </section>
@@ -92,7 +81,7 @@ export default function PurchaseInformationPage() {
               <div><p className="font-mono text-xs text-gold">03 / RECEIPT</p><h2 className="mt-2 text-xl font-semibold text-navy">영수증과 인보이스</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>결제 증빙에는 거래상 판매자 정보, 구매일, 제품 설명과 결제 금액이 식별될 수 있어야 합니다. Stripe Managed Payments가 적용된 결제에서는 결제 단계에 세금이 표시되고 거래 관련 영수증·인보이스가 제공될 수 있습니다. 거래상 판매자나 문서 발행자가 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만 그 문서를 기준으로 확인하고, 불명확하면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요.</p>
-                <p>Resume Pro 검증에서는 A$19.90 총액 안에 GST가 구분 표시됐고 해당 결제의 세금 책임은 Managed Payments 쪽으로 기록됐습니다. Rental Application Pack Pro는 같은 방식의 테스트 결제와 환불 검증을 마치기 전에는 실제 판매를 열지 않습니다. 실제 구매의 세금 금액, 책임 주체와 문서 명칭은 최종 Stripe 결제 화면과 발급된 인보이스를 기준으로 확인하세요. Hoju Compass가 별도의 세율을 임의로 더하지 않습니다.</p>
+                <p>최종 결제 화면에서 제품명·AUD 총액·세금 표시를 확인하고 결제 뒤 영수증을 보관하세요. 카드명세 금액과 다르면 결제일·제품명·결제 참조 마지막 8자로 문의하세요. Hoju Compass가 별도의 세율을 임의로 더하지 않습니다.</p>
               </div>
             </section>
 
@@ -110,16 +99,16 @@ export default function PurchaseInformationPage() {
               <div><p className="font-mono text-xs text-gold">05 / DATA</p><h2 className="mt-2 text-xl font-semibold text-navy">결제와 작업 내용</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>Stripe 결제 과정의 연락처와 결제 상태는 Stripe에서 처리됩니다. Hoju Compass 서버에는 이용권 제공과 환불·분쟁 대응에 필요한 결제 식별자, 이용권 상태와 처리 시각 같은 기술 기록이 저장될 수 있습니다.</p>
-                <p>이력서·커버레터와 렌트 신청 준비 내용은 별도 안내가 없는 한 현재 브라우저에서 처리되며 결제 이용권 데이터베이스에 저장되지 않습니다. 원본 신분증, Payslip이나 은행 서류는 Rental Pack Pro에 업로드하지 않습니다. 자세한 내용은 <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내</Link>를 확인하세요.</p>
+                <p>이력서·커버레터, 렌트 신청 준비, Pay Evidence 급여 대조, EOFY 세금 준비와 Leaving 출국·정산 기록은 별도 안내가 없는 한 현재 브라우저에서 처리되며 결제 이용권 데이터베이스에 저장되지 않습니다. 원본 신분증, Payslip이나 은행 서류는 Rental Pack Pro에 업로드하지 않습니다. 자세한 내용은 <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내</Link>를 확인하세요.</p>
                 <p>브라우저 작성 내용이나 이 기기의 이용 연결을 삭제하는 일은 결제 취소·환불 또는 거래 기록 삭제와 별개입니다. 삭제 요청을 받으면 더 이상 필요하지 않은 제품·지원 데이터와 세무·회계 또는 소비자 문제 대응에 필요할 수 있는 최소 거래 증거를 시스템별로 구분하며, 후자는 적용되는 보존기간 동안 제한된 목적으로 남을 수 있습니다.</p>
               </div>
             </section>
           </div>
 
           <section className="mt-10 border-l-2 border-gold bg-surface p-6 text-sm leading-7 text-muted">
-            <h2 className="font-semibold text-navy">출시 전 확인 사항</h2>
+            <h2 className="font-semibold text-navy">구매 전 확인 사항</h2>
             <p className="mt-1">이 페이지는 가격과 구매 절차를 알기 쉽게 설명하기 위한 안내이며 개인 상황에 대한 법률·세무 자문이 아닙니다. 결제 전에 <Link href="/terms" className="font-semibold text-navy underline decoration-gold underline-offset-4">서비스 이용 조건</Link>과 <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내</Link>도 함께 확인해 주세요.</p>
-            <p className="mt-2 text-xs">구매 조건 안내 기준일: Resume Pro {resumeProPurchaseTermsVersion} · Rental Pack Pro {rentalApplicationProPurchaseTermsVersion}</p>
+            <p className="mt-2 text-xs">제품별 구매 조건 안내 기준일: {products.map(product => `${product.name} ${product.termsVersion}`).join(" · ")}</p>
           </section>
         </Container>
       </main>

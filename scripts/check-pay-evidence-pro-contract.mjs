@@ -29,7 +29,7 @@ for (const value of [
   "checkout.sessions.create", "integration_identifier", "terms_accepted",
   "purchase_terms_version", "stripe.prices.retrieve", 'price.type === "one_time"',
   "price.unit_amount === payEvidenceProProduct.priceCents", "managed_payments: { enabled: true }",
-  "isPaymentRuntimeSchemaReady(\"pay_evidence_pro\")", "getActivePayEvidenceProEntitlement()",
+  "isPaymentRuntimeSchemaReady(\"pay_evidence_pro\")", "getPayEvidenceProCheckoutAccess(request.headers.get(\"cookie\"))",
   "createFirstSaleReservation(PAY_EVIDENCE_FIRST_SALE_PRODUCT_CODE)", "attachCheckoutSession",
   "releaseFailedReservation", "idempotencyKey: claim.idempotencyKey",
 ]) assert.ok(checkout.includes(value), `Pay Evidence checkout contract is missing: ${value}`);

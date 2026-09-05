@@ -25,3 +25,7 @@ export const NATIONAL_ROADWORKS_MAP = {
   label: "National Road Safety Data Hub 도로 공사 지도",
   href: "https://datahub.roadsafety.gov.au/infrastructure/roadworks-and-road-closures",
 } as const;
+
+export const RAIL_WORK_ALERT_JOURNEY_PLANNERS: Partial<Record<RailWorkAlertSupportedState, { label: string; href: string }>> = {
+  VIC: { label: "Transport Victoria 당일 Journey Planner", href: "https://transport.vic.gov.au/" },
+};

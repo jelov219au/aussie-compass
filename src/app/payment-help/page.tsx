@@ -7,6 +7,7 @@ import { PaymentSupportHelper } from "@/components/tools/PaymentSupportHelper";
 import { Container } from "@/components/ui/Container";
 import { getPublicSellerDetails } from "@/lib/publicSeller";
 import { createPageMetadata } from "@/lib/site";
+import { getProPurchaseInformation } from "@/lib/proPurchaseInformation";
 
 export const metadata = createPageMetadata({
   title: "결제·접근 문제 해결 | Hoju Compass",
@@ -19,11 +20,17 @@ export const dynamic = "force-dynamic";
 const warnings = [
   "같은 제품을 다시 결제하기 전에 기존 Stripe 영수증과 결제 완료 화면을 확인하세요.",
   "카드번호 전체, CVC, 인터넷뱅킹 비밀번호, 인증번호 또는 신분증 전체 사본을 보내지 마세요.",
-  "이력서 원문이나 렌트 신청 서류에는 민감한 내용이 있을 수 있으므로 결제 문의에 첨부하지 마세요.",
+  "이력서·렌트 신청 서류와 급여·세금·정산 원본에는 민감한 내용이 있을 수 있으므로 결제 문의에 첨부하지 마세요.",
 ];
 
 export default function PaymentHelpPage() {
   const seller = getPublicSellerDetails();
+  const products = getProPurchaseInformation();
+  const supportProducts = [
+    ...products.map(({ id, name, href, restoreHref }) => ({ id, name, href, restoreHref })),
+    { id: "car-purchase-pro", name: "Car Purchase Pack Pro", href: "/car-purchase-pro", restoreHref: null, preparing: true },
+    { id: "unknown", name: "제품명 확인 필요", href: null, restoreHref: null },
+  ];
   return (
     <>
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "구매·환불 안내", path: "/purchase-information" }, { name: "결제·접근 문제 해결", path: "/payment-help" }]} />
@@ -39,7 +46,7 @@ export default function PaymentHelpPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">개인정보를 지키면서</p><h2 id="safety-first-heading" className="mt-2 text-xl font-semibold">문의하기 전에 이것만 확인해 주세요.</h2>
             <ul className="mt-4 space-y-3 text-sm leading-6 text-white/75">{warnings.map((warning) => <li key={warning}>• {warning}</li>)}</ul>
           </section>
-          <section className="mt-8 grid gap-4 sm:grid-cols-2" aria-label="Resume Pro 지원 역할 구분">
+          <section className="mt-8 grid gap-4 sm:grid-cols-2" aria-label="Pro 제품 지원 역할 구분">
             <article className="border-t-2 border-gold bg-white p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">제품·접근 지원</p>
               <h2 className="mt-2 text-xl font-semibold text-navy">Hoju Compass</h2>
@@ -52,11 +59,14 @@ export default function PaymentHelpPage() {
             </article>
             <p className="border-l-2 border-gold bg-surface p-4 text-sm leading-6 text-muted sm:col-span-2">거래 문제를 Hoju Compass에 먼저 알려도 제품 사실 확인과 필요한 절차 조율을 도와드립니다. 이 역할 구분은 Australian Consumer Law에 따른 권리를 제한하지 않습니다.</p>
           </section>
-          <div className="mt-8"><PaymentSupportHelper supportEmail={seller.email} /></div>
+          <div className="mt-8"><PaymentSupportHelper supportEmail={seller.email} products={supportProducts} /></div>
+          <p className="mt-8 text-sm leading-7 text-muted">결제한 제품의 복구 화면을 선택하세요. 복구 코드는 제품별로 다릅니다. 작성한 내용이 안 보이는 문제는 이용권 복구와 별개이므로, 먼저 처음 작성한 브라우저와 백업 파일을 확인하세요. <Link href="/data-transfer" className="font-semibold text-navy underline">작성 기록 백업·이전 안내 →</Link></p>
           <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Link href="/resume-pro/restore" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Access</span><strong className="mt-2 block text-navy">복구 코드 사용하기 →</strong><span className="mt-2 block text-sm leading-6 text-muted">유효한 1회용 코드가 있다면 이 기기의 접근을 복구합니다.</span></Link>
+            <Link href="/resume-pro/restore" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Access</span><strong className="mt-2 block text-navy">Resume Pro 이용권 복구 →</strong><span className="mt-2 block text-sm leading-6 text-muted">유효한 Resume Pro 1회용 코드가 있다면 이 기기의 접근을 복구합니다.</span></Link>
             <Link href="/rental-application-pro/restore" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Rental access</span><strong className="mt-2 block text-navy">Rental Pack 복구 →</strong><span className="mt-2 block text-sm leading-6 text-muted">Rental Application Pack Pro 전용 복구 코드를 사용합니다.</span></Link>
             <Link href="/pay-evidence-pro/restore" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Pay Evidence access</span><strong className="mt-2 block text-navy">Pay Evidence 복구 →</strong><span className="mt-2 block text-sm leading-6 text-muted">Pay Evidence Pack Pro 전용 복구 코드를 사용합니다.</span></Link>
+            <Link href="/eofy-pro/restore" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">EOFY access</span><strong className="mt-2 block text-navy">EOFY Pack Pro 이용권 복구 →</strong><span className="mt-2 block text-sm leading-6 text-muted">EOFY Pack Pro 전용 복구 코드를 사용합니다.</span></Link>
+            <Link href="/leaving-australia-pro/restore" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Leaving access</span><strong className="mt-2 block text-navy">Leaving Pack Pro 이용권 복구 →</strong><span className="mt-2 block text-sm leading-6 text-muted">Leaving Australia Pack Pro 전용 복구 코드를 사용합니다.</span></Link>
             <Link href="/purchase-information" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Policy</span><strong className="mt-2 block text-navy">구매·환불 조건 보기 →</strong><span className="mt-2 block text-sm leading-6 text-muted">가격, 제공 방식, 제품·거래 지원 구분과 소비자 권리를 확인합니다.</span></Link>
             <Link href="/privacy" className="border border-border bg-white p-5"><span className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Data</span><strong className="mt-2 block text-navy">결제 데이터 처리 보기 →</strong><span className="mt-2 block text-sm leading-6 text-muted">Stripe와 Hoju Compass가 처리하는 정보 범위를 확인합니다.</span></Link>
           </section>

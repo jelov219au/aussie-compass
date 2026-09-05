@@ -1,0 +1,128 @@
+// IDs only; checked against the actual page groups by check-compass-records.mjs.
+export const localProjectMetadata = [
+  {
+    "key": "visa-preparation-project",
+    "href": "/visa-preparation-guide",
+    "eyebrow": "출국 전",
+    "title": "비자 신청 준비",
+    "ids": [
+      "finder",
+      "subclass",
+      "passport",
+      "documents",
+      "translations",
+      "costs",
+      "account",
+      "review",
+      "copy",
+      "messages",
+      "changes",
+      "decision"
+    ]
+  },
+  {
+    "key": "arrival-first-30-days",
+    "href": "/arrival-checklist",
+    "eyebrow": "호주 도착",
+    "title": "첫 30일 정착",
+    "ids": [
+      "safe-arrival",
+      "sim",
+      "transport",
+      "vevo",
+      "bank",
+      "tfn",
+      "student-address",
+      "usi",
+      "health",
+      "gp",
+      "housing",
+      "scam",
+      "bank-first-statement",
+      "health-first-claim",
+      "work-records",
+      "super",
+      "payslip",
+      "budget"
+    ]
+  },
+  {
+    "key": "house-hunt-project",
+    "href": "/property-inspection-checklist",
+    "eyebrow": "주거",
+    "title": "집 구하기 프로젝트",
+    "ids": [
+      "save-ad",
+      "compare-commute",
+      "inspect",
+      "documents",
+      "references",
+      "scam-check",
+      "written-agreement",
+      "bond-process",
+      "receipts",
+      "condition-report",
+      "keys",
+      "contacts"
+    ]
+  },
+  {
+    "key": "moving-project",
+    "href": "/moving-checklist",
+    "eyebrow": "주거",
+    "title": "이사 준비",
+    "ids": [
+      "notice",
+      "removal",
+      "declutter",
+      "measure",
+      "electricity",
+      "internet",
+      "insurance",
+      "mail",
+      "building",
+      "licence",
+      "mygov",
+      "bank",
+      "health",
+      "subscriptions",
+      "meters",
+      "condition-out",
+      "keys-out",
+      "condition-in",
+      "essentials",
+      "bond",
+      "smoke",
+      "locks",
+      "receipts"
+    ]
+  },
+  {
+    "key": "leaving-australia-project",
+    "href": "/leaving-australia-guide",
+    "eyebrow": "귀국",
+    "title": "호주 생활 마무리",
+    "ids": [
+      "visa-plan",
+      "notice-work",
+      "notice-home",
+      "flight",
+      "final-pay",
+      "income",
+      "super-details",
+      "bank",
+      "tax-plan",
+      "condition",
+      "bond",
+      "utilities",
+      "phone",
+      "vehicle",
+      "mail",
+      "keys",
+      "access",
+      "visa-ceased",
+      "dasp",
+      "follow-up"
+    ]
+  }
+] as const;

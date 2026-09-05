@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { annualEstimateNotice, parseSavedSalary, salaryInputErrors, superGuidance, type SalaryCalculation, type TaxYear } from "@/lib/salaryCalculationState";
 
 // 2026-27 SG rate. Last reviewed: 2026-08-21.
-// Super is estimated from gross pay for simplicity; actual SG generally uses ordinary time earnings (OTE).
+// Gross-pay estimate only. Actual SG uses the selected period's OTE/QE rules.
 const SUPER_RATE = 0.12;
-const SUPER_GUIDANCE_URL =
-  "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/quarterly-super-to-30-june-2026/how-much-super-to-pay";
 const MEDICARE_LEVY_RATE = 0.02;
 const PERMANENT_MINIMUM_RATE = 26.44;
 const CASUAL_MINIMUM_RATE = 33.05;
@@ -16,30 +15,12 @@ const DEFAULT_WORKING_WEEKS = "52";
 const DEFAULT_ANNUAL_SALARY = "70000";
 const DEFAULT_COMPARISON_SALARY = "80000";
 
-type EmploymentType = "permanent" | "casual";
-type PayInputMode = "hourly" | "annual";
-type AnnualAmountType = "plusSuper" | "includesSuper";
 type CopyStatus = "idle" | "success" | "error";
 type ShareStatus = "idle" | "success" | "error";
 type TaxProfile = "resident" | "workingHolidayMaker";
-type TaxYear = "2025-26" | "2026-27";
-type SaveStatus = "idle" | "saved" | "loaded" | "deleted" | "error";
+type SaveStatus = "idle" | "saved" | "loaded" | "deleted" | "error" | "readError" | "invalidSaved" | "invalidInput";
 
 const SAVED_CALCULATION_KEY = "aussie-compass-salary-calculation";
-
-type SavedCalculation = {
-  taxYear?: TaxYear;
-  taxProfile: TaxProfile;
-  payInputMode: PayInputMode;
-  hourlyRate: string;
-  weeklyHours: string;
-  workingWeeks: string;
-  annualSalary: string;
-  annualAmountType: AnnualAmountType;
-  includeMedicareLevy: boolean;
-  includeHelpRepayment: boolean;
-  employmentType: EmploymentType;
-};
 
 const TAX_YEAR_CONFIG: Record<TaxYear, {
   residentFirstRate: number;
@@ -146,18 +127,14 @@ function ResultCard({ label, value, emphasis = false }: ResultCardProps) {
 }
 
 export function SalaryCalculator() {
-  const [taxYear, setTaxYear] = useState<TaxYear>("2026-27");
-  const [taxProfile, setTaxProfile] = useState<TaxProfile>("resident");
-  const [payInputMode, setPayInputMode] = useState<PayInputMode>("hourly");
-  const [hourlyRate, setHourlyRate] = useState(DEFAULT_HOURLY_RATE);
-  const [weeklyHours, setWeeklyHours] = useState(DEFAULT_WEEKLY_HOURS);
-  const [workingWeeks, setWorkingWeeks] = useState(DEFAULT_WORKING_WEEKS);
-  const [annualSalary, setAnnualSalary] = useState(DEFAULT_ANNUAL_SALARY);
+  const [calculation, setCalculation] = useState<SalaryCalculation>({ taxYear: "2026-27", taxProfile: "resident", payInputMode: "hourly", hourlyRate: DEFAULT_HOURLY_RATE, weeklyHours: DEFAULT_WEEKLY_HOURS, workingWeeks: DEFAULT_WORKING_WEEKS, annualSalary: DEFAULT_ANNUAL_SALARY, annualAmountType: "plusSuper", includeMedicareLevy: true, includeHelpRepayment: false, employmentType: "permanent" });
+  const { taxYear, taxProfile, payInputMode, hourlyRate, weeklyHours, workingWeeks, annualSalary, annualAmountType, includeMedicareLevy, includeHelpRepayment, employmentType } = calculation;
+  const fieldSetter = <K extends keyof SalaryCalculation>(key: K) => (value: SalaryCalculation[K]) => setCalculation(current => ({ ...current, [key]: value }));
+  const setTaxYear = fieldSetter("taxYear"), setTaxProfile = fieldSetter("taxProfile"), setPayInputMode = fieldSetter("payInputMode"), setHourlyRate = fieldSetter("hourlyRate"), setWeeklyHours = fieldSetter("weeklyHours"), setWorkingWeeks = fieldSetter("workingWeeks"), setAnnualSalary = fieldSetter("annualSalary"), setAnnualAmountType = fieldSetter("annualAmountType"), setIncludeMedicareLevy = fieldSetter("includeMedicareLevy"), setIncludeHelpRepayment = fieldSetter("includeHelpRepayment"), setEmploymentType = fieldSetter("employmentType");
   const [comparisonSalary, setComparisonSalary] = useState(DEFAULT_COMPARISON_SALARY);
-  const [annualAmountType, setAnnualAmountType] = useState<AnnualAmountType>("plusSuper");
-  const [includeMedicareLevy, setIncludeMedicareLevy] = useState(true);
-  const [includeHelpRepayment, setIncludeHelpRepayment] = useState(false);
-  const [employmentType, setEmploymentType] = useState<EmploymentType>("permanent");
+  const superReference = superGuidance(taxYear);
+  const weeklyLabel = payInputMode === "hourly" ? "주급 · 근무 주 기준" : "주액 · 연간 ÷ 52";
+  const fortnightlyLabel = payInputMode === "hourly" ? "격주급 · 근무 2주 기준" : "격주액 · 연간 ÷ 26";
   const [touched, setTouched] = useState({ rate: false, hours: false, weeks: false, annual: false });
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
   const [shareStatus, setShareStatus] = useState<ShareStatus>("idle");
@@ -165,59 +142,39 @@ export function SalaryCalculator() {
   const [hasSavedCalculation, setHasSavedCalculation] = useState(false);
 
   useEffect(() => {
-    setHasSavedCalculation(Boolean(window.localStorage.getItem(SAVED_CALCULATION_KEY)));
+    try { setHasSavedCalculation(window.localStorage.getItem(SAVED_CALCULATION_KEY) !== null); }
+    catch { setSaveStatus("readError"); }
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("shared") !== "1") return;
 
-    setTaxYear(params.get("year") === "2025-26" ? "2025-26" : "2026-27");
-    setTaxProfile(params.get("tax") === "whm" ? "workingHolidayMaker" : "resident");
-    setPayInputMode(params.get("mode") === "annual" ? "annual" : "hourly");
-    setAnnualAmountType(params.get("amountType") === "includesSuper" ? "includesSuper" : "plusSuper");
-    setEmploymentType(params.get("employment") === "casual" ? "casual" : "permanent");
-    setIncludeMedicareLevy(params.get("medicare") !== "0");
-    setIncludeHelpRepayment(params.get("help") === "1");
-
-    const sharedHourlyRate = params.get("rate");
-    const sharedWeeklyHours = params.get("hours");
-    const sharedWorkingWeeks = params.get("weeks");
-    const sharedAnnualSalary = params.get("annual");
-    if (sharedHourlyRate) setHourlyRate(sharedHourlyRate);
-    if (sharedWeeklyHours) setWeeklyHours(sharedWeeklyHours);
-    if (sharedWorkingWeeks) setWorkingWeeks(sharedWorkingWeeks);
-    if (sharedAnnualSalary) setAnnualSalary(sharedAnnualSalary);
+    setCalculation(current => ({ ...current,
+      taxYear: params.get("year") === "2025-26" ? "2025-26" : "2026-27",
+      taxProfile: params.get("tax") === "whm" ? "workingHolidayMaker" : "resident",
+      payInputMode: params.get("mode") === "annual" ? "annual" : "hourly",
+      annualAmountType: params.get("amountType") === "includesSuper" ? "includesSuper" : "plusSuper",
+      employmentType: params.get("employment") === "casual" ? "casual" : "permanent",
+      includeMedicareLevy: params.get("medicare") !== "0", includeHelpRepayment: params.get("help") === "1",
+      hourlyRate: params.get("rate") ?? current.hourlyRate, weeklyHours: params.get("hours") ?? current.weeklyHours,
+      workingWeeks: params.get("weeks") ?? current.workingWeeks, annualSalary: params.get("annual") ?? current.annualSalary,
+    }));
   }, []);
 
   const rate = Number(hourlyRate);
   const hours = Number(weeklyHours);
   const weeks = Number(workingWeeks);
   const annual = Number(annualSalary);
-  const rateError =
-    hourlyRate.trim() === "" || !Number.isFinite(rate) || rate <= 0
-      ? "0보다 큰 시급을 입력해 주세요."
-      : "";
-  const hoursError =
-    weeklyHours.trim() === "" || !Number.isFinite(hours) || hours <= 0 || hours > 168
-      ? "0보다 크고 168 이하인 시간을 입력해 주세요."
-      : "";
-  const weeksError =
-    workingWeeks.trim() === "" || !Number.isFinite(weeks) || !Number.isInteger(weeks) || weeks < 1 || weeks > 52
-      ? "1 이상 52 이하의 정수로 근무 주 수를 입력해 주세요."
-      : "";
-  const annualError =
-    annualSalary.trim() === "" || !Number.isFinite(annual) || annual <= 0
-      ? "0보다 큰 연봉을 입력해 주세요."
-      : "";
-  const hasErrors = payInputMode === "hourly" ? Boolean(rateError || hoursError || weeksError) : Boolean(annualError);
+  const inputErrors = salaryInputErrors(calculation);
+  const { rate: rateError, hours: hoursError, weeks: weeksError, annual: annualError, invalid: hasInputErrors } = inputErrors;
 
-  const grossAnnual = hasErrors
+  const grossAnnual = hasInputErrors
     ? 0
     : payInputMode === "hourly"
       ? rate * hours * weeks
       : annualAmountType === "includesSuper"
         ? annual / (1 + SUPER_RATE)
         : annual;
-  const grossWeekly = payInputMode === "hourly" ? rate * hours : grossAnnual / 52;
+  const grossWeekly = hasInputErrors ? 0 : payInputMode === "hourly" ? rate * hours : grossAnnual / 52;
   const grossFortnightly = grossWeekly * 2;
   const grossMonthly = grossAnnual / 12;
   const workingPayPeriods = payInputMode === "hourly" && !weeksError ? weeks : 52;
@@ -240,6 +197,7 @@ export function SalaryCalculator() {
   const superFortnightly = grossFortnightly * SUPER_RATE;
   const superAnnual = grossAnnual * SUPER_RATE;
   const totalPackage = grossAnnual + superAnnual;
+  const hasErrors = hasInputErrors || ![grossAnnual, grossWeekly, grossFortnightly, grossMonthly, estimatedTotalDeductions, netAnnual, netMonthly, netWeekly, netFortnightly, superWeekly, superFortnightly, superAnnual, totalPackage].every(Number.isFinite);
   const comparisonAnnual = Number(comparisonSalary);
   const comparisonSalaryIsValid = comparisonSalary.trim() !== "" && Number.isFinite(comparisonAnnual) && comparisonAnnual > 0;
   const comparisonTaxBeforeOffsets = comparisonSalaryIsValid
@@ -268,7 +226,7 @@ export function SalaryCalculator() {
   const helpRepaymentRate = grossAnnual > 0 ? estimatedHelpRepayment / grossAnnual : 0;
   const totalDeductionRate = grossAnnual > 0 ? estimatedTotalDeductions / grossAnnual : 0;
   const applicableMinimum = employmentType === "casual" ? CASUAL_MINIMUM_RATE : PERMANENT_MINIMUM_RATE;
-  const belowMinimum = !rateError && rate < applicableMinimum;
+  const belowMinimum = taxYear === "2026-27" && !rateError && rate < applicableMinimum;
 
   function resetCalculator() {
     setTaxYear("2026-27");
@@ -290,7 +248,8 @@ export function SalaryCalculator() {
   }
 
   function saveCalculation() {
-    const calculation: SavedCalculation = {
+    if (hasErrors) { setSaveStatus("invalidInput"); return; }
+    const calculation: SalaryCalculation = {
       taxYear,
       taxProfile,
       payInputMode,
@@ -304,6 +263,7 @@ export function SalaryCalculator() {
       employmentType,
     };
 
+    if (!parseSavedSalary(JSON.stringify(calculation))) { setSaveStatus("invalidInput"); return; }
     try {
       window.localStorage.setItem(SAVED_CALCULATION_KEY, JSON.stringify(calculation));
       setHasSavedCalculation(true);
@@ -317,20 +277,12 @@ export function SalaryCalculator() {
   function loadCalculation() {
     try {
       const savedValue = window.localStorage.getItem(SAVED_CALCULATION_KEY);
-      if (!savedValue) return;
+      if (savedValue === null) return;
 
-      const calculation = JSON.parse(savedValue) as SavedCalculation;
-      setTaxYear(calculation.taxYear === "2025-26" ? "2025-26" : "2026-27");
-      setTaxProfile(calculation.taxProfile);
-      setPayInputMode(calculation.payInputMode);
-      setHourlyRate(calculation.hourlyRate);
-      setWeeklyHours(calculation.weeklyHours);
-      setWorkingWeeks(calculation.workingWeeks);
-      setAnnualSalary(calculation.annualSalary);
-      setAnnualAmountType(calculation.annualAmountType);
-      setIncludeMedicareLevy(calculation.includeMedicareLevy);
-      setIncludeHelpRepayment(calculation.includeHelpRepayment);
-      setEmploymentType(calculation.employmentType);
+      const restored = parseSavedSalary(savedValue);
+      if (!restored) { setSaveStatus("invalidSaved"); return; }
+      setCalculation(restored);
+      setShareStatus("idle");
       setTouched({ rate: false, hours: false, weeks: false, annual: false });
       setCopyStatus("idle");
       setSaveStatus("loaded");
@@ -359,6 +311,7 @@ export function SalaryCalculator() {
   }
 
   async function copyResults() {
+    if (hasErrors) { setCopyStatus("error"); return; }
     const summary = [
       "Hoju Compass 급여 계산 결과",
       `회계연도: ${taxYear}`,
@@ -366,15 +319,15 @@ export function SalaryCalculator() {
       payInputMode === "hourly" ? `계산 기준: 연 ${workingWeeks}주 근무` : "계산 기준: 입력 연봉",
       "",
       `[세전 급여]`,
-      `주급 (Weekly): ${formatCurrency(grossWeekly)}`,
-      `격주급 (Fortnightly): ${formatCurrency(grossFortnightly)}`,
-      `월급 (Monthly): ${formatCurrency(grossMonthly)}`,
+      `${weeklyLabel}: ${formatCurrency(grossWeekly)}`,
+      `${fortnightlyLabel}: ${formatCurrency(grossFortnightly)}`,
+      `월액 (연간 평균): ${formatCurrency(grossMonthly)}`,
       `연봉 (Annual): ${formatCurrency(grossAnnual)}`,
       "",
       `[예상 세후 소득]`,
-      `세후 주급 (Weekly): ${formatCurrency(netWeekly)}`,
-      `세후 격주급 (Fortnightly): ${formatCurrency(netFortnightly)}`,
-      `세후 월급 (Monthly): ${formatCurrency(netMonthly)}`,
+      `세후 ${weeklyLabel}: ${formatCurrency(netWeekly)}`,
+      `세후 ${fortnightlyLabel}: ${formatCurrency(netFortnightly)}`,
+      `세후 월액 (연간 평균): ${formatCurrency(netMonthly)}`,
       `세후 연 소득 (Annual): ${formatCurrency(netAnnual)}`,
       `총 예상 공제: ${formatCurrency(estimatedTotalDeductions)} (${percentFormatter.format(totalDeductionRate)})`,
       "",
@@ -382,7 +335,9 @@ export function SalaryCalculator() {
       `연 Super (gross × 12% 단순 추정): ${formatCurrency(superAnnual)}`,
       `연봉 + Super: ${formatCurrency(totalPackage)}`,
       "",
-      "참고용 예상치입니다. 실제 Super는 OTE, overtime 및 최대 기여 기준 등에 따라 달라질 수 있습니다.",
+      superReference.basis,
+      `선택 연도 Super 참고: ${superReference.href}`,
+      annualEstimateNotice,
     ].join("\n");
 
     try {
@@ -395,6 +350,7 @@ export function SalaryCalculator() {
   }
 
   async function copyShareLink() {
+    if (hasErrors) { setShareStatus("error"); return; }
     const url = new URL(window.location.href);
     url.search = "";
     url.hash = "";
@@ -438,6 +394,7 @@ export function SalaryCalculator() {
           계산 결과 바로 보기 ↓
         </a>
 
+        {saveStatus === "readError" && <p role="alert" className="mt-3 text-sm leading-6 text-red-700">저장 여부를 확인하지 못했습니다. 현재 입력과 공유 링크 복원은 계속 사용할 수 있습니다.</p>}
         <details className="mt-5 rounded-xl border border-border bg-surface p-4">
           <summary className="cursor-pointer text-sm font-semibold text-navy">저장한 계산 관리</summary>
           <div className="mt-4">
@@ -454,7 +411,9 @@ export function SalaryCalculator() {
               {saveStatus === "deleted" ? "삭제 완료" : "저장 조건 삭제"}
             </button>
           </div>
-          {saveStatus === "error" ? <p role="alert" className="mt-2 text-sm text-red-600">브라우저 저장 공간을 사용할 수 없습니다.</p> : null}
+          {saveStatus === "error" ? <p role="alert" className="mt-2 text-sm text-red-600">저장 작업에 실패했습니다. 기존 저장본과 화면을 확인하세요.</p> : null}
+          {saveStatus === "invalidSaved" && <p role="alert" className="mt-2 text-sm text-red-600">저장 조건의 형식이나 값이 올바르지 않습니다. 현재 입력과 기존 저장 원문을 그대로 유지했습니다.</p>}
+          {saveStatus === "invalidInput" && <p role="alert" className="mt-2 text-sm text-red-600">입력 오류를 고친 뒤 저장하세요.</p>}
           </div>
         </details>
 
@@ -547,10 +506,12 @@ export function SalaryCalculator() {
 
         {!rateError ? (
           <div className={`mt-6 rounded-xl p-4 text-sm leading-relaxed ${belowMinimum ? "bg-red-50 text-red-800" : "bg-surface text-muted"}`}>
-            {belowMinimum ? (
+            {taxYear === "2025-26" ? (
+              <>현재 2026년 7월 기준 금액으로 과거 시급을 비교하지 않습니다. 당시 기간과 적용 Award를 확인하세요.</>
+            ) : belowMinimum ? (
               <>입력한 시급이 현재 일반 성인 National Minimum Wage 기준인 {formatCurrency(applicableMinimum)}보다 낮습니다. 적용 Award를 반드시 확인하세요.</>
             ) : (
-              <>선택한 고용 형태의 일반 최저 기준은 시간당 {formatCurrency(applicableMinimum)}입니다.</>
+              <>현재 2026년 7월 기준 참고 금액은 시간당 {formatCurrency(applicableMinimum)}입니다. 이를 넘는다고 적법한 급여가 보장되지는 않습니다. 적용 Award를 확인하세요.</>
             )}
           </div>
         ) : null}
@@ -614,10 +575,10 @@ export function SalaryCalculator() {
           {!hasErrors ? (
             <div className="flex flex-wrap items-center gap-2">
               <div className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/75">총 예상 공제율 {percentFormatter.format(totalDeductionRate)}</div>
-              <button type="button" onClick={copyResults} className="salary-print-hide min-h-11 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
+              <button type="button" onClick={copyResults} disabled={hasErrors} className="salary-print-hide min-h-11 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
                 {copyStatus === "success" ? "복사 완료" : "결과 복사"}
               </button>
-              <button type="button" onClick={copyShareLink} className="salary-print-hide min-h-11 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
+              <button type="button" onClick={copyShareLink} disabled={hasErrors} className="salary-print-hide min-h-11 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
                 {shareStatus === "success" ? "링크 복사 완료" : "계산 링크 공유"}
               </button>
               <button type="button" onClick={() => window.print()} className="salary-print-hide min-h-11 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-navy">
@@ -661,13 +622,14 @@ export function SalaryCalculator() {
         ) : null}
 
         {hasErrors ? (
-          <div className="mt-7 rounded-xl bg-white/10 p-5 text-sm leading-relaxed">정확한 결과를 계산하려면 입력값을 확인해 주세요.</div>
+          <div className="mt-7 rounded-xl bg-white/10 p-5 text-sm leading-relaxed">{inputErrors.overflow || "정확한 결과를 계산하려면 입력값을 확인해 주세요."}</div>
         ) : (
           <div className="mt-7">
+            <p className="mb-5 rounded-xl bg-white/10 p-4 text-sm leading-6 text-white/80">{annualEstimateNotice}</p>
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gold">핵심 결과</h3>
               <dl className="mt-3 grid gap-3 sm:grid-cols-3">
-                <ResultCard label="예상 세후 월급" value={netMonthly} emphasis />
+                <ResultCard label="예상 세후 월액 · 연간 평균" value={netMonthly} emphasis />
                 <ResultCard label="예상 세후 연 소득" value={netAnnual} emphasis />
                 <ResultCard label="Super 포함 총 패키지" value={totalPackage} emphasis />
               </dl>
@@ -679,9 +641,9 @@ export function SalaryCalculator() {
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gold">세전 급여</h3>
               <dl className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <ResultCard label="주급 (Weekly)" value={grossWeekly} />
-                <ResultCard label="격주급 (Fortnightly)" value={grossFortnightly} />
-                <ResultCard label="월급 (Monthly)" value={grossMonthly} />
+                <ResultCard label={weeklyLabel} value={grossWeekly} />
+                <ResultCard label={fortnightlyLabel} value={grossFortnightly} />
+                <ResultCard label="월액 (연간 평균)" value={grossMonthly} />
                 <ResultCard label="연봉 (Annual)" value={grossAnnual} emphasis />
               </dl>
             </div>
@@ -689,9 +651,9 @@ export function SalaryCalculator() {
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-gold">예상 세후 소득</h3>
               <dl className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <ResultCard label="세후 주급 (Weekly)" value={netWeekly} />
-                <ResultCard label="세후 격주급 (Fortnightly)" value={netFortnightly} />
-                <ResultCard label="세후 월급 (Monthly)" value={netMonthly} />
+                <ResultCard label={`세후 ${weeklyLabel}`} value={netWeekly} />
+                <ResultCard label={`세후 ${fortnightlyLabel}`} value={netFortnightly} />
+                <ResultCard label="세후 월액 (연간 평균)" value={netMonthly} />
                 <ResultCard label="세후 연 소득 (Annual)" value={netAnnual} emphasis />
               </dl>
               <dl className="mt-3 grid gap-4 rounded-xl bg-white/5 p-4 text-sm sm:grid-cols-2 xl:grid-cols-3">
@@ -713,8 +675,8 @@ export function SalaryCalculator() {
                 <ResultCard label="연봉 + Super" value={totalPackage} emphasis />
               </dl>
               <p className="mt-3 text-sm leading-6 text-white/65">
-                위 Super는 세전 급여 전체에 12%를 적용한 단순 추정입니다. 실제 법정 Super는 일반적으로 OTE(ordinary time earnings)를 기준으로 하며 overtime, 적용 상한과 개인 상황에 따라 달라질 수 있습니다.{" "}
-                <a href={SUPER_GUIDANCE_URL} target="_blank" rel="noreferrer" className="font-semibold text-gold underline underline-offset-4 hover:text-white">
+                위 Super는 세전 급여 전체 × 12%의 단순 추정입니다. {superReference.basis}{" "}
+                <a href={superReference.href} target="_blank" rel="noreferrer" className="font-semibold text-gold underline underline-offset-4 hover:text-white">
                   ATO 공식 안내 확인
                 </a>
               </p>

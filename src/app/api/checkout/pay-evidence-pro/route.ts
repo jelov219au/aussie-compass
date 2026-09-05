@@ -18,7 +18,7 @@ import {
   type FirstSaleGateStore,
 } from "@/lib/firstSaleGate";
 import { getConfiguredFirstSaleGate, isPaymentRuntimeSchemaReady } from "@/lib/neonFirstSaleGate";
-import { getActivePayEvidenceProEntitlement } from "@/lib/payEvidenceProAccess";
+import { getPayEvidenceProCheckoutAccess } from "@/lib/payEvidenceProAccess";
 import { normalizePayEvidenceProEntry } from "@/lib/payEvidenceProAttribution";
 import { validateSameOriginMutation } from "@/lib/requestSecurity";
 import { siteUrl } from "@/lib/site";
@@ -164,7 +164,11 @@ export async function POST(request: NextRequest) {
 
   try {
     assertSafeStripeEnvironment();
-    if (await getActivePayEvidenceProEntitlement()) {
+    const existingAccess = await getPayEvidenceProCheckoutAccess(request.headers.get("cookie"));
+    if (existingAccess === "unknown") {
+      return checkoutFailureResponse(request, acquisitionSource, "checkout_support_required", 503);
+    }
+    if (existingAccess === "active") {
       return checkoutFailureResponse(request, acquisitionSource, "checkout_already_purchased", 409);
     }
     const stripe = getStripe();

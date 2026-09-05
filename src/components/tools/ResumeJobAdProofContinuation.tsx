@@ -12,16 +12,26 @@ import {
 
 export function ResumeJobAdProofContinuation({ entry }: { entry: ResumeProEntry }) {
   const [summary, setSummary] = useState<ResumeJobAdProofSummary | null>(null);
+  const [clearError, setClearError] = useState("");
 
   useEffect(() => {
-    setSummary(entry === "job-ad-checker" ? readResumeJobAdProofSummary() : null);
+    const refresh = () => setSummary(entry === "job-ad-checker" ? readResumeJobAdProofSummary() : null);
+    refresh();
+    const timer = window.setInterval(refresh, 30_000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
   }, [entry]);
 
   if (!summary) return null;
 
   const dismiss = () => {
-    clearResumeJobAdProofSummary();
-    setSummary(null);
+    if (clearResumeJobAdProofSummary()) {
+      setSummary(null);
+      setClearError("");
+    } else {
+      setClearError("현재 탭의 요약을 지우지 못했습니다. 브라우저 저장소를 사용할 수 있을 때 다시 시도해 주세요.");
+    }
   };
 
   return (
@@ -39,6 +49,7 @@ export function ResumeJobAdProofContinuation({ entry }: { entry: ResumeProEntry 
           <button type="button" onClick={dismiss} className="min-h-11 text-muted underline decoration-border underline-offset-4">요약 지우기</button>
         </div>
       </div>
+      {clearError ? <p className="mt-3 text-xs leading-5 text-red-700">{clearError}</p> : null}
     </section>
   );
 }

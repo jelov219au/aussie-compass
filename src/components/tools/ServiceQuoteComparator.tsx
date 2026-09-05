@@ -1,108 +1,31 @@
 "use client";
-
-import { useEffect, useMemo, useState } from "react";
-
-type Quote = {
-  id: string;
-  provider: string;
-  callout: string;
-  labour: string;
-  materials: string;
-  other: string;
-  gstIncluded: boolean;
-  writtenScope: boolean;
-  abnChecked: boolean;
-  licenceChecked: boolean;
-  insuranceChecked: boolean;
-  timelineConfirmed: boolean;
-  warrantyConfirmed: boolean;
-};
-
-const storageKey = "aussie-compass-service-quotes-v1";
-
-function createQuote(index: number): Quote {
-  return { id: `${Date.now()}-${index}`, provider: "", callout: "", labour: "", materials: "", other: "", gstIncluded: false, writtenScope: false, abnChecked: false, licenceChecked: false, insuranceChecked: false, timelineConfirmed: false, warrantyConfirmed: false };
-}
-
-function amount(value: string) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-}
-
-function quoteTotal(quote: Quote) {
-  return amount(quote.callout) + amount(quote.labour) + amount(quote.materials) + amount(quote.other);
-}
-
-const checks: Array<{ key: keyof Quote; label: string; detail: string }> = [
-  { key: "writtenScope", label: "작업 범위가 서면으로 명확함", detail: "포함·제외 작업과 추가 비용 조건" },
-  { key: "abnChecked", label: "ABN 상태 확인", detail: "ABN Lookup에서 업체명과 활성 상태 확인" },
-  { key: "licenceChecked", label: "필요 면허 확인", detail: "직종과 주·준주에 적용되는 등록·면허" },
-  { key: "insuranceChecked", label: "보험 여부 확인", detail: "업무에 적합한 보험 보유 여부" },
-  { key: "timelineConfirmed", label: "시작·완료 일정 확인", detail: "지연 시 연락 및 일정 변경 방식" },
-  { key: "warrantyConfirmed", label: "보증·사후조치 확인", detail: "문제 발생 시 수정 범위와 연락 방법" },
-];
-
+import { useState } from "react";
+import { amount, money } from "@/lib/personalPlans";
+import { costFields, newQuote, parseQuotes, quoteChecks, quoteResult, quoteSummary, serializeQuotes, type Quote } from "@/lib/serviceRecords";
+import { useLocalPlan } from "@/lib/useLocalPlan";
+const initial = [newQuote("quote-1"), newQuote("quote-2")];
+const inputClass = "mt-2 min-h-11 w-full rounded-lg border border-border bg-white px-3 text-sm text-navy outline-none focus:border-navy";
 export function ServiceQuoteComparator() {
-  const [quotes, setQuotes] = useState<Quote[]>([createQuote(0), createQuote(1)]);
-  const [loaded, setLoaded] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(storageKey);
-      if (saved) setQuotes(JSON.parse(saved));
-    } catch { /* Keep an unsaved working copy. */ }
-    setLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (!loaded) return;
-    try { window.localStorage.setItem(storageKey, JSON.stringify(quotes)); } catch { /* Storage is optional. */ }
-  }, [quotes, loaded]);
-
-  const lowestTotal = useMemo(() => Math.min(...quotes.map(quoteTotal).filter((total) => total > 0)), [quotes]);
-
-  function update(id: string, key: keyof Quote, value: string | boolean) {
-    setQuotes((current) => current.map((quote) => quote.id === id ? { ...quote, [key]: value } : quote));
-  }
-
-  function addQuote() {
-    if (quotes.length < 3) setQuotes((current) => [...current, createQuote(current.length)]);
-  }
-
-  async function copySummary() {
-    const lines = quotes.map((quote, index) => {
-      const complete = checks.filter((check) => Boolean(quote[check.key])).length;
-      return `${index + 1}. ${quote.provider || "업체명 미입력"}: $${quoteTotal(quote).toFixed(2)} / 확인 ${complete}/${checks.length} / GST ${quote.gstIncluded ? "포함" : "미확인"}`;
-    });
-    await navigator.clipboard.writeText(["서비스 견적 비교", ...lines, "※ 금액만이 아니라 작업 범위, 면허, 보험, 일정과 보증을 함께 확인하세요."].join("\n"));
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
-  }
-
-  return <section className="rounded-3xl border border-border bg-white p-5 shadow-sm sm:p-8" aria-labelledby="quote-comparator-heading">
-    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-      <div><p className="text-sm font-semibold text-gold">내 브라우저에만 저장</p><h2 id="quote-comparator-heading" className="mt-2 text-2xl font-semibold text-navy">서비스 견적 비교표</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted">업체 연락처나 주소 대신 비교에 필요한 정보만 기록하세요. 이 점검표는 업체의 품질이나 적법성을 보증하지 않습니다.</p></div>
-      <div className="flex gap-2"><button type="button" onClick={copySummary} className="min-h-11 rounded-lg border border-navy px-4 py-2 text-sm font-semibold text-navy hover:bg-surface">{copied ? "복사됨" : "요약 복사"}</button>{quotes.length < 3 && <button type="button" onClick={addQuote} className="min-h-11 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-light">견적 추가</button>}</div>
-    </div>
-
-    <div className="mt-8 grid gap-5 xl:grid-cols-3">
-      {quotes.map((quote, index) => {
-        const total = quoteTotal(quote);
-        const completed = checks.filter((check) => Boolean(quote[check.key])).length;
-        const isLowest = total > 0 && total === lowestTotal && Number.isFinite(lowestTotal);
-        return <article key={quote.id} className="rounded-2xl border border-border p-5">
-          <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold text-gold">견적 {index + 1}</p><h3 className="mt-1 text-lg font-semibold text-navy">{quote.provider || "업체명 미입력"}</h3></div>{quotes.length > 2 && <button type="button" onClick={() => setQuotes((current) => current.filter((item) => item.id !== quote.id))} className="min-h-10 px-2 text-xs font-semibold text-muted hover:text-navy">삭제</button>}</div>
-          <label className="mt-4 block text-sm font-medium text-navy">업체명 또는 구분명<input value={quote.provider} onChange={(event) => update(quote.id, "provider", event.target.value)} maxLength={60} placeholder="예: 견적 A" className="mt-2 min-h-11 w-full rounded-lg border border-border px-3 outline-none focus:border-navy" /></label>
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            {([['callout','출장비'],['labour','인건비'],['materials','자재비'],['other','기타 비용']] as const).map(([key, label]) => <label key={key} className="text-xs font-medium text-navy">{label} ($)<input type="number" min="0" step="0.01" inputMode="decimal" value={quote[key]} onChange={(event) => update(quote.id, key, event.target.value)} className="mt-1 min-h-11 w-full rounded-lg border border-border px-3 text-sm outline-none focus:border-navy" /></label>)}
-          </div>
-          <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-lg bg-surface p-3 text-sm text-navy"><input type="checkbox" checked={quote.gstIncluded} onChange={(event) => update(quote.id, "gstIncluded", event.target.checked)} className="h-5 w-5 accent-[var(--color-gold)]" />총액에 GST 포함 확인</label>
-          <div className="mt-5 rounded-xl bg-navy p-4 text-white"><div className="flex items-end justify-between"><span className="text-sm text-white/70">입력 합계</span><strong className="text-2xl">${total.toFixed(2)}</strong></div><div className="mt-2 flex justify-between text-xs text-white/70"><span>확인 항목 {completed}/{checks.length}</span>{isLowest && <span className="font-semibold text-gold">현재 최저 입력 금액</span>}</div></div>
-          <div className="mt-5 space-y-3">{checks.map((check) => <label key={check.key} className="flex cursor-pointer gap-3"><input type="checkbox" checked={Boolean(quote[check.key])} onChange={(event) => update(quote.id, check.key, event.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--color-gold)]" /><span><span className="block text-sm font-medium text-navy">{check.label}</span><span className="block text-xs leading-5 text-muted">{check.detail}</span></span></label>)}</div>
-        </article>;
-      })}
-    </div>
-    <button type="button" onClick={() => setQuotes([createQuote(0), createQuote(1)])} className="mt-6 min-h-11 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-navy hover:bg-surface">모든 입력 초기화</button>
+  const { data: quotes, update: setQuotes, storage, saveState, reset } = useLocalPlan("aussie-compass-service-quotes-v1", initial, parseQuotes, serializeQuotes, { initial: "아직 저장하지 않음", reset: "입력과 저장본을 초기화했습니다" });
+  const [copyState, setCopyState] = useState("");
+  const summary = quoteSummary(quotes);
+  const update = (id: string, key: keyof Quote, value: string | boolean) => { setQuotes(current => current.map(q => q.id === id ? { ...q, [key]: value } : q)); setCopyState(""); };
+  async function copySummary() { try { await navigator.clipboard.writeText(summary); setCopyState("복사했습니다"); } catch { setCopyState("복사하지 못했습니다. 아래 요약을 선택해서 복사하세요."); } }
+  return <section className="min-w-0 rounded-3xl border border-border bg-white p-5 shadow-sm sm:p-8" aria-labelledby="quote-comparator-heading">
+    <h2 id="quote-comparator-heading" className="text-2xl font-semibold text-navy">서비스 견적 비교표</h2><p className="mt-2 text-sm leading-6 text-muted">현재 브라우저에만 저장합니다. 업체 연락처나 주소 대신 구분명과 비교 조건만 기록하세요. 체크 항목은 품질 점수나 업체 인증이 아닙니다.</p>
+    <p role="status" className="mt-3 text-sm text-navy">{saveState}</p>{storage === "blocked" && <p className="mt-2 rounded-lg bg-amber-50 p-3 text-sm leading-6 text-amber-900">기존 저장본을 읽거나 확인하지 못했습니다. 원문을 보존하고 자동 저장을 중지했습니다. 화면의 새 입력은 저장되지 않으므로 따로 보관하세요.</p>}
+    <p className="mt-2 text-xs leading-6 text-muted">빈 비용은 미확인입니다. 0원으로 확인한 경우만 0을 입력하세요. 잘못된 숫자가 있으면 저장을 보류합니다.</p>
+    <fieldset disabled={storage === "loading"}><legend className="sr-only">견적 입력</legend><div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={copySummary} className="min-h-11 rounded-lg border border-navy px-4 text-sm font-semibold text-navy">요약 복사</button>{quotes.length < 3 && <button type="button" onClick={() => setQuotes(current => [...current, newQuote(crypto.randomUUID())])} className="min-h-11 rounded-lg bg-navy px-4 text-sm font-semibold text-white">견적 추가</button>}</div>
+    <p className="mt-2 text-sm text-muted" aria-live="polite">{copyState}</p>{copyState.includes("못했습니다") && <label className="mt-2 block text-sm text-navy">선택해서 복사할 요약<textarea readOnly value={summary} rows={7} className="mt-2 w-full rounded-lg border border-border p-3 text-sm" onFocus={event => event.target.select()} /></label>}
+    <div className="mt-6 grid gap-5 xl:grid-cols-3">{quotes.map((q, index) => { const result = quoteResult(q); return <article key={q.id} className="min-w-0 rounded-2xl border border-border p-4 sm:p-5">
+      <div className="flex justify-between gap-3"><h3 className="min-w-0 break-words text-lg font-semibold text-navy">견적 {index + 1} · {q.provider || "업체명 미입력"}</h3>{quotes.length > 2 && <button type="button" onClick={() => { if (window.confirm("이 견적을 지울까요?")) setQuotes(current => current.filter(item => item.id !== q.id)); }} className="min-h-11 px-2 text-xs text-muted">삭제</button>}</div>
+      <label className="mt-4 block text-sm font-medium text-navy">업체명 또는 구분명<input value={q.provider} onChange={event => update(q.id, "provider", event.target.value)} maxLength={60} className={inputClass} /></label>
+      <label className="mt-4 block text-sm font-medium text-navy">금액 입력 방식<select value={q.mode ?? "items"} onChange={event => update(q.id, "mode", event.target.value)} className={inputClass}><option value="items">항목별 비용</option><option value="total">총액만 받은 견적</option></select></label>
+      {q.mode === "total" ? <><label className="mt-4 block text-sm font-medium text-navy">서면 견적 총액 (AUD)<input inputMode="decimal" maxLength={32} value={q.directTotal ?? ""} onChange={event => update(q.id, "directTotal", event.target.value)} className={inputClass} aria-invalid={Boolean(q.directTotal?.trim()) && amount(q.directTotal) === null} /></label>{q.directTotal?.trim() && amount(q.directTotal) === null && <p className="mt-2 text-xs text-red-700">0~1조 사이의 유효한 금액을 입력하세요.</p>}<p className="mt-2 text-xs leading-6 text-muted">총액을 자재·인건비로 임의로 나누지 마세요. 포함 범위와 추가 비용은 아래에서 별도로 확인합니다.</p></> : <div className="mt-4 grid grid-cols-2 gap-3">{costFields.map(([key, label]) => <label key={key} className="min-w-0 text-xs font-medium text-navy">{label} (AUD)<input inputMode="decimal" maxLength={32} value={q[key]} onChange={event => update(q.id, key, event.target.value)} className={inputClass} aria-invalid={q[key].trim() !== "" && amount(q[key]) === null} />{amount(q[key]) === null && <span className={`mt-1 block text-xs ${q[key].trim() ? "text-red-700" : "text-muted"}`}>{q[key].trim() ? "0~1조의 유효한 금액 필요" : "비용 미확인"}</span>}</label>)}</div>}
+      <label className="mt-4 flex gap-3 rounded-lg bg-surface p-3 text-sm text-navy"><input type="checkbox" checked={q.gstIncluded} onChange={event => update(q.id, "gstIncluded", event.target.checked)} className="h-5 w-5 shrink-0" />총액에 GST 포함을 서면으로 확인</label>
+      <div className="mt-5 rounded-xl bg-navy p-4 text-white"><p className="text-sm text-white/75">{result.complete ? "입력 금액 합계" : "확인된 항목 소계"}</p><p className="mt-2 break-all text-2xl font-semibold">{result.known ? money(result.total) : "금액 미입력"}</p>{!result.complete && <p className="mt-2 text-sm text-gold">남은 비용 미확인</p>}<p className="mt-2 text-xs text-white/80">GST {q.gstIncluded ? "포함 확인" : "미확인 · 임의로 세금을 더하지 않습니다"}</p></div>
+      <div className="mt-5 space-y-3">{quoteChecks.map(([key, label, detail]) => <label key={key} className="flex gap-3"><input type="checkbox" checked={q[key]} onChange={event => update(q.id, key, event.target.checked)} className="mt-1 h-5 w-5 shrink-0" /><span><span className="block text-sm font-medium text-navy">{label}</span><span className="block text-xs leading-5 text-muted">{detail}</span></span></label>)}</div>
+    </article>; })}</div>
+    <button type="button" onClick={() => { if (window.confirm("이 브라우저의 모든 견적 입력과 저장본을 지울까요?")) { if (reset()) setCopyState(""); } }} className="mt-6 min-h-11 rounded-lg border border-border px-4 text-sm font-semibold text-navy">모든 입력 초기화</button></fieldset>
   </section>;
 }

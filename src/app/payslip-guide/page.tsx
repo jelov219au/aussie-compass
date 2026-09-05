@@ -36,9 +36,9 @@ const payslipTerms = [
 
 const checklist = [
   "이름, 고용주 이름과 ABN이 맞는지 확인",
-  "Pay Period와 Payment Date가 실제 지급 기간과 일치하는지 확인",
+  "Pay Period는 일한 대상 기간, Payment Date는 급여 지급일인지 각각 확인",
   "시급, 일반 근무시간, 초과근무와 주말·공휴일 시간이 맞는지 확인",
-  "Casual Loading, Allowance, Penalty Rate가 해당되는 경우 별도로 표시됐는지 확인",
+  "Casual Loading이 시급에 포함됐다는 표시가 있는지, 별도 수당·Penalty 항목과 함께 확인",
   "Gross Pay에서 PAYG와 기타 공제를 뺀 금액이 Net Pay와 맞는지 확인",
   "Super 금액과 Super fund 정보가 맞는지 확인",
 ];
@@ -99,6 +99,15 @@ export default function PayslipGuidePage() {
             </ol>
           </section>
 
+          <section className="mt-8 rounded-2xl border border-border bg-white p-6 sm:p-8" aria-labelledby="payslip-example-heading">
+            <h2 id="payslip-example-heading" className="text-2xl font-semibold text-navy">3분 확인 예시: 대상 기간부터 입금까지</h2>
+            <p className="mt-3 text-sm leading-6 text-muted">설명을 위한 가상 시급·공제입니다. 법정 기준이나 실제 세금 계산이 아닙니다.</p>
+            <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {[["Pay Period", "8월 24일~30일의 근무"], ["Payment Date", "9월 2일 지급"], ["Gross", "20시간 × A$30 = A$600"], ["공제", "가상 공제 A$80"], ["Net", "A$600 − A$80 = A$520"], ["은행 입금", "A$520 → Net과 일치"]].map(([label, value]) => <div key={label} className="rounded-xl bg-surface p-4"><dt className="text-sm text-muted">{label}</dt><dd className="mt-2 font-semibold text-navy">{value}</dd></div>)}
+            </dl>
+            <p className="mt-4 text-sm leading-7 text-muted">동일 기간의 20시간·시급 근거와 공제의 적정성은 별도로 확인합니다. 숫자가 맞아도 급여 전체가 올바르다는 보장은 아닙니다. YTD는 누적값이므로 이번 한 번의 입금과 비교하지 마세요.</p>
+          </section>
+
           <section className="mt-8 grid gap-5 md:grid-cols-2" aria-label="Payslip 문제 확인">
             <article className="rounded-2xl border border-border bg-white p-6 sm:p-8">
               <h2 className="text-xl font-semibold text-navy">언제 받아야 하나요?</h2>
@@ -106,7 +115,8 @@ export default function PayslipGuidePage() {
             </article>
             <article className="rounded-2xl border border-border bg-white p-6 sm:p-8">
               <h2 className="text-xl font-semibold text-navy">금액이 맞지 않는다면</h2>
-              <p className="mt-3 leading-7 text-muted">근무시간 기록과 은행 입금액을 먼저 비교하고 고용주 또는 Payroll 담당자에게 서면으로 문의하세요. 해결되지 않으면 Fair Work의 공식 안내를 확인할 수 있습니다.</p>
+              <p className="mt-3 leading-7 text-muted">내 근무시간·적용 Rate로 계산한 세전 금액은 Payslip의 Gross와, Payslip의 Net은 같은 급여의 은행 입금과 비교하세요. 서로 다른 숫자를 바로 빼지 않습니다. 차이가 나는 날짜·시간·항목을 한 줄로 적어 Payroll에 확인을 요청하세요.</p>
+              <Link href="/underpayment-guide" className="mt-4 inline-flex min-h-11 items-center font-semibold text-navy underline">차이 계산 예시와 문의 이메일 보기 →</Link>
             </article>
           </section>
 

@@ -5,14 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 import {
   articleContentTypeLabels,
   articleRegionLabels,
-  articleTopicCategories,
   getArticleContentType,
   getArticleRegion,
   type Article,
   type ArticleRegionId,
-  type ArticleTopicId,
 } from "@/data/articles";
 import { ARTICLE_READING_UPDATED_EVENT, readArticleHistory } from "@/lib/articleProgress";
+import { getResourceRecoveryOptions, searchResources } from "@/lib/resourceSearch";
 import { TopicIcon, type TopicIconName } from "@/components/ui/TopicIcon";
 
 const filters = [
@@ -34,18 +33,6 @@ function resourceIcon(category: string): TopicIconName {
   return "guide";
 }
 
-function searchableText(article: Article) {
-  const sectionText = article.sections.flatMap((section) => [
-    section.heading,
-    ...(section.paragraphs ?? []),
-    ...(section.bullets ?? []),
-  ]);
-
-  return [article.title, article.description, article.category, ...article.quickSummary, ...sectionText]
-    .join(" ")
-    .toLocaleLowerCase("ko-KR");
-}
-
 export function ResourcesDirectory({ articles }: { articles: Article[] }) {
   const [active, setActive] = useState<FilterId>("all");
   const [activeRegion, setActiveRegion] = useState<RegionFilterId>("all");
@@ -63,19 +50,9 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
     };
   }, []);
 
-  const visible = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("ko-KR");
-
-    return articles.filter((article) => {
-      const matchesCategory =
-        active === "all" || articleTopicCategories[active as ArticleTopicId].includes(article.category);
-      const matchesRegion = activeRegion === "all" || getArticleRegion(article) === activeRegion;
-      const matchesQuery =
-        normalizedQuery.length === 0 || searchableText(article).includes(normalizedQuery);
-
-      return matchesCategory && matchesRegion && matchesQuery;
-    });
-  }, [active, activeRegion, articles, query]);
+  const searchState = useMemo(() => ({ topic: active, region: activeRegion, query }), [active, activeRegion, query]);
+  const visible = useMemo(() => searchResources(articles, searchState), [articles, searchState]);
+  const recovery = getResourceRecoveryOptions(searchState);
 
   const regionFilters = useMemo(() => {
     const counts = articles.reduce((result, article) => {
@@ -94,6 +71,12 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
     setActiveRegion("all");
     setQuery("");
   };
+
+  const activeFilters = [
+    active !== "all" ? `주제 ${filters.find((filter) => filter.id === active)?.label}` : null,
+    activeRegion !== "all" ? `지역 ${articleRegionLabels[activeRegion]}` : null,
+    query.trim() ? `검색 “${query.trim()}”` : null,
+  ].filter((filter): filter is string => Boolean(filter));
 
   return (
     <section className="mt-12" aria-labelledby="resource-directory-heading">
@@ -163,7 +146,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="예: payslip, 집, 생활비"
+              placeholder="예: 급여가 적게 들어왔어요"
               className="min-h-12 w-full bg-transparent pr-4 text-sm text-navy outline-none placeholder:text-muted/70"
             />
           </div>
@@ -174,7 +157,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
         <p className="text-sm text-muted" aria-live="polite">
           <strong className="font-semibold text-navy">{visible.length}개</strong>의 자료
         </p>
-        {(active !== "all" || activeRegion !== "all" || query) && (
+        {(active !== "all" || activeRegion !== "all" || query.trim()) && (
           <button type="button" onClick={reset} className="min-h-11 text-sm font-semibold text-navy underline decoration-gold underline-offset-4">
             필터 초기화
           </button>
@@ -183,42 +166,65 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
 
       {visible.length > 0 ? (
         <ol className="grid gap-4 py-6 lg:grid-cols-2" aria-label="실용 자료 목록">
-          {visible.map((article, index) => {
-            const href = `/resources/${article.slug}`;
+          {visible.map((result, index) => {
+            const display = result.kind === "article"
+              ? {
+                  href: `/resources/${result.article.slug}`,
+                  category: result.article.category,
+                  readingTime: result.article.readingTime,
+                  region: getArticleRegion(result.article),
+                  contentType: getArticleContentType(result.article),
+                  title: result.article.title,
+                  description: result.article.description,
+                  summary: result.article.quickSummary[0],
+                  sources: result.article.sources?.length ?? 0,
+                }
+              : {
+                  href: result.href,
+                  category: result.category,
+                  readingTime: result.readingTime,
+                  region: result.region,
+                  contentType: result.contentType,
+                  title: result.title,
+                  description: result.description,
+                  summary: result.quickSummary,
+                  sources: 0,
+                };
+            const { href, category, readingTime, region, contentType, title, description, summary } = display;
             const hasRead = readHrefs.has(href);
             return (
-              <li key={article.slug}>
+              <li key={href}>
                 <Link
                   href={href}
                   className="group grid h-full min-h-72 grid-rows-[auto_auto_auto_1fr_auto] rounded-2xl border-2 border-navy/10 bg-white p-5 shadow-[0_10px_26px_rgba(26,39,68,0.05)] transition hover:-translate-y-0.5 hover:border-gold hover:shadow-[0_16px_34px_rgba(26,39,68,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy sm:p-7"
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3"><TopicIcon name={resourceIcon(article.category)} size="sm" /><p className="text-xs font-semibold uppercase tracking-[0.13em] text-gold-ink">{article.category} · {article.readingTime}</p></div>
+                    <div className="flex items-center gap-3"><TopicIcon name={resourceIcon(category)} size="sm" /><p className="text-xs font-semibold uppercase tracking-[0.13em] text-gold-ink">{category} · {readingTime}</p></div>
                     <span className="font-mono text-xs text-muted/70">
                       {String(index + 1).padStart(2, "0")} / {String(visible.length).padStart(2, "0")}
                     </span>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className="border border-border bg-white/60 px-2.5 py-1 text-[0.68rem] font-semibold text-navy">
-                      {articleRegionLabels[getArticleRegion(article)]}
+                      {articleRegionLabels[region]}
                     </span>
                     <span className="border border-gold/50 bg-[#f7f0d9] px-2.5 py-1 text-[0.68rem] font-semibold text-navy">
-                      {articleContentTypeLabels[getArticleContentType(article)]}
+                      {articleContentTypeLabels[contentType]}
                     </span>
                   </div>
                   <h3 className="mt-5 max-w-xl text-xl font-semibold leading-8 tracking-tight text-navy sm:text-2xl">
-                    {article.title}
+                    {title}
                   </h3>
-                  <p className="mt-3 max-w-xl text-sm leading-6 text-muted">{article.description}</p>
+                  <p className="mt-3 max-w-xl text-sm leading-6 text-muted">{description}</p>
                   <div className="mt-5 border-l-2 border-gold/70 pl-4">
                     <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-muted">이 글에서 바로 확인</p>
-                    <p className="mt-1 text-sm leading-6 text-navy">{article.quickSummary[0]}</p>
+                    <p className="mt-1 text-sm leading-6 text-navy">{summary}</p>
                   </div>
                   <div className="mt-8 flex items-center justify-between gap-4 border-t border-border pt-4">
                     <span className="text-xs font-medium text-muted">
-                      {hasRead ? "✓ 읽어본 글" : article.sources?.length ? `한국어 설명 + 공식 출처 ${article.sources.length}개` : "차근차근 읽는 한국어 안내"}
+                      {hasRead ? "✓ 읽어본 글" : display.sources ? `한국어 설명 + 공식 출처 ${display.sources}개` : result.kind === "guide" ? "무료 행동 체크리스트" : "차근차근 읽는 한국어 안내"}
                     </span>
-                    <span className="inline-flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg bg-navy px-4 text-sm font-semibold text-white">자료 읽기 <span className="transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
+                    <span className="inline-flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg bg-navy px-4 text-sm font-semibold text-white">{result.kind === "guide" ? "가이드 열기" : "자료 읽기"} <span className="transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
                   </div>
                 </Link>
               </li>
@@ -229,9 +235,12 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
         <div className="border-b border-navy/20 py-16 text-center">
           <p className="text-lg font-semibold text-navy">아직 맞는 자료를 찾지 못했어요.</p>
           <p className="mt-2 text-sm text-muted">검색어를 조금 짧게 쓰거나 다른 주제를 골라보세요.</p>
-          <button type="button" onClick={reset} className="mt-6 min-h-11 rounded-xl border-2 border-navy px-5 text-sm font-semibold text-navy transition hover:bg-navy hover:text-white">
-            전체 자료 보기
-          </button>
+          {activeFilters.length > 0 && <p className="mt-3 text-xs leading-6 text-muted">적용 중: {activeFilters.join(" · ")}</p>}
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {recovery.clearSearch && <button type="button" onClick={() => setQuery("")} className="min-h-11 rounded-xl border-2 border-navy px-5 text-sm font-semibold text-navy transition hover:bg-navy hover:text-white">검색만 지우기</button>}
+            {recovery.clearRegion && <button type="button" onClick={() => setActiveRegion("all")} className="min-h-11 rounded-xl border-2 border-navy px-5 text-sm font-semibold text-navy transition hover:bg-navy hover:text-white">지역만 전체</button>}
+            {recovery.resetAll && <button type="button" onClick={reset} className="min-h-11 rounded-xl bg-navy px-5 text-sm font-semibold text-white transition hover:bg-gold hover:text-navy">모든 필터 초기화</button>}
+          </div>
         </div>
       )}
     </section>

@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { ToolsDirectory, type DirectoryTool } from "@/components/tools/ToolsDirectory";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { phrases } from "@/data/englishPhrases";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -18,7 +19,7 @@ const availableTools: DirectoryTool[] = [
     eyebrow: "말이 막히는 순간",
     title: "호주 생활 영어 문장 카드",
     description: "은행, 렌트, 직장과 병원에서 바로 쓸 수 있는 확인 문장을 상황별로 고르고 이 기기에 저장할 수 있어요.",
-    features: ["상황별 25개 문장", "영어·한국어 복사", "기기 내 저장"],
+    features: [`상황별 ${phrases.length}개 문장`, "영어·한국어 복사", "기기 내 저장"],
     cta: "필요한 문장 찾기",
     categories: ["arrival", "work", "home"],
   },
@@ -36,7 +37,7 @@ const availableTools: DirectoryTool[] = [
     eyebrow: "호주 도착 직후",
     title: "첫 30일 정착 체크리스트",
     description: "VEVO와 전화·교통, 은행, TFN부터 첫 Payslip과 생활비까지 도착한 시점에 맞춰 하나씩 챙길 수 있어요.",
-    features: ["도착 시기별 16개 항목", "공식 기관 연결", "캘린더 리마인더"],
+    features: ["도착 시기별 18개 항목", "공식 기관 연결", "캘린더 리마인더"],
     cta: "정착 프로젝트 시작하기",
     categories: ["arrival", "work", "money", "home"],
   },
@@ -98,8 +99,8 @@ const availableTools: DirectoryTool[] = [
     href: "/resume-builder",
     eyebrow: "호주 취업",
     title: "영문 이력서 빌더",
-    description: "한국어로 적은 강점을 자연스러운 영문 초안으로 바꾸고, 원하는 디자인의 이력서를 만들 수 있어요.",
-    features: ["영문 문장 도우미", "실시간 A4 미리보기", "PDF·백업 저장"],
+    description: "영문 목표 직무와 본인이 확인한 업무를 직접 입력해 수정 가능한 영문 뼈대를 만들고, A4 미리보기와 PDF를 준비해요.",
+    features: ["영문 사실 직접 입력", "예시 자동 번역·AI 번역 아님", "실시간 A4 미리보기·PDF"],
     cta: "이력서 만들기",
     categories: ["work"],
   },
