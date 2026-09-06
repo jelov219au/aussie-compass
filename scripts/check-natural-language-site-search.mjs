@@ -64,12 +64,11 @@ for (const value of ["/car-purchase-pro", "가격 미정·결제 미오픈", "�
 for (const value of ["급여", "Bond", "중고차", "비자 신체검사", "전체 목록 보기", "data-search-product-state", "data-search-free-path", "지금 상황에 맞는 추천 순서"]) {
   assert.ok(searchComponent.includes(value), `search UI is missing ${value}`);
 }
-assert.match(homeSearch, /catch \{\s*setTransferError\(true\);\s*return;/, "blocked storage must stop navigation and analytics");
-assert.match(homeSearch, /입력한 내용은 그대로 두었습니다/);
-assert.match(homeSearch, /href="\/search"/);
-assert.doesNotMatch(homeSearch, /\/search\?q=|URLSearchParams|location\.|clipboard|console\.|sendBeacon|fetch\(/, "home fallback must not copy or transmit the raw query");
-assert.match(searchComponent, /catch \{\s*\/\/ The search page remains usable/);
-assert.match(searchComponent, /onChange=\{\(event\) => setQuery\(event\.target\.value\)\}/);
+assert.match(homeSearch, /setPendingSearch\(transferredQuery\)/, "home search must transfer the query in process memory only");
+assert.doesNotMatch(homeSearch, /sessionStorage|localStorage|\/search\?q=|URLSearchParams|location\.|clipboard|console\.|sendBeacon|fetch\(/, "home search must not store or transmit the raw query");
+assert.match(searchComponent, /window\.history\.replaceState\(window\.history\.state, "", "\/search"\)/);
+assert.match(searchComponent, /takePendingSearch\(\)/);
+assert.match(searchComponent, /onChange=\{\(event\) => replaceQuery\(event\.target\.value\)\}/);
 
 for (const href of ["/underpayment-guide", "/pay-evidence-pro", "/moving-checklist", "/property-inspection-checklist", "/used-car-comparison", "/car-purchase-pro", "/leaving-australia-guide", "/leaving-australia-pro", "/visa-preparation-guide"]) {
   assert.ok(existsSync(resolve(`src/app${href}/page.tsx`)), `missing real route ${href}`);

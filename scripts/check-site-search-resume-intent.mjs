@@ -53,7 +53,7 @@ for (const query of ["지원 마감일", "지원 상태", "지원 현황", "지�
   assert.equal(rankSiteSearchItems(fixtures, query)[0]?.href, "/resume-pro", `${query} must find the implemented Resume Pro application tracking result`);
 }
 assert.equal(getSiteSearchIntent("급여 이력"), "default", "partial words must not enter the resume allowlist");
-assert.equal(rankSiteSearchItems(fixtures, "급여 이력").length, 0, "unrelated compound searches must keep the ordinary filter behavior");
+assert.ok(rankSiteSearchItems(fixtures, "급여 이력").length > 0, "all-term misses must offer a clearly labelled any-term fallback");
 for (const query of ["렌트 신청", "rental application"]) {
   assert.deepEqual(
     rankSiteSearchItems(fixtures, query).slice(0, 2).map((item) => item.href),
@@ -99,19 +99,16 @@ for (const outcome of [
 assert.match(searchComponent, /data-search-resume-outcome/);
 assert.ok(searchPage.includes('article.slug === "australia-cover-letter-job-ad-checklist"'), "the live search index must add dedicated cover-letter terms");
 assert.ok(searchPage.includes('article.slug === "australia-resume-template-submission-checklist"'), "the live search index must add dedicated resume-template terms");
-assert.doesNotMatch(searchComponent, /\btrack\(|analytics|sendBeacon|fetch\(|XMLHttpRequest|window\.location/, "search terms must stay inside the page and must not be sent to analytics, URLs or external requests");
+assert.doesNotMatch(searchComponent, /\btrack\(|analytics|sendBeacon|fetch\(|XMLHttpRequest/, "search terms must stay inside the page and must not be sent to analytics or external requests");
 
-assert.match(searchTransfer, /SEARCH_TRANSFER_STORAGE_KEY\s*=\s*"hojucompass:search-transfer:v1"/);
 assert.match(searchTransfer, /SEARCH_TRANSFER_MAX_LENGTH\s*=\s*120/);
 assert.equal(SEARCH_TRANSFER_MAX_LENGTH, 120);
 assert.equal(sanitizeTransferredSearch(`  ${"x".repeat(140)}  `).length, 120, "transferred search terms must be trimmed and capped at 120 characters");
-assert.match(homeSearch, /sessionStorage\.setItem\(SEARCH_TRANSFER_STORAGE_KEY, transferredQuery\)/);
+assert.match(homeSearch, /setPendingSearch\(transferredQuery\)/);
 assert.match(homeSearch, /router\.push\("\/search"\)/);
-assert.match(homeSearch, /track\("Home Search", \{ topic, entry \}\)/, "analytics may contain only allowlisted topic and entry fields");
-assert.equal(homeSearch.match(/\btrack\(/g)?.length, 1, "home search must expose only one fixed analytics call");
-assert.match(homeSearch, /openSearch\(query, classifySearch\(query\), "free_text"\)/);
-assert.match(homeSearch, /openSearch\(label, topic, "popular"\)/);
-assert.ok(homeSearch.indexOf('label: "워홀 준비"') < homeSearch.indexOf('label: "세후 급여"'), "newcomer discovery topics must precede the downstream pay query");
+assert.match(homeSearch, /track\("Home Search", \{ topic, entry: "free_text" \}\)/, "search analytics may contain only the allowlisted topic and fixed entry fields");
+assert.equal(homeSearch.match(/\btrack\(/g)?.length, 2, "home search may expose only its fixed search and situation analytics calls");
+assert.ok(homeSearch.indexOf('label: "일자리 종료"') < homeSearch.indexOf('label: "급여"'), "the broader job-ending route must precede the downstream pay shortcut");
 const essentialTools = homeTools.slice(homeTools.indexOf("const essentials = ["), homeTools.indexOf("];", homeTools.indexOf("const essentials = [")));
 for (const href of ["/arrival-checklist", "/visa-preparation-guide", "/property-inspection-checklist", "/resume-builder"]) {
   assert.ok(essentialTools.includes(`href: "${href}"`), `the newcomer-first home tools are missing ${href}`);
@@ -119,11 +116,10 @@ for (const href of ["/arrival-checklist", "/visa-preparation-guide", "/property-
 assert.doesNotMatch(essentialTools, /\/salary-calculator/, "the salary calculator must remain a downstream discovery tool instead of a primary home card");
 assert.ok(homePage.indexOf("<ToolsSection />") < homePage.indexOf("<PersonalRouteFinder />"), "the first-step tools must lead into the personalized route");
 assert.ok(homePage.indexOf("<PersonalRouteFinder />") < homePage.indexOf("<ReturnVisitSection />"), "the broad newcomer route must precede resumable local work");
-assert.ok(homeSearch.indexOf('router.push("/search")') > homeSearch.indexOf("sessionStorage.setItem"), "queryless navigation must still occur after the storage attempt");
+assert.ok(homeSearch.indexOf('router.push("/search")') > homeSearch.indexOf("setPendingSearch"), "queryless navigation must occur after the memory transfer");
 assert.doesNotMatch(homeSearch, /action=["']\/search|method=["']get|name=["']q|\/search\?q=|href=\{?`?\/search\?|URLSearchParams|window\.location/, "home search must not put raw terms in a form GET, link, URL or navigation request");
-assert.match(searchComponent, /sessionStorage\.getItem\(SEARCH_TRANSFER_STORAGE_KEY\)/);
-assert.match(searchComponent, /sessionStorage\.removeItem\(SEARCH_TRANSFER_STORAGE_KEY\)/);
-assert.ok(searchComponent.indexOf("sessionStorage.removeItem(SEARCH_TRANSFER_STORAGE_KEY)") < searchComponent.indexOf("setQuery(sanitizeTransferredSearch(transferredQuery))"), "the transferred term must be removed before it is applied to search state");
+assert.match(searchComponent, /const transferredQuery = takePendingSearch\(\)/);
+assert.doesNotMatch(`${homeSearch}\n${searchComponent}`, /sessionStorage|localStorage/, "raw search terms must never enter browser storage");
 assert.doesNotMatch(searchPage, /searchParams|initialQuery/, "the search server component must not read or serialize raw query parameters");
 assert.doesNotMatch(jsonLd, /search\?q=|search_term_string|SearchAction/, "structured data must not advertise a raw-query URL that the private client boundary does not support");
 for (const discoverySignal of ["호주 워킹홀리데이 출국 준비", "첫 30일 정착", "집 구하기", "영문 이력서", "한국어 체크리스트와 무료 도구"]) {
@@ -133,7 +129,7 @@ assert.ok(site.includes('["호주 컴퍼스", "호주컴퍼스"]'), "the brand n
 assert.ok(layout.includes("호주 워홀 준비·정착·집·취업 가이드 | Hoju Compass") && layout.includes("description = siteDescription"), "the homepage metadata must lead with the newcomer journey and reuse the shared summary");
 assert.equal((jsonLd.match(/alternateName: siteAlternateNames/g) ?? []).length, 2, "the WebSite and Organization entities must share the same Korean brand aliases");
 assert.equal((jsonLd.match(/description: siteDescription/g) ?? []).length, 1, "the WebSite entity must reuse the customer-facing discovery summary");
-assert.ok(sitemap.includes('"": "2026-08-29"'), "the significantly updated homepage needs an evidence-based sitemap lastmod");
+assert.ok(sitemap.includes('"": "2026-09-05"'), "the significantly updated homepage needs an evidence-based sitemap lastmod");
 for (const verificationName of ["BING_SITE_VERIFICATION", "NAVER_SITE_VERIFICATION"]) {
   assert.ok(growthRoadmap.includes(verificationName), `the current search-discovery HOLD is missing: ${verificationName}`);
 }

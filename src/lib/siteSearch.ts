@@ -11,6 +11,7 @@ export type SearchItem = {
 
 export type SiteSearchIntent = "default" | "resume" | "resume-pro-direct";
 export type SiteSearchScenario = "pay-underpayment" | "bond-exit" | "used-car-follow-up" | "leaving-australia" | "visa-medical";
+export type SearchSafetyState = "not_safety" | "emergency_000" | "crisis_help" | "urgent_official_help" | "uncertain_safety";
 
 const resumeIntentAliases = new Set([
   "이력서",
@@ -71,6 +72,34 @@ export const normalizeSiteSearchText = (value: string) => value
   .replace(/\s+/g, "")
   .replace(/[·/–—-]/g, "");
 
+const emergencyAliases = ["불이났", "불났", "화재", "houseonfire", "needemergencyhelpnow", "emergencyhelpnow", "call000", "앰뷸런스", "ambulance"];
+const crisisAliases = ["죽고싶", "자살", "극단적선택", "killmyself", "suicide", "suicidal", "harmmyself", "dontwanttolive"];
+const urgentAliases = ["가정폭력", "폭행당", "domesticviolence", "sexualassault", "폭력피해"];
+const uncertainSafetyAliases = ["emergncyhelp", "위험해서도와", "immediatehelp"];
+
+export function getSearchSafetyState(query: string): SearchSafetyState {
+  const normalized = normalizeSiteSearchText(query.trim());
+  if (crisisAliases.some((alias) => normalized.includes(alias))) return "crisis_help";
+  if (emergencyAliases.some((alias) => normalized.includes(alias))) return "emergency_000";
+  if (urgentAliases.some((alias) => normalized.includes(alias))) return "urgent_official_help";
+  if (uncertainSafetyAliases.some((alias) => normalized.includes(alias))) return "uncertain_safety";
+  return "not_safety";
+}
+
+const typoCorrections = new Map([
+  ["긊여", "급여"],
+  ["이력써", "이력서"],
+  ["랜트", "렌트"],
+  ["visaa", "visa"],
+]);
+
+export function suggestSiteSearchCorrection(query: string) {
+  for (const [typo, correction] of typoCorrections) {
+    if (query.toLocaleLowerCase("ko-KR").includes(typo)) return query.replace(new RegExp(typo, "iu"), correction);
+  }
+  return null;
+}
+
 export function meaningfulSiteSearchTokens(value: string) {
   return value
     .toLocaleLowerCase("ko-KR")
@@ -126,7 +155,7 @@ export function rankSiteSearchItems(items: SearchItem[], query: string) {
   const tokenMatches = (item: SearchItem) => tokens.filter((token) => searchable(item).includes(normalizeSiteSearchText(token))).length;
   const minimumTokenMatches = tokens.length > 1 ? Math.min(2, tokens.length) : 1;
 
-  return indexed
+  const ranked = indexed
     .filter(({ item }) => situationalPriority.has(item.href) || directMatch(item) || tokenMatches(item) >= minimumTokenMatches || (intent === "resume" && discoveryPriority.has(item.href)))
     .sort((left, right) => {
       const priority = (entry: typeof left) => {
@@ -145,4 +174,30 @@ export function rankSiteSearchItems(items: SearchItem[], query: string) {
         || left.item.href.localeCompare(right.item.href, "ko-KR");
     })
     .map(({ item }) => item);
+
+  if (ranked.length || tokens.length < 2 || intent !== "default" || situationalPriority.size) return ranked;
+  return indexed
+    .filter(({ item }) => tokenMatches(item) >= 1)
+    .sort((left, right) => tokenMatches(right.item) - tokenMatches(left.item)
+      || Number(paid(left.item)) - Number(paid(right.item))
+      || left.index - right.index)
+    .map(({ item }) => item);
+}
+
+export type SiteSearchMatchRule = "exact_alias" | "scenario" | "all_terms" | "any_term_fallback" | "typo_suggestion" | "none";
+
+export function getSiteSearchMatchRule(items: SearchItem[], query: string): SiteSearchMatchRule {
+  const normalizedQuery = normalizeSiteSearchText(query.trim());
+  if (!normalizedQuery) return "none";
+  if (suggestSiteSearchCorrection(query)) return "typo_suggestion";
+  if (getSiteSearchIntent(query) !== "default") return "exact_alias";
+  if (getSiteSearchScenario(query)) return "scenario";
+  const tokens = meaningfulSiteSearchTokens(query);
+  if (!tokens.length) return "none";
+  const searchable = (item: SearchItem) => normalizeSiteSearchText([item.title, item.description, ...item.keywords].join(" "));
+  const tokenMatches = (item: SearchItem) => tokens.filter((token) => searchable(item).includes(normalizeSiteSearchText(token))).length;
+  const minimumTokenMatches = tokens.length > 1 ? Math.min(2, tokens.length) : 1;
+  if (items.some((item) => tokenMatches(item) >= minimumTokenMatches)) return "all_terms";
+  if (tokens.length > 1 && items.some((item) => tokenMatches(item) >= 1)) return "any_term_fallback";
+  return "none";
 }

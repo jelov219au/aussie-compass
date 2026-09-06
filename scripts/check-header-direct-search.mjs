@@ -30,7 +30,8 @@ for (const href of navLabels) assert.ok(header.includes(`href: "${href}"`), `des
 
 const homeSearch = fs.readFileSync("src/components/sections/HomeSearch.tsx", "utf8");
 assert.ok(homeSearch.includes("/search"));
-assert.ok(homeSearch.includes("sessionStorage"));
+assert.ok(homeSearch.includes("setPendingSearch(transferredQuery)"));
+assert.ok(!homeSearch.includes("sessionStorage"));
 assert.ok(!header.includes("URLSearchParams"), "header search must not put query data in the URL");
 
 console.log("WEB53 direct mobile header search contract passed");
