@@ -172,13 +172,13 @@
         }
       ],
       "baseline": "network-error",
-      "destination": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/payday-super",
-      "title": "Payday Super for employers",
+      "destination": "https://www.ato.gov.au/businesses-and-organisations/super-for-employers/paying-super-on-payday/payment-deadlines-for-payday-super",
+      "title": "Payment deadlines for Payday Super",
       "action": "replaced",
       "reason": "public-guidance-upgrade",
       "method": "official-browser",
       "verificationScope": "destination-and-noted-content-only",
-      "note": "Developer source remains readable, but replaced with the public employer Payday Super hub. Official linked deadline detail distinguishes seven business days, qualifying first-contribution 20-day extension and other exceptions."
+      "note": "The public Payday Super hub redirected to a broader employer page, so the connected source now uses the exact official payment-deadlines landing for seven business days, qualifying first-contribution 20-day extensions and other exceptions."
     },
     {
       "id": 10,
