@@ -75,7 +75,7 @@ export default function PurchaseInformationPage() {
                   <dt className="font-semibold text-navy">제품 사업명</dt><dd>{seller.tradingName ?? "Hoju Compass"}</dd>
                   <dt className="font-semibold text-navy">제품 제공 사업자</dt><dd>{seller.legalName ?? "라이브 결제 전에 공개"}</dd>
                   <dt className="font-semibold text-navy">ABN</dt><dd>{seller.abn ?? "라이브 결제 전에 공개"}</dd>
-                  <dt className="font-semibold text-navy">제품 지원</dt><dd>{seller.email ? <a className="font-semibold text-navy underline decoration-gold underline-offset-4" href={`mailto:${seller.email}`}>{seller.email}</a> : "준비 중"}</dd>
+                  <dt className="font-semibold text-navy">제품 지원</dt><dd>{seller.email ? <a className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4" href={`mailto:${seller.email}`}>{seller.email}</a> : "준비 중"}</dd>
                 </dl>
                 {!sellerReady && <p className="mt-4 border-l-2 border-gold bg-surface p-4">제품 제공 사업자명과 ABN을 포함한 필수 정보가 모두 표시되기 전에는 실제 결제가 활성화되지 않습니다.</p>}
               </div>
