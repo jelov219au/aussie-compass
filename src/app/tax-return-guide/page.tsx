@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { TaxReturnChecklist } from "@/components/tools/TaxReturnChecklist";
 import { TaxTimeReminder } from "@/components/tools/TaxTimeReminder";
+import { TaxGuideNextAction } from "@/components/tools/TaxGuideNextAction";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
 
@@ -17,7 +18,7 @@ const officialLinks = [
   { href: "https://www.ato.gov.au/individuals-and-families/your-tax-return/how-to-lodge-your-tax-return", title: "신고 방법과 기한", source: "Australian Taxation Office", summary: "myTax 직접 신고, 등록 세무사 이용과 종이 신고 경로를 비교하고 각 방식의 일반적인 제출 기한을 확인하는 원문입니다. 작년 신고가 늦었거나 특수한 사정이 있으면 표시된 날짜만 따르지 말고 ATO 또는 등록 세무사에게 본인 기한을 확인하세요." },
   { href: "https://www.ato.gov.au/individuals-and-families/your-tax-return/how-to-lodge-your-tax-return/lodge-your-tax-return-online-with-mytax/pre-fill-availability", title: "myTax Pre-fill 확인", source: "Australian Taxation Office", summary: "은행·보험사·정부기관 등의 자료 준비 상태와 자동 입력의 한계를 확인합니다. 이 공개 페이지에 고용주별 자료 상태가 표시되는 것은 아니므로 Income statement와 Tax ready 여부는 본인의 ATO 서비스에서 따로 확인하세요. 자동 입력됐어도 금액의 정확성과 누락 여부는 신고자가 대조해야 합니다." },
   { href: "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/deductions-you-can-claim", title: "공제 가능 항목", source: "Australian Taxation Office", summary: "업무 관련 비용 등 공제 항목별 기본 조건과 필요한 기록으로 이동하는 공식 허브입니다. 돈을 지출했다는 사실만으로 공제되는 것은 아니며, 소득을 얻는 일과의 관련성·개인 사용분 제외·증빙 보관을 함께 확인해야 합니다." },
-  { href: "https://www.tpb.gov.au/registrations_search", title: "등록 세무사 검색", source: "Tax Practitioners Board", summary: "유료로 Tax agent 서비스를 제공하는 사람이 현재 TPB에 등록되어 있는지 이름이나 등록번호로 확인하는 공식 검색입니다. 등록 상태와 조건을 확인한 뒤 서비스 범위, 수수료와 제출 전 검토 절차도 서면으로 물어보세요." },
+  { href: "https://www.tpb.gov.au/public-register", title: "등록 세무사 검색", source: "Tax Practitioners Board", summary: "유료로 Tax agent 서비스를 제공하는 사람이 현재 TPB에 등록되어 있는지 이름이나 등록번호로 확인하는 공식 검색입니다. 등록 상태와 조건을 확인한 뒤 서비스 범위, 수수료와 제출 전 검토 절차도 서면으로 물어보세요." },
   { href: "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/your-tax-residency", title: "세법상 거주자 판단", source: "Australian Taxation Office", summary: "시민권·비자 이름만으로 Tax residency를 정하지 않고 생활·가족·자산·체류 사정을 기준으로 현재 적용되는 거주자 테스트를 확인하는 출발점입니다." },
   { href: "https://www.ato.gov.au/individuals-and-families/income-deductions-offsets-and-records/income-you-must-declare/foreign-and-worldwide-income", title: "해외·전 세계 소득", source: "Australian Taxation Office", summary: "한국 계좌 이자, 배당, 임대, 근로·사업·연금처럼 해외에서 생긴 금액을 어떤 경우 신고하는지 확인합니다. 해외에서 세금을 냈다는 이유만으로 자동 제외하지 않습니다." },
   { href: "https://www.ato.gov.au/individuals-and-families/your-tax-return/amend-your-tax-return", title: "제출 후 수정", source: "Australian Taxation Office", summary: "제출 뒤 누락이나 오류를 발견했을 때 myTax 등으로 Amendment를 요청하는 현재 절차와 적용 가능한 기간을 확인합니다." },
@@ -44,10 +45,12 @@ export default function TaxReturnGuidePage() {
           <p className="mt-4 text-base leading-7 text-muted sm:text-lg">신고를 대신하거나 환급액을 추정하지 않습니다. 매년 반복되는 준비 과정을 놓치지 않도록 공식 정보, 준비 순서와 개인 체크리스트를 한곳에 모았습니다.</p>
         </div>
 
+        <TaxGuideNextAction />
+
         <section className="my-8 grid gap-4 md:grid-cols-3" aria-label="택스 리턴 핵심 일정">
           <article className="rounded-2xl border border-gold/40 bg-gold/5 p-5"><p className="text-sm font-semibold text-gold">Income year</p><h2 className="mt-2 text-xl font-semibold text-navy">7월 1일–6월 30일</h2><p className="mt-2 text-sm leading-6 text-muted">한 회계연도의 소득과 해당 비용을 기준으로 신고합니다.</p></article>
           <article className="rounded-2xl border border-border bg-white p-5"><p className="text-sm font-semibold text-gold">준비하기 좋은 시점</p><h2 className="mt-2 text-xl font-semibold text-navy">보통 7월 말부터</h2><p className="mt-2 text-sm leading-6 text-muted">대부분의 Pre-fill 자료가 준비된 뒤 확인하면 누락 가능성을 줄일 수 있어요.</p></article>
-          <article className="rounded-2xl border border-border bg-white p-5"><p className="text-sm font-semibold text-gold">직접 신고 기한</p><h2 className="mt-2 text-xl font-semibold text-navy">일반적으로 10월 31일</h2><p className="mt-2 text-sm leading-6 text-muted">등록 세무사를 이용한다면 보통 이 날짜 전에 의뢰해야 하며 개인 상황에 따라 달라질 수 있어요.</p></article>
+          <article className="rounded-2xl border border-border bg-white p-5"><p className="text-sm font-semibold text-gold">2025–26 직접 신고 일반 기한</p><h2 className="mt-2 text-xl font-semibold text-navy">2026년 11월 2일</h2><p className="mt-2 text-sm leading-6 text-muted">10월 31일이 토요일이라 다음 영업일을 적용한 일반 날짜입니다. ATO 개인 기한·이전 신고·등록 세무사 일정이 우선합니다.</p></article>
         </section>
 
         <section className="mb-8 grid gap-5 border-y border-navy/20 bg-white p-6 sm:grid-cols-[1fr_auto] sm:items-center sm:p-8" aria-labelledby="tax-year-tracker-cta"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">7월 전에 시작하기</p><h2 id="tax-year-tracker-cta" className="mt-2 text-2xl font-semibold text-navy">한꺼번에 기억하지 말고, 매달 준비 기록을 쌓으세요</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-muted">소득·지출 후보와 증빙 위치를 현재 브라우저에 기록하고 회계연도별 CSV로 백업할 수 있어요.</p></div><Link href="/tax-prep-tracker" className="inline-flex min-h-12 shrink-0 items-center justify-center bg-gold px-5 text-sm font-semibold text-navy">연중 준비 장부 열기 &rarr;</Link></section>

@@ -38,6 +38,7 @@
     "test:home-pro-ready-now": "node scripts/check-home-pro-ready-now-path.mjs",
     "test:core-accessibility": "node scripts/check-core-accessibility.mjs",
     "test:salary-pay-estimate-next-check": "node scripts/check-salary-pay-estimate-next-check.mjs",
+    "test:tax-guide-due-tpb": "node scripts/check-tax-guide-due-tpb.mjs",
     "test:mobile-pwa-usability": "node scripts/check-mobile-pwa-usability.mjs",
     "test:pwa-install-lifecycle": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-pwa-install-lifecycle.mjs",
     "test:pay-evidence-net": "node scripts/check-pay-evidence-net-comparison.mjs",
