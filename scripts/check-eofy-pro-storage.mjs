@@ -6,6 +6,7 @@ import * as archives from "../src/lib/eofyProArchive.ts";
 import * as handoff from "../src/lib/eofyProHandoff.ts";
 import * as storageHelpers from "../src/lib/eofyProDeviceStorage.ts";
 import * as downloads from "../src/lib/eofyProDownload.ts";
+import * as progressHelpers from "../src/lib/eofyProProgress.ts";
 
 const { readEofyDraft, writeEofyDraft, eofyProStorageKey: key } = storageHelpers;
 const require = createRequire(import.meta.url);
@@ -94,6 +95,7 @@ function mount(original = raw, initialFault = "none") {
       if (name === "@/lib/eofyProHandoff") return handoff;
       if (name === "@/lib/eofyProDeviceStorage") return storageHelpers;
       if (name === "@/lib/eofyProDownload") return downloads;
+      if (name === "@/lib/eofyProProgress") return progressHelpers;
       throw new Error(`Unexpected component dependency ${name}`);
     },
     window: browserWindow, Blob, URL: {
@@ -128,6 +130,13 @@ function mount(original = raw, initialFault = "none") {
     yearOptions: () => find(node => node.type === "select").props.children.map(option => option.props.value ?? text(option)),
     click(label) { button(label).props.onClick(); settle(); },
     clickAria(label) { const node = find(node => node.type === "button" && node.props['aria-label'] === label); assert(node); node.props.onClick(); settle(); },
+    setCheckbox(label, checked) {
+      const wrapper = find(node => node.type === "label" && text(node).includes(label));
+      assert(wrapper, `Checkbox exists: ${label}`);
+      const input = find(node => node.type === "input" && node.props.type === "checkbox", wrapper);
+      assert(input, `Checkbox input exists: ${label}`);
+      input.props.onChange({ target: { checked } }); settle();
+    },
     question: () => find(node => node.type === "input" && node.props.onKeyDown).props.value,
     inputQuestion(value) { find(node => node.type === "input" && node.props.onKeyDown).props.onChange({ target: { value } }); settle(); },
     expenseField(index, label) {
@@ -419,7 +428,7 @@ for (const extraByte of [0, 1]) {
   }
 }
 
-const impossibleDateDraft = { ...expenseDraft(1), incomeStatuses: { employment: "ready", interest: "ready", government: "ready", gig: "ready", complex: "ready" }, expenses: [{ ...expense, date: "2026-02-30" }] };
+const impossibleDateDraft = { ...expenseDraft(1), incomeStatuses: { employment: "ready", interest: "ready", government: "ready", gig: "ready", complex: "ready" }, expenses: [{ ...expense, date: "2026-02-30" }], emptySections: { documents: true } };
 const impossibleDateRaw = JSON.stringify(impossibleDateDraft);
 const legacyDate = mount(impossibleDateRaw);
 legacyDate.strictReplay(); legacyDate.tick();
@@ -484,8 +493,28 @@ historicYear.click("현재 연도 JSON 백업");
 assert.equal(JSON.parse(await historicYear.state.downloads.at(-1).blob.text()).draft.taxYear, "2018–19");
 
 const readyIncome = { employment: "ready", interest: "ready", government: "ready", gig: "ready", complex: "ready" };
+const zeroRecordDraft = { ...draft, incomeStatuses: readyIncome, expenses: [], documents: [] };
+const zeroRecordApp = mount(JSON.stringify(zeroRecordDraft));
+const zeroRecordSummary = () => zeroRecordApp.text(zeroRecordApp.find(node => node.props?.['aria-labelledby'] === "eofy-summary-heading"));
+assert.doesNotMatch(zeroRecordSummary(), /100%/, "Untouched zero-record expense and document sections cannot appear complete");
+assert.match(zeroRecordSummary(), /확인 필요 항목 2개/);
+zeroRecordApp.setCheckbox("기록할 지출 후보가 없음을 확인했습니다", true);
+assert.doesNotMatch(zeroRecordSummary(), /100%/, "Confirming only the empty expense section leaves documents pending");
+assert.match(zeroRecordSummary(), /확인 필요 항목 1개/);
+zeroRecordApp.setCheckbox("별도로 기록할 문서가 없거나 해당하지 않음을 확인했습니다", true);
+assert.match(zeroRecordSummary(), /100%/, "Both explicit zero-record confirmations complete an otherwise ready draft");
+zeroRecordApp.tick();
+assert.deepEqual(JSON.parse(zeroRecordApp.values.get(key)).emptySections, { expenses: true, documents: true }, "Zero-record decisions persist with the local draft");
+zeroRecordApp.click("현재 연도 JSON 백업");
+const zeroRecordBackup = JSON.parse(await zeroRecordApp.state.downloads.at(-1).blob.text());
+assert.deepEqual(archives.parseEofyArchive(zeroRecordBackup).draft.emptySections, { expenses: true, documents: true }, "Zero-record decisions survive export and restore parsing");
+
+const reviewedZeroRecordApp = mount(JSON.stringify(zeroRecordDraft));
+reviewedZeroRecordApp.click("현재 기록 검토 확인");
+assert.match(reviewedZeroRecordApp.text(reviewedZeroRecordApp.find(node => node.props?.['aria-labelledby'] === "eofy-summary-heading")), /100%/, "A current handoff review can acknowledge both zero-record sections");
+
 for (const patch of [{ amount: "1.234" }, { amount: "1e2" }, { workUse: "10.123" }, { description: "x".repeat(301) }, { note: "n".repeat(1001) }, { workUse: "50", evidence: "receipt", note: "" }]) {
-  const incomplete = { ...expenseDraft(1), incomeStatuses: readyIncome, expenses: [{ ...expense, ...patch }] };
+  const incomplete = { ...expenseDraft(1), incomeStatuses: readyIncome, expenses: [{ ...expense, ...patch }], emptySections: { documents: true } };
   const app = mount(JSON.stringify(incomplete));
   const summary = app.text(app.find(node => node.props?.['aria-labelledby'] === "eofy-summary-heading"));
   assert.doesNotMatch(summary, /100%/, "An expense flagged by shared review rules cannot be shown ready");
@@ -494,9 +523,10 @@ for (const patch of [{ amount: "1.234" }, { amount: "1e2" }, { workUse: "10.123"
   assert.equal(app.values.get(key), JSON.stringify(incomplete), "Readiness checks are non-destructive");
 }
 const missingIncome = mount(JSON.stringify({ ...draft, incomeStatuses: {} }));
-assert.match(missingIncome.text(missingIncome.find(node => node.props?.['aria-labelledby'] === "eofy-summary-heading")), /확인 필요 항목 5개/, "Untouched income sources are not reported as having no pending checks");
+assert.match(missingIncome.text(missingIncome.find(node => node.props?.['aria-labelledby'] === "eofy-summary-heading")), /확인 필요 항목 7개/, "Untouched income and zero-record sections all remain visible as pending checks");
 const nearlyReady = expenseDraft(500);
 nearlyReady.incomeStatuses = readyIncome;
+nearlyReady.emptySections = { documents: true };
 nearlyReady.expenses[499].date = "2026-02-30";
 const nearlyReadyApp = mount(JSON.stringify(nearlyReady));
 assert.doesNotMatch(nearlyReadyApp.text(nearlyReadyApp.find(node => node.props?.['aria-labelledby'] === "eofy-summary-heading")), /100%/, "Rounding must not hide a remaining flagged record");
@@ -611,6 +641,12 @@ const privateDocument = { ...documentRecord, receiptFile: "synthetic-private", a
 assert.deepEqual(archives.parseEofyArchive(archives.createEofyArchive({ ...draft, documents: [privateDocument] })).draft.documents, [documentRecord]);
 assert.deepEqual(archives.parseEofyArchive(archives.createEofyArchive(draft)).draft, draft, "Legacy v1 has no new mandatory field or default mutation");
 assert.equal(archives.createEofyArchive(draft).version, 1);
+for (const emptySections of [null, [], {}, { expenses: false }, { documents: "yes" }, { other: true }]) {
+  const bytes = JSON.stringify({ ...draft, emptySections });
+  assert.equal(readEofyDraft(() => ({ getItem: () => bytes })).kind, "blocked", "Malformed zero-record confirmations fail closed without rewriting storage");
+}
+const confirmedEmptyDraft = { ...draft, emptySections: { expenses: true, documents: true } };
+assert.deepEqual(readEofyDraft(() => ({ getItem: () => JSON.stringify(confirmedEmptyDraft) })).draft, confirmedEmptyDraft);
 const maxDocuments = Array.from({ length: archives.eofyDocumentLimit }, (_, index) => ({ ...documentRecord, id: `d-${index}` }));
 assert.equal(archives.createEofyArchive({ ...draft, documents: maxDocuments }).draft.documents.length, 100);
 assert.throws(() => archives.createEofyArchive({ ...draft, documents: [...maxDocuments, { ...documentRecord, id: "overflow" }] }));

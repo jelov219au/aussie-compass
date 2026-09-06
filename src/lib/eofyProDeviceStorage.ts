@@ -38,6 +38,13 @@ function isReadableDraft(value: unknown): value is EofyDraft {
       documentIds.add(item.id);
     }
   }
+  if (value.emptySections !== undefined) {
+    if (!isRecord(value.emptySections)
+      || !Object.keys(value.emptySections).length
+      || Object.keys(value.emptySections).some(field => field !== "expenses" && field !== "documents")
+      || (value.emptySections.expenses !== undefined && value.emptySections.expenses !== true)
+      || (value.emptySections.documents !== undefined && value.emptySections.documents !== true)) return false;
+  }
   return true;
 }
 

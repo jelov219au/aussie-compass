@@ -4,6 +4,7 @@ import { runInNewContext } from "node:vm";
 
 import { createEofyArchive, parseEofyArchive } from "../src/lib/eofyProArchive.ts";
 import { assessEofyHandoff } from "../src/lib/eofyProHandoff.ts";
+import { calculateEofyProgress, formatEofyTaxYear, getMostRecentCompletedEofyStartYear } from "../src/lib/eofyProProgress.ts";
 import { writeEofyDraft } from "../src/lib/eofyProDeviceStorage.ts";
 
 const component = await readFile(new URL("../src/components/tools/EofyProWorkspace.tsx", import.meta.url), "utf8");
@@ -28,6 +29,29 @@ const draft = {
   questions: ["고정 요율과 실제 비용 방식 중 어떤 기록을 확인해야 하나요?"],
 };
 
+assert.equal(formatEofyTaxYear(getMostRecentCompletedEofyStartYear(new Date("2026-06-30T13:59:59.000Z"))), "2024–25", "Sydney June 30 stays on the most recently ended 2024–25 year");
+assert.equal(formatEofyTaxYear(getMostRecentCompletedEofyStartYear(new Date("2026-06-30T14:00:00.000Z"))), "2025–26", "Sydney July 1 advances to the newly completed 2025–26 year");
+assert.equal(formatEofyTaxYear(getMostRecentCompletedEofyStartYear(new Date("2026-09-06T00:00:00.000Z"))), "2025–26", "A September 2026 workspace starts on the most recent completed year");
+
+const completeIncomeProgress = {
+  incomeReady: 5,
+  incomeTotal: 5,
+  expenseCount: 0,
+  expenseReady: 0,
+  documentCount: 0,
+  documentReady: 0,
+  expensesEmptyConfirmed: false,
+  documentsEmptyConfirmed: false,
+  handoffReviewed: false,
+};
+assert.equal(calculateEofyProgress(completeIncomeProgress), 71, "Two untouched zero-record sections prevent 100% completion");
+assert.equal(calculateEofyProgress({ ...completeIncomeProgress, expensesEmptyConfirmed: true }), 86, "Confirming only expenses leaves documents pending");
+assert.equal(calculateEofyProgress({ ...completeIncomeProgress, expensesEmptyConfirmed: true, documentsEmptyConfirmed: true }), 100, "Explicit confirmation of both zero-record sections permits completion");
+assert.equal(calculateEofyProgress({ ...completeIncomeProgress, handoffReviewed: true }), 100, "The current handoff review can cover both zero-record sections");
+assert.equal(calculateEofyProgress({ ...completeIncomeProgress, incomeReady: 4, handoffReviewed: true }), 86, "Handoff review does not complete an unfinished income source");
+assert.equal(calculateEofyProgress({ ...completeIncomeProgress, expenseCount: 1, expenseReady: 1, documentCount: 1, documentReady: 1 }), 100, "Ready recorded items retain the existing completion path");
+assert.equal(calculateEofyProgress({ ...completeIncomeProgress, expenseCount: 1, expenseReady: 0, documentsEmptyConfirmed: true }), 86, "A flagged recorded expense prevents completion");
+
 const archive = createEofyArchive(draft, "2026-08-30T05:00:00.000Z");
 for (const date of ["2026-02-30", "2026-02-29", "1900-02-29", "2100-02-29", "2026-04-31", "2026-00-01", "2026-13-01", "2026-01-00", "2026-01-32", "0000-01-01", "2026-2-01", "2026-02-01\n", "2026-02-01T00:00:00Z"]) {
   const invalidDraft = { ...draft, expenses: [{ ...draft.expenses[0], date }] };
@@ -48,6 +72,14 @@ assert.equal(archive.format, "hoju-compass-eofy-pro-archive");
 assert.equal(archive.version, 1);
 assert.deepEqual(archive.privacy, { receiptFilesIncluded: false, credentialsIncluded: false });
 assert.deepEqual(parseEofyArchive(archive)?.draft, draft);
+const zeroRecordArchive = createEofyArchive({ ...draft, expenses: [], emptySections: { expenses: true, documents: true } });
+assert.equal(zeroRecordArchive.version, 3, "Zero-record confirmations use a version older clients reject instead of silently stripping decisions");
+assert.deepEqual(parseEofyArchive(zeroRecordArchive)?.draft.emptySections, { expenses: true, documents: true }, "Zero-record confirmations survive JSON export and restore");
+assert.equal(parseEofyArchive({ ...zeroRecordArchive, version: 1 }), null);
+assert.equal(parseEofyArchive({ ...zeroRecordArchive, version: 2 }), null);
+for (const emptySections of [{}, { expenses: false }, { documents: "yes" }, { unknown: true }]) {
+  assert.throws(() => createEofyArchive({ ...draft, expenses: [], emptySections }), /not safe/, "Only explicit supported zero-record confirmations may enter an archive");
+}
 
 const serialized = JSON.stringify(archive);
 for (const prohibited of ["receiptFile", "receiptImage", "bankAccount", "myGovPassword", "tfn"]) {
@@ -113,6 +145,11 @@ for (const contract of [
   "검토한 백업으로 교체",
   "if (!handoffReviewed)",
   "reviewedDraftSignature === draftSignature",
+  "getMostRecentCompletedEofyStartYear()",
+  "calculateEofyProgress({",
+  "이 회계연도에는 기록할 지출 후보가 없음을 확인했습니다.",
+  "이 회계연도에는 별도로 기록할 문서가 없거나 해당하지 않음을 확인했습니다.",
+  "Zero-record status:",
   "증빙 확인 필요",
   "환급받은 항목",
   "개인 사용분 계산 공백",

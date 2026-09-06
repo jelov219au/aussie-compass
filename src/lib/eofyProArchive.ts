@@ -39,11 +39,16 @@ export type EofyDraft = {
   questions: string[];
   // Optional so existing v1 local drafts/backups remain unchanged until edited.
   documents?: EofyDocumentRecord[];
+  // Optional so existing local drafts/backups remain readable without migration.
+  emptySections?: {
+    expenses?: true;
+    documents?: true;
+  };
 };
 
 export type EofyArchive = {
   format: "hoju-compass-eofy-pro-archive";
-  version: 1 | 2;
+  version: 1 | 2 | 3;
   exportedAt: string;
   privacy: {
     receiptFilesIncluded: false;
@@ -111,6 +116,17 @@ function parseDocuments(value: unknown): EofyDocumentRecord[] | null {
   return records;
 }
 
+function parseEmptySections(value: unknown): EofyDraft["emptySections"] | null {
+  if (value === undefined) return undefined;
+  if (!isRecord(value) || !Object.keys(value).length || Object.keys(value).some((key) => key !== "expenses" && key !== "documents")) return null;
+  if (value.expenses !== undefined && value.expenses !== true) return null;
+  if (value.documents !== undefined && value.documents !== true) return null;
+  return {
+    ...(value.expenses === true ? { expenses: true as const } : {}),
+    ...(value.documents === true ? { documents: true as const } : {}),
+  };
+}
+
 function parseDraft(value: unknown): EofyDraft | null {
   if (!isRecord(value) || !validTaxYear(value.taxYear) || !isRecord(value.incomeStatuses)) return null;
   if (!Array.isArray(value.expenses) || value.expenses.length > eofyExpenseLimit || !Array.isArray(value.questions) || value.questions.length > eofyQuestionLimit) return null;
@@ -130,6 +146,8 @@ function parseDraft(value: unknown): EofyDraft | null {
   if (questions.some((question) => question === null)) return null;
   const documents = value.documents === undefined ? undefined : parseDocuments(value.documents);
   if (documents === null) return null;
+  const emptySections = parseEmptySections(value.emptySections);
+  if (emptySections === null) return null;
 
   return {
     taxYear: value.taxYear,
@@ -137,6 +155,7 @@ function parseDraft(value: unknown): EofyDraft | null {
     expenses: expenses as EofyExpenseRecord[],
     questions: questions as string[],
     ...(documents === undefined ? {} : { documents }),
+    ...(emptySections === undefined ? {} : { emptySections }),
   };
 }
 
@@ -145,7 +164,7 @@ export function createEofyArchive(draft: EofyDraft, exportedAt = new Date().toIS
   if (!normalized) throw new Error("EOFY draft is not safe to archive.");
   return {
     format: "hoju-compass-eofy-pro-archive",
-    version: normalized.documents === undefined ? 1 : 2,
+    version: normalized.emptySections !== undefined ? 3 : normalized.documents === undefined ? 1 : 2,
     exportedAt,
     privacy: { receiptFilesIncluded: false, credentialsIncluded: false },
     draft: normalized,
@@ -155,7 +174,7 @@ export function createEofyArchive(draft: EofyDraft, exportedAt = new Date().toIS
 export function parseEofyArchive(value: unknown): EofyArchive | null {
   if (!isRecord(value)
     || value.format !== "hoju-compass-eofy-pro-archive"
-    || (value.version !== 1 && value.version !== 2)
+    || (value.version !== 1 && value.version !== 2 && value.version !== 3)
     || typeof value.exportedAt !== "string"
     || !Number.isFinite(Date.parse(value.exportedAt))
     || !isRecord(value.privacy)
@@ -163,7 +182,9 @@ export function parseEofyArchive(value: unknown): EofyArchive | null {
     || value.privacy.credentialsIncluded !== false) return null;
   const draft = parseDraft(value.draft);
   if (!draft) return null;
-  if ((value.version === 2) !== (draft.documents !== undefined)) return null;
+  if (value.version === 1 && (draft.documents !== undefined || draft.emptySections !== undefined)) return null;
+  if (value.version === 2 && (draft.documents === undefined || draft.emptySections !== undefined)) return null;
+  if (value.version === 3 && draft.emptySections === undefined) return null;
   return {
     format: "hoju-compass-eofy-pro-archive",
     version: value.version,
