@@ -102,7 +102,7 @@ function ArticleReadingNavState({ sections, article }: { sections: ReadingSectio
       </div>
       <nav className="mt-8 border-y border-navy/20 py-5" aria-label="이 글의 목차">
         <div className="flex items-center justify-between gap-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">이 글에서 다루는 내용</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-ink">이 글에서 다루는 내용</p>
           <div className="flex items-center gap-3">
             {completed && <span className="text-xs font-semibold text-navy">✓ 아래까지 본 기록 저장됨</span>}
             <p className="font-mono text-xs text-muted" role="progressbar" aria-label="본문 스크롤 위치" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
@@ -118,11 +118,11 @@ function ArticleReadingNavState({ sections, article }: { sections: ReadingSectio
               <a
                 href={`#${section.id}`}
                 aria-current={activeId === section.id ? "location" : undefined}
-                className={`group flex min-h-10 items-start gap-3 py-2 text-sm leading-6 transition ${
+                className={`group flex min-h-11 items-start gap-3 py-2 text-sm leading-6 transition ${
                   activeId === section.id ? "font-semibold text-navy" : "text-muted hover:text-navy"
                 }`}
               >
-                <span className={`font-mono text-xs ${activeId === section.id ? "text-gold" : "text-muted/60"}`}>
+                <span className={`font-mono text-xs ${activeId === section.id ? "text-gold-ink" : "text-muted"}`}>
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <span>{section.label}</span>

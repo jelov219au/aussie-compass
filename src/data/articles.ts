@@ -1,5 +1,6 @@
 import { carInspectionFollowupArticle } from "./carInspectionFollowupArticle";
 import { rentalInspectionApplicationArticle } from "./rentalInspectionApplicationArticle";
+import type { EditorialTrustInput } from "@/lib/editorialTrust";
 
 export type Article = {
   slug: string;
@@ -10,6 +11,7 @@ export type Article = {
   category: string;
   region?: ArticleRegionId;
   contentType?: ArticleContentTypeId;
+  editorialTrust?: EditorialTrustInput;
   readingTime: string;
   publishedAt: string;
   updatedAt?: string;
@@ -30,8 +32,8 @@ export const articleTopicCategories: Record<ArticleTopicId, string[]> = {
   money: ["저축과 생활비", "생활비", "공과금", "소비자 권리"],
 };
 
-export type ArticleRegionId = "australia" | "nsw" | "vic" | "qld" | "wa" | "sa" | "tas";
-export type ArticleContentTypeId = "official" | "experience" | "community";
+export type ArticleRegionId = "australia" | "nsw" | "vic" | "qld" | "wa" | "sa" | "tas" | "act" | "nt" | "local" | "individual" | "unknown";
+export type ArticleContentTypeId = "official" | "experience" | "community" | "unknown";
 
 export const articleRegionLabels: Record<ArticleRegionId, string> = {
   australia: "호주 공통",
@@ -41,20 +43,26 @@ export const articleRegionLabels: Record<ArticleRegionId, string> = {
   wa: "WA · 퍼스",
   sa: "SA · 애들레이드",
   tas: "TAS · 호바트",
+  act: "ACT · 캔버라",
+  nt: "NT · 다윈",
+  local: "지역 확인 필요",
+  individual: "개인 사례",
+  unknown: "적용 지역 미확인",
 };
 
 export const articleContentTypeLabels: Record<ArticleContentTypeId, string> = {
   official: "공식 자료로 확인한 글",
   experience: "생활에서 놓치기 쉬운 부분",
   community: "자주 나오는 생활 질문",
+  unknown: "자료 성격 미확인",
 };
 
 export function getArticleRegion(article: Article): ArticleRegionId {
-  return article.region ?? "australia";
+  return article.region ?? "unknown";
 }
 
 export function getArticleContentType(article: Article): ArticleContentTypeId {
-  return article.contentType ?? "official";
+  return article.contentType ?? "unknown";
 }
 
 export const articles: Article[] = [

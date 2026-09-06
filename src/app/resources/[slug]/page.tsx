@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PageShareButton } from "@/components/pwa/PageShareButton";
 import { ArticleNextStep } from "@/components/resources/ArticleNextStep";
+import { EditorialTrustEvidence } from "@/components/editorial/EditorialTrustEvidence";
 import { ArticleReadingNav } from "@/components/resources/ArticleReadingNav";
 import { FinancialHardshipRoutes } from "@/components/resources/FinancialHardshipRoutes";
 import { EnergySupportJurisdictionPicker } from "@/components/tools/EnergySupportJurisdictionPicker";
@@ -29,6 +30,7 @@ import {
   getRelatedArticles,
 } from "@/data/articles";
 import { createPageMetadata } from "@/lib/site";
+import { deriveEditorialTrust } from "@/lib/editorialTrust";
 
 export function generateStaticParams() {
   return articles.map((article) => ({ slug: article.slug }));
@@ -45,7 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         path: `/resources/${article.slug}`,
         kind: "article",
         publishedTime: article.publishedAt,
-        modifiedTime: article.updatedAt ?? article.publishedAt,
+        modifiedTime: article.updatedAt,
       })
     : {};
 }
@@ -92,7 +94,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   {articleContentTypeLabels[getArticleContentType(article)]}
                 </span>
               </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-ink">
                 {article.category} · 읽는 시간 {article.readingTime} · <time dateTime={article.updatedAt ?? article.publishedAt}>{article.updatedAt ? "업데이트" : "발행"} {(article.updatedAt ?? article.publishedAt).replaceAll("-", ".")}</time>
               </p>
               <h1 className="mt-4 max-w-4xl text-balance text-3xl font-semibold leading-tight tracking-tight text-navy sm:text-5xl">{article.title}</h1>
@@ -124,6 +126,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 <PageShareButton />
               </div>
             </header>
+
+            <EditorialTrustEvidence
+              outcome={deriveEditorialTrust(article.editorialTrust ?? { contentScope: "article" })}
+              primaryHref={article.sources?.[0]?.href}
+              compact
+            />
 
             <section className="mt-8 rounded-[2rem] bg-navy p-6 text-white sm:grid sm:grid-cols-[11rem_1fr] sm:gap-8 sm:p-8" aria-labelledby="quick-summary-heading">
               <div>
@@ -185,7 +193,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
             {article.sources && (
               <section className="mt-14 rounded-2xl border-2 border-navy/10 bg-white px-5 py-7 shadow-[0_8px_24px_rgba(26,39,68,0.04)] sm:px-8 sm:py-9" aria-labelledby="article-sources">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">공식 자료 기준 · 마지막 확인 {(article.updatedAt ?? article.publishedAt).replaceAll("-", ".")}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">출처 확인일 미기록 · 발행·업데이트일과 별도</p>
                 <h2 id="article-sources" className="mt-2 text-2xl font-semibold text-navy">원문을 열기 전에 알아둘 내용</h2>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-muted">각 공식 자료에서 무엇을 확인할 수 있는지 먼저 한국어로 풀어봤어요. 제도가 바뀌었거나 내 조건에 따라 달라질 수 있는 내용은 마지막으로 원문에서 확인해 주세요.</p>
                 <ul className="mt-7 divide-y divide-border border-y border-border">
@@ -213,7 +221,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <section className="mx-auto mt-16 max-w-5xl" aria-labelledby="related-articles-heading">
               <div className="flex items-end justify-between gap-6 border-b border-border pb-5">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">함께 보면 좋은 글</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">함께 보면 좋은 글</p>
                   <h2 id="related-articles-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">이 내용도 도움이 될 거예요</h2>
                 </div>
                 <Link href="/resources" className={actionClass("tertiary", "hidden sm:inline-flex")}>
@@ -225,7 +233,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                   <li key={related.slug}>
                     <Link href={`/resources/${related.slug}`} className="group grid h-full min-h-52 grid-rows-[auto_auto_1fr] rounded-2xl border-2 border-navy/10 bg-white p-6 transition hover:border-gold sm:p-8">
                       <div className="flex items-center justify-between gap-4">
-                        <p className="text-xs font-semibold text-gold">{related.category} · {related.readingTime}</p>
+                        <p className="text-xs font-semibold text-gold-ink">{related.category} · {related.readingTime}</p>
                         <span className="font-mono text-xs text-muted">0{index + 1}</span>
                       </div>
                       <h3 className="mt-4 text-xl font-semibold leading-7 text-navy">{related.title}</h3>
