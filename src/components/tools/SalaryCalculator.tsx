@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { buildPayEstimateNextCheck, type PayEstimateBlocker, type PayEstimateBasis } from "@/lib/payEstimateNextCheck";
 import { annualEstimateNotice, parseSavedSalary, salaryInputErrors, superGuidance, type SalaryCalculation, type TaxYear } from "@/lib/salaryCalculationState";
 
 // 2026-27 SG rate. Last reviewed: 2026-08-21.
@@ -126,10 +127,77 @@ function ResultCard({ label, value, emphasis = false }: ResultCardProps) {
   );
 }
 
+const NEXT_CHECK_OPTIONS: Array<{ value: PayEstimateBlocker; label: string }> = [
+  { value: "missingPayslip", label: "Payslip을 아직 받지 못했어요" },
+  { value: "missingBank", label: "은행 입금 내역이 없어요" },
+  { value: "foreignTaxProfile", label: "세금 거주 상태가 확실하지 않아요" },
+  { value: "payBasis", label: "초과근무·수당·로딩 기준을 모르겠어요" },
+  { value: "grossMismatch", label: "기준 확인 후에도 Gross가 달라요" },
+  { value: "netVariance", label: "Gross는 맞지만 Net 또는 공제가 달라요" },
+  { value: "super", label: "Super 대상 소득·입금 여부를 확인해야 해요" },
+  { value: "matched", label: "Gross와 실제 입금액을 모두 확인했어요" },
+];
+
+const NEXT_ACTION_LABELS: Record<string, string> = {
+  get_payslip: "Fair Work에서 Payslip 확인하기",
+  get_bank_transaction: "Payslip 요건을 확인하고 은행 거래 찾기",
+  verify_withholding_in_ato: "ATO 원천징수 기준 확인하기",
+  verify_pay_basis_in_pact: "PACT에서 급여 기준 확인하기",
+  open_underpayment_next_action: "미지급 임금 다음 조치 열기",
+  verify_super_qe_and_receipt: "ATO에서 Super 기준 확인하기",
+  verify_payslip_items: "Fair Work Payslip 항목 대조하기",
+};
+
+const NEXT_CHECK_FIELDS: Array<keyof ReturnType<typeof buildPayEstimateNextCheck>> = [
+  "calculation_basis",
+  "included_excluded_components",
+  "comparison_pair",
+  "official_route",
+  "variance_status",
+  "next_action",
+];
+
+function PayEstimateNextCheckCard({ basis, casual, includeHelp, includeMedicare, taxProfile }: { basis: PayEstimateBasis; casual: boolean; includeHelp: boolean; includeMedicare: boolean; taxProfile: TaxProfile }) {
+  const [blocker, setBlocker] = useState<PayEstimateBlocker>("missingPayslip");
+  const effectiveTaxProfile = blocker === "foreignTaxProfile" ? "foreignUnknown" : taxProfile;
+  const result = buildPayEstimateNextCheck({ basis, blocker, casual, includeHelp, includeMedicare, taxProfile: effectiveTaxProfile });
+  const external = result.official_route.startsWith("http");
+
+  return (
+    <section className="salary-print-hide mt-5 rounded-xl border-2 border-gold bg-white p-5 text-navy sm:p-6" aria-labelledby="pay-estimate-next-check-heading" data-pay-estimate-next-check>
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-700">다음 급여일 확인</p>
+      <h3 id="pay-estimate-next-check-heading" className="mt-2 text-lg font-semibold">예상액을 실제 입금액과 비교하기</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-700">먼저 계산기 Gross와 Payslip Gross의 구성 항목을 확인한 뒤, Payslip Net과 은행 입금 Net을 비교하세요. 계산기의 Net은 연간 세금 예상치를 기간으로 나눈 값이며 Payroll PAYG 원천징수액이 아닙니다.</p>
+      <label className="mt-4 block">
+        <span className="text-sm font-semibold">지금 막힌 지점</span>
+        <select value={blocker} onChange={(event) => setBlocker(event.target.value as PayEstimateBlocker)} className="mt-2 min-h-11 w-full rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm text-navy outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">
+          {NEXT_CHECK_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </select>
+      </label>
+      <p className="mt-3 text-sm leading-6 text-slate-700">Casual 25% loading은 자동으로 더하지 않습니다. 초과근무·Penalty·Allowance·Loading·PAYG·QE/OTE는 확인 전까지 제외 또는 미확인으로 둡니다.</p>
+      <dl className="mt-4 grid gap-3 sm:grid-cols-2" aria-label="급여 추정 다음 확인 결과">
+        {NEXT_CHECK_FIELDS.map(field => (
+          <div key={field} className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-3" data-pay-estimate-field={field}>
+            <dt className="text-xs font-semibold text-slate-600">{field}</dt>
+            <dd className="mt-1 break-words text-sm leading-6 text-navy">{result[field]}</dd>
+          </div>
+        ))}
+      </dl>
+      <a href={result.official_route} {...(external ? { target: "_blank", rel: "noreferrer" } : {})} className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-navy px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 sm:w-auto">
+        {NEXT_ACTION_LABELS[result.next_action]} →
+      </a>
+    </section>
+  );
+}
+
 export function SalaryCalculator() {
   const [calculation, setCalculation] = useState<SalaryCalculation>({ taxYear: "2026-27", taxProfile: "resident", payInputMode: "hourly", hourlyRate: DEFAULT_HOURLY_RATE, weeklyHours: DEFAULT_WEEKLY_HOURS, workingWeeks: DEFAULT_WORKING_WEEKS, annualSalary: DEFAULT_ANNUAL_SALARY, annualAmountType: "plusSuper", includeMedicareLevy: true, includeHelpRepayment: false, employmentType: "permanent" });
   const { taxYear, taxProfile, payInputMode, hourlyRate, weeklyHours, workingWeeks, annualSalary, annualAmountType, includeMedicareLevy, includeHelpRepayment, employmentType } = calculation;
-  const fieldSetter = <K extends keyof SalaryCalculation>(key: K) => (value: SalaryCalculation[K]) => setCalculation(current => ({ ...current, [key]: value }));
+  const [hasConfirmedInput, setHasConfirmedInput] = useState(false);
+  const fieldSetter = <K extends keyof SalaryCalculation>(key: K) => (value: SalaryCalculation[K]) => {
+    setCalculation(current => ({ ...current, [key]: value }));
+    setHasConfirmedInput(true);
+  };
   const setTaxYear = fieldSetter("taxYear"), setTaxProfile = fieldSetter("taxProfile"), setPayInputMode = fieldSetter("payInputMode"), setHourlyRate = fieldSetter("hourlyRate"), setWeeklyHours = fieldSetter("weeklyHours"), setWorkingWeeks = fieldSetter("workingWeeks"), setAnnualSalary = fieldSetter("annualSalary"), setAnnualAmountType = fieldSetter("annualAmountType"), setIncludeMedicareLevy = fieldSetter("includeMedicareLevy"), setIncludeHelpRepayment = fieldSetter("includeHelpRepayment"), setEmploymentType = fieldSetter("employmentType");
   const [comparisonSalary, setComparisonSalary] = useState(DEFAULT_COMPARISON_SALARY);
   const superReference = superGuidance(taxYear);
@@ -242,6 +310,7 @@ export function SalaryCalculator() {
     setIncludeHelpRepayment(false);
     setEmploymentType("permanent");
     setTouched({ rate: false, hours: false, weeks: false, annual: false });
+    setHasConfirmedInput(false);
     setCopyStatus("idle");
     setShareStatus("idle");
     setSaveStatus("idle");
@@ -282,6 +351,7 @@ export function SalaryCalculator() {
       const restored = parseSavedSalary(savedValue);
       if (!restored) { setSaveStatus("invalidSaved"); return; }
       setCalculation(restored);
+      setHasConfirmedInput(true);
       setShareStatus("idle");
       setTouched({ rate: false, hours: false, weeks: false, annual: false });
       setCopyStatus("idle");
@@ -634,6 +704,16 @@ export function SalaryCalculator() {
                 <ResultCard label="Super 포함 총 패키지" value={totalPackage} emphasis />
               </dl>
             </div>
+
+            {hasConfirmedInput ? (
+              <PayEstimateNextCheckCard
+                basis={payInputMode === "hourly" ? "hourly" : annualAmountType === "includesSuper" ? "annualPackage" : "annualPlusSuper"}
+                casual={employmentType === "casual"}
+                includeHelp={includeHelpRepayment && !isWorkingHolidayMaker}
+                includeMedicare={includeMedicareLevy && !isWorkingHolidayMaker}
+                taxProfile={taxProfile}
+              />
+            ) : null}
 
             <details className="mt-5 rounded-xl border border-white/15 bg-white/5 p-5">
               <summary className="cursor-pointer text-sm font-semibold text-white">상세 급여 및 공제 내역 보기</summary>

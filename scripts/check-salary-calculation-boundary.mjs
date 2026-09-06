@@ -11,6 +11,7 @@ function load(source, resolve, globals = {}) {
   return record.exports;
 }
 const lib = load(read("src/lib/salaryCalculationState.ts"), name => assert.fail(name));
+const payEstimateNextCheck = load(read("src/lib/payEstimateNextCheck.ts"), name => assert.fail(name));
 const fixture = { taxYear: "2026-27", taxProfile: "resident", payInputMode: "hourly", hourlyRate: "30", weeklyHours: "20", workingWeeks: "26", annualSalary: "70000", annualAmountType: "plusSuper", includeMedicareLevy: true, includeHelpRepayment: false, employmentType: "permanent" };
 let checks = 0;
 async function test(label, fn) { await fn(); checks++; console.log(`PASS ${label}`); }
@@ -43,6 +44,7 @@ function mount({ raw = null, search = "", failures = {}, minimum = false } = {})
     if (name === "react/jsx-runtime") return require(name);
     if (name === "next/link") return { default: props => require("react").createElement("a", props) };
     if (name === "@/lib/salaryCalculationState") return lib;
+    if (name === "@/lib/payEstimateNextCheck") return payEstimateNextCheck;
     assert.fail(name);
   }, { window, capture, navigator: { clipboard: { async writeText(value) { if (failures.copy) throw Error("clipboard denied"); clipboard.push(value); } } } });
   const Component = minimum ? mod.MinimumWageCalculator : mod.SalaryCalculator;
