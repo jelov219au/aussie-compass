@@ -45,7 +45,7 @@ export function HomeTrustBar() {
             <li key={item.number} className="rounded-2xl border-2 border-navy/10 bg-white p-5 shadow-[0_10px_24px_rgba(26,39,68,0.05)] sm:p-6">
               <div className="flex items-center justify-between gap-4">
                 <span className="font-mono text-xs text-gold-ink">{item.number}</span>
-                <TrackedLink href={item.href} eventName="Home Navigation" properties={{ section: "trust", destination: item.href.slice(1) }} className="inline-flex min-h-9 items-center rounded-lg border border-navy/15 px-3 text-xs font-semibold text-navy transition hover:border-gold hover:bg-surface">
+                <TrackedLink href={item.href} eventName="Home Navigation" properties={{ section: "trust", destination: item.href.slice(1) }} className="inline-flex min-h-11 items-center rounded-lg border border-navy/15 px-3 text-xs font-semibold text-navy transition hover:border-gold hover:bg-surface">
                   {item.linkLabel} →
                 </TrackedLink>
               </div>

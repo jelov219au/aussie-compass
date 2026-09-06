@@ -7,14 +7,14 @@ import { useState } from "react";
 import { actionClass } from "@/components/ui/actionStyles";
 import { SEARCH_TRANSFER_STORAGE_KEY, sanitizeTransferredSearch } from "@/lib/searchTransfer";
 
-const popularSearches = [
-  { label: "워홀 준비", topic: "visa" },
-  { label: "집 구하기", topic: "housing" },
-  { label: "이력서", topic: "jobs" },
-  { label: "세후 급여", topic: "pay" },
-  { label: "커버레터", topic: "jobs" },
-  { label: "이력서 양식", topic: "jobs" },
-];
+const popularSituations = [
+  { label: "일자리 종료", situation: "job_ending", href: "/resources/australia-job-ending-final-pay-dismissal-guide" },
+  { label: "세금", situation: "tax", href: "/tax-return-guide" },
+  { label: "렌트", situation: "rent", href: "/property-inspection-checklist" },
+  { label: "급여", situation: "pay", href: "/underpayment-guide" },
+  { label: "중고차", situation: "used_car", href: "/used-car-comparison" },
+  { label: "출국", situation: "leaving", href: "/leaving-australia-guide" },
+] as const;
 
 const searchTopics = [
   { topic: "tax", terms: ["세금", "택스", "tax", "tfn", "ato", "bas", "gst", "공제", "환급"] },
@@ -38,7 +38,7 @@ export function HomeSearch() {
   const [query, setQuery] = useState("");
   const [transferError, setTransferError] = useState(false);
 
-  function openSearch(value: string, topic: string, entry: "free_text" | "popular") {
+  function openSearch(value: string, topic: string) {
     const transferredQuery = sanitizeTransferredSearch(value);
 
     try {
@@ -54,18 +54,26 @@ export function HomeSearch() {
 
     setTransferError(false);
     try {
-      track("Home Search", { topic, entry });
+      track("Home Search", { topic, entry: "free_text" });
     } catch {
       // Analytics failures must not interrupt the private, queryless navigation.
     }
     router.push("/search");
   }
 
+  function trackSituation(situation: string, destination: string) {
+    try {
+      track("Home Situation Opened", { situation, destination, surface: "hero_situation" });
+    } catch {
+      // Fixed navigation must remain available when optional analytics fails.
+    }
+  }
+
   return (
     <section className="mt-5 sm:mt-7" aria-labelledby="home-search-heading">
         <form onSubmit={(event) => {
           event.preventDefault();
-          openSearch(query, classifySearch(query), "free_text");
+          openSearch(query, classifySearch(query));
         }} className="min-w-0">
           <div className="sr-only">
             <p className="text-xs font-semibold tracking-[0.14em] text-gold-ink">바로 찾아보기</p>
@@ -97,16 +105,17 @@ export function HomeSearch() {
                 이 탭에서 검색어를 안전하게 옮기지 못했어요. 입력한 내용은 그대로 두었습니다. <Link href="/search" className="font-semibold underline decoration-gold underline-offset-4">검색 페이지에서 다시 입력하기</Link>
               </p>
             )}
-            <div className="mt-2 grid grid-cols-2 gap-2 min-[380px]:grid-cols-4 sm:flex sm:flex-wrap" aria-label="바로 찾는 주제">
-              {popularSearches.map(({ label, topic }) => (
-                <button
-                  type="button"
+            <p id="home-situation-boundary" className="mt-3 text-xs leading-5 text-muted">먼저 무료 안내와 도구로 공식 기준·내 기록을 확인하세요. 여러 건을 반복 정리하고 저장·전달해야 할 때만 Pro를 비교하세요.</p>
+            <div className="mt-2 grid grid-cols-2 gap-2 min-[380px]:grid-cols-3 sm:flex sm:flex-wrap" aria-label="바로 시작하는 여섯 상황" aria-describedby="home-situation-boundary">
+              {popularSituations.map(({ label, situation, href }) => (
+                <Link
                   key={label}
-                  onClick={() => openSearch(label, topic, "popular")}
+                  href={href}
+                  onClick={() => trackSituation(situation, href.slice(1))}
                   className="inline-flex min-h-11 items-center justify-center rounded-full border border-navy/15 bg-white/80 px-2 text-xs font-semibold text-navy transition hover:border-gold hover:bg-white sm:px-3"
                 >
                   {label}
-                </button>
+                </Link>
               ))}
             </div>
           </div>

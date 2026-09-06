@@ -25,6 +25,10 @@ export function Footer() {
     { label: content.footer.privacy, href: "/privacy" },
     { label: content.footer.disclaimer, href: "/disclaimer" },
   ];
+  const socialLinks = [
+    { label: "Instagram", href: "https://www.instagram.com/hojucompass/" },
+    { label: "YouTube", href: "https://www.youtube.com/channel/UChn-PJcHHVz2XPVhHUkbFkQ" },
+  ];
 
   return (
     <footer className="border-t border-border bg-surface">
@@ -35,16 +39,19 @@ export function Footer() {
             <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
               {content.brand.tagline}
             </p>
+            <nav className="mt-3 flex flex-wrap gap-x-5" aria-label="공식 소셜 채널">
+              {socialLinks.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-sm text-sm font-semibold text-navy transition-colors hover:text-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">{link.label} <span className="ml-1" aria-hidden="true">↗</span><span className="sr-only"> (새 창)</span></a>)}
+            </nav>
           </div>
 
           <nav aria-label="Footer navigation">
             <p className="text-xs font-semibold text-muted">둘러보기</p>
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-2">
               {footerLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm font-medium text-navy transition-colors hover:text-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 rounded-sm"
+                    className="inline-flex min-h-11 items-center rounded-sm text-sm font-medium text-navy transition-colors hover:text-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
                   >
                     {link.label}
                   </Link>
@@ -54,9 +61,9 @@ export function Footer() {
           </nav>
           <nav aria-label="지원 및 정책">
             <p className="text-xs font-semibold text-muted">지원·정책</p>
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-2">
               {supportLinks.map((link) => (
-                <li key={link.href}><Link href={link.href} className="rounded-sm text-sm font-medium text-navy transition-colors hover:text-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">{link.label}</Link></li>
+                <li key={link.href}><Link href={link.href} className="inline-flex min-h-11 items-center rounded-sm text-sm font-medium text-navy transition-colors hover:text-navy-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">{link.label}</Link></li>
               ))}
             </ul>
           </nav>
