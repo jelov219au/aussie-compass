@@ -8,6 +8,7 @@ import { PersonalRouteFinder } from "@/components/sections/PersonalRouteFinder";
 import { PremiumToolsSection } from "@/components/sections/PremiumToolsSection";
 import { HomeInstallBanner } from "@/components/sections/HomeInstallBanner";
 import { HomeTrustBar } from "@/components/sections/HomeTrustBar";
+import { HomeSocialChannels } from "@/components/sections/HomeSocialChannels";
 
 export default function HomePage() {
   return (
@@ -21,6 +22,7 @@ export default function HomePage() {
         <HomeInstallBanner />
         <PremiumToolsSection />
         <ArticlesSection />
+        <HomeSocialChannels />
         <HomeTrustBar />
       </main>
       <Footer />
