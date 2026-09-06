@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
+import { DisclaimerActionBoundary } from "@/components/disclaimer/DisclaimerActionBoundary";
 
 export const metadata = createPageMetadata({ title: "정보 이용과 면책 안내 | Hoju Compass", description: "Hoju Compass의 일반 정보, 계산 결과, 외부 링크와 전문 자문 범위를 확인하세요.", path: "/disclaimer" });
 
@@ -25,9 +26,10 @@ const sections = [
 
 export default function DisclaimerPage() {
   return <><BreadcrumbJsonLd items={[{name:"홈",path:"/"},{name:"면책 안내",path:"/disclaimer"}]} /><Header/><main className="py-12 sm:py-16"><Container><Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 홈으로 돌아가기</Link>
-    <div className="mt-8 max-w-4xl border-b border-navy/20 pb-10"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Information notice</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">정보 이용과 면책 안내</h1><p className="mt-5 leading-7 text-muted">Hoju Compass를 중요한 결정의 출발점으로 사용하고, 아래 순서로 입력·가정·공식 원문을 확인한 뒤 행동하세요.</p></div>
+    <div className="mt-8 max-w-4xl border-b border-navy/20 pb-10"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-ink">Information notice</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">정보 이용과 면책 안내</h1><p className="mt-5 leading-7 text-muted">Hoju Compass를 중요한 결정의 출발점으로 사용하고, 아래 순서로 입력·가정·공식 원문을 확인한 뒤 행동하세요.</p></div>
+    <DisclaimerActionBoundary />
     <section className="mt-8 bg-navy p-6 text-white sm:p-8" aria-labelledby="verification-steps-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Before you act</p><h2 id="verification-steps-heading" className="mt-2 text-2xl font-semibold">이 사이트 결과를 실제 결정에 쓰기 전 4단계</h2><ol className="mt-6 grid gap-4 lg:grid-cols-2">{verificationSteps.map((step,index)=><li key={step} className="grid grid-cols-[2rem_1fr] gap-3 border-t border-white/20 pt-4"><span className="font-mono text-sm text-gold">0{index+1}</span><p className="text-sm leading-7 text-white/85">{step}</p></li>)}</ol><div className="mt-6 border-l-2 border-gold bg-white/5 p-4 text-sm leading-7 text-white/80"><p>확인 결과에는 페이지 주소, 확인 시각, 달랐던 문장과 공식 원문을 남기세요. 오류를 알릴 때는 개인정보·민감정보를 제거한 뒤 정정 템플릿을 이용할 수 있습니다.</p><Link href="/contact" className="mt-2 inline-flex min-h-11 items-center font-semibold text-white underline decoration-gold underline-offset-4">민감정보 없이 정정 요청 준비하기 →</Link></div></section>
-    <div className="mt-8 grid gap-x-12 gap-y-8 lg:grid-cols-2">{sections.map(({title,body,href,action},index)=><section key={title} className="flex flex-col border-t border-border pt-5"><span className="font-mono text-xs text-gold">0{index+1}</span><h2 className="mt-2 text-xl font-semibold text-navy">{title}</h2><p className="mt-3 flex-1 text-sm leading-7 text-muted sm:text-base">{body}</p><Link href={href} className="mt-3 inline-flex min-h-11 items-center self-start font-semibold text-navy underline decoration-gold underline-offset-4">{action}</Link></section>)}</div>
+    <div className="mt-8 grid gap-x-12 gap-y-8 lg:grid-cols-2">{sections.map(({title,body,href,action},index)=><section key={title} className="flex flex-col border-t border-border pt-5"><span className="font-mono text-xs text-gold-ink">0{index+1}</span><h2 className="mt-2 text-xl font-semibold text-navy">{title}</h2><p className="mt-3 flex-1 text-sm leading-7 text-muted sm:text-base">{body}</p><Link href={href} className="mt-3 inline-flex min-h-11 items-center self-start font-semibold text-navy underline decoration-gold underline-offset-4">{action}</Link></section>)}</div>
     <p className="mt-10 text-sm leading-6 text-muted">페이지 개정일: 2026년 9월 5일 · 이 날짜는 연결된 자료 전체의 사실 확인일을 뜻하지 않습니다.</p>
   </Container></main><Footer/></>;
 }

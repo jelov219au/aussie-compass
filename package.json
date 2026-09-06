@@ -82,6 +82,7 @@
     "test:home-navigation-analytics": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-home-navigation-analytics.mjs",
     "test:privacy-paid-tools": "node scripts/check-privacy-paid-tools-boundaries.mjs",
     "test:disclaimer-action-path": "node scripts/check-disclaimer-action-path.mjs",
+    "test:disclaimer-action-boundary": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-disclaimer-action-boundary.mjs",
     "test:home-live-pro-feature": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-home-live-pro-feature.mjs",
     "test:ai-discovery": "node scripts/check-ai-discovery-contract.mjs",
     "test:cover-letter-acquisition": "node scripts/check-cover-letter-acquisition-loop.mjs",
