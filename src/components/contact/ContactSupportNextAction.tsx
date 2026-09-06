@@ -2,207 +2,262 @@
 
 import { useMemo, useState } from "react";
 
-type SupportNeed =
-  | "general_inquiry"
+type IssueCategory =
+  | "general"
   | "payment_access"
-  | "refund_dispute"
-  | "privacy_request"
-  | "partnership"
-  | "immediate_danger";
+  | "refund"
+  | "technical_error"
+  | "content_correction"
+  | "privacy_deletion"
+  | "partnership_feedback"
+  | "urgent_or_deadline";
 
-type SupportNextAction =
-  | "open_general_support_email"
-  | "open_payment_access_email"
-  | "open_refund_dispute_email"
-  | "open_privacy_request_email"
-  | "open_partnership_email"
-  | "call_000_or_open_official_help";
+type SupportChannel = "self_help" | "hoju_email" | "documented_transaction_support" | "issuer_or_bank" | "official_service";
+type ResponseExpectation = "not_sent" | "unknown" | "access_target_4_business_hours" | "proposed_initial_2_business_days" | "proposed_privacy_30_calendar_days" | "no_wait_use_official_service";
+type ContactNextAction = "use_self_help" | "prepare_email" | "verify_sent" | "wait" | "follow_up_same_thread" | "use_official_service_now";
 
 type ContactSupportOutcome = {
-  selected_support_need: SupportNeed;
-  destination_and_offline_fallback: string;
-  minimum_information: string;
-  do_not_send: string;
-  attachment_redaction: string;
-  sent_folder_and_bounce_action: string;
-  response_target_and_follow_up: string;
-  next_action: SupportNextAction;
+  issue_category: IssueCategory;
+  self_help_route: string;
+  minimal_evidence_categories: readonly string[];
+  do_not_send: readonly string[];
+  channel: SupportChannel;
+  response_expectation: ResponseExpectation;
+  escalation_or_follow_up: string;
+  next_action: ContactNextAction;
 };
 
 type SupportDetails = {
   label: string;
-  destination: string;
-  minimumInformation: string;
-  doNotSend: string;
-  attachmentRedaction: string;
-  deliveryCheck: string;
-  responseAndFollowUp: string;
-  nextAction: SupportNextAction;
+  selfHelpRoute: string;
+  selfHelpHref: string;
+  selfHelpLabel: string;
+  minimalEvidence: readonly string[];
+  doNotSend: readonly string[];
+  channel: SupportChannel;
+  responseExpectation: ResponseExpectation;
+  escalation: string;
+  nextAction: ContactNextAction;
   subject: string;
-  prompts: string[];
+  prompts: readonly string[];
 };
 
-const sharedSensitiveBoundary = "카드번호·CVC·계좌 비밀번호·인증번호·TFN·신분증/비자 원문·복구 코드·영수증 전체·이력서 원문";
-const sharedRedaction = "스크린샷을 첨부한다면 이름, 주소, 이메일, 전체 결제 참조와 문서 내용을 가린 뒤 보냅니다. 원본 파일은 필요하지 않습니다.";
-const sharedDeliveryCheck = "메일 앱이 열렸다는 화면만으로 발송 완료로 보지 않습니다. 보낸 편지함 또는 보낼 편지함을 확인합니다. 반송되면 주소를 추측해 다시 보내지 말고 이 /contact 페이지의 현재 공식 주소를 다시 확인합니다.";
-const sharedOffline = "인터넷이 없으면 민감정보를 뺀 초안을 기기에만 작성하고 연결이 돌아온 뒤 mailto로 직접 보냅니다. 사이트에는 offline queue나 자동 제출이 없습니다.";
+const commonDoNotSend = [
+  "카드번호 전체·일부, CVC, bank login, OTP",
+  "passport, TFN, HAP ID, visa, Medicare 원문",
+  "복구 코드, cookie/token, 전체 session/payment/customer/receipt ID",
+  "전체 영수증·Payslip·statement·resume·이력서 원문·세무·렌트·건강 문서",
+  "workspace·backup·screenshot 원본, token/query가 든 URL",
+  "스크린샷을 첨부한다면 이름, 주소, 이메일, 전체 결제 참조와 문서 내용을 가린 뒤 보냅니다. 원본 파일은 필요하지 않습니다.",
+] as const;
 
-const supportDetails: Record<SupportNeed, SupportDetails> = {
-  general_inquiry: {
-    label: "일반 문의·콘텐츠 정정·도구 오류",
-    destination: `현재 페이지에 표시된 Hoju Compass 공식 지원 이메일. ${sharedOffline}`,
-    minimumInformation: "관련 페이지/도구, 확인한 문장 또는 문제 행동, 기기·브라우저, 대략적인 발생 시각, 기대 결과와 실제 결과",
-    doNotSend: sharedSensitiveBoundary,
-    attachmentRedaction: sharedRedaction,
-    deliveryCheck: sharedDeliveryCheck,
-    responseAndFollowUp: "일반 문의 응답 목표는 UNKNOWN입니다. 접수 회신에 목표 시점이 있으면 그 시점이 지난 다음 영업일에 같은 thread로 한 번만 후속합니다. 목표 시점이 없으면 임의 SLA를 만들지 않고 현재 /contact 공지를 다시 확인합니다.",
-    nextAction: "open_general_support_email",
+const emailLifecycle = "메일 앱이 열렸다는 화면은 발송 완료가 아닙니다. 보낸 편지함 또는 보낼 편지함을 확인합니다. 반송되면 주소를 추측하지 말고 이 /contact 페이지의 현재 주소를 다시 확인합니다. 인터넷이 없으면 민감정보를 뺀 초안을 기기에만 두고 연결 뒤 mailto로 직접 보내며, 사이트에는 offline queue나 자동 제출이 없습니다.";
+
+const supportDetails: Record<IssueCategory, SupportDetails> = {
+  general: {
+    label: "일반 문의",
+    selfHelpRoute: "contact_templates",
+    selfHelpHref: "#contact-type-heading",
+    selfHelpLabel: "상세 문의 템플릿 확인",
+    minimalEvidence: ["관련 공개 page/tool", "문의 목적 범주", "대략적인 시각·시간대"],
+    doNotSend: commonDoNotSend,
+    channel: "hoju_email",
+    responseExpectation: "unknown",
+    escalation: `${emailLifecycle} 일반 SLA는 UNKNOWN입니다. 접수 회신에 목표 시점이 있을 때만 그 시점 다음 영업일에 같은 thread로 한 번만 재문의합니다.`,
+    nextAction: "prepare_email",
     subject: "일반 문의",
-    prompts: ["관련 페이지 또는 도구:", "확인이 필요한 내용:", "기기와 브라우저:", "발생한 대략적 시각·시간대:", "기대 결과 / 실제 결과:"],
+    prompts: ["관련 공개 페이지 또는 도구:", "문의 목적:", "대략적인 시각·시간대:", "원하는 다음 행동:"],
   },
   payment_access: {
     label: "결제 확인·Pro 접근·복구",
-    destination: `현재 페이지에 표시된 Hoju Compass 공식 지원 이메일. ${sharedOffline}`,
-    minimumInformation: "제품명, 결제일과 대략적 시각·시간대, 구매 이메일, Stripe 영수증/결제 참조 마지막 8자, 개인정보를 가린 오류 문구, 이미 시도한 방법",
-    doNotSend: `${sharedSensitiveBoundary}·전체 Stripe/영수증 링크. 같은 제품을 다시 결제하지 않습니다.`,
-    attachmentRedaction: sharedRedaction,
-    deliveryCheck: sharedDeliveryCheck,
-    responseAndFollowUp: "접근 문제만 4영업시간 이내 확인 결과 또는 다음 조치 안내를 목표로 합니다. 결제 상태 확인과 일반 답변 SLA는 UNKNOWN입니다. 접근 문제는 4영업시간이 지난 다음 영업일, 그 밖에는 안내받은 목표 시점이 지난 다음 영업일에 같은 thread로 한 번만 후속합니다.",
-    nextAction: "open_payment_access_email",
+    selfHelpRoute: "payment_help",
+    selfHelpHref: "/payment-help",
+    selfHelpLabel: "재결제 전 결제·접근 도움 확인",
+    minimalEvidence: ["공개 product", "payment/access 문제 범주", "대략적인 결제 시각·시간대", "결제 reference 마지막 8자", "안전한 오류 범주"],
+    doNotSend: commonDoNotSend,
+    channel: "hoju_email",
+    responseExpectation: "access_target_4_business_hours",
+    escalation: `${emailLifecycle} 접근 문제만 4영업시간 이내 확인 결과 또는 다음 조치 안내를 목표로 합니다. 4영업시간 뒤 다음 영업일에 같은 thread로 한 번만 재문의하며, 추가 결제는 하지 않습니다.`,
+    nextAction: "use_self_help",
     subject: "결제 및 접근 지원",
-    prompts: ["제품명:", "문제 유형(결제 확인 / 접근 / 복구):", "결제일·대략적 시각·시간대:", "구매 이메일:", "Stripe 영수증 또는 결제 참조 마지막 8자:", "가린 오류 문구:", "이미 시도한 방법:"],
+    prompts: ["제품명:", "문제 유형(결제 확인 / 접근 / 복구):", "결제일·대략적인 시각·시간대:", "구매 이메일(메일 앱에서만 입력):", "Stripe 참조 마지막 8자:", "가린 오류 범주:", "이미 시도한 방법:"],
   },
-  refund_dispute: {
+  refund: {
     label: "환불 요청·중복 결제·분쟁",
-    destination: `현재 페이지에 표시된 Hoju Compass 공식 지원 이메일. ${sharedOffline}`,
-    minimumInformation: "제품명, 구매 이메일, 결제일, 각 Stripe 참조 마지막 8자, 환불/중복/분쟁 중 요청 유형, 원하는 해결과 간단한 이유",
-    doNotSend: `${sharedSensitiveBoundary}·은행 화면 전체·전체 Stripe payload. 요청만으로 환불 완료나 분쟁 결론이 되지 않습니다.`,
-    attachmentRedaction: sharedRedaction,
-    deliveryCheck: sharedDeliveryCheck,
-    responseAndFollowUp: "환불·분쟁 응답 목표는 UNKNOWN입니다. 접수 회신이 제시한 목표 시점이 지난 다음 영업일에 같은 thread로 한 번만 후속합니다. 본인 결제가 아니거나 카드 위험이 계속되면 이메일 답변을 기다리지 말고 카드 발급사에 즉시 연락합니다.",
-    nextAction: "open_refund_dispute_email",
+    selfHelpRoute: "purchase_information",
+    selfHelpHref: "/purchase-information",
+    selfHelpLabel: "환불·구매 조건과 결제 도움 확인",
+    minimalEvidence: ["공개 product", "refund/duplicate/dispute 범주", "대략적인 결제 시각·시간대", "각 결제 reference 마지막 8자", "원하는 해결 범주"],
+    doNotSend: commonDoNotSend,
+    channel: "documented_transaction_support",
+    responseExpectation: "unknown",
+    escalation: `${emailLifecycle} 환불·분쟁 SLA는 UNKNOWN이며 요청만으로 완료되지 않습니다. 접수 회신의 목표 시점 뒤 같은 thread로 한 번만 재문의합니다. 본인 결제가 아니거나 카드 위험이 계속되면 issuer_or_bank를 즉시 이용합니다.`,
+    nextAction: "use_self_help",
     subject: "환불 또는 분쟁 지원",
-    prompts: ["제품명:", "요청 유형(환불 / 중복 결제 / 분쟁):", "구매 이메일:", "결제일:", "각 Stripe 참조 마지막 8자:", "원하는 해결과 간단한 이유:"],
+    prompts: ["제품명:", "요청 유형(환불 / 중복 결제 / 분쟁):", "결제일·대략적인 시각·시간대:", "구매 이메일(메일 앱에서만 입력):", "각 Stripe 참조 마지막 8자:", "원하는 해결 범주:"],
   },
-  privacy_request: {
+  technical_error: {
+    label: "기술 오류·저장 문제",
+    selfHelpRoute: "browser_retry_and_contact_templates",
+    selfHelpHref: "#contact-type-heading",
+    selfHelpLabel: "도구 오류 템플릿 확인",
+    minimalEvidence: ["공개 page/tool", "기기·브라우저 범주", "문제 직전 행동", "안전한 오류 범주", "대략적인 시각·시간대"],
+    doNotSend: commonDoNotSend,
+    channel: "hoju_email",
+    responseExpectation: "unknown",
+    escalation: `${emailLifecycle} 기술 문의 SLA는 UNKNOWN입니다. 접수 회신의 목표 시점 뒤 같은 thread로 한 번만 재문의하고, workspace 원문이나 backup을 첨부하지 않습니다.`,
+    nextAction: "prepare_email",
+    subject: "기술 오류 문의",
+    prompts: ["관련 공개 페이지 또는 도구:", "기기·브라우저:", "문제 직전 행동:", "가린 오류 범주:", "대략적인 시각·시간대:"],
+  },
+  content_correction: {
+    label: "콘텐츠 정정·공식 출처",
+    selfHelpRoute: "editorial_policy",
+    selfHelpHref: "/editorial-policy",
+    selfHelpLabel: "출처·정정 원칙 확인",
+    minimalEvidence: ["공개 page", "확인이 필요한 문장 범주", "확인 시각", "공개 official source URL"],
+    doNotSend: commonDoNotSend,
+    channel: "hoju_email",
+    responseExpectation: "unknown",
+    escalation: `${emailLifecycle} 정정 문의 SLA는 UNKNOWN입니다. 접수 회신에 목표 시점이 있을 때만 같은 thread로 한 번 재문의합니다.`,
+    nextAction: "prepare_email",
+    subject: "콘텐츠 정정 요청",
+    prompts: ["관련 공개 페이지:", "확인이 필요한 문장:", "확인한 시각:", "공개 공식 출처 URL:"],
+  },
+  privacy_deletion: {
     label: "개인정보 접근·정정·삭제·incident",
-    destination: `현재 페이지에 표시된 Hoju Compass 공식 지원 이메일. 처리·보존·제공자 경계는 /privacy에서 확인합니다. ${sharedOffline}`,
-    minimumInformation: "요청 유형, 관련 활동/제품, 대략적인 날짜, 찾거나 지울 사본의 위치, 회신받을 이메일과 확인에 꼭 필요한 최소 정보",
-    doNotSend: `${sharedSensitiveBoundary}·신분증 사본. 본인확인이 더 필요하면 이유와 최소 방법을 먼저 안내받습니다.`,
-    attachmentRedaction: sharedRedaction,
-    deliveryCheck: sharedDeliveryCheck,
-    responseAndFollowUp: "개인정보 요청과 incident의 일반 응답 목표는 UNKNOWN입니다. 접수 회신의 목표 시점 뒤 같은 thread로 한 번만 후속합니다. 불만이 해결되지 않으면 /privacy의 OAIC complaint 경로를 확인합니다.",
-    nextAction: "open_privacy_request_email",
+    selfHelpRoute: "privacy_and_data_transfer",
+    selfHelpHref: "/privacy#retention-delete",
+    selfHelpLabel: "브라우저·파일·Hoju·provider 사본 구분",
+    minimalEvidence: ["access/correction/delete/incident 범주", "관련 공개 activity/product", "대략적인 날짜", "browser/file/Hoju/provider 사본 범주"],
+    doNotSend: commonDoNotSend,
+    channel: "hoju_email",
+    responseExpectation: "unknown",
+    escalation: `${emailLifecycle} 개인정보 요청 SLA는 UNKNOWN입니다. 접수 회신의 목표 시점 뒤 같은 thread로 한 번 재문의하고, 해결되지 않은 불만은 /privacy의 OAIC 경로를 확인합니다.`,
+    nextAction: "use_self_help",
     subject: "개인정보 요청",
-    prompts: ["요청 유형(접근 / 정정 / 삭제 / 제한 / 불만 / incident):", "관련 활동 또는 제품:", "대략적인 날짜:", "관련 사본 위치(브라우저 / 파일 / Hoju email·server / provider):", "확인에 필요한 최소 정보:"],
+    prompts: ["요청 유형(접근 / 정정 / 삭제 / 제한 / 불만 / incident):", "관련 활동 또는 제품:", "대략적인 날짜:", "사본 위치 범주(browser / file / Hoju / provider):", "확인에 필요한 최소 정보(메일 앱에서만 입력):"],
   },
-  partnership: {
-    label: "제휴·기관 협력 제안",
-    destination: `현재 페이지에 표시된 Hoju Compass 공식 지원 이메일. ${sharedOffline}`,
-    minimumInformation: "기관/사업명, 공개 웹사이트, 담당자 이름과 회신 이메일, 제안 목적, 대상 사용자, 원하는 다음 한 단계",
-    doNotSend: `${sharedSensitiveBoundary}·고객 명단·비공개 계약서·API key·secret·로그인 정보·공개 전 내부 자료`,
-    attachmentRedaction: "첫 메일에는 첨부하지 않습니다. 공개 URL로 설명하고, 파일이 꼭 필요하면 수신자가 범위와 전송 방법을 확인한 뒤 민감정보를 제거합니다.",
-    deliveryCheck: sharedDeliveryCheck,
-    responseAndFollowUp: "제휴 문의 응답 목표는 UNKNOWN입니다. 접수 회신에 목표 시점이 있으면 그 시점이 지난 다음 영업일에 같은 thread로 한 번만 후속하며, 없으면 임의 SLA를 표시하지 않습니다.",
-    nextAction: "open_partnership_email",
-    subject: "제휴 및 기관 협력 제안",
-    prompts: ["기관 또는 사업명:", "공개 웹사이트:", "담당자 이름과 회신 이메일:", "제안 목적과 대상 사용자:", "원하는 다음 한 단계:"],
+  partnership_feedback: {
+    label: "제휴·기관 협력·피드백",
+    selfHelpRoute: "contact_templates",
+    selfHelpHref: "#contact-type-heading",
+    selfHelpLabel: "공식 이메일 경계 확인",
+    minimalEvidence: ["기관·사업 공개명", "공개 website", "제안 목적 범주", "대상 사용자 범주", "원하는 다음 행동"],
+    doNotSend: [...commonDoNotSend, "고객 명단·비공개 계약서·API key·secret·공개 전 내부 자료"],
+    channel: "hoju_email",
+    responseExpectation: "unknown",
+    escalation: `${emailLifecycle} 제휴·피드백 SLA는 UNKNOWN입니다. 접수 회신에 목표 시점이 있을 때만 같은 thread로 한 번 재문의합니다. 첫 메일에는 첨부하지 않습니다.`,
+    nextAction: "prepare_email",
+    subject: "제휴·기관 협력·피드백",
+    prompts: ["기관 또는 사업 공개명:", "공개 웹사이트:", "제안 목적과 대상 사용자:", "원하는 다음 행동:", "회신 이메일(메일 앱에서만 입력):"],
   },
-  immediate_danger: {
-    label: "긴급·즉시 생명 또는 안전 위험",
-    destination: "이메일이 아닙니다. 호주 안의 즉시 위험은 Triple Zero 000입니다. 인터넷이 없으면 가능하고 안전한 경우 유선전화·공중전화·주변 사람의 도움을 이용합니다.",
-    minimumInformation: "000 연결 뒤 Police, Fire 또는 Ambulance 중 필요한 서비스, 현재 위치, 무슨 일이 일어났는지, 위험에 놓인 사람 수",
-    doNotSend: "Hoju Compass 이메일로 긴급 정보·신분증·건강 기록을 보내거나 답변을 기다리지 않습니다.",
-    attachmentRedaction: "스크린샷이나 파일을 준비하지 않습니다. 준비 때문에 000 연락을 늦추지 않습니다.",
-    deliveryCheck: "000 통화가 연결됐는지 확인하고 상담원의 지시를 따릅니다. 이메일 sent folder·bounce 확인은 적용되지 않습니다.",
-    responseAndFollowUp: "Hoju Compass 응답 목표는 적용되지 않습니다. 즉시 위험이 아니면 공식 도움 연락처에서 상황별 운영시간과 fallback을 확인합니다.",
-    nextAction: "call_000_or_open_official_help",
+  urgent_or_deadline: {
+    label: "긴급·위기·법률/세무/이민 마감",
+    selfHelpRoute: "help_directory",
+    selfHelpHref: "/help-directory",
+    selfHelpLabel: "상황별 공식 도움 연락처",
+    minimalEvidence: ["필요한 official service 범주", "현재 위치", "즉시 위험 여부", "적용되는 deadline 범주"],
+    doNotSend: [...commonDoNotSend, "긴급·위기·마감 내용을 Hoju email로 보내고 답변을 기다리는 행동"],
+    channel: "official_service",
+    responseExpectation: "no_wait_use_official_service",
+    escalation: "생명·안전 위험, 진행 중 범죄 또는 의료 응급이면 지금 000에 전화합니다. 스크린샷이나 자료 준비 때문에 000 연락을 늦추지 않습니다. 그 밖의 위기·법률·세무·이민 마감은 /help-directory에서 현재 official service를 확인하며 Hoju email 답변을 기다리지 않습니다. 인터넷이 없으면 가능하고 안전한 경우 유선전화·공중전화·주변 사람의 도움을 이용합니다.",
+    nextAction: "use_official_service_now",
     subject: "",
     prompts: [],
   },
 };
 
 const fieldLabels: Record<keyof ContactSupportOutcome, string> = {
-  selected_support_need: "selected_support_need",
-  destination_and_offline_fallback: "destination_and_offline_fallback",
-  minimum_information: "minimum_information",
+  issue_category: "issue_category",
+  self_help_route: "self_help_route",
+  minimal_evidence_categories: "minimal_evidence_categories",
   do_not_send: "do_not_send",
-  attachment_redaction: "attachment_redaction",
-  sent_folder_and_bounce_action: "sent_folder_and_bounce_action",
-  response_target_and_follow_up: "response_target_and_follow_up",
+  channel: "channel",
+  response_expectation: "response_expectation",
+  escalation_or_follow_up: "escalation_or_follow_up",
   next_action: "next_action",
 };
 
 function mailHref(email: string, details: SupportDetails) {
   const body = [
     ...details.prompts.flatMap((prompt) => [prompt, ""]),
-    "스크린샷·첨부가 있다면 이름, 주소, 이메일, 전체 결제 참조와 문서 내용을 가렸습니다.",
-    "카드번호·CVC·비밀번호·인증번호·TFN·신분증/비자 원문·복구 코드·영수증 전체·이력서 원문은 포함하지 않았습니다.",
+    "스크린샷을 첨부한다면 이름, 주소, 이메일, 전체 결제 참조와 문서 내용을 가렸습니다. 원본 파일은 첨부하지 않았습니다.",
+    "카드번호·CVC·비밀번호·인증번호·TFN·신분증/비자 원문·복구 코드·영수증 전체·workspace 원문은 포함하지 않았습니다.",
   ].join("\n");
   return `mailto:${email}?subject=${encodeURIComponent(`[Hoju Compass] ${details.subject}`)}&body=${encodeURIComponent(body)}`;
 }
 
+function displayValue(value: ContactSupportOutcome[keyof ContactSupportOutcome]) {
+  return Array.isArray(value) ? value.join(" · ") : value;
+}
+
 export function ContactSupportNextAction({ supportEmail }: { supportEmail: string | null }) {
-  const [supportNeed, setSupportNeed] = useState<SupportNeed | "">("");
+  const [issueCategory, setIssueCategory] = useState<IssueCategory | "">("");
 
   const outcome = useMemo<ContactSupportOutcome | null>(() => {
-    if (!supportNeed) return null;
-    const details = supportDetails[supportNeed];
+    if (!issueCategory) return null;
+    const details = supportDetails[issueCategory];
     return {
-      selected_support_need: supportNeed,
-      destination_and_offline_fallback: supportNeed === "immediate_danger"
-        ? details.destination
-        : `${supportEmail ?? "공식 지원 이메일 UNKNOWN"} · ${details.destination}`,
-      minimum_information: details.minimumInformation,
+      issue_category: issueCategory,
+      self_help_route: details.selfHelpRoute,
+      minimal_evidence_categories: details.minimalEvidence,
       do_not_send: details.doNotSend,
-      attachment_redaction: details.attachmentRedaction,
-      sent_folder_and_bounce_action: details.deliveryCheck,
-      response_target_and_follow_up: details.responseAndFollowUp,
+      channel: details.channel,
+      response_expectation: details.responseExpectation,
+      escalation_or_follow_up: details.escalation,
       next_action: details.nextAction,
     };
-  }, [supportEmail, supportNeed]);
+  }, [issueCategory]);
 
-  const selectedDetails = supportNeed ? supportDetails[supportNeed] : null;
-  const emailAction = supportEmail && selectedDetails && supportNeed !== "immediate_danger"
+  const selectedDetails = issueCategory ? supportDetails[issueCategory] : null;
+  const emailAction = supportEmail && selectedDetails && issueCategory !== "urgent_or_deadline"
     ? mailHref(supportEmail, selectedDetails)
     : null;
 
   return (
     <section className="mt-8 rounded-2xl border-2 border-navy bg-white p-5 shadow-[0_16px_35px_rgba(26,39,68,0.08)] sm:p-7" aria-labelledby="contact-next-action-heading">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-ink">Memory only · Email support boundary</p>
-      <h2 id="contact-next-action-heading" className="mt-2 text-2xl font-semibold text-navy">보낼 곳과 최소 정보부터 확인하세요.</h2>
-      <p className="mt-3 max-w-4xl text-sm leading-7 text-muted">선택은 이 화면 메모리에만 있고 URL·저장소·쿠키·파일·메일·분석으로 자동 전송되지 않습니다. 결과를 확인한 뒤에만 메일 앱을 직접 여세요.</p>
+      <h2 id="contact-next-action-heading" className="mt-2 text-2xl font-semibold text-navy">먼저 해결 경로와 보낼 정보 범위를 확인하세요.</h2>
+      <p className="mt-3 max-w-4xl text-sm leading-7 text-muted">선택은 이 화면 메모리에만 있고 URL·저장소·쿠키·clipboard·파일·메일·분석으로 자동 전송되지 않습니다. 사이트 form과 contact API는 없으며, 메일 앱에서 최종 확인해야 합니다.</p>
 
-      <label htmlFor="support-need" className="mt-5 block max-w-2xl text-sm font-semibold text-navy">지금 필요한 도움
-        <select id="support-need" value={supportNeed} onChange={(event) => setSupportNeed(event.target.value as SupportNeed | "")} className="mt-2 min-h-12 w-full rounded-lg border border-navy/25 bg-white px-3 text-sm font-medium text-navy">
+      <label htmlFor="issue-category" className="mt-5 block max-w-2xl text-sm font-semibold text-navy">지금 필요한 도움
+        <select id="issue-category" value={issueCategory} onChange={(event) => setIssueCategory(event.target.value as IssueCategory | "")} className="mt-2 min-h-12 w-full rounded-lg border border-navy/25 bg-white px-3 text-sm font-medium text-navy">
           <option value="">문의 유형을 선택하세요</option>
-          {(Object.keys(supportDetails) as SupportNeed[]).map((id) => <option key={id} value={id}>{supportDetails[id].label}</option>)}
+          {(Object.keys(supportDetails) as IssueCategory[]).map((id) => <option key={id} value={id}>{supportDetails[id].label}</option>)}
         </select>
       </label>
 
-      {!outcome ? <p className="mt-5 border-l-2 border-gold bg-gold/5 px-4 py-3 text-sm leading-6 text-navy" role="status">유형을 직접 고르면 정확한 보낼 곳, 최소 정보와 다음 행동이 나타납니다. 메일은 자동으로 열리거나 발송되지 않습니다.</p> : (
+      {!outcome || !selectedDetails ? <p className="mt-5 border-l-2 border-gold bg-gold/5 px-4 py-3 text-sm leading-6 text-navy" role="status">8개 유형 중 하나를 직접 고르면 self-help, 최소 증거, channel과 다음 행동이 나타납니다. 자동 발송은 없습니다.</p> : (
         <div className="mt-6" aria-live="polite">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy">contact_support_next_action</p>
-          {supportNeed === "immediate_danger" ? (
+          <p className="mt-2 text-sm leading-6 text-muted">현재 destination: <strong className="break-all text-navy">{issueCategory === "urgent_or_deadline" ? "official_service" : supportEmail ?? "UNKNOWN · 공식 이메일 미설정"}</strong></p>
+
+          {issueCategory === "urgent_or_deadline" ? (
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <a href="tel:000" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-red-700 px-5 text-sm font-semibold text-white">지금 000 전화 →</a>
+              <a href="tel:000" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-red-700 px-5 text-sm font-semibold text-white">즉시 위험이면 000 전화 →</a>
               <a href="https://www.infrastructure.gov.au/media-communications/phone/triple-zero/how-call-triple-zero-000" target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-navy px-5 text-center text-sm font-semibold text-navy">Triple Zero 공식 안내 ↗</a>
-              <a href="/help-directory" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-navy px-5 text-center text-sm font-semibold text-navy sm:col-span-2">즉시 위험이 아닌 공식 도움 연락처 →</a>
+              <a href="/help-directory" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-navy px-5 text-center text-sm font-semibold text-navy sm:col-span-2">위기·마감별 공식 도움 연락처 →</a>
             </div>
-          ) : emailAction ? (
-            <a href={emailAction} className="mt-4 inline-flex min-h-12 w-full items-center justify-between rounded-lg bg-navy px-5 text-sm font-semibold text-white sm:w-auto sm:min-w-80"><span>경계를 확인하고 메일 앱 열기</span><span aria-hidden="true">→</span></a>
           ) : (
-            <p className="mt-4 border-l-2 border-gold bg-surface p-4 text-sm leading-6 text-muted">공식 이메일이 아직 설정되지 않았습니다. 주소를 추측하지 말고 이 페이지에서 현재 상태를 다시 확인하세요.</p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <a href={selectedDetails.selfHelpHref} className="inline-flex min-h-12 items-center justify-center rounded-lg border border-navy px-5 text-center text-sm font-semibold text-navy">{selectedDetails.selfHelpLabel} →</a>
+              {emailAction ? <a href={emailAction} className="inline-flex min-h-12 items-center justify-center rounded-lg bg-navy px-5 text-center text-sm font-semibold text-white">최소 정보로 메일 앱 열기 →</a> : <span className="flex min-h-12 items-center border-l-2 border-gold bg-surface px-4 text-sm text-muted">공식 이메일 UNKNOWN · 주소를 추측하지 마세요.</span>}
+            </div>
           )}
-          <dl className="mt-3 grid gap-3 md:grid-cols-2">
+
+          <dl className="mt-4 grid gap-3 md:grid-cols-2">
             {(Object.keys(fieldLabels) as Array<keyof ContactSupportOutcome>).map((field) => (
               <div key={field} className={`border p-4 ${field === "next_action" ? "border-gold bg-gold/5" : "border-border bg-surface"}`}>
                 <dt className="font-mono text-xs text-muted">{fieldLabels[field]}</dt>
-                <dd className="mt-2 break-words text-sm font-semibold leading-6 text-navy">{outcome[field]}</dd>
+                <dd className="mt-2 break-words text-sm font-semibold leading-6 text-navy">{displayValue(outcome[field])}</dd>
               </div>
             ))}
           </dl>
-          {supportNeed === "privacy_request" ? <a href="/privacy#retention-delete" className="mt-3 inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">개인정보 사본·삭제 경계 확인 →</a> : null}
+          <div className="mt-4 flex flex-col items-start gap-2 sm:flex-row sm:gap-6">
+            <a href="/privacy#retention-delete" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">개인정보·첨부·삭제 경계 →</a>
+            <a href="/terms" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">이용조건 →</a>
+          </div>
         </div>
       )}
     </section>
