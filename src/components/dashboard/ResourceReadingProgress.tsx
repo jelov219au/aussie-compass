@@ -80,7 +80,7 @@ export function ResourceReadingProgress({
           내 읽기 기록
         </h2>
         <p className="mt-5 font-mono text-4xl text-gold">
-          {completed}<span className="text-lg text-white/45"> / {articles.length}</span>
+          {completed}<span className="text-lg text-white/70"> / {articles.length}</span>
         </p>
         <div
           className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/15"
@@ -119,7 +119,7 @@ export function ResourceReadingProgress({
                   type="button"
                   aria-pressed={weeklyGoal === target}
                   onClick={() => chooseWeeklyGoal(target)}
-                  className={`min-h-10 flex-1 border px-2 text-xs font-semibold transition ${weeklyGoal === target ? "border-gold bg-gold text-navy" : "border-white/20 text-white/75 hover:border-white/50"}`}
+                  className={`min-h-11 flex-1 border px-2 text-xs font-semibold transition ${weeklyGoal === target ? "border-gold bg-gold text-navy" : "border-white/20 text-white/75 hover:border-white/50"}`}
                 >
                   주 {target}개
                 </button>
@@ -139,7 +139,7 @@ export function ResourceReadingProgress({
       <div className="p-7 sm:p-8 lg:pl-10">
         <div className="flex items-end justify-between gap-4 border-b border-border pb-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">다음으로 볼 자료</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-ink">다음으로 볼 자료</p>
             <h3 className="mt-1 text-xl font-semibold text-navy">
               {recommendations.length ? "이어서 읽어볼까요?" : "모든 자료에 아래까지 본 기록이 있어요"}
             </h3>
@@ -152,7 +152,7 @@ export function ResourceReadingProgress({
             {recommendations.map((article, index) => (
               <li key={article.href} className="border-b border-border last:border-b-0">
                 <Link href={article.href} className="group grid gap-2 py-5 sm:grid-cols-[2rem_minmax(0,1fr)_auto] sm:items-start sm:gap-4">
-                  <span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="font-mono text-xs text-gold-ink">{String(index + 1).padStart(2, "0")}</span>
                   <span>
                     <span className="block text-xs font-semibold text-muted">{article.category} · {article.readingTime}</span>
                     <strong className="mt-1 block text-base leading-6 text-navy">{article.title}</strong>
