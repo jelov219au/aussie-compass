@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [freePage, attribution, offerPage, commerce, decisionBoard] = await Promise.all([
+const [freePage, freeInspection, attribution, offerPage, commerce, decisionBoard] = await Promise.all([
   readFile(new URL("../src/app/property-inspection-checklist/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/PropertyInspectionChecklist.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/rentalApplicationProAttribution.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/rental-application-pro/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/commerce.ts", import.meta.url), "utf8"),
@@ -11,24 +12,19 @@ const [freePage, attribution, offerPage, commerce, decisionBoard] = await Promis
 
 const freeTool = freePage.indexOf("<PropertyInspectionChecklist />");
 const freeProject = freePage.indexOf('<LocalProjectChecklist storageKey="house-hunt-project"');
-const rentalInterest = freePage.indexOf('href="/rental-application-pro?from=property-inspection-checklist"');
 
-assert.ok(freeTool >= 0 && freeProject > freeTool && rentalInterest > freeProject, "the free inspection and follow-up project must remain available before the Rental Pack introduction");
+assert.ok(freeTool >= 0 && freeProject > freeTool, "the free inspection must remain available before the follow-up project");
 assert.ok(attribution.includes('"property-inspection-checklist"'), "the high-intent free route is missing from the Rental attribution allowlist");
 assert.ok(offerPage.includes("normalizeRentalApplicationProEntry(from)") && offerPage.includes("<RentalApplicationProVisitTracker entry={entry}"), "the introduction page must normalize and measure only the allowlisted source");
-assert.ok(freePage.includes("기능 차이와 준비 방식 보기"), "the free route needs an introduction-first Rental Pack action");
-for (const value of [
-  "방문 결과 저장·생활권 비교·다음 행동",
-  "증빙 준비 비교·개인정보 점검·신청 묶음",
-  "필요한 증빙 8종을 준비 전·확인 필요·완료로 비교",
-  "영문 소개문과 남은 확인 항목을 TXT 준비 묶음으로 저장",
-]) assert.ok(freePage.includes(value), `the free-to-Pro difference is missing: ${value}`);
+assert.ok(freeInspection.includes('canContinueToRentalPack = readiness.ready && data.decision === "apply"'), "the Rental introduction must follow a completed free apply decision");
+assert.ok(freeInspection.includes('router.push("/rental-application-pro?from=property-inspection-checklist")'), "the completed free result must still reach the Rental introduction");
+assert.equal((freeInspection.match(/Rental Pack Pro 보기/g) ?? []).length, 1, "the free result must expose one conditional Rental introduction action");
+assert.equal((freePage.match(/rental-application-pro\?from=property-inspection-checklist/g) ?? []).length, 0, "the static page must not expose an early Rental introduction");
 assert.ok(!freePage.includes("방문 결과 저장·후보 비교·다음 행동"), "the free route must not imply multi-property storage in the single-visit checklist");
 
-assert.ok(freePage.includes("getRentalApplicationPaymentReadiness") && freePage.includes("rentalProLive"), "the public Rental introduction must derive availability from the server-side readiness contract");
-assert.ok(freePage.includes("이 무료 페이지에서는 결제를 시작하지 않습니다") && freePage.includes("제품 페이지에서 현재 이용 가능 여부"), "the public interest path must stay introduction-only while describing the live product check accurately");
+assert.ok(freeInspection.includes("무료 신청 결정을 마쳤고") && freeInspection.includes("방문 메모와 세부 체크 결과는 옮기지 않습니다"), "the conditional handoff must explain the free-first and privacy boundary");
 assert.ok(!freePage.includes("유료 검증 준비 중"), "the launched Rental product must not keep the stale validation-preparation label");
-assert.ok(!freePage.includes("/api/checkout/rental-application-pro"), "the free route must never submit directly to Rental checkout");
+assert.ok(!freePage.includes("/api/checkout/rental-application-pro") && !freeInspection.includes("/api/checkout/rental-application-pro"), "the free route must never submit directly to Rental checkout");
 assert.ok(offerPage.includes("{checkoutAvailable &&") && offerPage.includes("<RentalApplicationProCheckoutForm"), "the offer must keep checkout behind readiness");
 assert.ok(commerce.includes('process.env.VERCEL_ENV !== "production"') && commerce.includes("RENTAL_APPLICATION_PRO_PAYMENTS_ENABLED"), "Rental checkout must remain fail-closed behind the product switch");
 

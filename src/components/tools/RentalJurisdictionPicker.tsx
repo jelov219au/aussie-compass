@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 
+import type { RentalJurisdictionId, RentalRelationship } from "@/lib/propertyInspection";
+
 type Jurisdiction = {
-  id: string;
+  id: RentalJurisdictionId;
   name: string;
   authority: string;
   href: string;
@@ -78,20 +80,46 @@ const jurisdictions: readonly Jurisdiction[] = [
   },
 ];
 
-export function RentalJurisdictionPicker() {
-  const [selectedId, setSelectedId] = useState("");
+type RentalJurisdictionPickerProps = {
+  value?: RentalJurisdictionId | "";
+  relationship?: RentalRelationship | "";
+  officialChecked?: boolean;
+  onChange?: (value: RentalJurisdictionId | "") => void;
+  onOfficialCheckedChange?: (checked: boolean) => void;
+};
+
+export function RentalJurisdictionPicker({ value, relationship = "", officialChecked, onChange, onOfficialCheckedChange }: RentalJurisdictionPickerProps = {}) {
+  const [internalSelectedId, setInternalSelectedId] = useState<RentalJurisdictionId | "">("");
+  const [internalOfficialChecked, setInternalOfficialChecked] = useState(false);
+  const selectedId = value ?? internalSelectedId;
+  const checked = officialChecked ?? internalOfficialChecked;
   const selected = jurisdictions.find(({ id }) => id === selectedId);
 
-  return <div className="mt-6">
+  function changeSelection(next: RentalJurisdictionId | "") {
+    if (onChange) onChange(next); else setInternalSelectedId(next);
+    if (onOfficialCheckedChange) onOfficialCheckedChange(false); else setInternalOfficialChecked(false);
+  }
+
+  function changeOfficialChecked(next: boolean) {
+    if (onOfficialCheckedChange) onOfficialCheckedChange(next); else setInternalOfficialChecked(next);
+  }
+
+  const relationshipCopy = relationship === "unsure"
+    ? "계약 관계를 모르면 상대의 임대·전대 권한과 agreement type을 서면으로 확인할 때까지 신청·송금을 멈추세요."
+    : relationship === "boarder_lodger_rooming_occupant"
+      ? "Boarding·lodging·rooming·occupancy는 일반 residential tenancy와 다른 규칙이 적용될 수 있습니다."
+      : "선택한 계약 관계에 적용되는 시작 절차와 현재 양식을 공식 원문에서 확인하세요.";
+
+  return <div id="official-rental-info" className="mt-6 scroll-mt-24">
     <label htmlFor="rental-jurisdiction" className="block max-w-md text-sm font-semibold text-navy">집이 있는 주·준주</label>
-    <select id="rental-jurisdiction" value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="mt-2 min-h-12 w-full max-w-md rounded-xl border-2 border-navy/15 bg-white px-4 text-base text-navy outline-none transition focus:border-navy focus:ring-2 focus:ring-gold/40">
+    <select id="rental-jurisdiction" value={selectedId} onChange={(event) => changeSelection(event.target.value as RentalJurisdictionId | "")} className="mt-2 min-h-12 w-full max-w-md rounded-xl border-2 border-navy/15 bg-white px-4 text-base text-navy outline-none transition focus:border-navy focus:ring-2 focus:ring-gold/40">
       <option value="">주·준주를 선택하세요</option>
       {jurisdictions.map(({ id, name }) => <option key={id} value={id}>{id} · {name}</option>)}
     </select>
     <div className="mt-4" aria-live="polite">
       {!selected ? <p className="rounded-2xl border-2 border-dashed border-navy/15 bg-surface p-5 text-sm leading-7 text-muted">지역을 선택하면 해당 관할의 계약 유형, Bond와 Condition report 공식 출발점만 보여드려요.</p> : <article className="overflow-hidden rounded-3xl border-2 border-navy/10 bg-white shadow-[0_10px_28px_rgba(26,39,68,0.06)]">
         <div className="flex items-center justify-between gap-4 bg-[#e8efee] px-5 py-4 sm:px-6"><span className="font-mono text-sm font-semibold text-gold-ink">{selected.id}</span><span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-muted">공식 출처</span></div>
-        <div className="p-5 sm:p-6"><h3 className="text-xl font-semibold text-navy">{selected.authority}</h3><dl className="mt-5 grid gap-4 md:grid-cols-2"><div className="rounded-2xl bg-surface p-4"><dt className="text-xs font-semibold uppercase tracking-[0.12em] text-gold-ink">계약 전에</dt><dd className="mt-2 text-sm leading-7 text-muted">{selected.agreement}</dd></div><div className="rounded-2xl bg-surface p-4"><dt className="text-xs font-semibold uppercase tracking-[0.12em] text-gold-ink">입주 전에</dt><dd className="mt-2 text-sm leading-7 text-muted">{selected.moveIn}</dd></div></dl><p className="mt-4 border-l-2 border-gold pl-3 text-xs leading-6 text-muted">규정·기한·양식은 주·준주와 계약 형태에 따라 달라지고 바뀔 수 있습니다. 서명하거나 송금하기 직전에 공식 원문을 다시 확인하세요.</p><a href={selected.href} target="_blank" rel="noreferrer" className="mt-5 inline-flex min-h-12 items-center justify-center rounded-xl border-2 border-navy bg-navy px-5 py-3 text-center text-sm font-semibold text-white hover:bg-navy-light">{selected.authority} 공식 안내 열기 ↗</a></div>
+        <div className="p-5 sm:p-6"><h3 className="text-xl font-semibold text-navy">{selected.authority}</h3><p className="mt-3 text-sm leading-7 text-muted">{relationshipCopy}</p><dl className="mt-5 grid gap-4 md:grid-cols-2"><div className="rounded-2xl bg-surface p-4"><dt className="text-xs font-semibold uppercase tracking-[0.12em] text-gold-ink">계약 전에</dt><dd className="mt-2 text-sm leading-7 text-muted">{selected.agreement}</dd></div><div className="rounded-2xl bg-surface p-4"><dt className="text-xs font-semibold uppercase tracking-[0.12em] text-gold-ink">입주 전에</dt><dd className="mt-2 text-sm leading-7 text-muted">{selected.moveIn}</dd></div></dl><div className="mt-4 rounded-2xl border border-navy/10 bg-surface p-4 text-xs leading-6 text-muted"><p>Bond 제도가 이 계약 유형에 적용되는 경우 접수 기관·담당자·시점·영수증을 확인하세요.</p><p className="mt-2">Condition report가 적용되는 경우 양식·기한·사진 방식을 확인하고, 적용되지 않으면 기존 상태를 어떤 서면 기록으로 합의할지 물으세요.</p></div><p className="mt-4 border-l-2 border-gold pl-3 text-xs leading-6 text-muted">규정·기한·양식은 주·준주와 계약 형태에 따라 달라지고 바뀔 수 있습니다. 서명하거나 송금하기 직전에 공식 원문을 다시 확인하세요.</p><a href={selected.href} target="_blank" rel="noreferrer" className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-xl border-2 border-navy bg-navy px-5 py-3 text-center text-sm font-semibold text-white hover:bg-navy-light sm:w-auto">계약 유형·Bond·Condition report 공식 안내 열기 ↗</a><label className="mt-4 flex min-h-11 items-center gap-3 rounded-xl border border-navy/15 bg-white px-4 py-2 text-sm font-semibold text-navy"><input type="checkbox" checked={checked} onChange={(event) => changeOfficialChecked(event.target.checked)} className="h-5 w-5 accent-navy" />선택한 관할의 공식 안내를 확인했어요.</label></div>
       </article>}
     </div>
   </div>;

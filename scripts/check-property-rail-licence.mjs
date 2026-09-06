@@ -14,13 +14,19 @@ function load(file, resolve = name => assert.fail(name), globals = {}, extra = "
 }
 const dates = load("src/lib/lifeReminders.ts"), registry = load("src/lib/railWorkAlerts.ts"), property = load("src/lib/propertyInspection.ts"), rail = load("src/lib/railWorkWatch.ts", name => name.endsWith("lifeReminders") ? dates : registry), handoff = load("src/lib/rentalReadyNowHandoff.ts");
 const visit = { mode: "share", propertyName: "방 A", statuses: { mould: "concern", windows: "ok", rent: "ok" }, notes: "수리 완료 증거 요청 · 금요일 답변" };
+const restoredVisit = property.parseInspection(JSON.stringify(visit));
 const area = { id: "old-123", label: "면접역", place: "Richmond Station", state: "VIC", lastCheckedAt: "2026-09-04", checks: { official: true, dates: true, alternative: true, accessibility: true } };
 let checks = 0;
 async function test(name, fn) { await fn(); checks++; console.log("PASS " + name); }
-await test("valid v1 inspection and rail serialize without changes", () => {
-  for (const [value, parse, serialize] of [[visit, property.parseInspection, property.serializeInspection], [[area], rail.parseWatchAreas, rail.serializeWatchAreas]]) {
-    const raw = JSON.stringify(value); assert.equal(JSON.stringify(parse(raw)), raw); assert.equal(serialize(value), raw);
-  }
+await test("valid v1 inspection migrates without data loss and rail serializes without changes", () => {
+  assert(restoredVisit);
+  assert.equal(restoredVisit.statuses.mould, "pending");
+  assert.equal([...restoredVisit.reviewNeeded].join(","), "mould");
+  assert.equal(restoredVisit.notes, visit.notes);
+  assert.equal(property.parseInspection(property.serializeInspection(restoredVisit)).statuses.mould, "pending");
+  const railRaw = JSON.stringify([area]);
+  assert.equal(JSON.stringify(rail.parseWatchAreas(railRaw)), railRaw);
+  assert.equal(rail.serializeWatchAreas([area]), railRaw);
 });
 await test("inspection rejects whole malformed schema and unknown status or mode", () => {
   for (const patch of [{ mode: "bad" }, { statuses: { mould: true } }, { statuses: { unknown: "ok" } }, { statuses: [] }, { notes: 2 }, { propertyName: "x".repeat(61) }, { extra: true }]) assert.equal(property.parseInspection(JSON.stringify({ ...visit, ...patch })), null);
@@ -33,11 +39,11 @@ await test("buy costs are separate and hidden rental statuses survive switching"
   assert.equal(property.parseInspection(JSON.stringify({ ...visit, mode: "buy" })).statuses.rent, "ok");
   for (const mode of ["share", "rent"]) assert(property.visibleInspectionGroups(mode).flatMap(g => g.items).some(i => i.id === "rent"));
 });
-await test("summary preserves good concern and unchecked lists plus full notes", () => {
-  const summary = property.inspectionSummary(visit);
-  for (const value of ["쉐어하우스", "방 A", "창문·방충망·환기", "곰팡이·습기·물 얼룩", "콘센트 위치와 상태", visit.notes]) assert(summary.includes(value), value);
-  assert(property.inspectionSummary({ ...visit, statuses: {} }).includes("아직 우려 표시 없음"));
-  assert(!property.inspectionSummary({ ...visit, mode: "buy" }).includes("정확한 주세"));
+await test("summary preserves reviewed pending and unchecked lists plus full notes", () => {
+  const summary = property.inspectionSummary(restoredVisit);
+  for (const value of ["쉐어하우스", "방 A", "곰팡이·습기·물 얼룩", "답변 대기", "미확인", visit.notes]) assert(summary.includes(value), value);
+  assert(property.inspectionSummary({ ...restoredVisit, statuses: {} }).includes("- 없음"));
+  assert(!property.inspectionSummary({ ...restoredVisit, mode: "buy" }).includes("정확한 주세"));
 });
 await test("rail rejects truthy unknown checks impossible dates duplicates and over-five", () => {
   for (const patch of [{ checks: { ...area.checks, other: true } }, { checks: [] }, { checks: { ...area.checks, official: "yes" } }, { checks: { official: true } }, { lastCheckedAt: "2026-02-30" }, { reviewStartedAt: "2026-2-03" }, { state: "WA" }, { extra: true }]) assert.equal(rail.parseWatchAreas(JSON.stringify([{ ...area, ...patch }])), null);
