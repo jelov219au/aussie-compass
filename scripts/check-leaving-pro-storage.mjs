@@ -5,13 +5,20 @@ import { runInNewContext } from "node:vm";
 import * as storage from "../src/lib/leavingAustraliaProStorage.ts";
 import * as dependencies from "../src/lib/leavingAustraliaDependencies.ts";
 import * as amounts from "../src/lib/leavingAustraliaProAmounts.ts";
+import * as outcomes from "../src/lib/leavingAustraliaOutcome.ts";
 
 const { readLeavingDraft, writeLeavingDraft, createLeavingArchive, parseLeavingArchive, leavingStorageKey: key, leavingArchiveMaxBytes: limit } = storage;
 const ts = createRequire(import.meta.url)("typescript");
 const source = await readFile(new URL("../src/components/tools/LeavingAustraliaProWorkspace.tsx", import.meta.url), "utf8");
 const helperSource = await readFile(new URL("../src/lib/leavingAustraliaProStorage.ts", import.meta.url), "utf8");
 const compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
-const draft = { departureDate: "2026-09-01", destination: "Synthetic destination", statuses: { bond: "waiting" }, settlements: [{ id: "s1", kind: "Bond", label: "Synthetic bond", dueDate: "", amount: "", status: "expected", note: "" }], questions: ["Synthetic question"] };
+const taskIds = ["final-pay", "income", "bond", "utilities", "bank", "access", "super", "departed", "visa", "dasp", "tax"];
+const legacyDraft = { departureDate: "2026-09-01", destination: "Synthetic destination", statuses: { bond: "waiting" }, settlements: [{ id: "s1", kind: "Bond", label: "Synthetic bond", dueDate: "", amount: "", status: "expected", note: "" }], questions: ["Synthetic question"] };
+const draft = {
+  ...legacyDraft,
+  applicability: Object.fromEntries(taskIds.map(id => [id, id === "bond" ? "applicable" : "not_applicable"])),
+  taskNotes: { bond: { nextAction: "Ask synthetic agent about bond", contact: "Synthetic agent", followUpOn: "2026-09-10", completionNote: "" } },
+};
 const raw = JSON.stringify(draft);
 const restored = { ...draft, destination: "Restored destination", questions: ["Restored question"] };
 const archive = createLeavingArchive(restored);
@@ -35,7 +42,8 @@ assert.deepEqual(parseLeavingArchive(createLeavingArchive(unfinished)), { ...dra
 const privateExtras = { ...draft, accessToken: "synthetic-secret", statuses: { ...draft.statuses, unknown: "done" }, settlements: [{ ...draft.settlements[0], accountNumber: "synthetic-private" }] };
 const exported = createLeavingArchive(privateExtras);
 assert(!exported.includes("synthetic-secret") && !exported.includes("synthetic-private") && !exported.includes("unknown"));
-assert.deepEqual(parseLeavingArchive(JSON.stringify({ format: "hoju-compass-leaving-pro", version: 1, draft: privateExtras, recoveryCode: "synthetic" })), draft);
+const legacyPrivateExtras = { ...legacyDraft, accessToken: "synthetic-secret", statuses: { ...legacyDraft.statuses, unknown: "done" }, settlements: [{ ...legacyDraft.settlements[0], accountNumber: "synthetic-private" }] };
+assert.deepEqual(parseLeavingArchive(JSON.stringify({ format: "hoju-compass-leaving-pro", version: 1, draft: legacyPrivateExtras, recoveryCode: "synthetic" })), legacyDraft);
 for (const value of ["{broken", "null", JSON.stringify({ format: "hoju-compass-eofy-pro", version: 1, draft }), JSON.stringify({ format: "hoju-compass-leaving-pro", version: 2, draft }), JSON.stringify({ format: "hoju-compass-leaving-pro", version: 1, draft: { ...draft, questions: null } })]) assert.throws(() => parseLeavingArchive(value));
 const minimal = { ...draft, destination: "" };
 const overhead = new Blob([createLeavingArchive(minimal)]).size;
@@ -106,6 +114,7 @@ function mount(original = raw, initialFault = "none", componentSource = source) 
       if (name === "@/lib/leavingAustraliaProStorage") return helpers;
       if (name === "@/lib/leavingAustraliaDependencies") return dependencies;
       if (name === "@/lib/leavingAustraliaProAmounts") return amounts;
+      if (name === "@/lib/leavingAustraliaOutcome") return outcomes;
       throw new Error(`Unexpected dependency ${name}`);
     },
   });
@@ -144,6 +153,14 @@ if (process.env.LEAVING_BEFORE_SOURCE) {
   const before = await readFile(process.env.LEAVING_BEFORE_SOURCE, "utf8");
   const app = mount("{broken", "none", before); app.tick();
   assert.equal(app.values.get(key), "{broken", "Existing unreadable draft must never be overwritten by the initial empty screen");
+}
+
+{
+  const app = mount(null);
+  app.click("현재 순서 검토 확인");
+  app.click("귀국 준비 요약 저장");
+  assert.equal(app.state.requests, 0, "An empty reviewed draft cannot produce the first summary");
+  for (const requirement of ["출국 예정일", "적용 여부", "다음 행동", "요약을 저장하려면"]) assert(app.text().includes(requirement));
 }
 
 for (const original of invalid) {
@@ -188,7 +205,7 @@ for (const external of [null, JSON.stringify(restored), "{external broken"]) {
   assert.equal(app.destination(), "Pending edit"); assert.equal(app.values.get(key), raw); assert.match(app.text(), /복원 후보/);
   app.state.fault = "none"; app.click("확인한 백업으로 현재 기록 교체"); app.tick();
   assert.equal(app.destination(), restored.destination); assert.deepEqual(JSON.parse(app.values.get(key)), restored); assert.equal(app.state.writes, 1);
-  app.click("귀국 준비 요약 저장"); assert.equal(app.state.requests, 0); assert.match(app.text(), /먼저 현재 기록/);
+  app.click("귀국 준비 요약 저장"); assert.equal(app.state.requests, 0); assert.match(app.text(), /요약을 저장하려면/);
   assert.equal(mount(app.values.get(key)).destination(), restored.destination);
 }
 {
@@ -320,7 +337,7 @@ for (const value of ["", "0", "bad", "1.", "1e", "-1", "1.005", "0.10", "9007199
   const summary = await app.state.downloads.at(-1).blob.text();
   for (const value of ["Ask synthetic employer", "Synthetic payroll team", "2026-09-10", "Updated confirmation note", "Return synthetic router", "no automatic reminder"]) assert(summary.includes(value));
   app.click("현재 기록 백업"); const archive = await app.state.downloads.at(-1).blob.text();
-  assert.equal(JSON.parse(archive).version, 2, "New notes require a version older clients will reject safely");
+  assert.equal(JSON.parse(archive).version, 3, "Applicability records require a version older clients will reject safely");
   assert.throws(() => parseLeavingArchive(JSON.stringify({ ...JSON.parse(archive), version: 1 })));
   assert.deepEqual(parseLeavingArchive(archive), JSON.parse(app.values.get(key)));
   const fresh = mount(raw); await fresh.review(archive); fresh.state.fault = "quota";
@@ -355,6 +372,10 @@ for (const [field, limit] of Object.entries(storage.leavingTaskNoteLimits)) {
 const taskExtras = { ...draft, taskNotes: { bond: { ...taskNote, accessToken: "synthetic-private" }, unknown: { ...taskNote, nextAction: "synthetic-hidden" } } };
 const portableTasks = parseLeavingArchive(createLeavingArchive(taskExtras));
 assert.deepEqual(portableTasks, { ...draft, taskNotes: { bond: taskNote } });
-assert.deepEqual(parseLeavingArchive(createLeavingArchive(draft)), draft, "Legacy v1 roundtrip remains exact without the optional field");
-assert.equal(JSON.parse(createLeavingArchive(draft)).version, 1);
+assert.deepEqual(parseLeavingArchive(createLeavingArchive(legacyDraft)), legacyDraft, "Legacy v1 roundtrip remains exact without optional fields");
+assert.equal(JSON.parse(createLeavingArchive(legacyDraft)).version, 1);
+const legacyV2 = { ...legacyDraft, taskNotes: { bond: taskNote } };
+assert.deepEqual(parseLeavingArchive(createLeavingArchive(legacyV2)), legacyV2, "Legacy v2 restore keeps task notes exactly");
+assert.equal(JSON.parse(createLeavingArchive(legacyV2)).version, 2);
+assert.equal(outcomes.assessLeavingOutcome(legacyV2, true).firstOutcomeReady, false, "Legacy v2 needs applicability review before summary");
 console.log("Leaving draft protection, task-note UI/TXT/JSON/legacy/failure flows, conflicts and amount persistence checks passed (synthetic hooks/files/storage; no browser acceptance).");

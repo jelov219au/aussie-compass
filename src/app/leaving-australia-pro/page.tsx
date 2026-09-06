@@ -18,7 +18,7 @@ const features = [
 ] as const;
 
 const sources = [
-  { label: "ATO", title: "귀국 후 Tax return", href: "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/returning-to-your-home-country", body: "일반 신고 시기, 해외에서의 온라인 신고와 제한적인 조기 신고 조건을 확인합니다." },
+  { label: "ATO", title: "귀국 후 Tax return", href: "https://www.ato.gov.au/individuals-and-families/your-tax-return/how-to-lodge-your-tax-return/lodge-your-tax-return-from-outside-australia", body: "일반 신고 시기, 해외에서의 온라인 신고와 제한적인 조기 신고 조건을 확인합니다." },
   { label: "ATO", title: "DASP 신청", href: "https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/temporary-residents-and-superannuation/departing-australia-superannuation-payment-dasp", body: "출국과 비자 종료 조건, 준비 정보, 처리 과정과 지급 확인 방법을 확인합니다." },
   { label: "ATO official system", title: "DASP 온라인 시스템", href: "https://www.applicant.tr.super.ato.gov.au/applicants/default.aspx?pid=1", body: "실제 자격 확인과 신청은 Hoju Compass가 아닌 ATO 공식 시스템에서 진행합니다." },
 ];

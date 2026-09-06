@@ -1,4 +1,5 @@
 export type TaskStatus = "todo" | "waiting" | "done";
+export type TaskApplicability = "applicable" | "not_applicable";
 export type SettlementStatus = "expected" | "followup" | "received";
 export type Settlement = { id: string; kind: string; label: string; dueDate: string; amount: string; status: SettlementStatus; note: string };
 export const leavingTaskNoteLimits = { nextAction: 500, contact: 120, followUpOn: 40, completionNote: 500 } as const;
@@ -10,6 +11,7 @@ export type DepartureDraft = {
   settlements: Settlement[];
   questions: string[];
   taskNotes?: Record<string, LeavingTaskNote>;
+  applicability?: Record<string, TaskApplicability>;
 };
 
 export const leavingStorageKey = "hoju-compass-leaving-pro-v1";
@@ -39,6 +41,8 @@ function isReadableDraft(value: unknown): value is DepartureDraft {
   }
   if (value.taskNotes !== undefined && (!isRecord(value.taskNotes)
     || !Object.values(value.taskNotes).every(note => isRecord(note) && Object.keys(leavingTaskNoteLimits).every(field => typeof note[field] === "string")))) return false;
+  if (value.applicability !== undefined && (!isRecord(value.applicability)
+    || !Object.values(value.applicability).every(item => item === "applicable" || item === "not_applicable"))) return false;
   return true;
 }
 
@@ -78,20 +82,24 @@ function portableDraft(draft: DepartureDraft): DepartureDraft {
       return [id, { nextAction: note.nextAction, contact: note.contact, followUpOn: note.followUpOn, completionNote: note.completionNote }];
     }),
   );
+  const applicability = draft.applicability === undefined ? undefined : Object.fromEntries(
+    taskIds.filter(id => Object.hasOwn(draft.applicability!, id)).map(id => [id, draft.applicability![id]]),
+  );
   return {
     departureDate: draft.departureDate, destination: draft.destination,
     statuses: Object.fromEntries(taskIds.filter(id => Object.hasOwn(draft.statuses, id)).map(id => [id, draft.statuses[id]])),
     settlements: draft.settlements.map(item => ({ id: item.id, kind: item.kind, label: item.label, dueDate: item.dueDate, amount: item.amount, status: item.status, note: item.note })),
     questions: [...draft.questions],
     ...(taskNotes === undefined ? {} : { taskNotes }),
+    ...(applicability === undefined ? {} : { applicability }),
   };
 }
 
-export type LeavingArchive = { format: "hoju-compass-leaving-pro"; version: 1 | 2; draft: DepartureDraft };
+export type LeavingArchive = { format: "hoju-compass-leaving-pro"; version: 1 | 2 | 3; draft: DepartureDraft };
 
 export function createLeavingArchive(draft: DepartureDraft): string {
   if (!isReadableDraft(draft)) throw new Error("출국 기록의 형식을 확인해 주세요.");
-  const archive: LeavingArchive = { format: "hoju-compass-leaving-pro", version: draft.taskNotes === undefined ? 1 : 2, draft: portableDraft(draft) };
+  const archive: LeavingArchive = { format: "hoju-compass-leaving-pro", version: draft.applicability === undefined ? draft.taskNotes === undefined ? 1 : 2 : 3, draft: portableDraft(draft) };
   const text = JSON.stringify(archive, null, 2);
   if (new Blob([text]).size > leavingArchiveMaxBytes) throw new Error("백업이 1 MiB 한도를 넘었습니다. 현재 기록은 그대로 유지됩니다.");
   return text;
@@ -101,8 +109,10 @@ export function parseLeavingArchive(text: string): DepartureDraft {
   if (new Blob([text]).size > leavingArchiveMaxBytes) throw new Error("1 MiB 이하의 Leaving 백업 파일을 선택해 주세요.");
   let archive: unknown;
   try { archive = JSON.parse(text); } catch { throw new Error("읽을 수 있는 JSON 백업 파일이 아닙니다."); }
-  if (!isRecord(archive) || archive.format !== "hoju-compass-leaving-pro" || (archive.version !== 1 && archive.version !== 2) || !isReadableDraft(archive.draft)
-    || (archive.version === 2) !== (archive.draft.taskNotes !== undefined)) {
+  if (!isRecord(archive) || archive.format !== "hoju-compass-leaving-pro" || (archive.version !== 1 && archive.version !== 2 && archive.version !== 3) || !isReadableDraft(archive.draft)
+    || (archive.version === 1 && (archive.draft.taskNotes !== undefined || archive.draft.applicability !== undefined))
+    || (archive.version === 2 && (archive.draft.taskNotes === undefined || archive.draft.applicability !== undefined))
+    || (archive.version === 3 && archive.draft.applicability === undefined)) {
     throw new Error("지원하는 Leaving 백업 형식이 아닙니다. 현재 기록은 바뀌지 않았습니다.");
   }
   return portableDraft(archive.draft);

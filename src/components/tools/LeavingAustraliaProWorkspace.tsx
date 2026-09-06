@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { assessLeavingDependencies } from "@/lib/leavingAustraliaDependencies";
 import { describeLeavingAmount, formatLeavingCents, parseLeavingAmount, summarizeLeavingAmounts } from "@/lib/leavingAustraliaProAmounts";
-import { createLeavingArchive, leavingArchiveMaxBytes, parseLeavingArchive, readLeavingDraft, requestLeavingDownload, writeLeavingDraft, getLeavingTaskNoteIssues, leavingTaskNoteLimits, type LeavingTaskNote, type DepartureDraft, type Settlement, type SettlementStatus, type TaskStatus } from "@/lib/leavingAustraliaProStorage";
+import { assessLeavingOutcome } from "@/lib/leavingAustraliaOutcome";
+import { createLeavingArchive, leavingArchiveMaxBytes, parseLeavingArchive, readLeavingDraft, requestLeavingDownload, writeLeavingDraft, getLeavingTaskNoteIssues, leavingTaskNoteLimits, type LeavingTaskNote, type DepartureDraft, type Settlement, type SettlementStatus, type TaskApplicability, type TaskStatus } from "@/lib/leavingAustraliaProStorage";
 const tasks = [
   { id: "final-pay", phase: "출국 전", title: "최종 급여·Payslip", detail: "마지막 급여일, 미사용 휴가와 고용주 Super 납입 시점을 서면 자료로 확인합니다." },
   { id: "income", phase: "출국 전", title: "Income statement·세금 자료", detail: "해외에서도 myGov와 ATO에 안전하게 접근할 수 있는지 확인하고 기록을 보관합니다." },
@@ -21,14 +22,14 @@ const taskTitles = new Map<string, string>(tasks.map((task) => [task.id, task.ti
 
 const initialDraft: DepartureDraft = { departureDate: "", destination: "", statuses: {}, settlements: [], questions: [] };
 const inputClass = "mt-1.5 min-h-11 w-full border border-border bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy focus:ring-2 focus:ring-navy/15";
-const taskLabels: Record<TaskStatus, string> = { todo: "준비 전", waiting: "확인·입금 대기", done: "완료" };
-const settlementLabels: Record<SettlementStatus, string> = { expected: "예정", followup: "확인 필요", received: "수령 완료" };
+const taskLabels: Record<TaskStatus, string> = { todo: "준비 전", waiting: "요청·신청함 / 결과 대기", done: "결과·근거 대조 완료" };
+const settlementLabels: Record<SettlementStatus, string> = { expected: "받을 예정", followup: "요청·신청함 / 확인 필요", received: "실제 수령·최종 청구 대조 완료" };
 const emptyTaskNote: LeavingTaskNote = { nextAction: "", contact: "", followUpOn: "", completionNote: "" };
 const taskNoteFields = [
   { key: "nextAction", label: "다음 행동·확인할 질문", placeholder: "예: 가상 직장 A에 최종 Payslip 요청" },
   { key: "contact", label: "연락할 기관·담당 역할", placeholder: "예: 가상 직장 A 급여 담당 · 개인 연락처 제외" },
   { key: "followUpOn", label: "다시 확인할 날·일정 메모", placeholder: "예: 2026-09-10 · 자동 알림 없음" },
-  { key: "completionNote", label: "확인 결과·완료 근거 메모", placeholder: "예: 확인 메일을 개인 보관함에 보관 · 원문·민감번호 제외" },
+  { key: "completionNote", label: "실제 결과·완료 근거 메모", placeholder: "예: 실제 입금 또는 최종 청구를 대조하고 확인 메일 보관 · 원문·민감번호 제외" },
 ] as const;
 
 function newSettlement(): Settlement {
@@ -165,15 +166,16 @@ export function LeavingAustraliaProWorkspace() {
     setStorageMessage("백업을 이 브라우저에 저장한 뒤 복원했습니다. 출국 정리 순서를 다시 검토해 주세요.");
   };
 
-  const completed = tasks.filter((task) => draft.statuses[task.id] === "done").length;
-  const waiting = tasks.filter((task) => draft.statuses[task.id] === "waiting");
-  const progress = Math.round((completed / tasks.length) * 100);
   const outstanding = useMemo(() => summarizeLeavingAmounts(draft.settlements), [draft.settlements]);
   const outstandingDisplay = outstanding.pending === 0 ? "미수령 항목 없음" : outstanding.valid === 0 ? "합산 가능한 금액 없음" : formatLeavingCents(outstanding.cents);
   const amountCoverage = `미수령 ${outstanding.pending}건 중 포함 ${outstanding.valid}건 · 미입력 ${outstanding.blank}건 · 입력 중 ${outstanding.incomplete}건 · 오류 ${outstanding.invalid}건 · 수령 완료 ${outstanding.received}건은 소계 제외`;
   const dependencyReview = useMemo(() => assessLeavingDependencies(draft), [draft]);
   const draftSignature = useMemo(() => JSON.stringify(draft), [draft]);
   const dependencyReviewed = reviewedDraftSignature === draftSignature;
+  const outcome = useMemo(() => assessLeavingOutcome(draft, dependencyReviewed), [draft, dependencyReviewed]);
+  const completed = outcome.completedTaskIds.length;
+  const waiting = tasks.filter((task) => draft.applicability?.[task.id] === "applicable" && draft.statuses[task.id] === "waiting");
+  const progress = outcome.progress;
   const daysUntilDeparture = useMemo(() => {
     if (!draft.departureDate) return null;
     const target = new Date(`${draft.departureDate}T12:00:00`);
@@ -182,6 +184,12 @@ export function LeavingAustraliaProWorkspace() {
 
   const updateSettlement = <K extends keyof Settlement>(id: string, key: K, value: Settlement[K]) => setDraft((current) => ({ ...current, settlements: current.settlements.map((item) => item.id === id ? { ...item, [key]: value } : item) }));
   const updateTaskNote = (id: string, key: keyof LeavingTaskNote, value: string) => setDraft(current => ({ ...current, taskNotes: { ...current.taskNotes, [id]: { ...(current.taskNotes?.[id] ?? emptyTaskNote), [key]: value } } }));
+  const updateApplicability = (id: string, value: TaskApplicability | "") => setDraft(current => {
+    const applicability = { ...current.applicability };
+    if (value) applicability[id] = value;
+    else delete applicability[id];
+    return { ...current, applicability };
+  });
   const addQuestion = () => {
     const value = question.trim();
     if (!value) return;
@@ -190,8 +198,8 @@ export function LeavingAustraliaProWorkspace() {
   };
 
   const downloadSummary = () => {
-    if (!dependencyReviewed) {
-      setMessage("먼저 현재 기록의 출국 정리 의존성 검토를 확인해 주세요.");
+    if (!outcome.firstOutcomeReady) {
+      setMessage(`요약을 저장하려면 ${outcome.firstOutcomeIssues.join(" ")}`);
       return;
     }
     const settlementLabel = (id: string) => {
@@ -202,7 +210,7 @@ export function LeavingAustraliaProWorkspace() {
       "HOJU COMPASS — LEAVING AUSTRALIA PREPARATION SUMMARY",
       `Departure date: ${draft.departureDate || "Not set"}`,
       `Destination label: ${draft.destination || "Not set"}`,
-      `Task progress: ${completed}/${tasks.length}`,
+      `Task completion with evidence: ${completed}/${tasks.length}`,
       "",
       "CLOSURE ORDER REVIEW",
       `Review flags: ${dependencyReview.totalFlags}`,
@@ -227,7 +235,7 @@ export function LeavingAustraliaProWorkspace() {
       ...tasks.flatMap((task) => {
         const note = draft.taskNotes?.[task.id];
         return [
-          `- [${taskLabels[draft.statuses[task.id] ?? "todo"]}] ${task.phase} / ${task.title}`,
+          `- [${draft.applicability?.[task.id] === "not_applicable" ? "해당 없음" : taskLabels[draft.statuses[task.id] ?? "todo"]}] ${task.phase} / ${task.title}`,
           ...(note ? [
             `  Next action / question: ${note.nextAction || "Not recorded"}`,
             `  Contact organisation / role: ${note.contact || "Not recorded"}`,
@@ -273,21 +281,28 @@ export function LeavingAustraliaProWorkspace() {
       <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="departure-task-heading">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Ordered handoff</p><h2 id="departure-task-heading" className="mt-2 text-xl font-semibold text-navy">출국 전후 준비 순서</h2></div>
-          <div className="text-right"><p className="font-mono text-3xl text-navy">{progress}%</p><p className="text-xs text-muted">{completed}/{tasks.length} 완료</p></div>
+          <div className="text-right"><p className="font-mono text-3xl text-navy">{progress}%</p><p className="text-xs text-muted">근거 확인 {completed} · 정리 {outcome.closedTaskIds.length}/{tasks.length}</p></div>
         </div>
         <p id="departure-task-note-help" className="mt-4 text-xs leading-5 text-muted">각 작업을 펼쳐 다음 행동, 연락할 기관·역할, 다시 확인할 날과 완료 근거를 적으세요. 원본 서류·개인 연락처·TFN·계좌·여권·비자·Super 번호·로그인 정보는 입력하지 마세요. 메모는 TXT·JSON에 포함되며 상태를 자동 변경하거나 알림을 보내지 않습니다. 웹·설치 앱의 저장 공간은 다를 수 있어 기기 이동에는 JSON 백업·복원이 필요합니다.</p>
-        <p className="mt-2 text-xs leading-5 text-muted">기존 v1 백업도 복원할 수 있습니다. 작업별 기록을 담은 v2 백업은 구버전에서 열리지 않으므로 최신 사이트에서 복원하세요.</p>
+        <p className="mt-2 text-xs leading-5 text-muted">기존 v1·v2 백업도 기록 손실 없이 복원합니다. 예전 백업에는 적용 여부가 없으므로 각 항목을 다시 선택한 뒤 현재 순서를 검토해 주세요.</p>
         <div className="mt-5 h-1.5 bg-surface"><div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} /></div>
         <ol className="mt-6 divide-y divide-border border-y border-navy/20">{tasks.map((task, index) => {
           const status = draft.statuses[task.id] ?? "todo";
+          const applicability = draft.applicability?.[task.id] ?? "";
           const note = draft.taskNotes?.[task.id] ?? emptyTaskNote;
           const issues = getLeavingTaskNoteIssues(note);
+          const doneNeedsEvidence = outcome.incompleteDoneIds.includes(task.id);
+          const doneNeedsSettlement = outcome.moneyTasksWithoutReceivedSettlement.includes(task.id);
           return <li key={task.id} className="py-5">
-            <div className="grid gap-3 sm:grid-cols-[2rem_1fr_9rem] sm:items-start">
+            <div className="grid gap-3 sm:grid-cols-[2rem_1fr_10rem] sm:items-start">
               <span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span>
               <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{task.phase}</p><h3 className="mt-1 font-semibold text-navy">{task.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{task.detail}</p></div>
-              <label className="text-xs font-medium text-muted">상태<select aria-label={`${task.title} 상태`} className="mt-1 min-h-11 w-full border border-border bg-white px-2 text-sm text-navy" value={status} onChange={(event) => setDraft((current) => ({ ...current, statuses: { ...current.statuses, [task.id]: event.target.value as TaskStatus } }))}><option value="todo">준비 전</option><option value="waiting">확인·입금 대기</option><option value="done">완료</option></select></label>
+              <div className="space-y-3">
+                <label className="block text-xs font-medium text-muted">적용 여부<select aria-label={`${task.title} 적용 여부`} className="mt-1 min-h-11 w-full border border-border bg-white px-2 text-sm text-navy" value={applicability} onChange={(event) => updateApplicability(task.id, event.target.value as TaskApplicability | "")}><option value="">선택 필요</option><option value="applicable">내게 해당</option><option value="not_applicable">해당 없음</option></select></label>
+                <label className="block text-xs font-medium text-muted">상태<select aria-label={`${task.title} 상태`} disabled={applicability !== "applicable"} className="mt-1 min-h-11 w-full border border-border bg-white px-2 text-sm text-navy disabled:bg-surface disabled:text-muted" value={status} onChange={(event) => setDraft((current) => ({ ...current, statuses: { ...current.statuses, [task.id]: event.target.value as TaskStatus } }))}>{Object.entries(taskLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+              </div>
             </div>
+            {doneNeedsEvidence || doneNeedsSettlement ? <p className="mt-3 border-l-2 border-red-600 pl-3 text-xs leading-5 text-red-800">이 작업은 아직 완료로 계산하지 않습니다. {doneNeedsEvidence ? "실제 결과와 완료 근거를 기록해 주세요. " : ""}{doneNeedsSettlement ? "연결된 정산을 실제 수령·최종 청구 대조 완료로 기록해 주세요." : ""}</p> : null}
             <details className="mt-3 border border-border p-3" open={issues.length ? true : undefined}>
               <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-navy focus-visible:outline-2 focus-visible:outline-navy">{task.title} 후속 기록{Object.values(note).some(value => value.trim()) ? " · 기록 있음" : ""}</summary>
               <fieldset className="min-w-0" aria-describedby="departure-task-note-help">
@@ -314,7 +329,7 @@ export function LeavingAustraliaProWorkspace() {
           <div className="min-w-0 max-w-full text-right"><p className="break-words font-mono text-2xl text-navy">{outstandingDisplay}</p><p className="text-xs text-muted">미수령 유효 입력 소계 · 검증 안 됨</p></div>
         </div>
         <p className="mt-3 text-xs leading-5 text-muted">{amountCoverage}</p>
-        <p className="mt-4 border-l-2 border-gold pl-3 text-xs leading-5 text-muted">계좌번호, TFN, Super 회원번호는 적지 마세요. 금액은 받을 돈의 일정 추적용이며 실제 지급액이나 DASP 예상액이 아닙니다. 수령 완료로 표시해도 입력 금액이 검증되지는 않습니다.</p>
+        <p className="mt-4 border-l-2 border-gold pl-3 text-xs leading-5 text-muted">계좌번호, TFN, Super 회원번호는 적지 마세요. 금액은 받을 돈의 일정 추적용이며 실제 지급액이나 DASP 예상액이 아닙니다. 요청·신청 상태와 실제 입금·최종 청구 대조를 구분해 기록하세요.</p>
         <p id="settlement-amount-help" className="mt-3 text-xs leading-5 text-muted">0은 명시적인 입력입니다. 빈값·입력 중·오류 금액은 합계에 넣지 않습니다. 음수는 합산하지 않으며, 센트 미만 금액은 반올림하지 않습니다. 예: 1234.56 (쉼표·통화기호 제외). 원문은 저장·백업에 그대로 유지됩니다.</p>
         <div className="mt-5 space-y-4">{draft.settlements.map((item, index) => {
           const amount = parseLeavingAmount(item.amount);
@@ -347,10 +362,10 @@ export function LeavingAustraliaProWorkspace() {
           <article className="border border-border bg-white p-4"><h3 className="text-sm font-semibold text-navy">DASP 순서 기록</h3><p className="mt-2 text-xs leading-5 text-muted">출국·비자 종료·Super 확인 중 미완료 {dependencyReview.daspPrerequisites.length}개</p><ul className="mt-3 space-y-1 border-t border-border pt-3">{dependencyReview.daspPrerequisites.map((id) => <li key={id} className="text-xs leading-5 text-navy">{taskTitles.get(id) ?? id}</li>)}{!dependencyReview.daspPrerequisites.length ? <li className="text-xs leading-5 text-muted">기록상 전제 순서 완료</li> : null}</ul></article>
           <article className="border border-border bg-white p-4"><h3 className="text-sm font-semibold text-navy">해외 접근 수단</h3><p className="mt-2 text-xs leading-5 text-muted">{dependencyReview.accessContinuityReady ? "은행·myGov·이메일 복구 수단 변경을 완료로 기록했습니다." : "호주 번호 해지 전에 해외에서 쓸 복구 수단을 확인하세요."}</p>{dependencyReview.bankMarkedDoneTooEarly || dependencyReview.daspMarkedDoneTooEarly ? <p className="mt-3 border-l-2 border-red-600 pl-3 text-xs leading-5 text-red-800">완료로 표시한 작업과 남은 전제 기록이 충돌합니다. 상태를 다시 확인하세요.</p> : null}</article>
         </div>
-        <button type="button" onClick={() => { setReviewedDraftSignature(draftSignature); setMessage("현재 기록의 출국 정리 의존성을 확인했습니다. 이제 요약을 저장할 수 있습니다."); }} className={dependencyReviewed ? "mt-5 min-h-11 border border-navy px-4 text-sm font-semibold text-navy" : "mt-5 min-h-11 bg-navy px-4 text-sm font-semibold text-white hover:bg-navy-light"}>{dependencyReviewed ? "현재 순서 검토 완료" : "현재 순서 검토 확인"}</button>
+        <button type="button" onClick={() => { setReviewedDraftSignature(draftSignature); setMessage("현재 기록의 출국 정리 의존성을 확인했습니다. 요약 저장 조건도 아래에서 확인해 주세요."); }} className={dependencyReviewed ? "mt-5 min-h-11 border border-navy px-4 text-sm font-semibold text-navy" : "mt-5 min-h-11 bg-navy px-4 text-sm font-semibold text-white hover:bg-navy-light"}>{dependencyReviewed ? "현재 순서 검토 완료" : "현재 순서 검토 확인"}</button>
         {dependencyReviewed ? <p className="mt-3 text-xs leading-5 text-muted">작업별 메모, 상태나 정산 기록을 수정하면 검토 확인이 자동으로 만료됩니다.</p> : null}
       </section>
-      <section className="bg-navy p-5 text-white sm:p-7" aria-labelledby="departure-summary-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Departure summary</p><h2 id="departure-summary-heading" className="mt-2 text-xl font-semibold">개인 인계 요약</h2><dl className="mt-5 grid grid-cols-3 gap-px bg-white/15 text-center"><div className="bg-navy p-3"><dt className="text-xs text-white/55">완료</dt><dd className="mt-1 text-xl font-semibold">{completed}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">대기</dt><dd className="mt-1 text-xl font-semibold">{waiting.length}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">정산</dt><dd className="mt-1 text-xl font-semibold">{draft.settlements.length}</dd></div></dl><button type="button" onClick={downloadSummary} className="mt-5 min-h-11 bg-gold px-4 text-sm font-semibold text-navy hover:bg-white">귀국 준비 요약 저장</button><p className="mt-4 min-h-5 text-xs leading-5 text-white/60" aria-live="polite">{message}</p></section>
+      <section className="bg-navy p-5 text-white sm:p-7" aria-labelledby="departure-summary-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Departure summary</p><h2 id="departure-summary-heading" className="mt-2 text-xl font-semibold">개인 인계 요약</h2><dl className="mt-5 grid grid-cols-3 gap-px bg-white/15 text-center"><div className="bg-navy p-3"><dt className="text-xs text-white/55">근거 확인 완료</dt><dd className="mt-1 text-xl font-semibold">{completed}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">결과 대기</dt><dd className="mt-1 text-xl font-semibold">{waiting.length}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">정산</dt><dd className="mt-1 text-xl font-semibold">{draft.settlements.length}</dd></div></dl>{outcome.firstOutcomeIssues.length ? <div className="mt-5 border border-white/20 p-4"><p className="text-sm font-semibold">요약 저장 전 확인</p><ul className="mt-2 space-y-1">{outcome.firstOutcomeIssues.map((issue) => <li key={issue} className="text-xs leading-5 text-white/70">· {issue}</li>)}</ul></div> : <p className="mt-5 text-sm text-white/75">현재 기록으로 개인 인계 요약을 저장할 수 있습니다.</p>}<button type="button" onClick={downloadSummary} className="mt-5 min-h-11 bg-gold px-4 text-sm font-semibold text-navy hover:bg-white">귀국 준비 요약 저장</button><p className="mt-4 min-h-5 text-xs leading-5 text-white/60" aria-live="polite">{message}</p></section>
     </div>
   </div>;
 }
