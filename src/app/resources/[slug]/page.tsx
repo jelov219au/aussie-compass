@@ -10,6 +10,7 @@ import { ArticleNextStep } from "@/components/resources/ArticleNextStep";
 import { EditorialTrustEvidence } from "@/components/editorial/EditorialTrustEvidence";
 import { ArticleReadingNav } from "@/components/resources/ArticleReadingNav";
 import { FinancialHardshipRoutes } from "@/components/resources/FinancialHardshipRoutes";
+import { JobEndDeadlineNextAction } from "@/components/resources/JobEndDeadlineNextAction";
 import { EnergySupportJurisdictionPicker } from "@/components/tools/EnergySupportJurisdictionPicker";
 import { ResumeTemplateDownloadLink } from "@/components/analytics/ResumeTemplateDownloadLink";
 import { Container } from "@/components/ui/Container";
@@ -58,6 +59,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   if (!article) notFound();
 
   const relatedArticles = getRelatedArticles(article.slug);
+  const jobEndArticle = article.slug === "australia-job-ending-final-pay-dismissal-guide";
   const readingSections = article.sections.map((section, index) => ({ id: `section-${index + 1}`, label: section.heading }));
 
   return (
@@ -79,13 +81,20 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         sources={article.sources}
       />
       <Header />
-      <main className="py-12 sm:py-16">
+      <main className={jobEndArticle ? "py-5 sm:py-8" : "py-12 sm:py-16"}>
         <Container>
           <Link href="/resources" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">
             &larr; 실용 자료 목록
           </Link>
           <article className="mx-auto mt-5 max-w-4xl">
-            <header className="rounded-[2rem] border-2 border-navy/10 bg-white p-6 shadow-[0_16px_38px_rgba(26,39,68,0.07)] sm:p-9">
+            {jobEndArticle ? <>
+              <header>
+                <h1 className="max-w-3xl text-2xl font-semibold leading-8 tracking-tight text-navy sm:text-4xl sm:leading-tight">{article.title}</h1>
+                <p className="mt-3 text-sm leading-6 text-muted">급여·통지수당·요청받은 증명서의 기한을 따로 확인하세요. 해고 신청의 21일 기한은 별도입니다.</p>
+              </header>
+              <JobEndDeadlineNextAction />
+              <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted"><p>{article.category} · 업데이트 <time dateTime={article.updatedAt}>{article.updatedAt?.replaceAll("-", ".")}</time></p><PageShareButton /></div>
+            </> : <header className="rounded-[2rem] border-2 border-navy/10 bg-white p-6 shadow-[0_16px_38px_rgba(26,39,68,0.07)] sm:p-9">
               <div className="mb-5 flex flex-wrap gap-2">
                 <span className="border border-border bg-white/60 px-3 py-1.5 text-xs font-semibold text-navy">
                   {articleRegionLabels[getArticleRegion(article)]}
@@ -125,7 +134,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 )}
                 <PageShareButton />
               </div>
-            </header>
+            </header>}
 
             <EditorialTrustEvidence
               outcome={deriveEditorialTrust(article.editorialTrust ?? { contentScope: "article" })}
@@ -142,7 +151,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 {article.quickSummary.map((summary, index) => (
                   <li key={summary} className="grid grid-cols-[2rem_1fr] gap-3 text-sm leading-7 text-white/90 sm:text-base">
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gold font-mono text-xs font-bold text-navy">{index + 1}</span>
-                    <span>{summary}</span>
+                    <span className="min-w-0 break-words">{summary}</span>
                   </li>
                 ))}
               </ol>
