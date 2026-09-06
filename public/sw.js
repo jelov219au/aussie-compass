@@ -1,4 +1,5 @@
-const CACHE_NAME = "hoju-compass-offline-v2";
+const CACHE_PREFIX = "hoju-compass-offline-";
+const CACHE_NAME = `${CACHE_PREFIX}v3`;
 const OFFLINE_URL = "/offline";
 
 self.addEventListener("install", (event) => {
@@ -7,7 +8,7 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))));
+  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map((key) => caches.delete(key)))));
   self.clients.claim();
 });
 

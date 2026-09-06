@@ -19,8 +19,9 @@ export default function InstallPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">내 휴대폰에 Hoju Compass</p>
           <h1 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">홈 화면에서<br />바로 열어요.</h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-white/80 sm:text-base">앱스토어 다운로드나 Hoju Compass 계정 없이 추가할 수 있어요. 설치하지 않아도 같은 도구를 쓸 수 있습니다.</p>
-          <InstallAppButton />
         </section>
+
+        <InstallAppButton />
 
         <section id="manual-install" tabIndex={-1} aria-labelledby="manual-install-title" className="mt-12 scroll-mt-24 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">Manual install</p>
@@ -58,11 +59,23 @@ export default function InstallPage() {
               </details>
               <a href="https://support.google.com/chrome/answer/9658361?hl=en&co=GENIE.Platform%3DAndroid" target="_blank" rel="noreferrer" className="mt-5 inline-flex min-h-11 items-center rounded-lg border border-border px-3 text-sm font-semibold text-navy hover:bg-surface">Chrome 공식 안내 ↗<span className="sr-only"> (새 창)</span></a>
             </article>
+            <article className="rounded-2xl border border-border bg-white p-5 sm:p-6">
+              <p className="font-mono text-xs text-gold-ink">DESKTOP · CHROME</p>
+              <h3 className="mt-2 text-xl font-semibold text-navy">Chrome에서 페이지를 앱으로 설치</h3>
+              <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm leading-7 text-muted"><li>Chrome에서 Hoju Compass를 엽니다.</li><li>더보기 → 전송, 저장, 공유를 엽니다.</li><li>‘페이지를 앱으로 설치’를 선택합니다. 주소창 설치 아이콘은 표시될 때만 이용하세요.</li></ol>
+              <a href="https://support.google.com/chrome/answer/9658361?co=GENIE.Platform%3DDesktop&hl=en" target="_blank" rel="noreferrer" className="mt-5 inline-flex min-h-11 items-center rounded-lg border border-border px-3 text-sm font-semibold text-navy">Chrome 데스크톱 공식 안내 ↗<span className="sr-only"> (새 창)</span></a>
+            </article>
+            <article className="rounded-2xl border border-border bg-white p-5 sm:p-6">
+              <p className="font-mono text-xs text-gold-ink">DESKTOP · EDGE</p>
+              <h3 className="mt-2 text-xl font-semibold text-navy">Edge에서 사이트를 앱으로 설치</h3>
+              <ol className="mt-4 list-decimal space-y-3 pl-5 text-sm leading-7 text-muted"><li>Edge에서 Hoju Compass를 엽니다.</li><li>설정 및 기타 → 기타 도구 → 앱을 엽니다.</li><li>‘이 사이트를 앱으로 설치’를 선택합니다. 조직 관리 정책이 막으면 우회하지 말고 웹으로 계속 이용하세요.</li></ol>
+              <a href="https://support.microsoft.com/en-us/edge/install-manage-or-uninstall-apps-in-microsoft-edge" target="_blank" rel="noreferrer" className="mt-5 inline-flex min-h-11 items-center rounded-lg border border-border px-3 text-sm font-semibold text-navy">Edge 공식 안내 ↗<span className="sr-only"> (새 창)</span></a>
+            </article>
           </div>
-          <p className="mt-4 text-xs leading-6 text-muted">공식 안내 확인: 2026-08-31. 출처는 인터넷 연결이 필요한 외부 사이트이며 새 창에서 열립니다.</p>
+          <p className="mt-4 text-xs leading-6 text-muted">공식 안내 확인: 2026-09-07. 출처는 인터넷 연결이 필요한 외부 사이트이며 새 창에서 열립니다.</p>
         </section>
 
-        <section className="mt-12" aria-labelledby="install-boundaries">
+        <section id="copy-safety" className="mt-12 scroll-mt-24" aria-labelledby="install-boundaries">
           <h2 id="install-boundaries" className="text-2xl font-semibold text-navy">설치 전, 이것만 확인하세요</h2>
           <div className="mt-6 grid gap-5 lg:grid-cols-3">
             <article className="rounded-2xl bg-surface p-5">
@@ -81,6 +94,15 @@ export default function InstallPage() {
               <p className="mt-3 text-sm leading-7 text-muted">설치한다고 모든 페이지가 오프라인에 저장되지는 않습니다. 연결이 끊기면 열어둔 화면을 닫지 말고 연결 복구 후 다시 시도하세요. 오프라인 재실행이나 도구 작동을 보장하지 않습니다.</p>
               <p className="mt-3 text-sm leading-7 text-muted">공식 정보 확인, 외부 예약, 결제·구매 복원은 온라인에서 진행하세요.</p>
             </article>
+          </div>
+        </section>
+
+        <section id="pwa-lifecycle-management" className="mt-12 border-y border-navy/20 py-8" aria-labelledby="pwa-lifecycle-title">
+          <h2 id="pwa-lifecycle-title" className="text-2xl font-semibold text-navy">업데이트·앱 제거·사이트 데이터 삭제는 서로 다릅니다</h2>
+          <div className="mt-6 grid gap-5 lg:grid-cols-3">
+            <article className="rounded-2xl bg-white p-5 ring-1 ring-border"><h3 className="font-semibold text-navy">새 버전과 새로고침</h3><p className="mt-3 text-sm leading-7 text-muted">새 service worker가 활성화돼도 현재 문서가 새로고침됐다는 뜻은 아닙니다. 저장하지 않은 작업을 마치거나 백업한 뒤 온라인에서 새로고침하세요.</p></article>
+            <article className="rounded-2xl bg-white p-5 ring-1 ring-border"><h3 className="font-semibold text-navy">아이콘·설치 앱만 제거</h3><p className="mt-3 text-sm leading-7 text-muted">제거 화면에서 사이트 데이터 삭제 선택이 따로 있는지 확인하세요. 플랫폼마다 결과가 달라질 수 있으므로 기록이 남는다고 단정하지 않습니다.</p><a href="#manual-install" className="mt-3 inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold decoration-2">플랫폼별 공식 안내 보기 ↑</a></article>
+            <article className="rounded-2xl bg-white p-5 ring-1 ring-border"><h3 className="font-semibold text-navy">사이트 데이터 삭제</h3><p className="mt-3 text-sm leading-7 text-muted">로컬 기록, cookie·access 상태, Cache Storage와 service worker가 지워질 수 있습니다. 지원 도구의 백업을 만들고 다시 열어 확인한 뒤 진행하세요. JSON 백업에는 구매 이용권이나 복원 코드가 포함되지 않습니다.</p><div className="mt-3 flex flex-wrap gap-3"><Link href="/data-transfer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold decoration-2">백업 확인</Link><Link href="/payment-help" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold decoration-2">이용권 복구</Link></div></article>
           </div>
         </section>
       </Container>

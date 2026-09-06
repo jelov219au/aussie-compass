@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 import ts from "typescript";
+import { derivePwaInstallLifecycle, pwaLifecycleFields } from "../src/lib/pwaInstallLifecycle.ts";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -33,6 +34,7 @@ async function harness(path, name) {
         cleanups.push(effect());
       }
     },
+    useMemo(factory) { cursor++; return factory(); },
   };
   const jsx = (type, props) => ({ type, props });
   const testModule = { exports: {} };
@@ -41,6 +43,7 @@ async function harness(path, name) {
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "@vercel/analytics": { track: (...args) => analytics.push(args) },
     "next/link": "a",
+    "@/lib/pwaInstallLifecycle": { derivePwaInstallLifecycle, pwaLifecycleFields },
     "@/content": { getContent: () => ({ brand: { name: "HojuCompass" }, nav: { tools: "도구", guides: "가이드" } }) },
     "@/components/ui/Container": { Container: "div" },
   };
@@ -53,9 +56,12 @@ async function harness(path, name) {
       return imports[id];
     },
     window: {
+      matchMedia: () => ({ matches: false }),
+      location: { reload() {} },
       addEventListener: (type, fn) => listeners.set(type, fn),
       removeEventListener: (type, fn) => { if (listeners.get(type) === fn) listeners.delete(type); },
     },
+    navigator: { onLine: true },
   });
   function nodes(node) {
     if (Array.isArray(node)) return node.flatMap(nodes);
@@ -132,6 +138,8 @@ for (const outcome of ["accepted", "dismissed", "prompt-error", "choice-error"])
   tree = install.render();
   assert.equal(find(tree, "button"), undefined, "No inert install button before a browser offer");
   assert.equal(find(tree, "a").props.href, "#manual-install");
+  find(tree, "select").props.onChange({ target: { value: "android_chrome" } });
+  tree = install.render();
   let prompts = 0;
   let release;
   const wait = new Promise((resolve) => { release = resolve; });
@@ -146,7 +154,7 @@ for (const outcome of ["accepted", "dismissed", "prompt-error", "choice-error"])
   const pending = button.props.onClick();
   await button.props.onClick();
   assert.equal(prompts, 1, "Rapid clicks must not reuse a single-use prompt");
-  assert.equal(find(install.render(), "button").props.disabled, true);
+  assert.equal(find(install.render(), "button"), undefined, "Consumed prompt is removed while awaiting the browser choice");
   release();
   await pending;
   tree = install.render();
@@ -155,7 +163,8 @@ for (const outcome of ["accepted", "dismissed", "prompt-error", "choice-error"])
   const status = tree.find((node) => node.props?.role === "status");
   assert.match(text(status), outcome === "accepted" ? /설치 요청/ : outcome === "dismissed" ? /취소/ : /열지 못했습니다/);
   install.emit("appinstalled");
-  assert.match(text(install.render().find((node) => node.props?.role === "status")), /추가되었습니다/);
+  assert.match(text(install.render().find((node) => node.props?.role === "status")), /설치 완료 신호/);
+  assert.equal(install.analytics.length, 0, "Install lifecycle does not emit analytics");
   install.cleanup();
   assert.equal(install.listeners.size, 0, "Remove both global listeners on unmount");
 }
