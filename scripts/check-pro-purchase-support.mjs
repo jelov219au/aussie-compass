@@ -41,6 +41,7 @@ for (let active = -1; active < 5; active++) {
 states.fill(false);
 const Link = ({ children, ...props }) => React.createElement("a", props, children);
 let supportProps;
+let purchaseDecisionProps;
 const resolvePage = name => {
   if (name === "react/jsx-runtime") return require(name);
   if (name === "next/link") return { default: Link };
@@ -48,7 +49,12 @@ const resolvePage = name => {
   if (name === "@/lib/site") return { createPageMetadata: value => value };
   if (name === "@/lib/publicSeller") return { getPublicSellerDetails: () => ({ tradingName: "Fixture", legalName: "Fixture", abn: "00000000000", email: "support@example.invalid" }) };
   if (name === "@/components/tools/PaymentSupportHelper") return { PaymentSupportHelper: props => { supportProps = props; return null; } };
-  if (name === "@/components/tools/DeviceDataTransfer") return { DeviceDataTransfer: () => null };
+  if (name === "@/components/payment/PurchaseDecisionNextAction") return { PurchaseDecisionNextAction: props => {
+    purchaseDecisionProps = props;
+    return React.createElement("div", null, props.products.map(product => `${product.name} ${product.saleStatus === "on" ? "판매 ON" : "판매 OFF"}`).join(" · "));
+  } };
+  if (name === "@/components/payment/PaymentIssueNextAction") return { PaymentIssueNextAction: () => null };
+  if (name === "@/components/tools/DeviceDataTransfer") return { DeviceDataTransfer: () => React.createElement("div", null, "기존 기록 유지 · 구매 이용권이나 복구 코드가 포함되지 않습니다") };
   if (name.includes("/Container")) return { Container: ({ children }) => React.createElement("div", null, children) };
   if (name.includes("/Header")) return { Header: () => null };
   if (name.includes("/Footer")) return { Footer: () => null };
@@ -62,11 +68,15 @@ for (const page of ["purchase-information", "terms", "payment-help", "data-trans
     for (const [product, version] of expected) { assert(html.includes(product.name)); assert(html.includes(`A$${(product.priceCents / 100).toFixed(2)}`)); assert(html.includes(version)); }
     assert(html.includes("Australian Consumer Law")); assert(!html.includes("Resume Pro 검증에서는"));
   }
-  if (page === "purchase-information") { assert(!html.includes("결제 이용 가능")); assert(html.includes("현재 결제 미오픈")); }
+  if (page === "purchase-information") { assert(!html.includes("판매 ON")); assert(html.includes("판매 OFF")); }
   if (page === "payment-help") { for (const [product] of expected) assert(html.includes(`href="/${product.id}/restore"`)); }
   if (page === "data-transfer") { assert(html.includes("기존 기록 유지")); assert(html.includes("구매 이용권이나 복구 코드가 포함되지 않습니다")); }
   checks++;
 }
+assert.equal(purchaseDecisionProps.products.length, 6);
+assert.equal(purchaseDecisionProps.products.at(-1).id, "car-purchase-pro");
+assert.equal(purchaseDecisionProps.products.at(-1).saleStatus, "off");
+assert.equal(purchaseDecisionProps.products.at(-1).priceAndTaxCertainty, "price_unknown · tax_unknown · launch_unknown");
 assert.equal(supportProps.products.length, 7);
 let cursor = 0, tree;
 const hooks = [];

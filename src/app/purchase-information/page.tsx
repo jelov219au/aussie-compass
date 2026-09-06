@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { PurchaseDecisionNextAction, type PurchaseDecisionProduct } from "@/components/payment/PurchaseDecisionNextAction";
 import { Container } from "@/components/ui/Container";
 import { getProPurchaseInformation } from "@/lib/proPurchaseInformation";
 import { getPublicSellerDetails } from "@/lib/publicSeller";
@@ -20,6 +21,24 @@ export default function PurchaseInformationPage() {
   const seller = getPublicSellerDetails();
   const products = getProPurchaseInformation();
   const sellerReady = Boolean(seller.tradingName && seller.legalName && seller.abn && seller.email);
+  const decisionFacts: Record<string, Pick<PurchaseDecisionProduct, "fit" | "notFit" | "freeHref" | "freeLabel">> = {
+    "resume-pro": { fit: "지원할 공고가 있고 실제 경력으로 이력서·커버레터·면접 메모를 준비할 사람", notFit: "공고가 없거나 대신 지원·채용 보장을 원하는 사람", freeHref: "/resume-job-ad-checker", freeLabel: "무료 공고·이력서 근거 점검부터 사용" },
+    "rental-application-pro": { fit: "검토한 집에 신청할 서류·영문 소개·개인정보 제공 범위를 준비할 사람", notFit: "아직 집을 보지 않았거나 승인·법률 판단을 대신 원하는 사람", freeHref: "/property-inspection-checklist", freeLabel: "무료 집 방문·계약 점검부터 사용" },
+    "pay-evidence-pro": { fit: "근무시간·Payslip·입금 차이를 한 건의 증빙 묶음과 문의문으로 정리할 사람", notFit: "공식 임금 판단·자동 신고·법률 대리를 원하는 사람", freeHref: "/underpayment-guide", freeLabel: "무료 급여 문제 대응 순서부터 확인" },
+    "eofy-pro": { fit: "소득·공제 자료와 세무사 질문을 신고 전 한곳에 정리할 사람", notFit: "자동 세금 신고·공제 자격 판정·세무 자문을 원하는 사람", freeHref: "/tax-return-guide", freeLabel: "무료 택스 리턴 가이드부터 확인" },
+    "leaving-australia-pro": { fit: "Bond·마지막 급여·세금·DASP 후속을 실수령까지 추적할 사람", notFit: "출국·비자·DASP 자격 결정을 대신 원하는 사람", freeHref: "/leaving-australia-guide", freeLabel: "무료 귀국·DASP 가이드부터 확인" },
+  };
+  const decisionProducts: PurchaseDecisionProduct[] = [
+    ...products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      href: product.href,
+      priceAndTaxCertainty: `${product.price} · one_time · tax_inclusive_verified`,
+      saleStatus: product.ready ? "on" as const : "off" as const,
+      ...decisionFacts[product.id],
+    })),
+    { id: "car-purchase-pro", name: "Car Purchase Pack Pro", href: "/car-purchase-pro", priceAndTaxCertainty: "price_unknown · tax_unknown · launch_unknown", saleStatus: "off", fit: "중고차 검사 뒤 질문·수리 약속·증빙·재확인 결과를 모아 결정을 보류하거나 기록할 사람", notFit: "현재 구매 가능하다고 믿거나 차량 상태·법률 판단을 대신 원하는 사람", freeHref: "/used-car-comparison", freeLabel: "무료 중고차 후보·비용 비교부터 사용" },
+  ];
 
   return (
     <>
@@ -28,27 +47,21 @@ export default function PurchaseInformationPage() {
       <main className="py-12 sm:py-16">
         <Container>
           <Link href="/pro" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; Pro 제품 비교로 돌아가기</Link>
-          <div className="mt-8 grid gap-8 border-b border-navy/20 pb-10 lg:grid-cols-[1fr_18rem] lg:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">구매 전에 알아둘 내용</p>
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">결제 전에 조건을 먼저 확인하세요.</h1>
-              <p className="mt-5 max-w-3xl leading-7 text-muted">가격과 제공 방식, 이용권 복구, 제품·거래 지원 연락처와 환불 요청 절차를 한곳에 정리했습니다.</p>
-            </div>
-            <aside className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted">
-              <strong className="block text-navy">현재 상태</strong>
-              {products.map(product => <span key={product.id} className="mt-2 block">{product.name} · {product.ready && sellerReady ? "결제 이용 가능" : "현재 결제 미오픈"}</span>)}
-            </aside>
+          <div className="mt-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-ink">구매 전에 알아둘 내용</p>
+            <h1 className="mt-3 max-w-4xl text-4xl font-semibold tracking-tight text-navy sm:text-5xl">내 상황에 맞는 구매 결정을 먼저 확인하세요.</h1>
           </div>
+          <PurchaseDecisionNextAction products={decisionProducts} />
 
-          <section className="mt-10 grid gap-5 md:grid-cols-3" aria-label="Pro 제품 구매 요약">
-            <article className="border-t-2 border-gold bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">제품별 1회 가격</p><dl className="mt-3 space-y-3">{products.map(product => <div key={product.id}><dt className="text-sm font-semibold text-navy"><Link href={product.href} className="underline decoration-gold underline-offset-4">{product.name}</Link></dt><dd className="mt-1 text-lg font-semibold text-navy">{product.price}</dd></div>)}</dl><p className="mt-3 text-sm leading-6 text-muted">AUD 기준이며 자동 갱신 구독이 아닙니다. 결제가 열린 제품만 구매할 수 있습니다. Car Purchase Pack Pro는 가격·구매 조건 준비 중이며 이 가격표에 포함되지 않습니다.</p></article>
+          <section className="mt-12 grid gap-5 md:grid-cols-3" aria-label="Pro 제품 구매 요약">
+            <article className="border-t-2 border-gold bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">제품별 1회 가격</p><dl className="mt-3 space-y-3">{products.map(product => <div key={product.id}><dt className="text-sm font-semibold text-navy"><Link href={product.href} className="inline-flex min-h-11 items-center underline decoration-gold underline-offset-4">{product.name}</Link></dt><dd className="mt-1 text-lg font-semibold text-navy">{product.price}</dd></div>)}</dl><p className="mt-3 text-sm leading-6 text-muted">AUD 기준이며 자동 갱신 구독이 아닙니다. 결제가 열린 제품만 구매할 수 있습니다. Car Purchase Pack Pro는 가격·구매 조건 준비 중이며 이 가격표에 포함되지 않습니다.</p></article>
             <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">제공 방식</p><p className="mt-3 text-xl font-semibold text-navy">디지털 작업 공간</p><p className="mt-2 text-sm leading-6 text-muted">결제와 서버 이용권 확인 후 현재 브라우저에 접근 세션을 발급합니다.</p></article>
             <article className="border-t-2 border-navy bg-white p-5"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">이용권 복구</p><p className="mt-3 text-xl font-semibold text-navy">1회용 복구 코드</p><p className="mt-2 text-sm leading-6 text-muted">작업 공간에서 발급한 코드는 30일 안에 한 번만 사용할 수 있습니다.</p></article>
           </section>
 
           <div className="mt-12 divide-y divide-border border-y border-border">
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
-              <div><p className="font-mono text-xs text-gold">01 / ROLES</p><h2 className="mt-2 text-xl font-semibold text-navy">제품 제공자와 거래 지원</h2></div>
+              <div><p className="font-mono text-xs text-gold-ink">01 / ROLES</p><h2 className="mt-2 text-xl font-semibold text-navy">제품 제공자와 거래 지원</h2></div>
               <div className="max-w-3xl text-sm leading-7 text-muted">
                 <div className="mb-4 space-y-3">
                   <p>Hoju Compass는 Pro 디지털 제품 제공과 이용권·접근·기능 지원을 담당합니다. Stripe 공식 안내 기준으로, Managed Payments Checkout에서는 Stripe의 Link가 거래상 판매자(Merchant of Record)로 표시되고 거래 단위 지원을 제공합니다. Stripe는 Managed Payments를 운영하며 지원되는 국가의 간접세 계산·징수·신고·납부를 처리합니다.</p>
@@ -69,7 +82,7 @@ export default function PurchaseInformationPage() {
             </section>
 
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
-              <div><p className="font-mono text-xs text-gold">02 / DELIVERY</p><h2 className="mt-2 text-xl font-semibold text-navy">결제와 디지털 제공</h2></div>
+              <div><p className="font-mono text-xs text-gold-ink">02 / DELIVERY</p><h2 className="mt-2 text-xl font-semibold text-navy">결제와 디지털 제공</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>결제 화면과 거래는 Stripe Managed Payments가 처리하며 Hoju Compass는 전체 카드번호나 카드 보안번호를 직접 받지 않습니다. 결제·거래 지원 경로가 최종 결제 화면이나 실제 발급 문서에 명확히 표시된 경우에는 그 경로를 이용하고, 불명확하면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요. 결제가 완료되고 이용권 확인이 끝나야 작업 공간을 열 수 있습니다.</p>
                 <p>웹훅 처리가 늦으면 결제 완료 화면에서 잠시 기다린 뒤 다시 확인할 수 있습니다. 결제는 확인됐지만 접근이 계속 열리지 않으면 지원 이메일로 제품명, 대략적인 결제 시각과 시간대, 영수증·인보이스 또는 결제 참조의 마지막 8자만 보내 주세요. 영수증·인보이스 원문이나 링크, 전체 Stripe ID, 카드번호 전체·일부 또는 보안번호는 보내지 마세요.</p>
@@ -78,7 +91,7 @@ export default function PurchaseInformationPage() {
             </section>
 
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
-              <div><p className="font-mono text-xs text-gold">03 / RECEIPT</p><h2 className="mt-2 text-xl font-semibold text-navy">영수증과 인보이스</h2></div>
+              <div><p className="font-mono text-xs text-gold-ink">03 / RECEIPT</p><h2 className="mt-2 text-xl font-semibold text-navy">영수증과 인보이스</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>결제 증빙에는 거래상 판매자 정보, 구매일, 제품 설명과 결제 금액이 식별될 수 있어야 합니다. Stripe Managed Payments가 적용된 결제에서는 결제 단계에 세금이 표시되고 거래 관련 영수증·인보이스가 제공될 수 있습니다. 거래상 판매자나 문서 발행자가 최종 결제 화면과 실제 발급 문서에 명확히 표시된 경우에만 그 문서를 기준으로 확인하고, 불명확하면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요.</p>
                 <p>최종 결제 화면에서 제품명·AUD 총액·세금 표시를 확인하고 결제 뒤 영수증을 보관하세요. 카드명세 금액과 다르면 결제일·제품명·결제 참조 마지막 8자로 문의하세요. Hoju Compass가 별도의 세율을 임의로 더하지 않습니다.</p>
@@ -86,7 +99,7 @@ export default function PurchaseInformationPage() {
             </section>
 
             <section id="remedies" className="grid scroll-mt-24 gap-5 py-8 lg:grid-cols-[15rem_1fr]">
-              <div><p className="font-mono text-xs text-gold">04 / REMEDIES</p><h2 className="mt-2 text-xl font-semibold text-navy">문제 해결과 환불 요청</h2></div>
+              <div><p className="font-mono text-xs text-gold-ink">04 / REMEDIES</p><h2 className="mt-2 text-xl font-semibold text-navy">문제 해결과 환불 요청</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>단순 변심에 대한 환불은 자동으로 보장되지 않습니다. 다만 이 정책은 Australian Consumer Law에 따른 소비자 보장 권리를 제한하지 않습니다. 제품이 설명과 크게 다르거나 정상적으로 제공되지 않는 등 문제가 있다면 Hoju Compass가 제품 문제를 확인하고, 거래상 판매자와 필요한 절차를 조율해 적용되는 수리, 교체, 재제공 또는 환불 같은 해결 방법을 안내합니다.</p>
                 <p>접근·기능 문제는 Hoju Compass 제품 지원으로 문의하세요. 결제·영수증·거래 환불 요청은 최종 결제 화면이나 실제 발급 문서에 거래 지원 경로가 명확히 표시된 경우 그 경로로 문의하고, 불명확하면 추정하지 말고 Hoju Compass 제품 지원으로 문의하세요. 어느 경로를 먼저 이용하더라도 Australian Consumer Law에 따른 권리는 제한되지 않습니다.</p>
@@ -96,10 +109,10 @@ export default function PurchaseInformationPage() {
             </section>
 
             <section className="grid gap-5 py-8 lg:grid-cols-[15rem_1fr]">
-              <div><p className="font-mono text-xs text-gold">05 / DATA</p><h2 className="mt-2 text-xl font-semibold text-navy">결제와 작업 내용</h2></div>
+              <div><p className="font-mono text-xs text-gold-ink">05 / DATA</p><h2 className="mt-2 text-xl font-semibold text-navy">결제와 작업 내용</h2></div>
               <div className="max-w-3xl space-y-3 text-sm leading-7 text-muted">
                 <p>Stripe 결제 과정의 연락처와 결제 상태는 Stripe에서 처리됩니다. Hoju Compass 서버에는 이용권 제공과 환불·분쟁 대응에 필요한 결제 식별자, 이용권 상태와 처리 시각 같은 기술 기록이 저장될 수 있습니다.</p>
-                <p>이력서·커버레터, 렌트 신청 준비, Pay Evidence 급여 대조, EOFY 세금 준비와 Leaving 출국·정산 기록은 별도 안내가 없는 한 현재 브라우저에서 처리되며 결제 이용권 데이터베이스에 저장되지 않습니다. 원본 신분증, Payslip이나 은행 서류는 Rental Pack Pro에 업로드하지 않습니다. 자세한 내용은 <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내</Link>를 확인하세요.</p>
+                <p>이력서·커버레터, 렌트 신청 준비, Pay Evidence 급여 대조, EOFY 세금 준비와 Leaving 출국·정산 기록은 별도 안내가 없는 한 현재 브라우저에서 처리되며 결제 이용권 데이터베이스에 저장되지 않습니다. 원본 신분증, Payslip이나 은행 서류는 Rental Pack Pro에 업로드하지 않습니다. 자세한 내용은 <Link href="/privacy" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내</Link>를 확인하세요.</p>
                 <p>브라우저 작성 내용이나 이 기기의 이용 연결을 삭제하는 일은 결제 취소·환불 또는 거래 기록 삭제와 별개입니다. 삭제 요청을 받으면 더 이상 필요하지 않은 제품·지원 데이터와 세무·회계 또는 소비자 문제 대응에 필요할 수 있는 최소 거래 증거를 시스템별로 구분하며, 후자는 적용되는 보존기간 동안 제한된 목적으로 남을 수 있습니다.</p>
               </div>
             </section>
@@ -107,7 +120,7 @@ export default function PurchaseInformationPage() {
 
           <section className="mt-10 border-l-2 border-gold bg-surface p-6 text-sm leading-7 text-muted">
             <h2 className="font-semibold text-navy">구매 전 확인 사항</h2>
-            <p className="mt-1">이 페이지는 가격과 구매 절차를 알기 쉽게 설명하기 위한 안내이며 개인 상황에 대한 법률·세무 자문이 아닙니다. 결제 전에 <Link href="/terms" className="font-semibold text-navy underline decoration-gold underline-offset-4">서비스 이용 조건</Link>과 <Link href="/privacy" className="font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내</Link>도 함께 확인해 주세요.</p>
+            <p className="mt-1">이 페이지는 가격과 구매 절차를 알기 쉽게 설명하기 위한 안내이며 개인 상황에 대한 법률·세무 자문이 아닙니다. 결제 전에 <Link href="/terms" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">서비스 이용 조건</Link>과 <Link href="/privacy" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">데이터와 개인정보 안내</Link>도 함께 확인해 주세요.</p>
             <p className="mt-2 text-xs">제품별 구매 조건 안내 기준일: {products.map(product => `${product.name} ${product.termsVersion}`).join(" · ")}</p>
           </section>
         </Container>
