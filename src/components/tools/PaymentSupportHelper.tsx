@@ -83,20 +83,20 @@ export function PaymentSupportHelper({ supportEmail, products }: { supportEmail:
 
   return (
     <section className="border border-navy/15 bg-white p-5 sm:p-7" aria-labelledby="payment-support-helper-heading">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Support request helper</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">Support request helper</p>
       <h2 id="payment-support-helper-heading" className="mt-2 text-2xl font-semibold text-navy">문제 유형에 맞는 문의를 준비하세요.</h2>
       <label className="mt-6 block text-sm font-semibold text-navy" htmlFor="payment-product">문의할 제품</label>
       <select id="payment-product" value={product} onChange={(event) => { setProduct(event.target.value); setStatus(""); }} className="mt-2 min-h-12 w-full border border-border bg-surface px-3 text-sm text-navy outline-none focus:border-gold">
         {products.map(item => <option key={item.id} value={item.id}>{item.id === "unknown" ? "제품명을 모르겠어요" : `${item.name}${item.preparing ? " · 출시 준비 문의" : ""}`}</option>)}
       </select>
       {selectedProduct?.restoreHref && <Link href={selectedProduct.restoreHref} className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-navy underline">{productLabel} 이용권 복구 →</Link>}
-      {selectedProduct?.preparing && <p className="mt-3 text-sm leading-6 text-muted">현재 출시 준비 문의만 받습니다. 구매·이용권 복구 제공을 뜻하지 않습니다. {selectedProduct.href && <Link href={selectedProduct.href} className="font-semibold text-navy underline">제품 준비 상태 보기</Link>}</p>}
+      {selectedProduct?.preparing && <p className="mt-3 text-sm leading-6 text-muted">현재 출시 준비 문의만 받습니다. 구매·이용권 복구 제공을 뜻하지 않습니다. {selectedProduct.href && <Link href={selectedProduct.href} className="inline-flex min-h-11 items-center font-semibold text-navy underline">제품 준비 상태 보기</Link>}</p>}
       <label className="mt-5 block text-sm font-semibold text-navy" htmlFor="payment-issue">현재 상황</label>
       <select id="payment-issue" value={issue} onChange={(event) => { setIssue(event.target.value as IssueKey); setStatus(""); }} className="mt-2 min-h-12 w-full border border-border bg-surface px-3 text-sm text-navy outline-none focus:border-gold">
         {Object.entries(issues).map(([value, item]) => <option key={value} value={value}>{item.label}</option>)}
       </select>
       <ol className="mt-5 space-y-3" aria-live="polite" aria-atomic="true" aria-label={`${selected.label} 확인 순서`}>
-        {selected.steps.map((step, index) => <li key={step} className="flex gap-3 text-sm leading-6 text-muted"><span className="font-mono text-gold">0{index + 1}</span><span>{step}</span></li>)}
+        {selected.steps.map((step, index) => <li key={step} className="flex gap-3 text-sm leading-6 text-muted"><span className="font-mono text-gold-ink">0{index + 1}</span><span>{step}</span></li>)}
       </ol>
       <label className="mt-6 block text-sm font-semibold text-navy" htmlFor="support-template">복사할 문의 템플릿</label>
       <textarea id="support-template" readOnly value={template} className="mt-2 min-h-64 w-full resize-y border border-border bg-surface p-3 text-sm leading-6 text-navy" />
