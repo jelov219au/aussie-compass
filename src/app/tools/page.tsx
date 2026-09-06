@@ -16,6 +16,7 @@ export const metadata = createPageMetadata({
 const availableTools: DirectoryTool[] = [
   {
     href: "/english-phrase-cards",
+    kind: "기록 도구",
     eyebrow: "말이 막히는 순간",
     title: "호주 생활 영어 문장 카드",
     description: "은행, 렌트, 직장과 병원에서 바로 쓸 수 있는 확인 문장을 상황별로 고르고 이 기기에 저장할 수 있어요.",
@@ -25,6 +26,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/help-directory",
+    kind: "가이드",
     eyebrow: "긴급·생활 도움",
     title: "호주 생활 도움 연락처",
     description: "000 긴급전화부터 의료 상담, 통역, 직장 문제와 사기 신고까지 상황에 맞는 공식 연락처를 빠르게 찾을 수 있어요.",
@@ -34,6 +36,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/arrival-checklist",
+    kind: "체크리스트",
     eyebrow: "호주 도착 직후",
     title: "첫 30일 정착 체크리스트",
     description: "VEVO와 전화·교통, 은행, TFN부터 첫 Payslip과 생활비까지 도착한 시점에 맞춰 하나씩 챙길 수 있어요.",
@@ -43,6 +46,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/public-transport-guide",
+    kind: "비교 도구",
     eyebrow: "차 없이 시작하기",
     title: "대중교통·통학 생활권 비교",
     description: "집 후보별 주거비와 통학시간, Google Maps 대중교통 경로와 주변 생활시설을 한 화면에서 비교할 수 있어요.",
@@ -52,6 +56,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/rail-work-alerts",
+    kind: "기록 도구",
     eyebrow: "출발 전 다시 확인",
     title: "철도 작업 확인 지역 저장",
     description: "자주 쓰는 동네·역을 이 브라우저에 저장하고 지도 위치, 공식 작업 공지와 출발 전 체크리스트를 반복해서 확인해요.",
@@ -61,6 +66,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/overseas-driver-licence-guide",
+    kind: "가이드",
     eyebrow: "한국 면허로 운전하기",
     title: "주별 해외면허·면허 전환 가이드",
     description: "생활할 주와 비자 상태에 맞춰 한국 면허 사용 기간과 번역, 현지 면허 전환 준비를 살펴볼 수 있어요.",
@@ -70,6 +76,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/visa-preparation-guide",
+    kind: "가이드",
     eyebrow: "호주 첫 단계",
     title: "비자 신청·신체검사 준비 허브",
     description: "공식 비자 찾기부터 ImmiAccount, 비용, HAP ID와 지정 신체검사 기관까지 필요한 순서로 정리했어요.",
@@ -79,6 +86,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/salary-calculator",
+    kind: "계산기",
     eyebrow: "급여와 세금",
     title: "통합 급여 계산기",
     description: "시급이나 연봉을 입력하면 세전·세후 급여와 Super, 전체 보상 금액을 함께 볼 수 있어요.",
@@ -88,6 +96,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/cost-of-living-calculator",
+    kind: "계산기",
     eyebrow: "생활 예산",
     title: "생활비 계산기",
     description: "제각각인 지출 주기를 월 기준으로 맞추고, 세후 수입에서 실제로 얼마나 남는지 계산할 수 있어요.",
@@ -97,6 +106,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/resume-builder",
+    kind: "작성 도구",
     eyebrow: "호주 취업",
     title: "영문 이력서 빌더",
     description: "영문 목표 직무와 본인이 확인한 업무를 직접 입력해 수정 가능한 영문 뼈대를 만들고, A4 미리보기와 PDF를 준비해요.",
@@ -106,6 +116,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/resume-job-ad-checker",
+    kind: "점검 도구",
     eyebrow: "실제 공고가 생겼을 때",
     title: "이력서·Job Ad 공고 맞춤 점검기",
     description: "이력서와 채용 공고를 서버 전송 없이 비교하고, 같은 문구와 실제 경력을 먼저 확인할 항목을 구분해요.",
@@ -115,6 +126,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/savings-goal-calculator",
+    kind: "계산기",
     eyebrow: "저축과 비상금",
     title: "저축 목표 계산기",
     description: "지금 저축 속도로 얼마나 걸리는지, 원하는 날짜에 맞추려면 얼마씩 모아야 하는지 계산할 수 있어요.",
@@ -124,6 +136,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/job-application-tracker",
+    kind: "기록 도구",
     eyebrow: "구직 프로젝트",
     title: "구직 지원 트래커",
     description: "관심 공고와 지원일, 면접 일정, 다음 할 일을 한곳에 기록해 두고 이어볼 수 있어요.",
@@ -133,6 +146,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/career-pathways",
+    kind: "탐색 도구",
     eyebrow: "직업과 진로",
     title: "호주 직업·부족 분야 탐색기",
     description: "주요 직업이 실제로 어떤 일을 하는지 살펴보고, 부족 직군과 비자 직업 목록의 차이도 알아볼 수 있어요.",
@@ -142,6 +156,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/tax-prep-tracker",
+    kind: "기록 도구",
     eyebrow: "매달 10분 EOFY 준비",
     title: "연중 택스 리턴 준비 장부",
     description: "7월에 몰아서 준비하지 않도록 소득, 업무 관련 지출 후보와 증빙 상태를 현재 브라우저에 조금씩 쌓아두세요.",
@@ -151,6 +166,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/tax-return-guide",
+    kind: "가이드",
     eyebrow: "EOFY 준비",
     title: "택스 리턴 준비 허브",
     description: "소득 자료와 공제 증빙, 공식 신고 일정까지 EOFY에 챙길 내용을 순서대로 모았어요.",
@@ -160,6 +176,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/service-quote-comparator",
+    kind: "비교 도구",
     eyebrow: "생활 서비스",
     title: "서비스 견적 비교표",
     description: "플러머와 전기기사, 청소, 이사 등 최대 3개 견적을 같은 항목으로 나란히 비교할 수 있어요.",
@@ -169,6 +186,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/property-inspection-checklist",
+    kind: "체크리스트",
     eyebrow: "집 구하기",
     title: "쉐어하우스·집 방문 체크리스트",
     description: "쉐어하우스부터 일반 렌트와 구매까지, 집을 보러 갔을 때 놓치기 쉬운 부분을 현장에서 챙길 수 있어요.",
@@ -178,6 +196,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/used-car-comparison",
+    kind: "가이드",
     eyebrow: "호주에서 첫 차 찾기",
     title: "중고차 구매처·체크리스트",
     description: "Facebook Marketplace, Gumtree, Carsales에서 후보를 찾고 연락·사기 예방·PPSR·차량 검사를 거쳐 비교할 수 있어요.",
@@ -187,6 +206,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/moving-checklist",
+    kind: "체크리스트",
     eyebrow: "이사 준비",
     title: "이사 체크리스트와 리마인더",
     description: "퇴거 통지와 공과금, 주소 변경, Condition report, 보증금까지 이사 날짜에 맞춰 챙길 수 있어요.",
@@ -196,6 +216,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/service-price-log",
+    kind: "기록 도구",
     eyebrow: "서비스 가격 데이터",
     title: "내 서비스 가격 기록",
     description: "받은 견적과 실제 결제 금액을 기록해 두면 다음 견적을 판단할 나만의 가격 기준이 생겨요.",
@@ -205,6 +226,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/life-admin-reminder",
+    kind: "기록 도구",
     eyebrow: "생활 일정",
     title: "만료일·갱신 일정 리마인더",
     description: "비자와 여권, 렌트, Rego, 보험처럼 놓치기 쉬운 날짜를 기록하고 내 캘린더에 남길 수 있어요.",
@@ -214,6 +236,7 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/data-transfer",
+    kind: "백업 도구",
     eyebrow: "기록 관리",
     title: "기기 데이터 백업·이전",
     description: "체크리스트와 이력서, 계산 기록을 개인 파일로 받아두고 다른 기기에서도 이어볼 수 있어요.",
@@ -223,12 +246,33 @@ const availableTools: DirectoryTool[] = [
   },
   {
     href: "/leaving-australia-guide",
+    kind: "가이드",
     eyebrow: "호주 생활 마무리",
     title: "귀국 준비·Super DASP 허브",
     description: "퇴사와 렌트, 공과금, 계정 접근부터 출국 후 DASP와 마지막 세금 업무까지 차례로 정리했어요.",
     features: ["출국 전후 20개 항목", "DASP 조건 안내", "공식 신청 연결"],
     cta: "귀국 준비 시작하기",
     categories: ["departure", "money"],
+  },
+  {
+    href: "/resources/australia-job-ending-final-pay-dismissal-guide",
+    kind: "가이드",
+    eyebrow: "일자리가 끝났을 때",
+    title: "퇴사·해고·Final pay 가이드",
+    description: "종료 유형과 효력일, 마지막 근무일·급여 항목을 확인하고 해고 신청기한과 임금 분쟁을 구분해요.",
+    features: ["Final pay 확인 순서", "해고 신청기한 구분", "Fair Work 공식 경로"],
+    cta: "일자리 종료 확인하기",
+    categories: ["work"],
+  },
+  {
+    href: "/underpayment-guide",
+    kind: "가이드",
+    eyebrow: "급여가 기록과 다를 때",
+    title: "급여 차이·Underpayment 확인 가이드",
+    description: "같은 급여기간의 근무기록·Payslip·은행 입금액을 맞추고 Award·Classification·rate를 확인해요.",
+    features: ["급여기간 대조", "P.A.C.T 공식 기준", "서면 문의 순서"],
+    cta: "급여 차이 확인하기",
+    categories: ["work", "money"],
   },
 ];
 
@@ -241,7 +285,7 @@ export default function ToolsPage() {
         <Container>
           <Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">&larr; 홈으로 돌아가기</Link>
           <div className="mt-8 grid gap-8 border-b border-navy/20 pb-10 lg:grid-cols-[1fr_15rem] lg:items-end">
-            <div className="max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold">필요한 순간에 꺼내 쓰는 도구</p><h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">호주 생활에서<br/><span className="font-normal text-navy-light">막막한 순간을 위해.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">출국을 준비할 때, 처음 도착해 집과 일을 찾을 때, 생활비와 세금 기록을 관리할 때. 지금 단계에 맞는 도구부터 골라보세요.</p></div>
+            <div className="max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold">무료 도구·가이드</p><h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">호주 생활에서<br/><span className="font-normal text-navy-light">막막한 순간을 위해.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">26개 모두 결제 없이 바로 쓰는 무료 도구와 가이드예요. 지금 상황을 고르거나 검색해서 필요한 다음 행동부터 확인하세요.</p></div>
             <div className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted"><strong className="block text-navy">계정을 만들 필요 없어요.</strong>별도 안내가 없는 한 입력한 내용은 지금 사용하는 브라우저에만 저장돼요.</div>
           </div>
 
