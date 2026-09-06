@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [checker, page, workspace] = await Promise.all([
+const [checker, page, workspace, nextAction] = await Promise.all([
   readFile(new URL("../src/components/tools/DaspReadinessCheck.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/leaving-australia-guide/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/tools/LeavingAustraliaProWorkspace.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/tools/DepartureNextAction.tsx", import.meta.url), "utf8"),
 ]);
 
 for (const value of [
@@ -31,8 +32,8 @@ for (const value of [
   'href="#departure-prep"',
   'href="#dasp-conditions"',
   'href="#dasp-after-submit"',
-  "ATO DASP 온라인 신청은 공식 무료 경로이며 Pro 구매는 신청 조건이 아닙니다",
-  "Form 1194는 신원·이민 상태 증명을 위한 별도 양식",
+  "안정적인 ATO DASP 안내에서 online, paper form, fund 또는 ATO-held Super 경로를 선택하세요",
+  "Direct service가 열리지 않으면 반복 제출하지 말고",
   "펀드가 검색되지 않음",
   "TFN 제공은 선택 사항",
   "제출 내용에 오류가 있음",
@@ -50,9 +51,10 @@ assert.equal(new Set(projectIds).size, 20, "the departure project task IDs must 
 for (const id of ["visa-plan", "bank", "phone", "access", "visa-ceased", "dasp", "follow-up"]) assert.ok(projectIds.includes(id), `the existing project task was lost: ${id}`);
 
 for (const existingBoundary of ["65%", "Tax-free component", "ATO 보유 Super 확인", "정산 기록 기능·구매 조건 보기"] ) {
-  assert.ok(page.includes(existingBoundary), `the existing free/paid boundary is missing: ${existingBoundary}`);
+  assert.ok(`${page}\n${nextAction}`.includes(existingBoundary), `the existing free/paid boundary is missing: ${existingBoundary}`);
 }
 assert.ok(workspace.includes("DASP 제출에는 보유한 모든 임시비자가 더 이상 유효하지 않아야 합니다"), "the paid workspace must use the same all-temporary-visas wording");
 assert.doesNotMatch(`${page}\n${checker}`, /신청 가능합니다|자격이 확정|승인율|예상 수령액|비자를 취소하세요/, "the guide must not declare eligibility, approval or a cancellation action");
+assert.doesNotMatch(`${page}\n${checker}`, /applicant\.tr\.super\.ato\.gov\.au|\?pid=1/, "the failed direct DASP service must not remain a primary action");
 
 console.log("WEB43 DASP readiness and post-submission contract passed.");

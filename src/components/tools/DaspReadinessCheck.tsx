@@ -28,7 +28,7 @@ export function DaspReadinessCheck() {
     <section id="dasp-conditions" className="scroll-mt-24 rounded-3xl border border-border bg-white p-5 shadow-sm sm:p-8" aria-labelledby="dasp-ready-heading">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-gold">신청 가능 시점 확인</p>
+          <p className="text-sm font-semibold text-navy">신청 가능 시점 확인</p>
           <h2 id="dasp-ready-heading" className="mt-2 text-2xl font-semibold text-navy">DASP 기본 조건 점검</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">답변은 이 화면에만 있고 저장·분석·전송하지 않습니다. 자가 점검일 뿐 최종 자격 판정이 아니며, 공식 시스템이 실제 정보를 대조합니다.</p>
         </div>
@@ -54,7 +54,7 @@ export function DaspReadinessCheck() {
 
       <div className={`mt-6 rounded-xl p-4 text-sm leading-6 ${allMatched ? "border border-emerald-300 bg-emerald-50 text-emerald-950" : "bg-surface text-muted"}`} aria-live="polite">
         {answeredCount === 0 ? <p>각 항목에 예·아니요·잘 모름으로 답하면 확인할 조건과 다음 공식 경로를 구분해 보여드립니다.</p> : null}
-        {allMatched ? <p>네 가지 기본 조건에 맞는 답을 선택했습니다. 이것은 신청 가능 확정이 아닙니다. <a href="https://applicant.tr.super.ato.gov.au/applicants/default.aspx?pid=1" target="_blank" rel="noreferrer" className="font-semibold text-navy underline decoration-gold underline-offset-4">무료 ATO DASP 온라인 시스템</a>에서 신원·모든 비자·Super 정보를 입력해 실제 자격을 확인하세요.</p> : null}
+        {allMatched ? <p>네 가지 기본 조건에 맞는 답을 선택했습니다. 이것은 신청 가능 확정이 아닙니다. <a href="https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/temporary-residents-and-superannuation/departing-australia-superannuation-payment-dasp" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">ATO DASP 공식 안내</a>에서 신원·모든 비자·Super 조건과 현재 신청 경로를 확인하세요.</p> : null}
         {answers.status === "no" ? <p><strong className="text-navy">시민권·영주권 범주:</strong> 이 자가 점검의 일반 DASP 경로와 맞지 않습니다. 다른 예외 지급 자격을 여기서 판정하지 않으므로 <a href="https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super" target="_blank" rel="noreferrer" className="font-semibold text-navy underline decoration-gold underline-offset-4">ATO의 공식 Super 접근 조건</a>을 확인하세요.</p> : null}
         {answers.departed === "no" ? <p><strong className="text-navy">출국 전:</strong> 펀드명·ABN·회원정보, 해외 계정 접근, 지급 방법을 준비하세요. 아직 DASP 제출 완료로 표시하지 마세요.</p> : null}
         {answers.ceased === "no" ? <p><strong className="text-navy">유효 비자 있음:</strong> 모든 임시비자가 종료돼야 하는 기본 조건과 맞지 않습니다. 환급만을 위해 비자를 취소하지 말고 현재 비자와 향후 계획을 먼저 확인하세요.</p> : null}
