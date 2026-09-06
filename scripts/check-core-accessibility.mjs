@@ -92,7 +92,7 @@ for (const [source, marker] of [
   [stories, 'text-[0.65rem] text-gold-ink'],
   [articles, 'text-gold-ink">{String(index+1)'],
   [trustBar, 'text-gold-ink">정보를 고르는 기준'],
-  [homePremiumExplorer, 'text-gold-ink">남기는 결과물'],
+  [homePremiumExplorer, 'text-gold-ink">이 도구로 준비할 수 있어요'],
   [proPage, 'text-gold-ink">Hoju Compass Pro'],
   [proFinder, 'text-gold-ink">내 상황에 맞는 Pro 찾기'],
   [searchPage, 'text-gold-ink">막막한 순간에 찾아보세요'],
@@ -103,7 +103,7 @@ for (const [source, marker] of [
   assert.ok(source.includes(marker), `audited light-surface contrast marker is missing: ${marker}`);
 }
 
-assert.ok(proFinder.includes('text-gold">지금 필요한 결과물'), "dark Pro finder panel must keep the brighter gold token");
+assert.ok(proFinder.includes('text-gold">지금 필요한 준비'), "dark Pro finder panel must keep the brighter gold token");
 assert.ok(tools.includes('text-gold">지금 바로 한 문장'), "dark homepage feature panel must keep the brighter gold token");
 
 for (const source of [resumeBuilder, resumeProWorkspace]) {

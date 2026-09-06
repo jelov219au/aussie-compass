@@ -24,11 +24,25 @@ for (const contract of [
   "aria-pressed={selected}",
   "border-gold bg-white text-navy",
   "모든 Pro 도구 비교하기",
+  "도움이 필요한 일을 골라보세요",
+  "text-navy",
+  'role="group"',
+  "이 도구로 준비할 수 있어요",
+  'aria-label="Pro 도구 이용 순서"',
+  "무료로 먼저 확인",
+  "필요한 부분만 정리",
+  "다음 행동에 활용",
+  "무료 안내만으로 충분하면 여기서 멈춰도 괜찮아요.",
   '<ResumeProProofLink entry="home-premium"',
   "결제 전에 내 공고로 무료 확인 →",
 ]) assert.ok(homePremium.includes(contract), `the public ready-now path is missing: ${contract}`);
+assert.doesNotMatch(explorer, /남기는 결과물|선택한 도구의 결과물/, "the home Pro panel must avoid abstract outcome-copy phrasing");
+assert.doesNotMatch(explorer, /min-h-\[27rem\]|mt-auto grid gap-3 pt-7/, "the home Pro panel must not create an empty middle gap before its actions");
 assert.ok(explorer.includes('product.id === "resume-pro"'), "Resume-specific proof and analytics must run only for Resume");
 assert.ok(explorer.includes("이력서·공고 원문을 서버로 전송하지 않아요"), "the live Resume proof must retain its local-only privacy boundary");
+assert.ok(catalogPage.includes("무엇을 준비하는지 한눈에.") && catalogPage.includes("Pro로 준비할 수 있어요"), "the Pro catalog must describe concrete preparation without abstract outcome phrasing");
+assert.ok(finder.includes('text-gold">지금 필요한 준비'), "the Pro finder must use the same preparation language");
+assert.doesNotMatch(`${explorer}\n${catalogPage}\n${finder}`, /남기는 결과물|지금 필요한 결과물|결과물과 이용 상태/, "public Pro discovery must use concrete preparation language consistently");
 
 const unavailableFinderStart = finder.indexOf("const unavailableJobActions = (");
 const unavailableFinderEnd = finder.indexOf("  );", unavailableFinderStart);
