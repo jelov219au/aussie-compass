@@ -2,462 +2,256 @@
 
 import Link from "next/link";
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
-import { carPurchaseStorageKey } from "@/lib/carPurchasePro";
+import { deviceTransferManifest } from "@/data/deviceTransferManifest";
 import {
   applyDeviceImport,
   clearDeviceRecord,
   createDeviceBackup,
   deviceBackupMaxBytes,
   prepareDeviceImport,
-  type DeviceBackupDocument,
+  validateDeviceBackupText,
+  type DeviceBackupIssue,
+  type DeviceBackupValidation,
+  type DeviceImportMode,
   type DeviceImportPlan,
+  type DeviceTransferRecord,
+  type ValidatedDeviceBackup,
 } from "@/lib/deviceDataTransfer";
-import { RAIL_WORK_ALERT_STORAGE_KEY } from "@/lib/railWorkAlerts";
-import {
-  clearRentalApplicationProDeviceData,
-  propertyInspectionStorageKey,
-  rentalApplicationProWorkspaceStorageKey,
-} from "@/lib/rentalApplicationProDeviceStorage";
-import { resumeProStarStoriesStorageKey } from "@/lib/resumeProDeviceStorage";
-import { taxPrepRecordsStorageKey } from "@/lib/taxPrepStorage";
+import { clearRentalApplicationProDeviceData } from "@/lib/rentalApplicationProDeviceStorage";
 
-type StoredRecord = {
-  key: string;
-  label: string;
-  group: string;
-  sensitive?: boolean;
+const storedRecords = deviceTransferManifest;
+const carDeviceRecord = storedRecords.find((record) => record.toolId === "car-purchase-pro")!;
+const payEvidenceRecord = storedRecords.find((record) => record.toolId === "pay-evidence-pro")!;
+const eofyRecord = storedRecords.find((record) => record.toolId === "eofy-pro")!;
+const leavingRecord = storedRecords.find((record) => record.toolId === "leaving-australia-pro")!;
+
+type BackupResult = "not_started" | "ready" | "download_requested_unverified" | "fallback_copy_required" | "blocked_read" | "blocked_oversize" | "failed";
+type PreviewResult = "not_started" | "valid_new_only" | "valid_with_conflicts" | "valid_no_operations" | "unsupported_version" | "wrong_product" | "invalid_origin" | "corrupt_or_tampered" | "oversize" | "unreadable";
+type TransferOutcome = {
+  selected_tool_scope: "none" | "one_tool" | "selected_tools" | "all_available" | "unsupported_scope";
+  sensitivity_reviewed: "not_reviewed" | "routine_only" | "personal_or_financial" | "mixed" | "unknown";
+  backup_export_result: BackupResult;
+  import_preview_result: PreviewResult;
+  conflict_decision: "preserve_existing" | "replace_after_current_backup" | "cancel" | "not_applicable";
+  recovery_fallback: "keep_source_records" | "export_current_before_replace" | "retry_after_storage_check" | "rollback_verified" | "rollback_unverified_manual_review" | "use_tool_native_archive" | "no_safe_fallback";
+  next_action: "select_minimum_tools" | "review_plaintext_risk" | "verify_downloaded_file" | "choose_original_backup" | "inspect_validated_preview" | "export_current_then_replace" | "apply_preserving_existing" | "open_destination_tools_and_verify" | "keep_source_and_retry" | "review_possible_partial_state" | "delete_only_verified_extra_copies";
 };
 
-const payEvidenceProStorageKey = "hoju-compass-pay-evidence-pro-v1";
-const eofyProStorageKey = "hoju-compass-eofy-pro-v1";
-const leavingAustraliaProStorageKey = "hoju-compass-leaving-pro-v1";
+const issueLabels: Record<DeviceBackupIssue["reason"], string> = {
+  unknown_tool: "지원 목록에 없는 도구",
+  metadata_mismatch: "도구·스키마 정보 불일치",
+  checksum_mismatch: "파일 손상 가능성",
+  invalid_inner_schema: "도구 기록 형식 오류",
+  entry_oversize: "도구 기록 크기 초과",
+};
 
-const storedRecords: StoredRecord[] = [
-  { key: "visa-preparation-project", label: "비자 신청 준비", group: "체크리스트" },
-  { key: "arrival-first-30-days", label: "첫 30일 정착", group: "체크리스트" },
-  { key: "house-hunt-project", label: "집 구하기 프로젝트", group: "체크리스트" },
-  { key: "moving-project", label: "이사 준비", group: "체크리스트" },
-  { key: "leaving-australia-project", label: "귀국 준비", group: "체크리스트" },
-  { key: leavingAustraliaProStorageKey, label: "귀국 준비 패키지", group: "체크리스트", sensitive: true },
-  { key: "aussie-compass-bookmarks-v1", label: "저장한 페이지", group: "내 Compass" },
-  { key: "aussie-compass-read-articles-v1", label: "읽은 실용 자료", group: "내 Compass" },
-  { key: "hoju-compass-weekly-reading-goal-v1", label: "주간 읽기 목표", group: "내 Compass" },
-  { key: "hoju-compass-route-finder-v1", label: "맞춤 시작 경로", group: "내 Compass" },
-  { key: "hoju-compass-personal-plan-v1", label: "나의 3단계 계획", group: "내 Compass" },
-  { key: "hoju-compass-english-phrase-cards-v1", label: "저장한 생활 영어 문장", group: "생활 준비" },
-  { key: "aussie-compass-life-reminders-v1", label: "만료일·갱신 일정", group: "생활 관리" },
-  { key: "aussie-compass-tax-return-checklist-v1", label: "택스 리턴 준비", group: "돈 관리" },
-  { key: taxPrepRecordsStorageKey, label: "연중 택스 리턴 준비 장부", group: "돈 관리", sensitive: true },
-  { key: eofyProStorageKey, label: "EOFY 준비 패키지", group: "돈 관리", sensitive: true },
-  { key: "aussie-compass-salary-calculation", label: "급여 계산", group: "돈 관리", sensitive: true },
-  { key: "aussie-compass-living-budget-v1", label: "생활비 예산", group: "돈 관리", sensitive: true },
-  { key: "aussie-compass-savings-goal-v1", label: "저축 목표", group: "돈 관리", sensitive: true },
-  { key: "aussie-compass-visa-cost-plan-v1", label: "비자 비용 계획", group: "돈 관리", sensitive: true },
-  { key: "aussie-compass-resume-v1", label: "영문 이력서", group: "구직", sensitive: true },
-  { key: "hoju-compass-resume-pro-preview-v1", label: "Resume Pro 지원서", group: "구직", sensitive: true },
-  { key: "hoju-compass-resume-pro-applications-v1", label: "Resume Pro 회사별 지원서 목록", group: "구직", sensitive: true },
-  { key: resumeProStarStoriesStorageKey, label: "Resume Pro STAR 경험 보관함", group: "구직", sensitive: true },
-  { key: "aussie-compass-job-tracker-v1", label: "구직 지원 현황", group: "구직", sensitive: true },
-  { key: payEvidenceProStorageKey, label: "급여 증빙 패키지", group: "구직", sensitive: true },
-  { key: "aussie-compass-commute-housing-v1", label: "통학·생활권 비교", group: "주거·이동" },
-  { key: RAIL_WORK_ALERT_STORAGE_KEY, label: "철도 작업 확인 지역", group: "주거·이동", sensitive: true },
-  { key: propertyInspectionStorageKey, label: "집 방문 점검", group: "주거·이동", sensitive: true },
-  { key: rentalApplicationProWorkspaceStorageKey, label: "렌트 신청 패키지", group: "주거·이동", sensitive: true },
-  { key: "aussie-compass-service-quotes-v1", label: "서비스 견적 비교", group: "생활 서비스", sensitive: true },
-  { key: "aussie-compass-service-price-log-v1", label: "서비스 가격 기록", group: "생활 서비스", sensitive: true },
-  { key: "aussie-compass-vehicle-comparison-v1", label: "중고차 비교", group: "주거·이동", sensitive: true },
-  { key: carPurchaseStorageKey, label: "중고차 구매 점검 패키지", group: "주거·이동", sensitive: true },
-];
-
-const allowedKeys = new Set(storedRecords.map((record) => record.key));
-const carDeviceRecord = storedRecords.find((record) => record.key === carPurchaseStorageKey)!;
-
-function isBackupDocument(value: unknown): value is DeviceBackupDocument {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<DeviceBackupDocument>;
-  if (candidate.format !== "hoju-compass-device-backup" || candidate.version !== 1) return false;
-  if (typeof candidate.exportedAt !== "string" || !Number.isFinite(Date.parse(candidate.exportedAt))) return false;
+function requestDownload(contents: string) {
+  let url = "";
   try {
-    if (new Date(candidate.exportedAt).toISOString() !== candidate.exportedAt) return false;
-    if (typeof candidate.sourceOrigin !== "string") return false;
-    const source = new URL(candidate.sourceOrigin);
-    if (!(["http:", "https:"].includes(source.protocol)) || source.origin !== candidate.sourceOrigin) return false;
-  } catch { return false; }
-  if (!candidate.entries || typeof candidate.entries !== "object" || Array.isArray(candidate.entries)) return false;
-  return Object.entries(candidate.entries).every(([key, entry]) => allowedKeys.has(key) && typeof entry === "string");
+    const now = new Date();
+    const localDate = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+    const localTime = [now.getHours(), now.getMinutes(), now.getSeconds()].map((part) => String(part).padStart(2, "0")).join("");
+    url = URL.createObjectURL(new Blob([contents], { type: "application/json" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `hoju-compass-device-backup-v2-${localDate}-${localTime}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 30_000);
+    return true;
+  } catch {
+    if (url) try { URL.revokeObjectURL(url); } catch {}
+    return false;
+  }
+}
+
+function validationMessage(kind: Exclude<DeviceBackupValidation["kind"], "ready" | "invalid_entries">) {
+  return {
+    wrong_product: "다른 제품의 파일입니다. Hoju Compass 기기 백업 원본을 선택하세요.",
+    unsupported_version: "지원하지 않는 백업 버전입니다. 원본 기기에서 새 백업을 받으세요.",
+    invalid_origin: "공식 Hoju Compass 운영 주소에서 만든 백업이 아닙니다. 파일을 적용하지 않았습니다.",
+    corrupt_or_tampered: "파일이 손상됐거나 내용이 바뀌었습니다. 원본 백업을 다시 선택하세요.",
+    oversize: "백업 파일이 2MB를 넘습니다. 항목을 나눠 다시 백업하세요.",
+    unreadable: "파일을 읽을 수 없습니다. 원본 JSON 백업을 다시 선택하세요.",
+  }[kind];
 }
 
 export function DeviceDataTransfer() {
   const [available, setAvailable] = useState<string[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [host, setHost] = useState("");
-  const [mode, setMode] = useState<"preserve" | "overwrite">("preserve");
+  const [mode, setMode] = useState<DeviceImportMode>("preserve");
+  const [plaintextReviewed, setPlaintextReviewed] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [exportFallback, setExportFallback] = useState("");
-  const [importPreview, setImportPreview] = useState<{ fileName: string; plan: DeviceImportPlan } | null>(null);
+  const [backupResult, setBackupResult] = useState<BackupResult>("not_started");
+  const [previewResult, setPreviewResult] = useState<PreviewResult>("not_started");
+  const [blockedValidation, setBlockedValidation] = useState<{ backup: ValidatedDeviceBackup; issues: DeviceBackupIssue[] } | null>(null);
+  const [importPreview, setImportPreview] = useState<DeviceImportPlan | null>(null);
   const [importConfirmed, setImportConfirmed] = useState(false);
-  const [rentalDeleteConfirmed, setRentalDeleteConfirmed] = useState(false);
-  const [carDeleteConfirmed, setCarDeleteConfirmed] = useState(false);
-  const [payEvidenceDeleteConfirmed, setPayEvidenceDeleteConfirmed] = useState(false);
-  const [eofyDeleteConfirmed, setEofyDeleteConfirmed] = useState(false);
-  const [leavingAustraliaDeleteConfirmed, setLeavingAustraliaDeleteConfirmed] = useState(false);
+  const [replacePlaintextReviewed, setReplacePlaintextReviewed] = useState(false);
+  const [replaceConfirmed, setReplaceConfirmed] = useState(false);
+  const [replaceBackupToken, setReplaceBackupToken] = useState("");
+  const [destinationHrefs, setDestinationHrefs] = useState<string[]>([]);
+  const [downloadListChecked, setDownloadListChecked] = useState(false);
+  const [deleteConfirmed, setDeleteConfirmed] = useState<Record<string, boolean>>({});
+  const [rollbackState, setRollbackState] = useState<"none" | "verified" | "unverified">("none");
   const importGenerationRef = useRef(0);
 
-  const refresh = (selectAll = false) => {
+  const refresh = () => {
     const saved = storedRecords.filter((record) => {
       try { return localStorage.getItem(record.key) !== null; }
       catch { return false; }
     }).map((record) => record.key);
     setAvailable(saved);
-    setSelected((current) => selectAll || !current.length ? saved : current.filter((key) => saved.includes(key)));
+    setSelected((current) => current.filter((key) => saved.includes(key)));
   };
 
-  useEffect(() => {
-    setHost(window.location.hostname);
-    refresh();
-  }, []);
+  useEffect(() => { setHost(window.location.hostname); refresh(); }, []);
 
   const selectedRecords = useMemo(() => storedRecords.filter((record) => selected.includes(record.key)), [selected]);
   const hasSensitiveSelection = selectedRecords.some((record) => record.sensitive);
+  const hasRoutineSelection = selectedRecords.some((record) => !record.sensitive);
   const legacyHost = host === "aussie-compass.vercel.app";
+
+  const outcome: TransferOutcome = useMemo(() => {
+    const selectedScope = selected.length === 0 ? "none" : selected.length === 1 ? "one_tool" : selected.length === available.length ? "all_available" : "selected_tools";
+    const sensitivity = !plaintextReviewed ? "not_reviewed" : hasSensitiveSelection && hasRoutineSelection ? "mixed" : hasSensitiveSelection ? "personal_or_financial" : "routine_only";
+    const conflicts = importPreview?.replacedLabels.length ?? 0;
+    const conflict = !importPreview ? "not_applicable" : mode === "preserve" ? "preserve_existing" : replaceBackupToken === importPreview.replaceBackupToken && conflicts ? "replace_after_current_backup" : "cancel";
+    const recovery = rollbackState === "unverified" ? "rollback_unverified_manual_review" : rollbackState === "verified" ? "rollback_verified" : conflicts && mode === "overwrite" && replaceBackupToken !== importPreview?.replaceBackupToken ? "export_current_before_replace" : error ? "retry_after_storage_check" : "keep_source_records";
+    let next: TransferOutcome["next_action"] = "select_minimum_tools";
+    if (rollbackState === "unverified") next = "review_possible_partial_state";
+    else if (destinationHrefs.length) next = "open_destination_tools_and_verify";
+    else if (blockedValidation) next = "inspect_validated_preview";
+    else if (importPreview && mode === "overwrite" && conflicts && replaceBackupToken !== importPreview.replaceBackupToken) next = "export_current_then_replace";
+    else if (importPreview && mode === "preserve" && importPreview.operations.length) next = "apply_preserving_existing";
+    else if (backupResult === "download_requested_unverified" && !downloadListChecked) next = "verify_downloaded_file";
+    else if (selected.length && !plaintextReviewed) next = "review_plaintext_risk";
+    else if (error) next = "keep_source_and_retry";
+    return { selected_tool_scope: selectedScope, sensitivity_reviewed: sensitivity, backup_export_result: backupResult, import_preview_result: previewResult, conflict_decision: conflict, recovery_fallback: recovery, next_action: next };
+  }, [available.length, backupResult, blockedValidation, destinationHrefs.length, downloadListChecked, error, hasRoutineSelection, hasSensitiveSelection, importPreview, mode, plaintextReviewed, previewResult, replaceBackupToken, rollbackState, selected.length]);
 
   const toggle = (key: string) => {
     setSelected((current) => current.includes(key) ? current.filter((item) => item !== key) : [...current, key]);
+    setPlaintextReviewed(false); setBackupResult("not_started"); setDownloadListChecked(false);
+  };
+
+  const exportRecords = async (records: DeviceTransferRecord[], replacementToken = "") => {
+    setError(""); setMessage(""); setExportFallback(""); setBackupResult("ready");
+    const result = await createDeviceBackup(window.localStorage, records, window.location.origin);
+    if (result.kind === "read_error") { setBackupResult("blocked_read"); setError(`선택한 기록을 읽지 못했습니다: ${result.failedLabels.join(" · ")}. 원본 기록을 유지하고 저장공간을 확인하세요.`); return; }
+    if (result.kind === "invalid_record") { setBackupResult("failed"); setError(`현재 기록의 도구별 형식을 확인하지 못했습니다: ${result.invalidLabels.join(" · ")}. 해당 도구에서 기록을 확인하세요.`); return; }
+    if (result.kind === "empty") { setBackupResult("failed"); setError("내보낼 기록을 하나 이상 선택하세요."); return; }
+    if (result.kind === "invalid_origin") { setBackupResult("failed"); setError("공식 Hoju Compass 운영 주소에서만 백업을 만들 수 있습니다."); return; }
+    if (result.kind === "serialise_error") { setBackupResult("failed"); setError("백업 JSON을 만들지 못했습니다. 원본 기록을 유지하고 다시 시도하세요."); return; }
+    if (result.kind === "too_large") { setBackupResult("blocked_oversize"); setError(`백업이 ${(result.bytes / 1024 / 1024).toFixed(2)}MB여서 2MB 한도를 넘습니다. 항목을 나눠 선택하세요.`); return; }
+    if (!requestDownload(result.json)) { setExportFallback(result.json); setBackupResult("fallback_copy_required"); setError("다운로드 요청을 시작하지 못했습니다. 아래 전체 JSON을 개인 기기의 파일로 직접 저장하세요."); return; }
+    setBackupResult("download_requested_unverified"); setDownloadListChecked(false);
+    if (replacementToken) setReplaceBackupToken(replacementToken);
+    setMessage(`${result.count}개 기록의 다운로드를 요청했습니다. 저장 완료로 단정하지 않으므로 브라우저 다운로드 목록에서 파일 이름과 크기를 직접 확인하세요.`);
   };
 
   const exportBackup = () => {
-    setError("");
-    setMessage("");
-    setExportFallback("");
-    const result = createDeviceBackup(window.localStorage, selectedRecords, window.location.origin);
-    if (result.kind === "read_error") {
-      setError(`선택한 기록을 모두 읽지 못해 불완전한 백업을 만들지 않았습니다: ${result.failedLabels.join(" · ")}. 해당 항목을 선택 해제하거나 저장공간을 확인한 뒤 다시 시도해 주세요.`);
-      return;
-    }
-    if (result.kind === "empty") {
-      setError("내보낼 기록을 하나 이상 선택해 주세요.");
-      return;
-    }
-    if (result.kind === "serialise_error") {
-      setError("선택한 기록으로 JSON을 만들지 못했습니다. 현재 기록을 유지하고 다시 시도해 주세요.");
-      return;
-    }
-    if (result.kind === "too_large") {
-      setError(`백업이 ${(result.bytes / 1024 / 1024).toFixed(2)}MB여서 이 도구의 2MB 복원 한도를 넘습니다. 항목을 나눠 백업하거나 각 유료 작업공간의 자체 보관 파일을 사용해 주세요.`);
-      return;
-    }
-    try {
-      const reparsed: unknown = JSON.parse(result.json);
-      if (!isBackupDocument(reparsed)) throw new Error("self-check");
-      const blob = new Blob([result.json], { type: "application/json" });
-      if (blob.size > deviceBackupMaxBytes) throw new Error("blob-size");
-      const url = URL.createObjectURL(blob);
-      try {
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = `hoju-compass-device-backup-${new Date().toISOString().slice(0, 10)}.json`;
-        anchor.click();
-      } catch (downloadError) {
-        URL.revokeObjectURL(url);
-        throw downloadError;
-      }
-      window.setTimeout(() => { try { URL.revokeObjectURL(url); } catch { /* Download request already left the page context. */ } }, 30_000);
-      setMessage(`${result.count}개 기록의 백업 다운로드를 요청했습니다. 브라우저 다운로드 목록에서 파일과 크기를 확인하고, 새 기기에서 실제 내용을 확인할 때까지 원본 기록을 유지하세요.`);
-    } catch {
-      setExportFallback(result.json);
-      setError("백업 다운로드를 시작하지 못했습니다. 아래 전체 JSON을 선택해 2MB 이하의 .json 파일로 직접 저장해 주세요.");
-    }
+    if (!plaintextReviewed) { setError("평문 JSON의 보관 위험을 확인한 뒤 백업을 요청하세요."); return; }
+    void exportRecords(selectedRecords);
+  };
+
+  const buildPreview = (backup: ValidatedDeviceBackup) => {
+    const prepared = prepareDeviceImport(window.localStorage, backup, mode);
+    if (prepared.kind !== "ready") { setError(prepared.kind === "read_error" ? `현재 기록을 읽지 못했습니다: ${prepared.failedLabels.join(" · ")}. 어떤 기록도 변경하지 않았습니다.` : "검증된 백업 계획을 만들지 못했습니다."); setPreviewResult("unreadable"); return; }
+    setImportPreview(prepared.plan); setBlockedValidation(null); setImportConfirmed(false); setReplacePlaintextReviewed(false); setReplaceConfirmed(false); setReplaceBackupToken("");
+    setPreviewResult(prepared.plan.operations.length === 0 ? "valid_no_operations" : prepared.plan.replacedLabels.length ? "valid_with_conflicts" : "valid_new_only");
   };
 
   const importBackup = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
+    const file = event.target.files?.[0]; event.target.value = ""; if (!file) return;
     const generation = ++importGenerationRef.current;
-    const selectedMode = mode;
-    setError("");
-    setMessage("");
-    setImportPreview(null);
-    setImportConfirmed(false);
-    if (file.size > deviceBackupMaxBytes) {
-      setError("백업 파일이 너무 큽니다. 2MB 이하의 Hoju Compass JSON 파일을 선택해 주세요.");
-      return;
+    setError(""); setMessage(""); setImportPreview(null); setBlockedValidation(null); setDestinationHrefs([]); setPreviewResult("not_started");
+    if (file.size > deviceBackupMaxBytes) { setPreviewResult("oversize"); setError(validationMessage("oversize")); return; }
+    let text: string;
+    try { text = await file.text(); } catch { setPreviewResult("unreadable"); setError(validationMessage("unreadable")); return; }
+    if (generation !== importGenerationRef.current) return;
+    const validation = await validateDeviceBackupText(text, storedRecords);
+    if (generation !== importGenerationRef.current) return;
+    if (validation.kind === "invalid_entries") {
+      setBlockedValidation({ backup: validation.backup, issues: validation.issues }); setPreviewResult("corrupt_or_tampered");
+      setError("일부 도구 기록이 검증을 통과하지 못했습니다. 기본값은 전체 no-write입니다. 문제 항목을 제외한 뒤 새 미리보기를 만드세요."); return;
     }
-    try {
-      const parsed: unknown = JSON.parse(await file.text());
-      if (generation !== importGenerationRef.current) return;
-      if (!isBackupDocument(parsed)) throw new Error("invalid");
-      const prepared = prepareDeviceImport(window.localStorage, parsed, selectedMode, storedRecords);
-      if (prepared.kind === "read_error") {
-        setError(`현재 기록을 모두 읽지 못해 가져오기 미리보기를 만들지 않았습니다: ${prepared.failedLabels.join(" · ")}. 어떤 기록도 변경하지 않았습니다.`);
-        return;
-      }
-      setImportPreview({ fileName: file.name, plan: prepared.plan });
-    } catch {
-      if (generation !== importGenerationRef.current) return;
-      setError("파일을 읽을 수 없습니다. Hoju Compass에서 내려받은 원본 JSON 백업인지 확인해 주세요.");
-    }
+    if (validation.kind !== "ready") { setPreviewResult(validation.kind); setError(validationMessage(validation.kind)); return; }
+    buildPreview(validation.backup);
+  };
+
+  const exportCurrentBeforeReplace = () => {
+    if (!importPreview?.replacedLabels.length || !replacePlaintextReviewed) { setError("교체 대상의 평문 백업 위험을 다시 확인하세요."); return; }
+    const keys = importPreview.replaceBackupToken.split("|");
+    void exportRecords(storedRecords.filter((record) => keys.includes(record.key)), importPreview.replaceBackupToken);
   };
 
   const applyImport = () => {
     if (!importPreview || !importConfirmed) return;
-    setError("");
-    setMessage("");
-    const result = applyDeviceImport(window.localStorage, importPreview.plan);
+    setError(""); setMessage(""); setRollbackState("none");
+    const result = applyDeviceImport(window.localStorage, importPreview, { currentBackupToken: replaceBackupToken, plaintextReviewed: replacePlaintextReviewed, replaceConfirmed });
+    if (result.kind === "blocked_replace_backup") { setError("교체 대상의 현재 백업 다운로드 요청과 평문·전체 교체 확인을 먼저 완료하세요."); return; }
     if (result.kind === "success") {
-      refresh(true);
-      window.dispatchEvent(new Event("storage"));
-      setMessage(`${result.imported}개 기록을 검증해 불러왔습니다.${result.preserved ? ` 기존 기록 ${result.preserved}개는 유지했습니다.` : ""} 나의 진행과 각 중요 도구에서 실제 내용을 확인한 뒤 원본 기기 정리를 결정하세요.`);
-      setImportPreview(null);
-      setImportConfirmed(false);
-      return;
+      refresh(); window.dispatchEvent(new Event("storage")); setDestinationHrefs(result.hrefs);
+      setMessage(`${result.imported}개 기록을 이 브라우저 저장소에 기록했습니다.${result.preserved ? ` 기존 도구 ${result.preserved}개는 전체 유지했습니다.` : ""} 각 도구에서 실제 값이 열리는지 확인할 때까지 원본 기기와 백업 파일을 유지하세요.`);
+      setImportPreview(null); setImportConfirmed(false); return;
     }
-    if (result.kind === "rolled_back") {
-      setError("가져오기에 실패했지만 이번 시도 전의 기존 기록으로 복원했습니다. 현재 기록을 백업하고 저장공간을 확인한 뒤 다시 시도해 주세요.");
-      return;
-    }
-    setError(`가져오기와 일부 되돌리기를 확인하지 못했습니다. 바뀌었을 수 있는 항목: ${result.rollbackLabels.join(" · ")}. 즉시 현재 상태를 별도 백업하고 해당 도구를 열어 확인해 주세요.`);
+    if (result.kind === "rolled_back") { setRollbackState("verified"); setError("가져오기에 실패해 이번 시도 전 기록으로 되돌렸습니다. 원본을 유지하고 저장공간을 확인한 뒤 다시 시도하세요."); return; }
+    setRollbackState("unverified"); setError(`일부 되돌리기를 확인하지 못했습니다: ${result.rollbackLabels.join(" · ")}. 추가 가져오기·삭제를 멈추고 해당 도구만 확인하세요.`);
   };
 
-  const deleteRentalDeviceData = () => {
-    setError("");
-    setMessage("");
-    const result = clearRentalApplicationProDeviceData(window.localStorage);
-    refresh();
-    window.dispatchEvent(new Event("storage"));
-    if (result.failedKeys.length) {
-      setError("일부 Rental 기록을 삭제하지 못했습니다. 브라우저 저장공간 설정을 확인한 뒤 이 기기에서 다시 시도해 주세요.");
-      return;
-    }
-    setRentalDeleteConfirmed(false);
-    setMessage(result.removedKeys.length
-      ? `이 브라우저의 Rental 로컬 기록 ${result.removedKeys.length}개를 삭제했습니다.`
-      : "이 브라우저에 남은 Rental 로컬 기록이 없습니다.");
+  const deleteOne = (record: DeviceTransferRecord) => {
+    setError(""); setMessage("");
+    const result = clearDeviceRecord(window.localStorage, record);
+    if (result.kind === "read_error" || result.kind === "delete_failed") { setError(`${record.label} 기록을 삭제하고 확인하지 못했습니다. 저장공간 설정을 확인하세요.`); return; }
+    setDeleteConfirmed((current) => ({ ...current, [record.toolId]: false })); refresh();
+    if (result.kind === "removed") window.dispatchEvent(new Event("storage"));
+    setMessage(result.kind === "removed" ? `이 브라우저의 ${record.label} 기록을 삭제했습니다.` : `이 브라우저에 남은 ${record.label} 기록이 없습니다.`);
   };
 
-  const deleteCarDeviceData = () => {
-    setError("");
-    setMessage("");
-    const result = clearDeviceRecord(window.localStorage, carDeviceRecord);
-    if (result.kind === "read_error") {
-      setError("중고차 구매 점검 기록의 존재 여부를 읽지 못해 삭제하지 않았습니다. 브라우저 저장공간 설정을 확인해 주세요.");
-      return;
-    }
-    if (result.kind === "delete_failed") {
-      setError("중고차 구매 점검 기록을 삭제하고 확인하지 못했습니다. 이 브라우저의 Car workspace를 다시 열어 확인해 주세요.");
-      return;
-    }
-    setCarDeleteConfirmed(false);
-    refresh();
-    if (result.kind === "removed") {
-      window.dispatchEvent(new Event("storage"));
-      setMessage("이 브라우저의 중고차 구매 점검 재사용 초안을 삭제했습니다. 구매 이용권·결제 증빙·서버 Report와 다른 Car·유료 도구 기록은 변경하지 않았습니다.");
-    } else {
-      setMessage("이 브라우저에 남은 중고차 구매 점검 재사용 초안이 없습니다. 다른 기록과 구매 이용권은 변경하지 않았습니다.");
-    }
+  const deleteRental = () => {
+    setError(""); setMessage(""); const result = clearRentalApplicationProDeviceData(window.localStorage); refresh();
+    if (result.failedKeys.length) { setError("일부 Rental 기록을 삭제하고 확인하지 못했습니다."); return; }
+    setDeleteConfirmed((current) => ({ ...current, rental: false })); window.dispatchEvent(new Event("storage"));
+    setMessage(result.removedKeys.length ? `이 브라우저의 Rental 로컬 기록 ${result.removedKeys.length}개를 삭제했습니다.` : "이 브라우저에 남은 Rental 로컬 기록이 없습니다.");
   };
 
-  const deletePayEvidenceDeviceData = () => {
-    setError("");
-    setMessage("");
-    try {
-      const existed = window.localStorage.getItem(payEvidenceProStorageKey) !== null;
-      window.localStorage.removeItem(payEvidenceProStorageKey);
-      refresh();
-      window.dispatchEvent(new Event("storage"));
-      setPayEvidenceDeleteConfirmed(false);
-      setMessage(existed
-        ? "이 브라우저의 Pay Evidence 로컬 기록을 삭제했습니다."
-        : "이 브라우저에 남은 Pay Evidence 로컬 기록이 없습니다.");
-    } catch {
-      setError("Pay Evidence 기록을 삭제하지 못했습니다. 브라우저 저장공간 설정을 확인한 뒤 이 기기에서 다시 시도해 주세요.");
-    }
-  };
+  const deletePanels = [
+    { id: "car-purchase-pro", title: "중고차 구매 점검 기록", detail: "Car workspace의 재사용 초안", action: () => deleteOne(carDeviceRecord) },
+    { id: "rental", title: "Rental 기록", detail: "집 방문 점검과 Rental workspace의 로컬 기록", action: deleteRental },
+    { id: "pay-evidence-pro", title: "Pay Evidence 기록", detail: "급여기간·근무시간·증빙 메모", action: () => deleteOne(payEvidenceRecord) },
+    { id: "eofy-pro", title: "EOFY 기록", detail: "소득 준비·공제 후보·질문", action: () => deleteOne(eofyRecord) },
+    { id: "leaving-australia-pro", title: "출국 준비 기록", detail: "작업·정산·확인 질문", action: () => deleteOne(leavingRecord) },
+  ];
 
-  const deleteEofyDeviceData = () => {
-    setError("");
-    setMessage("");
-    try {
-      const existed = window.localStorage.getItem(eofyProStorageKey) !== null;
-      window.localStorage.removeItem(eofyProStorageKey);
-      refresh();
-      window.dispatchEvent(new Event("storage"));
-      setEofyDeleteConfirmed(false);
-      setMessage(existed
-        ? "이 브라우저의 EOFY 로컬 기록을 삭제했습니다."
-        : "이 브라우저에 남은 EOFY 로컬 기록이 없습니다.");
-    } catch {
-      setError("EOFY 기록을 삭제하지 못했습니다. 브라우저 저장공간 설정을 확인한 뒤 이 기기에서 다시 시도해 주세요.");
-    }
-  };
+  return <div className="mt-8 space-y-8">
+    <section className="rounded-2xl border-2 border-navy bg-white p-5 shadow-sm sm:p-7" aria-labelledby="transfer-next-action-heading">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-navy">One backup · one restore</p>
+      <h2 id="transfer-next-action-heading" className="mt-2 text-2xl font-semibold text-navy">다음 한 단계 · {outcome.next_action}</h2>
+      <p className="mt-3 text-sm leading-6 text-muted">선택 범위를 최소화하고, 평문 파일과 검증 결과를 확인한 뒤 한 단계만 진행하세요. 이 결과는 화면 메모리에만 있고 저장·전송하지 않습니다.</p>
+      <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">{Object.entries(outcome).map(([key, value]) => <div key={key} className="rounded-lg bg-surface p-3"><dt className="font-mono text-xs text-muted">{key}</dt><dd className="mt-1 font-semibold text-navy">{value}</dd></div>)}</dl>
+      <nav className="mt-5 grid gap-2 sm:grid-cols-3" aria-label="백업·복원 빠른 시작"><a href="#export-heading" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-navy px-4 text-sm font-semibold text-white">백업 만들기</a><a href="#import-heading" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-navy px-4 text-sm font-semibold text-navy">백업 불러오기</a><Link href="/payment-help" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 text-sm font-semibold text-navy">이용권 복구</Link></nav>
+    </section>
 
-  const deleteLeavingAustraliaDeviceData = () => {
-    setError("");
-    setMessage("");
-    try {
-      const existed = window.localStorage.getItem(leavingAustraliaProStorageKey) !== null;
-      window.localStorage.removeItem(leavingAustraliaProStorageKey);
-      refresh();
-      window.dispatchEvent(new Event("storage"));
-      setLeavingAustraliaDeleteConfirmed(false);
-      setMessage(existed
-        ? "이 브라우저의 출국 준비 로컬 기록을 삭제했습니다."
-        : "이 브라우저에 남은 출국 준비 로컬 기록이 없습니다.");
-    } catch {
-      setError("출국 준비 기록을 삭제하지 못했습니다. 브라우저 저장공간 설정을 확인한 뒤 이 기기에서 다시 시도해 주세요.");
-    }
-  };
+    <section className="rounded-xl border border-border bg-surface p-5 sm:p-7" aria-labelledby="transfer-order-heading"><h2 id="transfer-order-heading" className="text-xl font-semibold text-navy">기기·브라우저를 바꾸기 전 3단계</h2><ol className="mt-4 list-decimal space-y-3 pl-5 text-sm leading-7 text-muted"><li>필요한 도구만 선택해 평문 JSON 백업 다운로드를 요청합니다.</li><li>새 환경에서 파일 전체를 도구별로 검증하고, 기본값인 기존 도구 전체 유지를 먼저 사용합니다.</li><li>대상 도구에서 실제 값을 확인할 때까지 원본 브라우저와 백업 파일을 유지합니다.</li></ol><p className="mt-4 text-sm leading-7 text-navy">브라우저·프로필·설치형 앱의 저장소와 JSON 파일은 서로 다른 사본입니다. 구매 이용권과 복구 코드는 백업에 포함되지 않습니다.</p></section>
 
-  return (
-    <div className="mt-10 space-y-8">
-      <section className="grid gap-6 border-y border-navy/20 py-7 lg:grid-cols-[1fr_18rem] lg:items-center">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Current browser</p>
-          <h2 className="mt-2 text-2xl font-semibold text-navy">이 브라우저에서 {available.length}개의 기록을 찾았습니다.</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">{host || "현재 주소 확인 중"}에 저장된 Hoju Compass 기록만 표시합니다. 다른 웹사이트의 데이터에는 접근하지 않습니다.</p>
-        </div>
-        <div className={`border-l-2 px-4 py-2 text-sm leading-6 ${legacyHost ? "border-gold bg-gold/10 text-navy" : "border-navy/25 text-muted"}`}>
-          <strong className="block text-navy">{legacyHost ? "기존 주소에서 접속 중" : "기기·브라우저 기록 이전"}</strong>
-          {legacyHost ? "먼저 백업 파일을 받은 뒤 새 주소에서 불러오세요." : "처음 작성한 브라우저에서 받은 백업 파일을 여기서 불러올 수 있습니다."}
-        </div>
-      </section>
+    <section className="grid gap-6 border-y border-navy/20 py-7 lg:grid-cols-[1fr_18rem] lg:items-center"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy">Current browser</p><h2 className="mt-2 text-2xl font-semibold text-navy">이 브라우저에서 {available.length}개의 기록을 찾았습니다.</h2><p className="mt-2 text-sm leading-6 text-muted">첫 진입 선택은 0개입니다. 필요한 최소 도구만 직접 선택하세요.</p></div><div className={`border-l-2 px-4 py-2 text-sm leading-6 ${legacyHost ? "border-gold bg-gold/10 text-navy" : "border-navy/25 text-muted"}`}><strong className="block text-navy">{legacyHost ? "기존 공식 주소" : host || "현재 주소 확인 중"}</strong>{legacyHost ? "백업을 받은 뒤 새 공식 주소에서 불러오세요." : "같은 브라우저 프로필의 기록만 표시합니다."}</div></section>
 
-      <section className="grid gap-8 lg:grid-cols-[1fr_20rem]" aria-labelledby="export-heading">
-        <div>
-          <div className="flex flex-wrap items-end justify-between gap-4 border-b border-navy/20 pb-4">
-            <div><p className="font-mono text-sm text-gold">01</p><h2 id="export-heading" className="mt-1 text-2xl font-semibold text-navy">기록 백업하기</h2></div>
-            {available.length > 0 && <button type="button" onClick={() => setSelected(selected.length === available.length ? [] : available)} className="min-h-10 border-b border-border text-sm font-semibold text-navy hover:border-gold">{selected.length === available.length ? "선택 해제" : "모두 선택"}</button>}
-          </div>
-          {available.length ? <ul className="grid gap-x-6 sm:grid-cols-2">{storedRecords.filter((record) => available.includes(record.key)).map((record) => <li key={record.key} className="border-b border-border"><label className="flex min-h-20 cursor-pointer items-center gap-3 py-3"><input type="checkbox" checked={selected.includes(record.key)} onChange={() => toggle(record.key)} className="h-5 w-5 shrink-0 accent-[var(--color-gold)]"/><span><strong className="block text-sm text-navy">{record.label}</strong><span className="mt-1 block text-xs text-muted">{record.group}{record.sensitive ? " · 개인 내용 포함 가능" : ""}</span></span></label></li>)}</ul> : <div className="border-b border-border py-10"><p className="font-semibold text-navy">아직 저장된 기록이 없습니다.</p><p className="mt-2 text-sm leading-6 text-muted">체크리스트나 계산기를 사용한 뒤 다시 확인하거나, 아래에서 기존 백업을 불러오세요.</p></div>}
-        </div>
-        <aside className="h-fit bg-navy p-6 text-white">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Download</p>
-          <p className="mt-3 text-lg font-semibold">선택한 {selected.length}개 기록</p>
-          <p className="mt-3 text-sm leading-6 text-white/65">JSON 파일 한 개로 기기에 저장합니다. 파일은 Hoju Compass 서버로 전송되지 않습니다.</p>
-          {hasSensitiveSelection && <p className="mt-4 border-l-2 border-gold pl-3 text-xs leading-5 text-white/75">이력서의 이름·연락처나 급여·예산 금액이 포함될 수 있습니다. 개인 기기에 보관하고 이전을 마치면 안전하게 삭제하세요.</p>}
-          {selected.includes(carPurchaseStorageKey) && <p className="mt-4 text-xs leading-5 text-white/75">중고차 구매 점검 패키지의 재사용 초안을 정확한 원문 값으로 감쌉니다. Car workspace의 자체 JSON 보관 파일과 형식·용도가 다르며 구매 이용권·활성화·복구 정보는 포함하지 않습니다.</p>}
-          <button type="button" disabled={!selected.length} onClick={exportBackup} className="mt-6 inline-flex min-h-12 w-full items-center justify-center bg-gold px-4 text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-40">백업 파일 받기</button>
-          {legacyHost && <a href="https://hojucompass.com/data-transfer" className="mt-3 inline-flex min-h-11 w-full items-center justify-center border border-white/25 px-4 text-center text-sm font-semibold text-white hover:border-gold">새 주소에서 불러오기 →</a>}
-        </aside>
-      </section>
-      {exportFallback ? <label className="block border border-gold bg-gold/5 p-5"><span className="text-sm font-semibold text-navy">전체 백업 JSON · 선택해서 .json 파일로 저장</span><span className="mt-2 block text-xs leading-5 text-muted">자동 다운로드를 시작하지 못했습니다. 아래 전체 내용을 복사해 2MB 이하의 JSON 파일로 보관하세요.</span><textarea value={exportFallback} readOnly rows={14} onFocus={(event) => event.currentTarget.select()} className="mt-3 w-full resize-y border border-border bg-white p-3 font-mono text-xs leading-5 text-navy" /></label> : null}
+    <section className="grid gap-8 lg:grid-cols-[1fr_20rem]" aria-labelledby="export-heading"><div><div className="flex flex-wrap items-end justify-between gap-4 border-b border-navy/20 pb-4"><div><p className="font-mono text-sm text-navy">01</p><h2 id="export-heading" className="mt-1 text-2xl font-semibold text-navy">기록 백업하기</h2></div>{available.length > 0 && <button type="button" onClick={() => { setSelected(selected.length === available.length ? [] : available); setPlaintextReviewed(false); setBackupResult("not_started"); }} className="min-h-11 rounded-lg border border-border px-4 text-sm font-semibold text-navy">{selected.length === available.length ? "선택 해제" : "모두 선택"}</button>}</div>{available.length ? <ul className="grid gap-x-6 sm:grid-cols-2">{storedRecords.filter((record) => available.includes(record.key)).map((record) => <li key={record.key} className="border-b border-border"><label className="flex min-h-20 cursor-pointer items-center gap-3 py-3"><input type="checkbox" checked={selected.includes(record.key)} onChange={() => toggle(record.key)} className="h-5 w-5 shrink-0 accent-[var(--color-gold)]"/><span><strong className="block text-sm text-navy">{record.label}</strong><span className="mt-1 block text-xs text-muted">{record.group}{record.sensitive ? " · 개인 내용 포함 가능" : " · 일반 진행 기록"} · schema {record.schemaVersion}</span></span></label></li>)}</ul> : <div className="border-b border-border py-10"><p className="font-semibold text-navy">아직 저장된 기록이 없습니다.</p><p className="mt-2 text-sm leading-6 text-muted">아래 불러오기로 이동하거나 도구를 사용한 뒤 다시 확인하세요.</p></div>}</div><aside className="h-fit bg-navy p-6 text-white"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Plaintext JSON</p><p className="mt-3 text-lg font-semibold">선택한 {selected.length}개 기록</p><p className="mt-3 text-sm leading-6 text-white/70">이름·연락처·급여·예산·날짜·메모가 평문으로 들어갈 수 있습니다. 공용 기기·메신저·이메일·자동 cloud sync 위치를 피하세요.</p><label className="mt-4 flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-6"><input type="checkbox" checked={plaintextReviewed} onChange={(event) => setPlaintextReviewed(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-[var(--color-gold)]"/>개인 기기의 보호된 위치에 보관할 것을 확인했습니다</label><button type="button" disabled={!selected.length || !plaintextReviewed} onClick={exportBackup} className="mt-4 inline-flex min-h-12 w-full items-center justify-center bg-gold px-4 text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-40">백업 다운로드 요청</button>{backupResult === "download_requested_unverified" && <label className="mt-4 flex min-h-11 cursor-pointer items-start gap-3 text-xs leading-5"><input type="checkbox" checked={downloadListChecked} onChange={(event) => setDownloadListChecked(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-[var(--color-gold)]"/>다운로드 목록에서 파일 이름과 크기를 직접 확인했습니다</label>}</aside></section>
+    {exportFallback && <label className="block border border-gold bg-gold/5 p-5"><span className="text-sm font-semibold text-navy">전체 백업 JSON · 직접 저장 필요</span><textarea value={exportFallback} readOnly rows={10} onFocus={(event) => event.currentTarget.select()} className="mt-3 w-full resize-y border border-border bg-white p-3 font-mono text-xs leading-5 text-navy" /></label>}
 
-      <section className="border-t border-navy/20 pt-8" aria-labelledby="import-heading">
-        <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
-          <div>
-            <p className="font-mono text-sm text-gold">02</p><h2 id="import-heading" className="mt-1 text-2xl font-semibold text-navy">백업 불러오기</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">기존 주소나 다른 기기에서 내려받은 Hoju Compass 백업 파일을 선택하세요. 백업에 없는 현재 기록은 삭제하지 않습니다.</p>
-            <fieldset className="mt-6"><legend className="text-sm font-semibold text-navy">같은 항목이 이미 있을 때</legend><div className="mt-3 grid gap-3 sm:grid-cols-2"><label className={`cursor-pointer border p-4 ${mode === "preserve" ? "border-gold bg-gold/10" : "border-border"}`}><input type="radio" name="import-mode" value="preserve" checked={mode === "preserve"} onChange={() => setMode("preserve")} className="mr-2 accent-[var(--color-gold)]"/><strong className="text-sm text-navy">기존 기록 유지</strong><span className="mt-1 block pl-6 text-xs leading-5 text-muted">비어 있는 항목만 가져옵니다. 권장 설정입니다.</span></label><label className={`cursor-pointer border p-4 ${mode === "overwrite" ? "border-gold bg-gold/10" : "border-border"}`}><input type="radio" name="import-mode" value="overwrite" checked={mode === "overwrite"} onChange={() => setMode("overwrite")} className="mr-2 accent-[var(--color-gold)]"/><strong className="text-sm text-navy">백업으로 덮어쓰기</strong><span className="mt-1 block pl-6 text-xs leading-5 text-muted">같은 항목의 현재 기록을 백업 내용으로 교체합니다.</span></label></div></fieldset>
-          </div>
-          <div className="h-fit border border-border bg-white p-6">
-            <label className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center bg-navy px-4 text-sm font-semibold text-white hover:bg-navy-light"><input type="file" accept="application/json,.json" onChange={importBackup} className="sr-only"/>JSON 백업 선택하기</label>
-            <p className="mt-3 text-center text-xs leading-5 text-muted">최대 2MB · 파일은 브라우저 안에서만 처리</p>
-          </div>
-        </div>
-        {importPreview ? <div className="mt-6 border border-gold bg-gold/5 p-5" aria-labelledby="import-preview-heading">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">적용 전 미리보기</p>
-          <h3 id="import-preview-heading" className="mt-2 text-lg font-semibold text-navy">{importPreview.fileName} · {importPreview.plan.mode === "overwrite" ? "백업으로 덮어쓰기" : "기존 기록 유지"}</h3>
-          <div className="mt-4 grid gap-4 text-sm leading-6 sm:grid-cols-3">
-            <div><strong className="text-navy">새로 가져올 {importPreview.plan.importedLabels.length}개</strong><p className="mt-1 text-muted">{importPreview.plan.importedLabels.join(" · ") || "없음"}</p></div>
-            <div><strong className="text-navy">교체할 {importPreview.plan.replacedLabels.length}개</strong><p className="mt-1 text-muted">{importPreview.plan.replacedLabels.join(" · ") || "없음"}</p></div>
-            <div><strong className="text-navy">유지할 {importPreview.plan.preservedLabels.length}개</strong><p className="mt-1 text-muted">{importPreview.plan.preservedLabels.join(" · ") || "없음"}</p></div>
-          </div>
-          {importPreview.plan.replacedLabels.length ? <p className="mt-4 border-l-2 border-red-500 bg-white p-3 text-sm leading-6 text-red-800">현재 기록 {importPreview.plan.replacedLabels.length}개가 교체됩니다. 적용하기 전에 새 기기의 현재 기록을 별도 백업해 두세요.</p> : null}
-          <label className="mt-4 flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-6 text-navy"><input type="checkbox" checked={importConfirmed} onChange={(event) => setImportConfirmed(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-[var(--color-gold)]" />가져올·유지할·교체할 목록을 확인했습니다</label>
-          <div className="mt-3 flex flex-wrap gap-3"><button type="button" disabled={!importConfirmed || importPreview.plan.operations.length === 0} onClick={applyImport} className="min-h-12 bg-navy px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">확인한 기록 적용하기</button><button type="button" onClick={() => { importGenerationRef.current += 1; setImportPreview(null); setImportConfirmed(false); }} className="min-h-12 border border-border px-5 text-sm font-semibold text-muted">취소 · 현재 기록 유지</button></div>
-        </div> : null}
-      </section>
+    <section className="scroll-mt-24 border-t border-navy/20 pt-8" aria-labelledby="import-heading" id="import-heading-section"><div className="grid gap-8 lg:grid-cols-[1fr_20rem]"><div><p className="font-mono text-sm text-navy">02</p><h2 id="import-heading" className="mt-1 text-2xl font-semibold text-navy">백업 불러오기</h2><p className="mt-3 max-w-3xl text-sm leading-7 text-muted">파일을 적용하기 전에 공식 출처, outer version, 도구 ID·label·schema·parser, UTF-8 크기와 SHA-256 손상 검사를 모두 수행합니다.</p><fieldset className="mt-5"><legend className="text-sm font-semibold text-navy">같은 도구 기록이 이미 있을 때</legend><div className="mt-3 grid gap-3 sm:grid-cols-2"><label className={`flex min-h-20 cursor-pointer items-start border p-4 ${mode === "preserve" ? "border-navy bg-surface" : "border-border"}`}><input type="radio" name="import-mode" checked={mode === "preserve"} onChange={() => { setMode("preserve"); setImportPreview(null); }} className="mt-1 mr-3"/><span><strong className="text-sm text-navy">기존 도구 전체 유지</strong><span className="mt-1 block text-xs leading-5 text-muted">storage key가 있으면 그 도구 백업 전체를 건너뜁니다. field merge가 아닙니다.</span></span></label><label className={`flex min-h-20 cursor-pointer items-start border p-4 ${mode === "overwrite" ? "border-red-500 bg-red-50" : "border-border"}`}><input type="radio" name="import-mode" checked={mode === "overwrite"} onChange={() => { setMode("overwrite"); setImportPreview(null); }} className="mt-1 mr-3"/><span><strong className="text-sm text-navy">현재 도구 전체 교체</strong><span className="mt-1 block text-xs leading-5 text-muted">교체 대상 현재 백업 다운로드 요청과 추가 확인이 필요합니다.</span></span></label></div></fieldset></div><div className="h-fit border border-border bg-white p-6"><label className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center bg-navy px-4 text-sm font-semibold text-white"><input type="file" accept="application/json,.json" onChange={importBackup} className="sr-only"/>JSON 백업 선택하기</label><p className="mt-3 text-center text-xs leading-5 text-muted">최대 2MB · 검증 전 write 0</p></div></div>
+      {blockedValidation && <div className="mt-6 border border-red-300 bg-red-50 p-5"><h3 className="font-semibold text-red-900">검증 실패 · 기본 no-write</h3><ul className="mt-3 space-y-2 text-sm text-red-900">{blockedValidation.issues.map((issue, index) => <li key={`${issue.toolId}-${index}`}>{issue.label}: {issueLabels[issue.reason]}</li>)}</ul><button type="button" disabled={!blockedValidation.backup.entries.length} onClick={() => buildPreview(blockedValidation.backup)} className="mt-4 min-h-12 rounded-lg bg-navy px-5 text-sm font-semibold text-white disabled:opacity-40">문제 항목 제외하고 새 미리보기</button></div>}
+      {importPreview && <div className="mt-6 border border-gold bg-gold/5 p-5" aria-labelledby="import-preview-heading"><p className="text-xs font-semibold uppercase tracking-[0.14em] text-navy">검증된 적용 미리보기</p><h3 id="import-preview-heading" className="mt-2 text-lg font-semibold text-navy">공식 출처 · outer v{importPreview.outerVersion}{importPreview.migration === "legacy_outer_v1" ? " · legacy 검증 후 migration" : " · manifest v1"}</h3><div className="mt-4 grid gap-4 text-sm leading-6 sm:grid-cols-3"><div><strong className="text-navy">새로 기록 {importPreview.importedLabels.length}개</strong><p className="mt-1 text-muted">{importPreview.importedLabels.join(" · ") || "없음"}</p></div><div><strong className="text-navy">전체 교체 {importPreview.replacedLabels.length}개</strong><p className="mt-1 text-muted">{importPreview.replacedLabels.join(" · ") || "없음"}</p></div><div><strong className="text-navy">전체 유지 {importPreview.preservedLabels.length}개</strong><p className="mt-1 text-muted">{importPreview.preservedLabels.join(" · ") || "없음"}</p></div></div>{mode === "overwrite" && importPreview.replacedLabels.length > 0 && <div className="mt-5 border border-red-300 bg-white p-4"><p className="text-sm font-semibold text-red-800">replace 방어: 현재 도구 전체를 먼저 백업하세요.</p><label className="mt-3 flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-6 text-navy"><input type="checkbox" checked={replacePlaintextReviewed} onChange={(event) => setReplacePlaintextReviewed(event.target.checked)} className="mt-1 h-5 w-5"/>현재 기록도 평문 JSON으로 내려받아 별도 보관됨을 확인했습니다</label><button type="button" disabled={!replacePlaintextReviewed || replaceBackupToken === importPreview.replaceBackupToken} onClick={exportCurrentBeforeReplace} className="mt-3 min-h-12 rounded-lg border border-navy px-5 text-sm font-semibold text-navy disabled:opacity-40">교체 대상 현재 백업 다운로드 요청</button><label className="mt-3 flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-6 text-navy"><input type="checkbox" checked={replaceConfirmed} onChange={(event) => setReplaceConfirmed(event.target.checked)} className="mt-1 h-5 w-5"/>merge가 아니라 표시된 도구의 storage key 전체 교체임을 다시 확인했습니다</label></div>}<label className="mt-4 flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-6 text-navy"><input type="checkbox" checked={importConfirmed} onChange={(event) => setImportConfirmed(event.target.checked)} className="mt-1 h-5 w-5"/>새로 기록·전체 유지·전체 교체 목록을 확인했습니다</label><div className="mt-3 flex flex-wrap gap-3"><button type="button" disabled={!importConfirmed || importPreview.operations.length === 0 || (mode === "overwrite" && importPreview.replacedLabels.length > 0 && (replaceBackupToken !== importPreview.replaceBackupToken || !replacePlaintextReviewed || !replaceConfirmed))} onClick={applyImport} className="min-h-12 rounded-lg bg-navy px-5 text-sm font-semibold text-white disabled:opacity-40">검증된 계획 적용</button><button type="button" onClick={() => { importGenerationRef.current += 1; setImportPreview(null); setImportConfirmed(false); setPreviewResult("not_started"); }} className="min-h-12 rounded-lg border border-border px-5 text-sm font-semibold text-muted">취소 · 현재 기록 유지</button></div></div>}
+    </section>
 
-      <section className="border-t border-navy/20 pt-8" aria-labelledby="car-purchase-delete-heading">
-        <div className="grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
-          <div>
-            <p className="font-mono text-sm text-gold">03</p>
-            <h2 id="car-purchase-delete-heading" className="mt-1 text-2xl font-semibold text-navy">공용 기기의 중고차 구매 점검 기록 삭제</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">Car workspace의 차량 후보, 확인 이슈와 점검 스냅샷이 담긴 재사용 초안만 이 브라우저에서 삭제합니다. 무료 중고차 비교, 다른 유료 작업공간, 구매 이용권·활성화·복구 정보, 결제 증빙과 서버 Report는 변경하지 않습니다.</p>
-            <p className="mt-3 max-w-3xl text-xs leading-5 text-muted">일반 기기 백업은 이 재사용 초안을 다른 허용 기록과 함께 옮깁니다. Car workspace 자체 JSON archive는 해당 화면에서 Car 기록만 보관하는 별도 형식입니다.</p>
-          </div>
-          <div className="border border-red-200 bg-red-50/60 p-5">
-            <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm font-medium leading-6 text-navy"><input type="checkbox" checked={carDeleteConfirmed} onChange={(event) => setCarDeleteConfirmed(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-red-700" />삭제할 대상이 이 브라우저의 Car 재사용 초안뿐임을 확인했습니다</label>
-            <button type="button" disabled={!carDeleteConfirmed} onClick={deleteCarDeviceData} className="mt-3 inline-flex min-h-12 w-full items-center justify-center bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">Car 재사용 초안 삭제</button>
-          </div>
-        </div>
-      </section>
+    {(message || error) && <div role="status" aria-live="polite" className={`border-l-4 p-5 text-sm leading-6 ${error ? "border-red-500 bg-red-50 text-red-800" : "border-gold bg-gold/10 text-navy"}`}>{error || message}</div>}
+    {destinationHrefs.length > 0 && <section className="border border-navy/20 bg-white p-5"><h2 className="text-lg font-semibold text-navy">대상 도구에서 값 확인</h2><div className="mt-3 flex flex-wrap gap-2">{destinationHrefs.map((href) => <Link key={href} href={href} className="inline-flex min-h-11 items-center rounded-lg border border-navy px-4 text-sm font-semibold text-navy">{href} 열기</Link>)}</div><p className="mt-3 text-sm leading-6 text-muted">모두 확인하기 전에는 원본 브라우저와 백업 파일을 삭제하지 마세요.</p></section>}
 
-      <section className="border-t border-navy/20 pt-8" aria-labelledby="rental-delete-heading">
-        <div className="grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
-          <div>
-            <p className="font-mono text-sm text-gold">04</p>
-            <h2 id="rental-delete-heading" className="mt-1 text-2xl font-semibold text-navy">공용 기기의 Rental 기록 삭제</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">집 방문 점검, Rental workspace의 모든 집 후보와 내부 가져오기 표식, 남은 이어보기 정보와 로컬 완료 표식을 이 브라우저에서 한 번에 삭제합니다. 구매 이용권·결제 증빙·서버 기록과 다른 기기의 데이터는 변경하지 않습니다.</p>
-            <p className="mt-3 max-w-3xl text-xs leading-5 text-muted">일반 백업에는 다시 사용할 집 방문 점검과 Rental workspace가 포함되며, workspace 안의 집 후보와 내부 가져오기 표식도 함께 옮겨집니다. 일시적인 이어보기 정보와 로컬 완료 표식은 이전 대상이 아닙니다. 설치형 앱과 일반 브라우저에서 기록이 따로 보이면 각 환경에서 각각 백업하거나 삭제하세요.</p>
-          </div>
-          <div className="border border-red-200 bg-red-50/60 p-5">
-            <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm font-medium leading-6 text-navy">
-              <input type="checkbox" checked={rentalDeleteConfirmed} onChange={(event) => setRentalDeleteConfirmed(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-red-700" />
-              삭제 후 이 브라우저에서는 복구할 수 없음을 확인했습니다
-            </label>
-            <button type="button" disabled={!rentalDeleteConfirmed} onClick={deleteRentalDeviceData} className="mt-3 inline-flex min-h-12 w-full items-center justify-center bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">Rental 로컬 기록 완전 삭제</button>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-t border-navy/20 pt-8" aria-labelledby="pay-evidence-delete-heading">
-        <div className="grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
-          <div>
-            <p className="font-mono text-sm text-gold">05</p>
-            <h2 id="pay-evidence-delete-heading" className="mt-1 text-2xl font-semibold text-navy">공용 기기의 Pay Evidence 기록 삭제</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">급여기간, 근무시간, 확인한 시급, Payslip·입금 대조와 증빙 메모를 이 브라우저에서 삭제합니다. 구매 이용권·결제 증빙·서버 기록과 다른 기기의 데이터는 변경하지 않습니다.</p>
-          </div>
-          <div className="border border-red-200 bg-red-50/60 p-5">
-            <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm font-medium leading-6 text-navy">
-              <input type="checkbox" checked={payEvidenceDeleteConfirmed} onChange={(event) => setPayEvidenceDeleteConfirmed(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-red-700" />
-              삭제 후 이 브라우저에서는 복구할 수 없음을 확인했습니다
-            </label>
-            <button type="button" disabled={!payEvidenceDeleteConfirmed} onClick={deletePayEvidenceDeviceData} className="mt-3 inline-flex min-h-12 w-full items-center justify-center bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">Pay Evidence 로컬 기록 완전 삭제</button>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-t border-navy/20 pt-8" aria-labelledby="eofy-delete-heading">
-        <div className="grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
-          <div>
-            <p className="font-mono text-sm text-gold">06</p>
-            <h2 id="eofy-delete-heading" className="mt-1 text-2xl font-semibold text-navy">공용 기기의 EOFY 기록 삭제</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">소득 준비 상태, 공제 후보, 회계사 질문과 검토 확인을 이 브라우저에서 삭제합니다. 구매 이용권·결제 증빙·서버 기록과 다른 기기의 데이터는 변경하지 않습니다.</p>
-          </div>
-          <div className="border border-red-200 bg-red-50/60 p-5">
-            <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm font-medium leading-6 text-navy">
-              <input type="checkbox" checked={eofyDeleteConfirmed} onChange={(event) => setEofyDeleteConfirmed(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-red-700" />
-              삭제 후 이 브라우저에서는 복구할 수 없음을 확인했습니다
-            </label>
-            <button type="button" disabled={!eofyDeleteConfirmed} onClick={deleteEofyDeviceData} className="mt-3 inline-flex min-h-12 w-full items-center justify-center bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">EOFY 로컬 기록 완전 삭제</button>
-          </div>
-        </div>
-      </section>
-
-      <section className="border-t border-navy/20 pt-8" aria-labelledby="leaving-australia-delete-heading">
-        <div className="grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
-          <div>
-            <p className="font-mono text-sm text-gold">07</p>
-            <h2 id="leaving-australia-delete-heading" className="mt-1 text-2xl font-semibold text-navy">공용 기기의 출국 준비 기록 삭제</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">출국일 별칭, 작업 상태, 받을 돈·마지막 정산, 확인 질문과 의존성 검토 기록을 이 브라우저에서 삭제합니다. 구매 이용권·결제 증빙·서버 기록과 다른 기기의 데이터는 변경하지 않습니다.</p>
-          </div>
-          <div className="border border-red-200 bg-red-50/60 p-5">
-            <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm font-medium leading-6 text-navy">
-              <input type="checkbox" checked={leavingAustraliaDeleteConfirmed} onChange={(event) => setLeavingAustraliaDeleteConfirmed(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-red-700" />
-              삭제 후 이 브라우저에서는 복구할 수 없음을 확인했습니다
-            </label>
-            <button type="button" disabled={!leavingAustraliaDeleteConfirmed} onClick={deleteLeavingAustraliaDeviceData} className="mt-3 inline-flex min-h-12 w-full items-center justify-center bg-red-700 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40">출국 준비 로컬 기록 완전 삭제</button>
-          </div>
-        </div>
-      </section>
-
-      {(message || error) && <div role="status" aria-live="polite" className={`border-l-4 p-5 text-sm leading-6 ${error ? "border-red-500 bg-red-50 text-red-800" : "border-gold bg-gold/10 text-navy"}`}>{error || message}{message && <Link href="/my-compass" className="ml-2 font-semibold underline underline-offset-4">나의 진행에서 확인 →</Link>}</div>}
-
-      <section className="grid gap-5 border-t border-border pt-7 sm:grid-cols-3">
-        {["처음 작성한 브라우저에서 백업 받기", "새 기기·브라우저에서 파일 선택", "각 도구에서 중요한 기록 확인"].map((step, index) => <div key={step}><span className="font-mono text-xs text-gold">0{index + 1}</span><p className="mt-2 text-sm font-semibold leading-6 text-navy">{step}</p></div>)}
-      </section>
-    </div>
-  );
+    <section className="border-t border-border pt-8" aria-labelledby="device-delete-heading"><h2 id="device-delete-heading" className="text-2xl font-semibold text-navy">공용 기기의 기존 전용 삭제</h2><p className="mt-2 text-sm leading-6 text-muted">34개 전체 reset과 crash recovery journal은 Phase 1 후속입니다. 여기서는 기존 5개 전용 삭제 범위만 유지합니다.</p><div className="mt-5 space-y-5">{deletePanels.map((panel) => <article key={panel.id} className="grid gap-4 border border-border p-5 lg:grid-cols-[1fr_20rem] lg:items-start"><div><h3 className="font-semibold text-navy">{panel.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{panel.detail}만 이 브라우저에서 삭제합니다. 다른 브라우저·PWA·기기·백업 파일·구매 이용권·서버 기록은 바뀌지 않습니다.</p></div><div className="bg-red-50 p-4"><label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-6 text-navy"><input type="checkbox" checked={Boolean(deleteConfirmed[panel.id])} onChange={(event) => setDeleteConfirmed((current) => ({ ...current, [panel.id]: event.target.checked }))} className="mt-1 h-5 w-5"/>이 브라우저의 표시된 기록만 삭제함을 확인했습니다</label><button type="button" disabled={!deleteConfirmed[panel.id]} onClick={panel.action} className="mt-3 min-h-12 w-full bg-red-700 px-4 text-sm font-semibold text-white disabled:opacity-40">{panel.title} 삭제</button></div></article>)}</div></section>
+  </div>;
 }
