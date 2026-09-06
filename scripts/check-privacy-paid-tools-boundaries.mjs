@@ -30,7 +30,7 @@ for (const boundary of [
   "급여·세금·렌트·출국·중고차 메모",
   'href="/data-transfer"',
   'href="/payment-help"',
-  "2026년 9월 5일",
+  "2026년 9월 7일",
 ]) assert.ok(privacy.includes(boundary), `privacy boundary is missing: ${boundary}`);
 
 for (const preservedPrivacyScope of [
@@ -68,7 +68,7 @@ for (const fact of [
 ]) assert.ok(purchaseFacts.includes(fact), `purchase source is missing ${fact}`);
 assert.doesNotMatch(purchaseFacts, /carPurchase|car-purchase/i, "unpriced Car must not enter the five-product purchase source of truth");
 assert.equal((purchaseFacts.match(/termsVersion:/g) ?? []).length, 5, "terms versions must continue to come from the five mapped commerce products");
-assert.ok(transfer.includes("구매 이용권·활성화·복구 정보는 포함하지 않습니다"));
-assert.ok(transfer.includes("Car workspace 자체 JSON archive"));
+assert.ok(transfer.includes("구매 이용권과 복구 코드는 백업에 포함되지 않습니다"));
+assert.ok(transfer.includes("Car workspace의 재사용 초안"));
 
 console.log("WEB48 privacy, terms, local workspace, backup, and entitlement boundaries passed.");

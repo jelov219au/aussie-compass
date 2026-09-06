@@ -138,7 +138,7 @@ export function JobMoveSurveyForm() {
       ))}
 
       <div className="rounded-2xl bg-navy p-5 text-white sm:p-7">
-        <p className="text-sm leading-6 text-white/70">이 설문은 이름, 이메일, 전화번호, 회사명과 비자 정보를 받지 않습니다. 선택한 답변만 전송됩니다.</p>
+        <p className="text-sm leading-6 text-white/70">이 설문은 이름, 이메일, 전화번호, 회사명과 비자 정보를 받지 않습니다. 선택 답변과 설문을 연 시각(startedAt), 정상 사용 시 비어 있는 bot 방지 입력값만 서버 검증을 위해 전송하며, startedAt과 빈 입력값은 운영 메일 본문에 넣지 않습니다.</p>
         {state === "error" && <p className="mt-4 rounded-lg bg-red-500/15 p-3 text-sm font-semibold text-red-100" role="alert">{message}</p>}
         <button type="submit" disabled={state === "submitting"} className="mt-5 min-h-12 w-full rounded-xl bg-gold px-5 py-3 font-semibold text-navy disabled:cursor-wait disabled:opacity-60">
           {state === "submitting" ? "응답 보내는 중…" : "익명 응답 제출"}

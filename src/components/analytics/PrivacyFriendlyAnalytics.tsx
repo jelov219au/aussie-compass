@@ -1,17 +1,10 @@
 "use client";
 
 import { Analytics, type BeforeSendEvent } from "@vercel/analytics/next";
+import { sanitizeAnalyticsEvent } from "@/lib/privacyAnalytics";
 
-function removeQueryAndFragment(event: BeforeSendEvent): BeforeSendEvent {
-  try {
-    const url = new URL(event.url, window.location.origin);
-    url.search = "";
-    url.hash = "";
-
-    return { ...event, url: url.toString() };
-  } catch {
-    return event;
-  }
+export function removeQueryAndFragment(event: BeforeSendEvent): BeforeSendEvent | null {
+  return sanitizeAnalyticsEvent(event, window.location.origin);
 }
 
 export function PrivacyFriendlyAnalytics() {

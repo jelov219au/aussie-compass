@@ -1,28 +1,205 @@
 import Link from "next/link";
-import { Header } from "@/components/layout/Header";
+
 import { Footer } from "@/components/layout/Footer";
-import { Container } from "@/components/ui/Container";
+import { Header } from "@/components/layout/Header";
+import { PrivacyDataBoundaryCard } from "@/components/privacy/PrivacyDataBoundaryCard";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
+import { Container } from "@/components/ui/Container";
+import { getPublicSellerDetails } from "@/lib/publicSeller";
 import { createPageMetadata } from "@/lib/site";
 
-export const metadata = createPageMetadata({ title: "데이터와 개인정보 안내 | Hoju Compass", description: "Hoju Compass 도구의 브라우저 저장, 익명 방문 통계와 개인정보 처리 범위를 확인하세요.", path: "/privacy" });
+export const metadata = createPageMetadata({
+  title: "데이터와 개인정보 안내 | Hoju Compass",
+  description: "활동별 데이터 위치, 수집 범위, 보관·삭제 경로와 제3자 처리 범위를 선택해 확인하세요.",
+  path: "/privacy",
+});
+
+export const dynamic = "force-dynamic";
+
+const policy = {
+  id: "privacy-v2026-09-07",
+  version: "2026.09.07",
+  effective: "2026년 9월 7일",
+  reviewed: "2026년 9월 7일",
+};
 
 const sections = [
-  ["YouTube 영상", "관련 영상은 사용자가 ‘영상 불러오기’를 누른 뒤에만 YouTube의 개인정보 보호 강화 모드 플레이어에 연결됩니다. 이때 접속 IP, 브라우저 정보와 사이트 출처 등 기술 정보가 YouTube에 전달될 수 있으며 재생에는 인터넷 연결이 필요합니다. 개인정보 보호 강화 모드도 외부 전송이 없는 방식은 아닙니다. 도구에 작성한 내용은 영상 주소에 포함하지 않습니다. YouTube에서 보기나 채널 방문을 선택하면 외부 서비스로 이동하며 해당 서비스의 개인정보 처리방침이 적용됩니다."],
-  ["현재 수집하는 개인정보", "Hoju Compass는 현재 회원 계정, 이메일 구독, 문의 양식 또는 광고 프로필을 운영하지 않습니다. 도구에 입력한 이력서·구직·렌트 준비·예산·체크리스트 내용은 별도 안내가 없는 한 서버로 제출되지 않습니다. 사용자가 공개 구직 설문에 답하거나 직접 이메일을 보내거나 결제가 열린 Pro 제품 구매를 시작한 경우에만 아래 설문·이메일·결제 처리 내용이 적용됩니다."],
-  ["구직 준비 경험 설문", "Job Move Pro 공개 설문은 미리 정한 선택형 답변만 받으며 이름, 이메일, 전화번호, 회사명, 비자 정보 또는 자유 입력 내용을 요구하지 않습니다. 제출된 선택 답변과 무작위 응답 ID, 수신 시각은 Hoju Compass가 설정한 공식 지원 메일의 Zoho Mail로 전송되어 제품 방향 검토에 사용됩니다. 한 브라우저의 반복 제출을 줄이기 위해 30일짜리 HttpOnly 쿠키를 저장합니다."],
-  ["이메일 문의", "문의 페이지에 표시된 Hoju Compass 공식 지원 이메일로 직접 문의하거나 Resume Pro 판매 시작 1회 안내를 요청하면 사용자가 보낸 이메일 주소, 이름 또는 표시 이름, 제목과 본문이 Zoho Mail에서 처리됩니다. 일반 문의는 확인과 답변을 위해, 1회 안내 요청은 해당 제품 판매 시작을 한 번 알리기 위해 보관됩니다. 문의에는 카드번호 전체·일부, CVC, 비밀번호, 인증번호, TFN, 신분증 사본, 비자번호, 건강정보, 영수증 전체 또는 이력서 원문을 보내지 마세요. 이 이메일을 자동 마케팅 구독 명단에 추가하거나 반복 홍보에 사용하지 않습니다."],
-  ["Stripe 결제와 이용권", "결제가 열린 Pro 제품에서 구매를 시작하면 Stripe Managed Payments 결제 화면으로 이동하며 Stripe가 사용자가 입력한 연락처, 결제와 해당 결제의 세금·인보이스 정보를 처리합니다. 테스트 환경에서는 실제 청구가 일어나지 않습니다. Hoju Compass는 전체 카드번호나 카드 보안번호를 직접 받지 않습니다. 서버에는 Stripe 이벤트·결제 세션·결제수단 관련 식별자, 제품 코드, 확인한 구매 조건의 버전, 이용권 상태와 처리 시각을 저장할 수 있습니다. Resume·Rental·Pay Evidence·EOFY·Leaving 작업 공간의 문서 원문이나 원본 증빙은 이 서버 이용권 데이터베이스에 저장하지 않습니다."],
-  ["접근 쿠키와 복구 코드", "결제와 해당 제품의 활성 이용권이 확인되면 제품별로 30일짜리 서명된 HttpOnly 접근 쿠키를 현재 기기에 저장하고, 서버의 접근 세션을 매 요청마다 다시 확인합니다. Resume Pro, Rental Application Pack Pro, Pay Evidence Pack Pro, EOFY Pack Pro와 Leaving Australia Pack Pro는 제품 코드와 접근을 서로 분리하므로 한 제품의 이용권·쿠키가 다른 제품을 열지 않습니다. 다른 기기용 1회성 복구 코드를 만들면 서버에는 코드 원문 대신 해시와 만료·사용 상태만 저장되며, 새 코드를 만들면 같은 제품의 이전 미사용 코드는 무효화됩니다. 가격·구매 조건 준비 중이고 결제 미오픈인 Car Purchase Pack Pro에는 현재 구매 이용권이나 접근 쿠키를 발급하지 않습니다."],
-  ["브라우저에 저장되는 내용", "Resume·Rental·Pay Evidence·EOFY·Leaving 작업 내용과 현재 준비 중인 Car Purchase 작업 공간의 재사용 초안은 별도 안내가 없는 한 현재 브라우저의 localStorage에 저장됩니다. 도구는 여권·TFN·비자 번호·카드·은행 로그인 같은 민감 식별정보나 원본 신분증·Payslip·은행 서류 업로드를 요구하지 않습니다. 서버 이용권 데이터베이스에는 이 작업 공간 원문을 저장하지 않습니다. 나의 진행 화면은 이 기기의 저장 내용을 요약할 뿐 서버로 전송하거나 다른 기기와 동기화하지 않습니다. 브라우저 사이트 데이터 삭제 또는 각 도구의 초기화 기능으로 지울 수 있으며 공용 기기에서는 사용 후 삭제하세요."],
-  ["삭제 요청과 기록 보존", "브라우저에만 저장된 이력서·커버레터와 캐시는 사용자가 해당 브라우저에서 삭제할 수 있으며 Hoju Compass가 서버에서 대신 지울 사본은 없습니다. 브라우저 데이터 삭제는 결제 취소·환불이나 Stripe 기록 삭제를 뜻하지 않습니다. 삭제 요청을 받으면 제품 접근·지원 데이터와 결제·세무·소비자 문제 대응 증거를 시스템별로 구분합니다. 더 이상 필요하지 않은 개인정보는 적용되는 기준에 따라 삭제하거나 비식별화할 수 있지만, 영수증·인보이스·환불·세금·대사처럼 법률상 보존이 필요할 수 있는 최소 거래 기록은 제한된 목적으로 남을 수 있습니다. ATO는 GST 기록에 일반적으로 작성·취득일 또는 관련 거래 완료일 중 늦은 때부터 5년의 보존 기준을 안내하지만 실제 기간은 기록과 상황에 따라 달라질 수 있습니다. 보존 중인 거래 기록은 마케팅이나 이력서 프로필에 사용하지 않습니다."],
-  ["백업과 기기 이전", "데이터 백업·이전 도구는 사용자가 선택한 Resume·Rental·Pay Evidence·EOFY·Leaving 작업 공간의 저장 원문과 Car Purchase 재사용 초안을 다른 허용 기록과 함께 JSON 파일에 담을 수 있습니다. 파일 생성과 불러오기는 브라우저 안에서 처리되며 서버 업로드나 자동 동기화가 없습니다. 구매 이용권, 접근 쿠키, 복구 코드·해시·nonce와 결제 증빙은 이 백업에 포함되지 않고 파일로 이동하거나 복구되지 않습니다. 백업 파일에는 이름·연락처, 급여·세금·렌트·출국·중고차 메모가 포함될 수 있으므로 파일 자체를 민감한 자료로 보고 개인 기기에 보관하며, 이전 뒤 각 도구에서 내용을 확인한 다음 필요 없는 사본을 안전하게 삭제하세요."],
-  ["웹앱과 오프라인 안내", "홈 화면 설치를 지원하기 위해 앱 이름·색상·아이콘이 담긴 manifest와 service worker를 사용합니다. service worker는 온라인 페이지를 오래 보관하지 않고 네트워크 연결에 실패했을 때 보여줄 오프라인 안내만 캐시에 저장합니다."],
-  ["공유·캘린더와 이미지 저장", "페이지 공유 버튼은 기기의 기본 공유 메뉴를 열거나 사용자가 선택하면 현재 주소를 클립보드에 복사합니다. 맞춤 경로를 공유하면 선택한 생활 단계와 고민 분류만 링크에 포함되며 이름, 완료 기록과 작성 내용은 포함되지 않습니다. 7일 점검 알림은 선택한 경로와 남은 단계가 담긴 캘린더 파일을 기기에 저장합니다. SNS 카드 제작과 PNG 저장도 브라우저에서 처리되며 자동으로 외부 서비스에 게시되지 않습니다."],
-  ["호스팅과 익명 방문 통계", "사이트 제공과 보안을 위해 호스팅·네트워크 제공자가 접속 IP, 브라우저·기기 정보, 요청 시간과 오류 같은 기술 로그를 처리할 수 있습니다. 사이트 개선을 위해 Vercel Web Analytics로 페이지 조회, 유입 경로, 국가·도시 수준의 대략적 위치, 기기 종류와 브라우저 같은 익명 집계 통계를 확인합니다. 광고 추적 픽셀이나 맞춤 광고 쿠키는 사용하지 않으며, 방문자 구분용 해시는 하루가 지나면 재설정됩니다. 페이지 주소는 전송 전에 모든 검색어와 기타 URL 쿼리 값을 제거합니다. 홈페이지 검색 행동은 입력 문장 원문 대신 세금·급여·주거 같은 미리 정한 주제 분류만, 주요 이동 행동은 내부 목적지만 기록할 수 있습니다. 페이지 공유·저장, 홈 화면 설치, Resume Pro 1회 안내 이메일 링크 클릭과 결제 시작 여부는 자료·상품·미리 정한 유입 경로 같은 넓은 분류와 완료한 행동만 기록하며 이메일 주소, 문서 내용, 페이지 제목, 결제 금액이나 식별자는 기록하지 않습니다."],
-  ["외부 사이트와 Google Maps", "정부기관, Google Maps와 기타 외부 링크를 누르면 해당 서비스로 이동하며 검색어·출발지·목적지처럼 URL에 포함된 정보가 외부 서비스에 전달될 수 있습니다. 정확한 집 주소나 민감정보 대신 동네·역 이름을 사용하고 각 서비스의 개인정보 안내를 확인하세요."],
-  ["민감정보 입력 금지", "여권번호, TFN, 비자 grant number, HAP ID, 은행·카드 정보, 건강정보, 비밀번호 또는 신분증 사본을 이 사이트에 입력하지 마세요. 계산기와 체크리스트는 그러한 정보 없이 사용할 수 있도록 설계했습니다."],
-  ["향후 이메일·광고 기능", "이메일 구독이나 광고를 도입한다면 시작 전에 수집 목적, 이용 주체, 보관·삭제, 제3자 제공, 동의 철회와 수신 거부 방법을 입력 지점에서 명확히 알리고 이 안내를 갱신합니다. 현재 마케팅 이메일 주소를 수집하거나 마케팅 메시지를 보내지 않습니다."],
-];
+  {
+    id: "local-storage",
+    title: "브라우저 로컬 도구와 저장",
+    body: (
+      <>
+        <p>Resume·Rental·Pay Evidence·EOFY·Leaving 작업 내용과 준비 중인 Car Purchase 재사용 초안은 별도 안내가 없는 한 현재 브라우저의 localStorage에 저장됩니다. 도구는 여권·TFN·비자 번호·카드·은행 로그인 같은 민감 식별정보나 원본 신분증·Payslip·은행 서류 업로드를 요구하지 않습니다. 서버 이용권 데이터베이스에는 이 작업 공간 원문을 저장하지 않습니다.</p>
+        <p>일반 브라우저와 설치형 PWA는 서로 다른 사본을 가질 수 있습니다. 나의 진행 화면은 이 기기의 저장 내용을 요약할 뿐 서버 전송이나 자동 동기화를 하지 않습니다. 도구별 초기화 또는 브라우저 site data 삭제로 지울 수 있습니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "backup-files",
+    title: "백업 파일과 기기 이전",
+    body: (
+      <>
+        <p>데이터 백업·이전 도구는 선택한 34개 도구의 허용된 workspace 원문과 manifest metadata를 브라우저에서 평문 JSON 파일로 만듭니다. 여기에는 이름·연락처, 급여·세금·렌트·출국·중고차 메모가 포함될 수 있습니다. 파일 생성과 불러오기에는 서버 업로드나 자동 동기화가 없습니다.</p>
+        <p>구매 이용권, 접근 쿠키, 복구 코드·해시·nonce와 결제 증빙은 이 백업에 포함되지 않고 파일로 이동하거나 복구되지 않습니다. 내려받은 파일과 각 브라우저/PWA 사본은 따로 지워야 합니다. 파일을 cloud·메일·메신저로 옮기면 그 제공자의 현재 정책이 적용됩니다.</p>
+        <div className="mt-4 flex flex-col items-start gap-2 sm:flex-row sm:gap-6">
+          <Link href="/data-transfer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">선택한 작성 내용 백업하기 →</Link>
+          <Link href="/payment-help" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">제품별 이용권 복구 확인 →</Link>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "survey-email",
+    title: "구직 준비 경험 설문과 이메일 문의",
+    body: (
+      <>
+        <h3 className="font-semibold text-navy">구직 준비 경험 설문</h3>
+        <p>Job Move Pro 공개 설문은 서버에 <code>{"{answers, website, startedAt}"}</code>를 보냅니다. answers는 고정 선택 답변이고, website는 정상 사용 시 비어 있는 bot 방지 입력값입니다. startedAt은 제출까지 4초 이상 24시간 이하인지 확인하는 데 쓰입니다. 이 조건을 통과한 응답의 Zoho Mail 운영 메일에는 선택 답변, 무작위 응답 ID와 서버 수신 시각만 들어가며 startedAt과 빈 honeypot은 넣지 않습니다. 이름·이메일·전화·회사·비자 정보·자유 입력은 요구하지 않습니다.</p>
+        <p>설문 메일은 제품 방향 검토를 맡은 지원 메일 운영자만 봅니다. 90일마다 필요성을 검토하고, 미해결 사안이나 법적 보존 사유가 없으면 수신 뒤 12개월 안에 삭제합니다. 반복 제출 제한용 HttpOnly 쿠키는 30일간 현재 브라우저에 남습니다.</p>
+        <h3 className="mt-5 font-semibold text-navy">이메일 문의</h3>
+        <p>공식 지원 이메일로 직접 문의하거나 Resume Pro 판매 시작 1회 안내를 요청하면 보낸 이메일 주소·표시 이름·제목·본문이 사용자가 고른 메일 제공자와 Zoho Mail에서 처리됩니다. 일반 문의는 마지막 연락 뒤 24개월 안에 검토·삭제하고, 1회 안내 주소는 발송 또는 철회 뒤 30일 안에 삭제합니다. 미해결 분쟁과 법적 보존은 예외입니다. 이 이메일을 자동 마케팅 구독 명단에 추가하거나 반복 홍보에 사용하지 않습니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "payments-access",
+    title: "Stripe 결제, 운영 알림과 이용권",
+    body: (
+      <>
+        <p>결제가 열린 Pro 제품에서 구매를 시작하면 Stripe Managed Payments 화면으로 이동합니다. Stripe/Link가 연락처, 결제, 세금과 인보이스 정보를 처리하며 Hoju Compass는 전체 카드번호나 CVC를 직접 받지 않습니다. 서버에는 거래 식별자, 제품 코드, 확인한 구매 조건 버전, 이용권 상태와 처리 시각을 저장할 수 있습니다.</p>
+        <p>결제·환불·분쟁 webhook 운영 알림은 Zoho Mail로 전송됩니다. 알림에는 제품, 금액, 상태 또는 실패 사유와 Stripe 이벤트·세션·PaymentIntent·Charge·Refund·Dispute 참조의 마지막 8자만 들어갑니다. 고객 이메일, 전체 카드번호·CVC, 영수증 전체와 작업 원문은 넣지 않습니다. 접근 운영과 대사·장애 대응 권한이 있는 운영자만 사용하며, 조정이 끝난 비필수 알림 메일은 12개월 안에 삭제합니다. 영수증·인보이스·환불·세금·대사 같은 최소 거래 기록은 상황에 따라 5년 이상 남을 수 있습니다.</p>
+        <p>Resume Pro, Rental Application Pack Pro, Pay Evidence Pack Pro, EOFY Pack Pro와 Leaving Australia Pack Pro는 제품별 이용권·접근 쿠키·복구 코드를 분리합니다. 한 제품의 이용권·쿠키가 다른 제품을 열지 않습니다. 접근 쿠키는 30일이며 서버 상태를 매번 재확인합니다. 가격·구매 조건 준비 중이고 결제 미오픈인 Car Purchase Pack Pro에는 현재 구매 이용권이나 접근 쿠키를 발급하지 않습니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "analytics",
+    title: "호스팅과 익명 방문 통계",
+    body: (
+      <>
+        <p>Vercel은 사이트 제공·보안을 위해 IP, 브라우저·기기 정보, 요청 시각과 오류 같은 기술 로그를 처리할 수 있습니다. Vercel Web Analytics는 집계 대시보드를 만들기 전에 개별 data point로 event timestamp, URL, referrer, 국가·도시 수준의 대략적 위치, 운영체제·브라우저·기기 종류를 받을 수 있습니다. Vercel은 방문 세션 구분용 hash를 24시간 뒤 버린다고 안내합니다. 제공자 보존 기간과 이 방문의 실제 처리 국가는 현 공개 설정만으로 확정할 수 없어 UNKNOWN이며 최신 계약·설정을 검토합니다.</p>
+        <p>페이지 주소는 전송 전에 모든 검색어와 기타 URL 쿼리 값을 제거합니다. URL 분석이 실패하거나 현재 origin이 아니면 그 analytics data point를 보내지 않습니다. 현재 custom events는 홈페이지 주제 분류와 내부 이동, 공유·저장·설치·무료 확인·1회 안내 링크·결제 시작 같은 고정 행동과 넓은 분류만 사용합니다. 검색어 원문, 저장된 작업 내용, 결제 금액, 이메일 주소, 페이지 제목과 거래·이용권 식별자는 분석하지 않습니다. 데이터 경계 카드에서 선택한 활동과 결정도 추적하지 않습니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "external-services",
+    title: "YouTube 영상, 외부 사이트와 Google Maps",
+    body: (
+      <>
+        <p>YouTube 영상은 사용자가 ‘영상 불러오기’를 누른 뒤에만 개인정보 보호 강화 모드 플레이어에 연결됩니다. 이때 IP·브라우저·사이트 출처 같은 기술 정보가 전달될 수 있습니다. YouTube에서 보기나 채널 방문을 선택하면 Google의 현재 개인정보 정책이 적용됩니다.</p>
+        <p>정부기관, Google Maps와 기타 외부 링크를 누르면 검색어·출발지·목적지처럼 URL에 포함된 정보가 외부 서비스에 전달될 수 있습니다. 정확한 집 주소나 민감정보 대신 동네·역 이름을 사용하세요. Hoju site data 삭제는 외부 제공자의 사본을 자동으로 지우지 않으므로 각 제공자의 개인정보·삭제 경로를 이용해야 합니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "retention-delete",
+    title: "삭제 요청과 기록 보존",
+    body: (
+      <>
+        <p>삭제 위치는 사본마다 다릅니다. 로컬 도구는 해당 브라우저 또는 설치형 PWA에서, 내려받은 백업은 파일을 둔 기기·cloud에서, 이메일은 Hoju와 사용자의 메일 제공자에서, 결제·세무 기록은 Hoju와 Stripe 경로에서 각각 처리합니다. 하나를 지워도 다른 사본은 자동으로 지워지지 않습니다.</p>
+        <p>Hoju가 보유한 정보의 접근·정정·삭제·처리 제한·불만·incident 신고는 아래 공식 문의 경로로 요청할 수 있습니다. 요청 확인에는 관련 제품·활동과 참조 마지막 8자 등 최소 정보만 사용합니다. 카드번호·CVC·영수증 전체·복구 코드·신분증 원문은 보내지 마세요. 해결되지 않은 개인정보 불만은 OAIC 경로를 확인할 수 있습니다.</p>
+      </>
+    ),
+  },
+  {
+    id: "sensitive-information",
+    title: "민감정보와 선택권",
+    body: (
+      <>
+        <p>여권번호, TFN, visa grant number, HAP ID, 은행·카드 정보, 건강정보, 비밀번호, 생년월일 또는 신분증 사본을 사이트 도구나 문의에 입력하지 마세요. 계산기와 체크리스트는 정확한 식별정보 없이 범주·별칭·대략적인 값으로 사용할 수 있습니다.</p>
+        <p>별도의 Web Analytics opt-out 설정은 현재 제공하지 않습니다. 전송을 줄이려면 외부 영상·링크·설문·메일·Checkout을 열지 않고 로컬 도구만 사용하세요. 도움이 필요한 아동이나 의사결정 지원이 필요한 사용자는 신뢰하는 성인과 함께 최소 정보만 입력할 수 있습니다.</p>
+      </>
+    ),
+  },
+] as const;
 
-export default function PrivacyPage() { return <><BreadcrumbJsonLd items={[{name:"홈",path:"/"},{name:"데이터와 개인정보",path:"/privacy"}]} /><Header/><main className="py-12 sm:py-16"><Container><Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 홈으로 돌아가기</Link><div className="mt-8 grid gap-8 border-b border-navy/20 pb-10 lg:grid-cols-[1fr_16rem] lg:items-end"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Privacy / Data</p><h1 className="mt-3 text-4xl font-semibold tracking-tight text-navy sm:text-5xl">데이터와 개인정보 안내</h1><p className="mt-5 max-w-3xl leading-7 text-muted">현재 사이트가 어떤 정보를 저장하고, 무엇을 수집하지 않는지 쉽게 설명합니다.</p></div><p className="border-l-2 border-gold pl-4 text-sm leading-6 text-muted"><strong className="block text-navy">최종 업데이트</strong>2026년 9월 5일</p></div><div className="divide-y divide-border">{sections.map(([title,body],index)=><section key={title} className="grid gap-4 py-7 sm:grid-cols-[5rem_1fr]"><span className="font-mono text-sm text-gold">{String(index+1).padStart(2,"0")}</span><div><h2 className="text-xl font-semibold text-navy">{title}</h2><p className="mt-3 max-w-4xl text-sm leading-7 text-muted sm:text-base">{body}</p>{title === "백업과 기기 이전" && <div className="mt-3 flex flex-col items-start gap-2 sm:flex-row sm:gap-6"><Link href="/data-transfer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">선택한 작성 내용 백업하기 →</Link><Link href="/payment-help" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">제품별 이용권 복구 확인 →</Link></div>}</div></section>)}</div><section className="mt-8 border-l-2 border-gold bg-surface p-6 text-sm leading-7 text-muted"><h2 className="font-semibold text-navy">법적 적용 범위</h2><p className="mt-1">호주의 Privacy Act 적용 여부는 사업 규모와 활동에 따라 달라질 수 있습니다. 이 페이지는 현재 실제 데이터 처리 방식을 투명하게 설명하기 위한 것이며 법률 자문이 아닙니다. 서비스와 법적 지위가 변경되면 전문 검토를 거쳐 갱신해야 합니다.</p><div className="mt-3 flex flex-col items-start gap-2"><Link href="/purchase-information" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">구매·환불 안내 보기 →</Link><a href="https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-guidelines/chapter-11-app-11-security-of-personal-information" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">OAIC 개인정보 삭제·비식별화 안내 ↗</a><a href="https://www.ato.gov.au/businesses-and-organisations/preparing-lodging-and-paying/record-keeping-for-business/overview-of-record-keeping-rules-for-business" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">ATO 사업 기록 보존 안내 ↗</a></div></section></Container></main><Footer/></>; }
+function privacyEmailHref(email: string) {
+  const body = [
+    "요청 유형(접근 / 정정 / 삭제 / 제한 / 불만 / incident):",
+    "관련 활동 또는 제품:",
+    "확인에 필요한 최소 정보:",
+    "",
+    "카드번호·CVC·전체 영수증·복구 코드·신분증 원문은 보내지 마세요.",
+  ].join("\n");
+  return `mailto:${email}?subject=${encodeURIComponent("[Hoju Compass] 개인정보 요청")}&body=${encodeURIComponent(body)}`;
+}
+
+export default function PrivacyPage() {
+  const seller = getPublicSellerDetails();
+
+  return (
+    <>
+      <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "데이터와 개인정보", path: "/privacy" }]} />
+      <Header />
+      <main className="py-10 sm:py-14">
+        <Container className="max-w-6xl">
+          <Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 홈으로 돌아가기</Link>
+
+          <div className="mt-6 border-l-2 border-gold pl-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-ink">Privacy / Data · {policy.id}</p>
+            <p className="mt-2 text-sm leading-6 text-muted">버전 {policy.version} · 시행 {policy.effective} · 최근 검토 {policy.reviewed}</p>
+          </div>
+          <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-tight text-navy sm:text-5xl">내 활동의 데이터 위치를 바로 확인하세요.</h1>
+          <PrivacyDataBoundaryCard supportEmail={seller.email} />
+
+          <section id="privacy-details" className="mt-12" aria-labelledby="privacy-details-heading">
+            <div className="border-b border-navy/20 pb-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">Detailed policy</p>
+              <h2 id="privacy-details-heading" className="mt-2 text-3xl font-semibold text-navy">활동별 실제 처리 방식</h2>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">카드의 요약을 실제 시스템별로 설명합니다. 데이터 위치·접근자·목적·보존과 삭제 경로가 바뀌면 이 버전과 검토일을 갱신합니다.</p>
+            </div>
+            <div className="divide-y divide-border">
+              {sections.map((section, index) => (
+                <section key={section.id} id={section.id} className="scroll-mt-24 grid gap-4 py-8 sm:grid-cols-[5rem_1fr]">
+                  <span className="font-mono text-sm font-semibold text-gold-ink">{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <h2 className="text-xl font-semibold text-navy">{section.title}</h2>
+                    <div className="mt-3 max-w-4xl space-y-3 text-sm leading-7 text-muted sm:text-base">{section.body}</div>
+                  </div>
+                </section>
+              ))}
+            </div>
+          </section>
+
+          <section id="third-parties" className="scroll-mt-24 border-2 border-navy bg-surface p-6 sm:p-8" aria-labelledby="third-parties-heading">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">Current provider routes</p>
+            <h2 id="third-parties-heading" className="mt-2 text-2xl font-semibold text-navy">제3자 정책과 국제 처리 확인</h2>
+            <p className="mt-3 max-w-4xl text-sm leading-7 text-muted">Zoho는 호주 service data location을 안내하지만 하위 처리자와 지원 접근까지 호주에만 있다고 보장하지 않습니다. Stripe는 global·cross-border 처리를 안내합니다. Vercel은 미국을 주요 처리 위치로 두고 다른 국가와 하위 처리자 경로를 둘 수 있습니다. 개별 요청의 정확한 처리 국가는 UNKNOWN입니다.</p>
+            <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <a href="https://vercel.com/docs/analytics/privacy-policy" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Vercel Web Analytics 개인정보 안내 ↗</a>
+              <a href="https://vercel.com/legal/dpa" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Vercel DPA·하위 처리자 안내 ↗</a>
+              <a href="https://www.zoho.com/mail/gdpr.html" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Zoho Mail 데이터 위치 안내 ↗</a>
+              <a href="https://stripe.com/au/privacy" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Stripe 호주 개인정보 안내 ↗</a>
+              <a href="https://stripe.com/au/legal/dta" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Stripe 국제 데이터 이전 안내 ↗</a>
+              <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Google·YouTube·Maps 개인정보 안내 ↗</a>
+            </div>
+          </section>
+
+          <section className="mt-8 grid gap-6 bg-navy p-6 text-white sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center" aria-labelledby="privacy-contact-heading">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Privacy contact</p>
+              <h2 id="privacy-contact-heading" className="mt-2 text-2xl font-semibold">접근·정정·삭제·불만을 요청하세요.</h2>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-white/75">최소 확인 정보만 보내주세요. 개인정보 침해가 의심되면 incident라고 표시해 주세요. 현재 처리에 만족하지 못했다면 OAIC의 개인정보 불만 절차도 이용할 수 있습니다.</p>
+            </div>
+            <div className="flex flex-col items-stretch gap-2 sm:flex-row lg:flex-col">
+              {seller.email ? <a href={privacyEmailHref(seller.email)} className="inline-flex min-h-12 items-center justify-center rounded-lg bg-gold px-5 text-sm font-semibold text-navy">개인정보 요청 이메일 쓰기 →</a> : <Link href="/contact" className="inline-flex min-h-12 items-center justify-center rounded-lg bg-gold px-5 text-sm font-semibold text-navy">문의 경로 확인 →</Link>}
+              <a href="https://www.oaic.gov.au/privacy/privacy-complaints" target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center rounded-lg border border-white/40 px-5 text-sm font-semibold text-white">OAIC 개인정보 불만 절차 ↗</a>
+            </div>
+          </section>
+
+          <section className="mt-8 border-l-2 border-gold bg-surface p-6 text-sm leading-7 text-muted">
+            <h2 className="font-semibold text-navy">법적 적용 범위</h2>
+            <p className="mt-1">호주의 Privacy Act 적용 여부는 사업 규모와 활동에 따라 달라질 수 있습니다. 이 페이지는 현재 실제 데이터 처리 방식을 투명하게 설명하기 위한 것이며 법률 자문이 아닙니다.</p>
+            <div className="mt-3 flex flex-col items-start gap-2 sm:flex-row sm:gap-6">
+              <Link href="/purchase-information" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">구매·환불 안내 보기 →</Link>
+              <a href="https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-guidelines/chapter-11-app-11-security-of-personal-information" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">OAIC 삭제·비식별화 안내 ↗</a>
+              <a href="https://www.ato.gov.au/businesses-and-organisations/preparing-lodging-and-paying/record-keeping-for-business/overview-of-record-keeping-rules-for-business" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">ATO 기록 보존 안내 ↗</a>
+            </div>
+          </section>
+        </Container>
+      </main>
+      <Footer />
+    </>
+  );
+}
