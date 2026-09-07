@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-const workspace = read("src/components/tools/PayEvidenceWorkspace.tsx");
+const workspace = read("src/components/tools/PayEvidenceWorkspace.tsx") + read("src/lib/payEvidenceOutput.ts");
 const archiveLibrary = read("src/lib/payEvidenceCaseArchive.ts");
 const productPage = read("src/app/pay-evidence-pro/page.tsx");
 const workspacePage = read("src/app/pay-evidence-pro/workspace/page.tsx");

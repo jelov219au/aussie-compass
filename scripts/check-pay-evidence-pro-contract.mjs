@@ -82,7 +82,10 @@ for (const migration of [entitlementMigration, gateMigration]) {
 assert.ok(gateMigration.includes("expected_amount_cents = 990") && gateMigration.includes("when 'pay_evidence_pro' then 990"), "First-sale migration must pin AUD 9.90");
 assert.ok(workspace.includes("getActivePayEvidenceProEntitlement") && success.includes("findActiveByCheckoutSession(session.id, \"pay_evidence_pro\")"), "Workspace and success flow must use the product-scoped entitlement");
 assert.ok(accessTools.includes("/pay-evidence-pro?access=released") && accessTools.includes("#pay-evidence-delete-heading"), "Release must preserve a separate local-data deletion path");
-assert.ok(deviceData.includes('const payEvidenceProStorageKey = "hoju-compass-pay-evidence-pro-v1"') && deviceData.includes("deletePayEvidenceDeviceData"), "Shared-device deletion must target only Pay Evidence local data");
+const deviceManifest = await read("../src/data/deviceTransferManifest.ts");
+assert.ok(deviceManifest.includes('record("pay-evidence-pro", "hoju-compass-pay-evidence-pro-v1"'), "Pay Evidence must retain its storage key in the shared manifest");
+assert.ok(deviceData.includes('record.toolId === "pay-evidence-pro"') && deviceData.includes('action: () => deleteOne(payEvidenceRecord)') && deviceData.includes('clearDeviceRecord(window.localStorage, record)'), "Shared-device deletion must target only the Pay Evidence record");
+assert.ok(deviceData.includes('"pay-evidence-delete-heading"'), "Pay Evidence recovery must retain a real deletion destination");
 assert.ok(offer.includes("다시 결제하지 말고") && offer.includes("/pay-evidence-pro/restore"), "Offer must retain safe recovery and no-repurchase guidance");
 
 console.log("Pay Evidence Pack Pro checkout, entitlement, recovery, and migration contracts passed.");

@@ -7,12 +7,17 @@ import * as archives from "../src/lib/payEvidenceCaseArchive.ts";
 // One local restore failure/retry flow, not the amount suite or browser acceptance.
 const source = await readFile(new URL("../src/components/tools/PayEvidenceWorkspace.tsx", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
+const outputSource = await readFile(new URL("../src/lib/payEvidenceOutput.ts", import.meta.url), "utf8");
+const outputExports = {};
+new Function("exports", ts.transpileModule(outputSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText)(outputExports);
+const sampleExports = {};
+new Function("exports", "require", ts.transpileModule(await readFile(new URL("../src/lib/payEvidenceSample.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText)(sampleExports, () => outputExports);
 const key = "hoju-compass-pay-evidence-pro-v1";
 const caseA = { employerLabel: "Synthetic case A", employmentType: "Unsure", rateBasisType: "unsure", rateBasisCheckedOn: "", sourceNote: "", periods: [], evidence: {}, requestType: "first", requestDraft: "A question" };
 const caseB = { ...caseA, employerLabel: "Synthetic case B", requestDraft: "B question" };
 const archiveB = JSON.stringify(archives.createPayEvidenceCaseArchive(caseB));
 
-function mount(original = JSON.stringify(caseA)) {
+function mount(original = JSON.stringify(caseA), componentCode = compiled) {
   const values = new Map([[key, original], ["other-product", "unchanged"]]);
   const hooks = [], timers = new Map(), downloads = [];
   const state = { fault: false, writes: 0 };
@@ -29,7 +34,7 @@ function mount(original = JSON.stringify(caseA)) {
     setTimeout(callback) { timers.set(++sequence, callback); return sequence; }, clearTimeout(id) { timers.delete(id); },
   };
   const exports = {};
-  runInNewContext(compiled, {
+  runInNewContext(componentCode, {
     exports, Blob, window: browserWindow,
     crypto: { randomUUID: () => `synthetic-${++sequence}` },
     URL: { createObjectURL(blob) { downloads.push(blob); return "blob:synthetic"; }, revokeObjectURL() {} },
@@ -39,6 +44,7 @@ function mount(original = JSON.stringify(caseA)) {
       if (name === "react/jsx-runtime") return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
       if (name === "next/link") return { default: "a" };
       if (name === "@/lib/payEvidenceCaseArchive") return archives;
+      if (name === "@/lib/payEvidenceOutput") return outputExports;
       throw new Error(`Unexpected dependency ${name}`);
     },
   });
@@ -124,3 +130,27 @@ const cancelled = mount(), slow = deferredFile(); const slowRead = cancelled.rev
 cancelled.click("파일 읽기 취소"); slow.resolve(archiveB); await slowRead;
 assert(!cancelled.hasCandidate()); assert.deepEqual(cancelled.draft(), caseA); assert.equal(cancelled.state.writes, 0); raceChecks++;
 console.log(`PASS Pay archive read races: ${raceChecks} scenario groups; real TSX handlers, synthetic hooks/storage/files; DOM/browser/PWA NOT_RUN.`);
+
+// Public examples exercise actual workspace handlers, exporter bytes and archive round trips.
+for (const example of [sampleExports.payEvidenceSample, sampleExports.payEvidenceBlankSample]) {
+ const app = mount(JSON.stringify(example)); app.click("선택한 문의문 만들기");
+ const draft = app.draft();
+ assert.equal(draft.requestDraft, outputExports.createPayEvidenceRequest(example));
+ app.click("전체 요약 TXT"); const txt = await app.downloads.at(-1).text();
+ app.click("Shift 계산표 CSV"); const csv = await app.downloads.at(-1).text();
+ assert.equal(txt, outputExports.createPayEvidenceSummary(draft));
+ assert.equal(csv, await new Blob([outputExports.createPayEvidenceCsv(draft)]).text());
+ const archive = archives.createPayEvidenceCaseArchive(draft);
+ assert.equal(outputExports.createPayEvidenceSummary(archives.parsePayEvidenceCaseArchive(JSON.stringify(archive)).archive.case), txt);
+ if (example === sampleExports.payEvidenceSample) {
+  assert(txt.includes("Hours 7.50 | Expected gross A$225.00 | Payslip gross A$210.00 | Payslip net 180.00 | Bank net 170.00 | User-entered gross comparison A$15.00 | Payslip-to-bank net difference 10.00"));
+  assert(txt.includes("NOT READY")); assert(draft.requestDraft.includes("not presenting the difference as verified")); assert(!draft.requestDraft.includes("A$15.00"));
+ } else assert(txt.includes("Hours Not recorded | Expected gross Not recorded"));
+ if (process.env.PAY_BEFORE_SOURCE) {
+  const oldCode = ts.transpileModule(await readFile(process.env.PAY_BEFORE_SOURCE, "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const old = mount(JSON.stringify(example), oldCode); old.click("선택한 문의문 만들기"); assert.equal(old.draft().requestDraft, draft.requestDraft);
+  old.click("전체 요약 TXT"); assert.equal(await old.downloads.at(-1).text(), txt);
+  old.click("Shift 계산표 CSV"); assert.equal(await old.downloads.at(-1).text(), csv);
+ }
+}
+console.log("Pay fictional filled/blank examples: real request/TXT/CSV and JSON round trip PASS.");

@@ -70,7 +70,10 @@ const oversized = JSON.stringify({ ...archive, padding: "x".repeat(MAX_PAY_EVIDE
 assert.equal(parsePayEvidenceCaseArchive(oversized).ok, false, "oversized archives must fail before restore");
 
 const workspace = readFileSync(new URL("../src/components/tools/PayEvidenceWorkspace.tsx", import.meta.url), "utf8");
-const workspaceAst = ts.createSourceFile("PayEvidenceWorkspace.tsx", workspace, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+const outputSource = readFileSync(new URL("../src/lib/payEvidenceOutput.ts", import.meta.url), "utf8");
+const outputExports = {};
+new Function("exports", ts.transpileModule(outputSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText)(outputExports);
+const workspaceAst = ts.createSourceFile("PayEvidenceWorkspace.tsx", workspace + "\n" + outputSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 function findNode(node, predicate) { if (predicate(node)) return node; return ts.forEachChild(node, (child) => findNode(child, predicate)); }
 function variableExpression(name) {
   const declaration = findNode(workspaceAst, (node) => ts.isVariableDeclaration(node) && node.name.getText(workspaceAst) === name);
@@ -80,7 +83,7 @@ function variableExpression(name) {
 function functionExpression(name) {
   const declaration = findNode(workspaceAst, (node) => ts.isFunctionDeclaration(node) && node.name?.text === name);
   assert.ok(declaration, `workspace helper not found: ${name}`);
-  return `(${declaration.getText(workspaceAst)})`;
+  return `(${declaration.getText(workspaceAst).replace(/^export /, "")})`;
 }
 function evaluate(expression, bindings = {}) {
   const javascript = ts.transpileModule(`const value = ${expression};`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -91,6 +94,7 @@ const helpers = {};
 for (const name of helperNames) helpers[name] = evaluate(functionExpression(name), helpers);
 let textSummary = "";
 evaluate(variableExpression("downloadSummary"), {
+  createPayEvidenceSummary: outputExports.createPayEvidenceSummary,
   draft: fidelityDraft,
   rateBasisReady: true,
   estimatedDifference: fidelityDraft.periods.reduce((sum, period) => sum + Math.max(0, helpers.difference(period)), 0),
@@ -123,6 +127,6 @@ for (const contract of [
   "파일을 선택해도 즉시 복원하지 않습니다",
   "현재 기록은 변경하지 않았습니다",
 ]) assert.ok(workspace.includes(contract), `Pay Evidence archive UI contract is missing: ${contract}`);
-assert.match(workspace, /const restoreCaseArchive = \(\) => \{[\s\S]*const nextDraft = normaliseDraft\(pendingArchive\.case\);\s*if \(!persistDraft\(nextDraft\)\) return;\s*setDraft\(nextDraft\);\s*setPendingArchive\(null\)/);
+assert.match(workspace, /const restoreCaseArchive = \(\) => \{[\s\S]*const nextDraft = normaliseDraft\(pendingArchive\.case\);\s*if \(!persistDraft\(nextDraft\)\) return;\s*archiveReadSequence\.current\+\+;\s*setDraft\(nextDraft\);\s*setPendingArchive\(null\)/);
 
 console.log("PAY_EVIDENCE_CASE_ARCHIVE=PASS version=1 review_before_replace=true strict_validation=true originals_excluded=true fidelity=blank_vs_zero+decimals+multi_period+multiline");

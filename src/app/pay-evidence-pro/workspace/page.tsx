@@ -32,7 +32,7 @@ export default async function PayEvidenceWorkspacePage() {
         <Link href="/pay-evidence-pro" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; Pay Evidence Pack Pro 소개로 돌아가기</Link>
         <div className="mt-7 grid gap-7 border-b border-navy/20 pb-9 lg:grid-cols-[1fr_19rem] lg:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">{accessProtected ? "Pay Evidence Pack Pro / Purchased workspace" : "Pay Evidence Pack Pro / Local preview"}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#80621a]">{accessProtected ? "Pay Evidence Pack Pro / Purchased workspace" : "Pay Evidence Pack Pro / Local preview"}</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy [word-break:keep-all] sm:text-5xl">급여가 이상하다는 느낌을, 확인 가능한 기록으로 바꾸세요.</h1>
             <p className="mt-5 max-w-3xl leading-7 text-muted">근무시간과 기대 Gross, Payslip Gross·Net, 실제 Net 입금과 증빙을 급여기간별로 분리해 고용주나 상담기관에 전달할 준비를 합니다.</p>
           </div>
