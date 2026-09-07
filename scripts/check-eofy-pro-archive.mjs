@@ -8,6 +8,7 @@ import { calculateEofyProgress, formatEofyTaxYear, getMostRecentCompletedEofySta
 import { writeEofyDraft } from "../src/lib/eofyProDeviceStorage.ts";
 
 const component = await readFile(new URL("../src/components/tools/EofyProWorkspace.tsx", import.meta.url), "utf8");
+const outputSource = await readFile(new URL("../src/lib/eofyProOutput.ts", import.meta.url), "utf8");
 const archiveSource = await readFile(new URL("../src/lib/eofyProArchive.ts", import.meta.url), "utf8");
 const productPage = await readFile(new URL("../src/app/eofy-pro/page.tsx", import.meta.url), "utf8");
 const packageSource = await readFile(new URL("../package.json", import.meta.url), "utf8");
@@ -149,13 +150,15 @@ for (const contract of [
   "calculateEofyProgress({",
   "이 회계연도에는 기록할 지출 후보가 없음을 확인했습니다.",
   "이 회계연도에는 별도로 기록할 문서가 없거나 해당하지 않음을 확인했습니다.",
-  "Zero-record status:",
   "증빙 확인 필요",
   "환급받은 항목",
   "개인 사용분 계산 공백",
-  "ACCOUNTANT HANDOFF READINESS REVIEW",
-  "These are preparation flags, not findings about deductibility or tax treatment.",
 ]) assert.ok(component.includes(contract), `EOFY archive UI contract is missing: ${contract}`);
+
+for (const contract of ["Zero-record status:", "ACCOUNTANT HANDOFF READINESS REVIEW", "These are preparation flags, not findings about deductibility or tax treatment."]) {
+  assert.ok(outputSource.includes(contract), `EOFY shared output contract is missing: ${contract}`);
+}
+assert.ok(component.includes("createEofyPreparationSummary(draft)"));
 
 for (const privacyContract of ["receiptFilesIncluded: false", "credentialsIncluded: false"]) {
   assert.ok(archiveSource.includes(privacyContract), `EOFY archive privacy contract is missing: ${privacyContract}`);

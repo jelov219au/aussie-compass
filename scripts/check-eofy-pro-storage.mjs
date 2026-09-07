@@ -11,6 +11,16 @@ import * as progressHelpers from "../src/lib/eofyProProgress.ts";
 const { readEofyDraft, writeEofyDraft, eofyProStorageKey: key } = storageHelpers;
 const require = createRequire(import.meta.url);
 const ts = require("typescript");
+const outputSource = await readFile(new URL("../src/lib/eofyProOutput.ts", import.meta.url), "utf8");
+const outputHelpers = {};
+runInNewContext(ts.transpileModule(outputSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, {
+  exports: outputHelpers,
+  require(name) {
+    if (name === "@/lib/eofyProArchive") return archives;
+    if (name === "@/lib/eofyProHandoff") return handoff;
+    throw new Error(`Unexpected output dependency ${name}`);
+  },
+});
 const source = await readFile(new URL("../src/components/tools/EofyProWorkspace.tsx", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
 const draft = { taxYear: "2025–26", incomeStatuses: { employment: "ready" }, expenses: [], questions: ["Synthetic existing question"] };
@@ -96,6 +106,7 @@ function mount(original = raw, initialFault = "none") {
       if (name === "@/lib/eofyProDeviceStorage") return storageHelpers;
       if (name === "@/lib/eofyProDownload") return downloads;
       if (name === "@/lib/eofyProProgress") return progressHelpers;
+      if (name === "@/lib/eofyProOutput") return outputHelpers;
       throw new Error(`Unexpected component dependency ${name}`);
     },
     window: browserWindow, Blob, URL: {

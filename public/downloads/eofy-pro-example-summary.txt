@@ -1,0 +1,58 @@
+HOJU COMPASS — EOFY PACK 2025–26
+Preparation summary only — not a tax return or deduction calculation
+
+ACCOUNTANT HANDOFF READINESS REVIEW
+Review flags: 4 across 1 expense candidate(s)
+
+INCOME SOURCES NOT READY
+- 은행 이자와 공동계좌
+
+MISSING EVIDENCE
+- 2. 업무용 장비·도구 — FICTIONAL EXAMPLE — 가상 장비 구입
+
+REIMBURSED ITEMS — KEEP SEPARATE FOR REVIEW
+- 2. 업무용 장비·도구 — FICTIONAL EXAMPLE — 가상 장비 구입
+
+PRIVATE-USE CALCULATION GAPS
+- 2. 업무용 장비·도구 — FICTIONAL EXAMPLE — 가상 장비 구입
+
+INCOMPLETE RECORD DETAILS
+- None flagged
+
+These are preparation flags, not findings about deductibility or tax treatment.
+
+INCOME SOURCES
+- [준비 완료] 모든 고용주의 Income statement
+- [확인 필요] 은행 이자와 공동계좌
+- [준비 완료] 정부 지급금·수당
+- [준비 완료] 부업·플랫폼·현금 소득
+- [준비 완료] 투자·가상자산·임대·해외 소득
+
+INDIVIDUAL DOCUMENT RECORDS (2; 1 to review)
+User-recorded preparation status only; not confirmation of ATO Tax ready or tax treatment.
+1. 가상 직장 A · Income statement 목록 | 모든 고용주의 Income statement
+   Status: 준비 완료 | Checked on (user entry): 2026-09-01
+   Next check / question: 가상 예시: 별도 보관한 자료의 존재 여부만 기록. 실제 ATO 확인이나 서류 검증 결과가 아님.
+2. 가상 은행 B · 이자 자료 목록 | 은행 이자와 공동계좌
+   Status: 확인 필요 | Checked on (user entry): 2026-09-02
+   Next check / question: 가상 예시: 별도 보관한 이자 내역과 Pre-fill의 차이를 확인할 질문을 남김. 계좌번호와 원본은 포함하지 않음.
+
+EXPENSE CANDIDATES (2)
+1. 재택근무 — 가상 예시 · 인터넷 사용 기록
+   Date: 2026-05-31 | Amount recorded: A$120.50 | Work-use note: 40%
+   Evidence: 계산·사용기록 | Reimbursed: No
+   Note: FICTIONAL EXAMPLE — DO NOT LODGE. 금액·비율·상황은 모두 가상. 별도 보관한 사용 기록을 확인한다는 메모이며 공제 가능 금액이 아님.
+2. 업무용 장비·도구 — FICTIONAL EXAMPLE — 가상 장비 구입
+   Date: 2026-06-10 | Amount recorded: A$55.00 | Work-use note: 50%
+   Evidence: 증빙 확인 필요 | Reimbursed: Yes — review before claiming
+   Note: 가상 예시: 영수증 원본은 별도 확인 필요. 비용을 돌려받았다고 가정한 항목이며, 업무 사용 비율의 근거도 등록 세무사에게 질문할 예정.
+
+TOTAL VALID RECORDED CANDIDATE SPEND: A$175.50
+AMOUNT ENTRIES EXCLUDED FROM TOTAL: 0 (blank or unvalidated; original input retained above)
+This is not the deductible amount. Eligibility, private-use portions, reimbursements and special substantiation rules must be checked separately.
+
+QUESTIONS FOR MYTAX OR A REGISTERED TAX AGENT
+- 가상 예시: 원본을 별도 보관한 자료 중 어떤 내용부터 다시 대조해야 하나요?
+- 가상 예시: 비용을 돌려받은 항목과 업무·개인 사용 구분에 대해 어떤 기록을 준비해야 하나요?
+
+Do not add TFN, bank account numbers, myGov credentials or receipt images to this file.

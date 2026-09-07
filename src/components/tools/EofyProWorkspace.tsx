@@ -22,21 +22,13 @@ import {
   type EofyStatus,
   type EofyDocumentRecord,
 } from "@/lib/eofyProArchive";
+import { createEofyPreparationSummary, eofyIncomeSources as incomeSources, eofyStatusLabels as statusLabels, eofyEvidenceLabels as evidenceLabels } from "@/lib/eofyProOutput";
 import { assessEofyHandoff } from "@/lib/eofyProHandoff";
 import { readEofyDraft, writeEofyDraft } from "@/lib/eofyProDeviceStorage";
 import { requestEofyDownload } from "@/lib/eofyProDownload";
 import { calculateEofyProgress, formatEofyTaxYear, getMostRecentCompletedEofyStartYear } from "@/lib/eofyProProgress";
 
-const incomeSources = [
-  { id: "employment", title: "모든 고용주의 Income statement", detail: "myGov의 ATO 서비스에서 각 고용주 자료가 Tax ready인지 확인합니다." },
-  { id: "interest", title: "은행 이자와 공동계좌", detail: "사용 빈도가 낮은 계좌와 공동계좌의 이자도 Pre-fill과 대조합니다." },
-  { id: "government", title: "정부 지급금·수당", detail: "신고 대상 여부와 Pre-fill 내용을 ATO 원문에서 확인합니다." },
-  { id: "gig", title: "부업·플랫폼·현금 소득", detail: "고용소득과 별도로 받은 금액과 관련 기록을 빠뜨리지 않습니다." },
-  { id: "complex", title: "투자·가상자산·임대·해외 소득", detail: "해당된다면 거래·환율·비용 자료를 분리하고 전문가 상담 필요 여부를 확인합니다." },
-];
 const categories = ["업무용 장비·도구", "의류·세탁", "차량·업무 이동", "재택근무", "자기계발", "조합비·전문가 비용", "기부", "세무 비용", "기타 확인 항목"];
-const statusLabels: Record<EofyStatus, string> = { todo: "확인 전", review: "확인 필요", ready: "준비 완료" };
-const evidenceLabels = { receipt: "영수증·인보이스", calculation: "계산·사용기록", missing: "증빙 확인 필요" } as const;
 const expenseArchiveIssueLabels: Record<keyof EofyExpenseRecord, string> = {
   id: "항목 식별자 확인 필요",
   category: "분류: 1~100자",
@@ -52,11 +44,6 @@ const inputClass = "mt-1.5 min-h-11 w-full border border-border bg-white px-3 py
 
 function newExpense(): EofyExpenseRecord {
   return { id: crypto.randomUUID(), category: categories[0], description: "", date: "", amount: "", workUse: "100", evidence: "receipt", reimbursed: false, note: "" };
-}
-
-function recordedAmountLabel(value: string) {
-  const cents = getEofyAmountCents(value);
-  return cents === null ? (value ? `Unvalidated input: ${value}` : "Not set") : `A$${(cents / 100).toFixed(2)}`;
 }
 
 function requestDownload(blob: Blob, filename: string) {
@@ -262,69 +249,8 @@ export function EofyProWorkspace() {
       setMessage("먼저 현재 기록의 회계사 전달 준비 검토를 확인해 주세요.");
       return;
     }
-    const expenseLabel = (id: string) => {
-      const index = draft.expenses.findIndex((expense) => expense.id === id);
-      const expense = draft.expenses[index];
-      return expense ? `${index + 1}. ${expense.category} — ${expense.description || "No description"}` : id;
-    };
-    const expenseReviewLines = (title: string, ids: string[]) => [
-      title,
-      ...(ids.length ? ids.map((id) => `- ${expenseLabel(id)}`) : ["- None flagged"]),
-      "",
-    ];
-    const emptySectionReviewLabel = (section: "expenses" | "documents") => draft.emptySections?.[section]
-      ? "User confirmed none / not applicable"
-      : "Covered by the current accountant-handoff review";
-    const lines = [
-      `HOJU COMPASS — EOFY PACK ${draft.taxYear}`,
-      "Preparation summary only — not a tax return or deduction calculation",
-      "",
-      "ACCOUNTANT HANDOFF READINESS REVIEW",
-      `Review flags: ${handoffReview.totalFlags} across ${handoffReview.flaggedExpenseCount} expense candidate(s)`,
-      "",
-      "INCOME SOURCES NOT READY",
-      ...(handoffReview.incomeNotReady.length
-        ? handoffReview.incomeNotReady.map((id) => `- ${incomeSources.find((source) => source.id === id)?.title ?? id}`)
-        : ["- None flagged"]),
-      "",
-      ...expenseReviewLines("MISSING EVIDENCE", handoffReview.missingEvidence),
-      ...expenseReviewLines("REIMBURSED ITEMS — KEEP SEPARATE FOR REVIEW", handoffReview.reimbursed),
-      ...expenseReviewLines("PRIVATE-USE CALCULATION GAPS", handoffReview.privateUseGaps),
-      ...expenseReviewLines("INCOMPLETE RECORD DETAILS", handoffReview.incompleteDetails),
-      "These are preparation flags, not findings about deductibility or tax treatment.",
-      "",
-      "INCOME SOURCES",
-      ...incomeSources.map((source) => `- [${statusLabels[draft.incomeStatuses[source.id] ?? "todo"]}] ${source.title}`),
-      "",
-      `INDIVIDUAL DOCUMENT RECORDS (${documents.length}; ${documentsToReview.length} to review)`,
-      "User-recorded preparation status only; not confirmation of ATO Tax ready or tax treatment.",
-      ...(documents.length ? documents.flatMap((item, index) => [
-        `${index + 1}. ${item.label || "No document label"} | ${incomeSources.find(source => source.id === item.sourceId)?.title ?? item.sourceId}`,
-        `   Status: ${statusLabels[item.status]} | Checked on (user entry): ${item.checkedOn || "Not recorded"}`,
-        `   Next check / question: ${item.note || "Not recorded"}`,
-        ...(documentArchiveIssues[index].length ? ["   Archive validation: review this record before JSON backup"] : []),
-      ]) : ["- None recorded", `- Zero-record status: ${emptySectionReviewLabel("documents")}`]),
-      "",
-      `EXPENSE CANDIDATES (${draft.expenses.length})`,
-      ...draft.expenses.flatMap((expense, index) => [
-        `${index + 1}. ${expense.category} — ${expense.description || "No description"}`,
-        `   Date: ${expense.date || "Not set"} | Amount recorded: ${recordedAmountLabel(expense.amount)} | Work-use note: ${expense.workUse || "Not set"}%`,
-        `   Evidence: ${evidenceLabels[expense.evidence]} | Reimbursed: ${expense.reimbursed ? "Yes — review before claiming" : "No"}`,
-        expense.note ? `   Note: ${expense.note}` : "",
-      ].filter(Boolean)),
-      ...(!draft.expenses.length ? [`- None recorded`, `- Zero-record status: ${emptySectionReviewLabel("expenses")}`] : []),
-      "",
-      `TOTAL VALID RECORDED CANDIDATE SPEND: A$${candidateTotal.toFixed(2)}`,
-      `AMOUNT ENTRIES EXCLUDED FROM TOTAL: ${amountTotals.excluded} (blank or unvalidated; original input retained above)`,
-      "This is not the deductible amount. Eligibility, private-use portions, reimbursements and special substantiation rules must be checked separately.",
-      "",
-      "QUESTIONS FOR MYTAX OR A REGISTERED TAX AGENT",
-      ...(draft.questions.length ? draft.questions.map((question) => `- ${question}`) : ["- None added"]),
-      "",
-      "Do not add TFN, bank account numbers, myGov credentials or receipt images to this file.",
-    ];
     try {
-      const requested = requestDownload(new Blob([lines.join("\r\n")], { type: "text/plain;charset=utf-8" }), `hoju-compass-eofy-pack-${draft.taxYear.replace("–", "-")}.txt`);
+      const requested = requestDownload(new Blob([createEofyPreparationSummary(draft)], { type: "text/plain;charset=utf-8" }), `hoju-compass-eofy-pack-${draft.taxYear.replace("–", "-")}.txt`);
       setMessage(requested ? "EOFY 회계사 전달 요약 내려받기를 요청했습니다. 파일이 실제로 저장됐는지 확인하세요." : "다운로드를 시작하지 못했습니다. 기록과 검토 상태는 유지했습니다. 브라우저 권한을 확인한 뒤 다시 시도하세요.");
     } catch {
       setMessage("다운로드를 시작하지 못했습니다. 기록과 검토 상태는 유지했습니다. 브라우저 권한을 확인한 뒤 다시 시도하세요.");
@@ -437,7 +363,7 @@ export function EofyProWorkspace() {
     </section>
     <div className="space-y-8">
       <section className="border-t border-navy/20 pt-6" aria-labelledby="eofy-income-heading"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Income cross-check</p><h2 id="eofy-income-heading" className="mt-2 text-2xl font-semibold text-navy">소득 자료 준비</h2></div><label className="text-sm font-medium text-navy">회계연도<select className={`${inputClass} min-w-36`} value={draft.taxYear} onChange={(event) => setDraft((current) => ({ ...current, taxYear: event.target.value }))}>{taxYearOptions.map((year) => <option key={year} value={year}>{year || "저장된 연도 없음 · 선택 필요"}</option>)}</select></label></div><p className="mt-4 text-sm leading-6 text-muted">Pre-fill도 최종 신고 내용과 일치하는지 직접 확인해야 합니다. 금액은 이 화면에 입력하지 않고 상태만 기록하세요.</p>
-        <ol className="mt-6 divide-y divide-border border-y border-navy/20">{incomeSources.map((source, index) => <li key={source.id} className="grid gap-3 py-5 sm:grid-cols-[2rem_1fr_8rem]"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div><h3 className="font-semibold text-navy">{source.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{source.detail}</p></div><label className="text-xs font-medium text-muted">상태<select className="mt-1 min-h-10 w-full border border-border bg-white px-2 text-sm text-navy" value={draft.incomeStatuses[source.id] ?? "todo"} onChange={(event) => setIncomeStatus(source.id, event.target.value as EofyStatus)}><option value="todo">확인 전</option><option value="review">확인 필요</option><option value="ready">준비 완료</option></select></label></li>)}</ol>
+        <ol className="mt-6 divide-y divide-border border-y border-navy/20">{incomeSources.map((source, index) => <li key={source.id} className="grid gap-3 py-5 sm:grid-cols-[2rem_1fr_8rem]"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><div><h3 className="font-semibold text-navy">{source.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{source.detail}</p></div><label className="text-xs font-medium text-muted">상태<select className="mt-1 min-h-11 w-full border border-border bg-white px-2 text-sm text-navy" value={draft.incomeStatuses[source.id] ?? "todo"} onChange={(event) => setIncomeStatus(source.id, event.target.value as EofyStatus)}><option value="todo">확인 전</option><option value="review">확인 필요</option><option value="ready">준비 완료</option></select></label></li>)}</ol>
       </section>
 
       <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="eofy-documents-heading">
@@ -515,7 +441,7 @@ export function EofyProWorkspace() {
 
       <section className="bg-navy p-5 text-white sm:p-7" aria-labelledby="eofy-summary-heading"><div className="flex items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Preparation summary</p><h2 id="eofy-summary-heading" className="mt-2 text-xl font-semibold">{draft.taxYear} 준비 현황</h2></div><p className="font-mono text-3xl text-gold">{progress}%</p></div><dl className="mt-6 grid grid-cols-3 gap-px bg-white/15 text-center"><div className="bg-navy p-3"><dt className="text-xs text-white/55">소득 준비</dt><dd className="mt-1 text-xl font-semibold">{incomeReady}/{incomeSources.length}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">지출 후보</dt><dd className="mt-1 text-xl font-semibold">{draft.expenses.length}</dd></div><div className="bg-navy p-3"><dt className="text-xs text-white/55">질문</dt><dd className="mt-1 text-xl font-semibold">{draft.questions.length}</dd></div></dl>{incomeReview.length + expenseReview.length + documentsToReview.length + emptySectionsToReview > 0 ? <p className="mt-5 text-sm leading-6 text-white/70">현재 확인 필요 항목 {incomeReview.length + expenseReview.length + documentsToReview.length + emptySectionsToReview}개가 있습니다. 0건인 지출·문서 범주도 직접 확인하거나 전달 준비 검토를 거쳐야 합니다.</p> : <p className="mt-5 text-sm leading-6 text-white/70">확인 필요로 표시된 항목이 없습니다. 실제 신고 전 ATO 원문 또는 등록 세무사에게 최종 확인하세요.</p>}<button type="button" onClick={downloadSummary} className="mt-5 min-h-11 bg-gold px-4 text-sm font-semibold text-navy hover:bg-white">EOFY 준비 요약 저장</button><p className="mt-4 min-h-5 text-xs leading-5 text-white/60" aria-live="polite">{message}</p></section>
 
-      <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="eofy-archive-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Year archive</p><h2 id="eofy-archive-heading" className="mt-2 text-xl font-semibold text-navy">회계연도 백업과 복원</h2><p className="mt-3 text-sm leading-6 text-muted">소득 준비 상태, 문서별 별칭·확인 기록, 공제 후보와 질문을 버전형 JSON으로 옮깁니다. 문서 원본·구매 권한은 포함하지 않습니다. 자유 입력에 TFN·계좌번호·로그인 정보를 적지 말고 파일을 안전하게 보관하세요. 웹·설치 앱·기기 간 자동 동기화가 아니며 JSON으로 수동 이동합니다.</p><div className="mt-5 grid gap-3 sm:grid-cols-2"><button type="button" onClick={downloadArchive} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white hover:bg-navy-light">현재 연도 JSON 백업</button><label className="inline-flex min-h-11 cursor-pointer items-center justify-center border border-navy px-4 text-sm font-semibold text-navy hover:bg-surface"><input type="file" accept="application/json,.json" onChange={reviewArchive} className="sr-only" />백업 파일 검토</label></div>{archiveReading ? <button type="button" onClick={cancelArchiveReview} className="mt-4 min-h-11 border border-border px-4 text-sm font-semibold text-muted">파일 읽기 취소</button> : null}{pendingArchive ? <div className="mt-5 border border-gold/50 bg-gold/8 p-4"><p className="font-semibold text-navy">{pendingArchive.draft.taxYear} 백업</p><p className="mt-2 text-xs leading-5 text-muted">문서 {(pendingArchive.draft.documents ?? []).length}개 · 지출 후보 {pendingArchive.draft.expenses.length}개 · 질문 {pendingArchive.draft.questions.length}개 · 저장 시각 {new Date(pendingArchive.exportedAt).toLocaleString("ko-KR")}</p><p className="mt-2 text-xs leading-5 text-[#755b20]">아직 현재 작업은 바뀌지 않았습니다. 아래 확정 버튼을 누르면 이 브라우저의 현재 EOFY 작업을 백업 내용으로 교체합니다.</p><div className="mt-4 flex flex-wrap gap-3"><button type="button" onClick={restoreArchive} className="min-h-11 bg-gold px-4 text-sm font-semibold text-navy">검토한 백업으로 교체</button><button type="button" onClick={cancelArchiveReview} className="min-h-11 border border-border px-4 text-sm font-semibold text-muted">취소</button></div></div> : null}<p className={`mt-4 min-h-5 text-xs leading-5 ${archiveError ? "text-red-700" : "text-muted"}`} aria-live="polite">{archiveError || archiveMessage}</p></section>
+      <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="eofy-archive-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Year archive</p><h2 id="eofy-archive-heading" className="mt-2 text-xl font-semibold text-navy">회계연도 백업과 복원</h2><p className="mt-3 text-sm leading-6 text-muted">소득 준비 상태, 문서별 별칭·확인 기록, 공제 후보와 질문을 버전형 JSON으로 옮깁니다. 문서 원본·구매 권한은 포함하지 않습니다. 자유 입력에 TFN·계좌번호·로그인 정보를 적지 말고 파일을 안전하게 보관하세요. 웹·설치 앱·기기 간 자동 동기화가 아니며 JSON으로 수동 이동합니다.</p><div className="mt-5 grid gap-3 sm:grid-cols-2"><button type="button" onClick={downloadArchive} className="min-h-11 bg-navy px-4 text-sm font-semibold text-white hover:bg-navy-light">현재 연도 JSON 백업</button><label className="inline-flex min-h-11 cursor-pointer items-center justify-center border border-navy px-4 text-sm font-semibold text-navy hover:bg-surface focus-within:ring-2 focus-within:ring-navy focus-within:ring-offset-2"><input type="file" accept="application/json,.json" onChange={reviewArchive} className="sr-only" />백업 파일 검토</label></div>{archiveReading ? <button type="button" onClick={cancelArchiveReview} className="mt-4 min-h-11 border border-border px-4 text-sm font-semibold text-muted">파일 읽기 취소</button> : null}{pendingArchive ? <div className="mt-5 border border-gold/50 bg-gold/8 p-4"><p className="font-semibold text-navy">{pendingArchive.draft.taxYear} 백업</p><p className="mt-2 text-xs leading-5 text-muted">문서 {(pendingArchive.draft.documents ?? []).length}개 · 지출 후보 {pendingArchive.draft.expenses.length}개 · 질문 {pendingArchive.draft.questions.length}개 · 저장 시각 {new Date(pendingArchive.exportedAt).toLocaleString("ko-KR")}</p><p className="mt-2 text-xs leading-5 text-[#755b20]">아직 현재 작업은 바뀌지 않았습니다. 아래 확정 버튼을 누르면 이 브라우저의 현재 EOFY 작업을 백업 내용으로 교체합니다.</p><div className="mt-4 flex flex-wrap gap-3"><button type="button" onClick={restoreArchive} className="min-h-11 bg-gold px-4 text-sm font-semibold text-navy">검토한 백업으로 교체</button><button type="button" onClick={cancelArchiveReview} className="min-h-11 border border-border px-4 text-sm font-semibold text-muted">취소</button></div></div> : null}<p className={`mt-4 min-h-5 text-xs leading-5 ${archiveError ? "text-red-700" : "text-muted"}`} aria-live="polite">{archiveError || archiveMessage}</p></section>
     </div>
   </div>;
 }
