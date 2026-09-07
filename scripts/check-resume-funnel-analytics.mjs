@@ -187,7 +187,8 @@ for (const [source, eventNames] of [
   assert.deepEqual(literalEvents, eventNames, "the existing six-event resume boundary changed unexpectedly");
 }
 
-assert.ok(offerPage.includes("ResumeProProofLink") && offerPage.includes("내 공고로 무료 점검하기"), "the offer sample must lead to the free proof step");
+const offerProofLinks = [...offerPage.matchAll(/<ResumeProProofLink\s+entry=\{entry\}[^>]*>([\s\S]*?)<\/ResumeProProofLink>/g)];
+assert.ok(offerProofLinks.some(([, copy]) => copy.includes("무료")), "the offer must render an attributed link to the free proof step");
 assert.ok(proofLink.includes('href="/resume-job-ad-checker"'), "the free proof link must use the local-only Job Ad checker");
 assert.ok(proofLink.includes('track("Resume Pro Free Proof Opened", { entry })'), "the free proof step needs a fixed acquisition event");
 assert.ok(proofLink.includes("new Set<ResumeProEntry>()"), "the free proof event needs an in-session duplicate guard");
