@@ -48,6 +48,10 @@ jobs:
           export CHROME_PATH="$(command -v google-chrome || command -v chromium || true)"
           test -n "$CHROME_PATH"
           "$CHROME_PATH" --version
+          # The runner's default fonts omit Korean glyphs used throughout the UI.
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          fc-match ':lang=ko' | tee "$EOFY_UI_DIR/eofy-font.log"
           npm install --prefix "$EOFY_UI_DIR" --no-save --package-lock=false --ignore-scripts playwright-core@1.63.0 axe-core@4.10.3
           node scripts/prepare-eofy-ui-fixture.mjs
 

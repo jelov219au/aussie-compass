@@ -59,10 +59,20 @@ const withoutIDs = draft => ({ ...draft, documents: draft.documents?.map(without
       await context.setOffline(true); assert.equal(normalise(await download('EOFY 준비 요약 저장')), normalise(txt)); await context.setOffline(false);
       await page.addScriptTag({ path: require.resolve('axe-core/axe.min.js') });
       const axe = await page.evaluate(async () => axe.run(document.querySelector('main'), { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } }));
-      assert.deepEqual(axe.violations.map(item => ({ id: item.id, targets: item.nodes.map(node => node.target) })), []);
-      assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-      assert.deepEqual(await page.locator('main button,main select,main textarea,main input:not([type=file])').evaluateAll(nodes => nodes.filter(node => { const target = node.type === 'checkbox' ? node.closest('label') : node, rect = target.getBoundingClientRect(); return rect.width > 0 && (rect.height < 44 || rect.width < 44); }).map(node => [node.tagName, node.getAttribute('aria-label') || node.closest('label')?.textContent])), []);
+      const visual = {
+        axe: axe.violations.map(item => ({ id: item.id, nodes: item.nodes.map(node => ({ target: node.target, summary: node.failureSummary })) })),
+        overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+        smallTargets: await page.locator('main button,main select,main textarea,main input:not([type=file])').evaluateAll(nodes => nodes.filter(node => { const target = node.type === 'checkbox' ? node.closest('label') : node, rect = target.getBoundingClientRect(); return rect.width > 0 && (rect.height < 44 || rect.width < 44); }).map(node => [node.tagName, node.getAttribute('aria-label') || node.closest('label')?.textContent])),
+      };
+      fs.writeFileSync(qaDirectory + `/eofy-workspace-visual-${width}.json`, JSON.stringify(visual, null, 2));
+      if (width !== 768) {
+        for (const id of ['eofy-income-heading', 'expense-register-heading', 'eofy-handoff-review-heading']) {
+          await page.locator(`#${id}`).scrollIntoViewIfNeeded();
+          await page.screenshot({ path: qaDirectory + `/eofy-workspace-${id}-${width}.png` });
+        }
+      }
       await progress.scrollIntoViewIfNeeded(); await page.screenshot({ path: qaDirectory + `/eofy-workspace-${width}.png` });
+      assert.deepEqual(visual, { axe: [], overflow: false, smallTargets: [] });
       await page.evaluate(() => localStorage.setItem('hoju-compass-leaving-pro-v1', 'fictional-sentinel'));
       await page.goto(base + '/eofy-pro?access=released'); await page.getByRole('link', { name: 'EOFY 로컬 기록 삭제', exact: true }).click();
       const deletion = page.locator('article').filter({ has: page.locator('#eofy-delete-heading') }); await deletion.getByRole('checkbox').check(); await deletion.getByRole('button', { name: 'EOFY 기록 삭제', exact: true }).click();
