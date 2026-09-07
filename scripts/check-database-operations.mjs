@@ -109,7 +109,7 @@ const expectedAdapterCalls = new Map([
 
 function extractSqlFunctionCalls(source) {
   const calls = new Map();
-  const auditedPostgresBuiltins = new Set(["bool_and", "coalesce"]);
+  const auditedPostgresBuiltins = new Set(["bool_and", "coalesce", "count", "exists"]);
   const starts = source.matchAll(/\bselect\s+(?:\*\s+from\s+)?([a-z_][a-z0-9_]*)\s*\(/gi);
 
   for (const match of starts) {
@@ -141,6 +141,8 @@ function extractSqlFunctionCalls(source) {
 
   return calls;
 }
+
+assert.deepEqual([...extractSqlFunctionCalls('select count(*) from purchase_entitlements; select exists(select 1 from purchase_entitlements); select unapproved_runtime_call(${value});')], [["unapproved_runtime_call", 1]], "built-in aggregate/existence expressions must not hide an unknown privileged wrapper");
 
 for (const [fileName, source] of [
   ["neonFirstSaleGate.ts", firstSaleAdapter],

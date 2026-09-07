@@ -56,8 +56,10 @@ assert.match(returnVisitSection, /readCompassRecords/, "home must use the shared
 assert.match(compassRecords, /item\(RAIL_WORK_ALERT_STORAGE_KEY[\s\S]*parseWatchAreas/, "saved rail areas must remain resumable through their original validator");
 assert.doesNotMatch(`${toolsSection}\n${toolsPage}\n${returnVisitSection}`, /display-mode|standalone\)\.matches/, "the feature must not be hidden from either surface");
 assert.match(railRegistry, /RAIL_WORK_ALERT_ROUTE = "\/rail-work-alerts"/, "the canonical transport route must remain explicit");
-assert.match(deviceTransfer, /RAIL_WORK_ALERT_STORAGE_KEY/, "browser and installed-PWA storage must have an explicit manual transfer path");
-assert.match(deviceTransfer, /resumeProStarStoriesStorageKey[\s\S]*Resume Pro STAR 경험 보관함[\s\S]*sensitive: true/, "Resume Pro STAR stories used by application-kit exports must transfer with company snapshots across web and installed-PWA storage");
+const deviceManifest = await read("src/data/deviceTransferManifest.ts");
+assert.ok(deviceTransfer.includes("const storedRecords = deviceTransferManifest;") && deviceTransfer.includes("createDeviceBackup(window.localStorage, records, window.location.origin)"), "web and installed PWA must use the same explicit manifest-backed manual transfer flow");
+assert.match(deviceManifest, /record\("rail-work-areas", "aussie-compass-rail-work-watch-areas-v1", "철도 작업 확인 지역", "주거·이동", "\/rail-work-alerts", true, "rail-watch-v1", exact\(parseWatchAreas, "array"\)\)/, "rail transfer must retain its original key, validator, destination and sensitive flag");
+assert.match(deviceManifest, /record\("resume-pro-star-stories", "hoju-compass-resume-pro-star-stories-v1", "Resume Pro STAR 경험 보관함", "구직", "\/resume-pro\/workspace", true, "resume-pro-star-v1", genericArray\)/, "Resume Pro STAR stories must remain a sensitive transfer record with the original key and workspace destination");
 await access(new URL("../src/app/rail-work-alerts/page.tsx", import.meta.url));
 
 assert.equal(packageJson.scripts["test:cross-surface-content"], "node scripts/check-cross-surface-content.mjs", "package scripts must expose the cross-surface contract");
