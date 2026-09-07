@@ -36,13 +36,14 @@ jobs:
 
       - name: Review public UI with isolated browser records
         id: eofy_ui
-        if: github.event_name == 'pull_request' && (github.head_ref == 'codex/eofy-purchase-preview-20260907' || github.head_ref == 'codex/site-design-20260907' || github.head_ref == 'codex/search-entry-20260908')
+        if: github.event_name == 'pull_request' && (github.head_ref == 'codex/eofy-purchase-preview-20260907' || github.head_ref == 'codex/site-design-20260907' || github.head_ref == 'codex/search-entry-20260908' || github.head_ref == 'codex/job-offer-guide-20260908')
         timeout-minutes: 8
         env:
           EOFY_UI_DIR: ${{ runner.temp }}/eofy-ui
           NEXT_TELEMETRY_DISABLED: '1'
           SITE_DESIGN_REVIEW: ${{ github.head_ref == 'codex/site-design-20260907' }}
           SEARCH_ENTRY_REVIEW: ${{ github.head_ref == 'codex/search-entry-20260908' }}
+          JOB_OFFER_REVIEW: ${{ github.head_ref == 'codex/job-offer-guide-20260908' }}
         run: |
           mkdir -p "$EOFY_UI_DIR"
           available_kib="$(awk '/MemAvailable/ { print $2 }' /proc/meminfo)"
@@ -55,7 +56,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends fonts-noto-cjk
           fc-match ':lang=ko' | tee "$EOFY_UI_DIR/eofy-font.log"
           npm install --prefix "$EOFY_UI_DIR" --no-save --package-lock=false --ignore-scripts playwright-core@1.63.0 axe-core@4.10.3
-          if [ "$SITE_DESIGN_REVIEW" != "true" ] && [ "$SEARCH_ENTRY_REVIEW" != "true" ]; then node scripts/prepare-eofy-ui-fixture.mjs; fi
+          if [ "$SITE_DESIGN_REVIEW" != "true" ] && [ "$SEARCH_ENTRY_REVIEW" != "true" ] && [ "$JOB_OFFER_REVIEW" != "true" ]; then node scripts/prepare-eofy-ui-fixture.mjs; fi
 
           # The existing development preview allows fictional workspace input.
           # Production access guards and the production bundle stay unchanged.
@@ -64,6 +65,7 @@ jobs:
           trap 'eofy_exit=$?; kill "$eofy_server" 2>/dev/null || true; wait "$eofy_server" 2>/dev/null || true; exit "$eofy_exit"' EXIT
           warmup_path=/eofy-pro
           if [ "$SEARCH_ENTRY_REVIEW" = "true" ]; then warmup_path=/used-car-comparison; fi
+          if [ "$JOB_OFFER_REVIEW" = "true" ]; then warmup_path=/resources/australia-job-scam-red-flags; fi
           for attempt in $(seq 1 30); do
             if curl --silent --fail --max-time 5 "http://127.0.0.1:3108$warmup_path" > /dev/null; then break; fi
             kill -0 "$eofy_server"
@@ -71,7 +73,9 @@ jobs:
           done
           curl --silent --fail --max-time 10 "http://127.0.0.1:3108$warmup_path" > /dev/null
           eofy_ui_failed=0
-          if [ "$SEARCH_ENTRY_REVIEW" = "true" ]; then
+          if [ "$JOB_OFFER_REVIEW" = "true" ]; then
+            node scripts/check-job-offer-article-ui.mjs || eofy_ui_failed=1
+          elif [ "$SEARCH_ENTRY_REVIEW" = "true" ]; then
             node scripts/check-search-entry-ui.mjs || eofy_ui_failed=1
           elif [ "$SITE_DESIGN_REVIEW" = "true" ]; then
             node scripts/check-site-design-ui.mjs || eofy_ui_failed=1
@@ -82,7 +86,7 @@ jobs:
           test "$eofy_ui_failed" -eq 0
 
       - name: Save browser review evidence
-        if: always() && github.event_name == 'pull_request' && (github.head_ref == 'codex/eofy-purchase-preview-20260907' || github.head_ref == 'codex/site-design-20260907' || github.head_ref == 'codex/search-entry-20260908') && steps.eofy_ui.outcome != 'skipped'
+        if: always() && github.event_name == 'pull_request' && (github.head_ref == 'codex/eofy-purchase-preview-20260907' || github.head_ref == 'codex/site-design-20260907' || github.head_ref == 'codex/search-entry-20260908' || github.head_ref == 'codex/job-offer-guide-20260908') && steps.eofy_ui.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: eofy-ui-${{ github.event.pull_request.head.sha }}
