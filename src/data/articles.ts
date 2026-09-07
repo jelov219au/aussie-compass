@@ -592,7 +592,7 @@ export const articles: Article[] = [
     quickSummary: ["무급 Trial은 필요한 기술을 짧게 보여주는 범위인지 확인하기", "실제 고객 업무·청소·마감으로 이어지면 시간과 업무를 기록하기", "시작 전 종료 시간·평가자·유급 전환 기준을 서면으로 묻기"],
     toolHref: "/underpayment-guide",
     toolLabel: "미지급 급여 대응 순서 확인하기",
-    relatedSlugs: ["abn-employee-or-contractor-australia", "first-payslip-checklist-australia", "australia-job-scam-red-flags"],
+    relatedSlugs: ["australia-paid-training-opening-closing-work-time", "first-payslip-checklist-australia", "abn-employee-or-contractor-australia", "australia-job-scam-red-flags"],
     sections: [
       { heading: "Trial이라는 이름만으로 무급이 되는 것은 아니에요", paragraphs: ["Fair Work Ombudsman은 무급 트라이얼을 채용 대상자가 직무에 필요한 기술을 보여주는 과정으로 설명해요. 필요한 기술을 확인하는 범위를 넘거나, 필요 이상으로 길어지거나, 직접적인 감독 없이 실제 업무를 수행한다면 임금이 지급돼야 할 수 있어요."] },
       { heading: "시작 전에 ‘빈 일자리의 기술 확인’인지 서면으로 남기세요", paragraphs: ["합법적인 무급 Trial은 실제로 지원한 빈 일자리에서 필요한 기술을 보여주는 범위여야 해요. 장소에 도착한 뒤 처음 듣기보다 날짜, 시작·종료 예상시각, 보여줄 기술, 직접 감독할 사람, 무급 범위와 그 뒤 적용할 Rate를 메시지로 먼저 확인하세요.", "현장이 안전하게 운영되는지, 필요한 Clothing·Equipment가 무엇인지도 물어보세요. 설명 없이 위험한 장비를 다루거나 혼자 일하라고 하면 기술을 증명하려고 무리하지 말고 중단하세요."], bullets: ["실제로 채용 중인 직무와 근무 장소", "보여줄 구체적인 기술과 평가 기준", "예상 시작·종료시각과 직접 감독자", "고객 응대·청소·재고·마감 포함 여부", "필요한 안전교육·보호구와 사고 시 연락 경로", "기술 확인 뒤 계속 일할 때 적용되는 Award·Classification·Rate"] },

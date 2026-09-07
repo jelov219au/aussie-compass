@@ -7,6 +7,7 @@ import { RelatedVideos } from "@/components/media/RelatedVideos";
 import { VehicleInspectionProviderPicker } from "@/components/tools/VehicleInspectionProviderPicker";
 import { BreadcrumbJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
+import { actionClass } from "@/components/ui/actionStyles";
 
 export const metadata = createPageMetadata({
   title: "호주 중고차 어디서 사나요? 구매처·체크리스트 | Hoju Compass",
@@ -76,13 +77,18 @@ export default function UsedCarComparisonPage() {
         <Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 도구 목록으로 돌아가기</Link>
         <div className="mt-5 max-w-4xl">
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold-ink">호주 첫 차 프로젝트</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-5xl">어디서 찾고, 무엇을 확인한 뒤 사야 할까요?</h1>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-5xl">호주 중고차, 어디서 찾고 무엇을 확인할까요?</h1>
           <p className="mt-4 text-base leading-7 text-muted sm:text-lg">차량 가격을 기록하기 전에 먼저 매물을 찾을 곳과 안전한 구매 순서를 알아야 합니다. 대표 구매처에서 후보를 찾고, 연락·검사·PPSR 확인을 마친 차량만 비교표에 넣어보세요.</p>
+          <nav aria-label="중고차 구매 단계 바로가기" className="mt-5 flex flex-wrap gap-3">
+            <a href="#used-car-marketplaces-heading" className={actionClass("secondary")}>구매처 살펴보기 ↓</a>
+            <a href="#vehicle-comparison-heading" className={actionClass("primary")}>후보·비용 비교표로 이동 ↓</a>
+            <a href="#inspection-next-step-heading" className={actionClass("secondary")}>검사 보고서를 받았다면 ↓</a>
+          </nav>
         </div>
 
         <section className="mt-10" aria-labelledby="used-car-marketplaces-heading">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">01 · 매물 찾기</p>
-          <h2 id="used-car-marketplaces-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">호주 중고차는 보통 여기서 찾습니다</h2>
+          <h2 id="used-car-marketplaces-heading" className="mt-2 scroll-mt-24 text-2xl font-semibold text-navy sm:text-3xl">호주 중고차는 보통 여기서 찾습니다</h2>
           <div className="mt-6 grid gap-4 lg:grid-cols-3">
             {marketplaces.map((marketplace) => <article key={marketplace.name} className="flex h-full flex-col rounded-2xl border border-border bg-white p-6">
               <p className="text-xs font-semibold text-gold-ink">{marketplace.fit}</p>
@@ -181,7 +187,7 @@ export default function UsedCarComparisonPage() {
         </section>
 
         <section className="mt-8 rounded-2xl border border-gold/50 bg-[#f6f3e9] p-6" aria-labelledby="inspection-next-step-heading">
-          <h2 id="inspection-next-step-heading" className="text-xl font-semibold text-navy">보고서는 받았는데, 다음에 무엇을 해야 할까요?</h2>
+          <h2 id="inspection-next-step-heading" className="scroll-mt-24 text-xl font-semibold text-navy">보고서는 받았는데, 다음에 무엇을 해야 할까요?</h2>
           <p className="mt-3 text-sm leading-7 text-muted">판매자가 고쳐주겠다고 답한 뒤 받을 증빙과, 견적이 없는 항목을 비용 비교에 남기는 방법을 확인하세요.</p>
           <div className="mt-4 flex flex-wrap gap-4">
             <Link href="/resources/used-car-inspection-report-next-steps" className="inline-flex min-h-11 items-center text-sm font-semibold text-navy underline underline-offset-4">검사 후 다음 행동 가이드 →</Link>
@@ -191,7 +197,7 @@ export default function UsedCarComparisonPage() {
 
         <section className="mt-14 border-t border-navy/20 pt-10" aria-labelledby="vehicle-comparison-heading">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">08 · 후보 비교</p>
-          <h2 id="vehicle-comparison-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">확인한 차량만 비교표에 기록하세요</h2>
+          <h2 id="vehicle-comparison-heading" className="mt-2 scroll-mt-24 text-2xl font-semibold text-navy sm:text-3xl">확인한 차량만 비교표에 기록하세요</h2>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">매물을 찾고 판매자에게 기본 질문을 한 다음, 최대 3대의 구매가·Rego·보험·정비·연료비를 같은 기준으로 비교합니다.</p>
           <div className="mt-8"><VehicleComparison /></div>
         </section>
