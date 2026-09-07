@@ -24,18 +24,20 @@ else process.env.NODE_ENV = originalNodeEnv;
 if (originalVercelEnv === undefined) delete process.env.VERCEL_ENV;
 else process.env.VERCEL_ENV = originalVercelEnv;
 
-const [requestSecurity, cspDecision, jsonLdComponent, dashboard, bookmarkStorage, jobTracker, serviceWorker, serviceWorkerRegistration, nswProvider, nswRoute, railPlanner] = await Promise.all([
+const [requestSecurity, cspDecision, jsonLdComponent, dashboard, bookmarkStorage, jobTracker, jobApplications, serviceWorker, serviceWorkerRegistration, nswProvider, nswRoute, railPlanner, railWatch] = await Promise.all([
   projectFile("src/lib/requestSecurity.ts"),
   projectFile("docs/csp-hardening.md"),
   projectFile("src/components/seo/JsonLd.tsx"),
   projectFile("src/components/dashboard/MyCompassDashboard.tsx"),
   projectFile("src/lib/bookmarks.ts"),
   projectFile("src/components/tools/JobApplicationTracker.tsx"),
+  projectFile("src/lib/jobApplications.ts"),
   projectFile("public/sw.js"),
   projectFile("src/components/pwa/ServiceWorkerRegistration.tsx"),
   projectFile("src/lib/nswPlanningDataProvider.ts"),
   projectFile("src/app/api/nsw-planning-snapshot/route.ts"),
   projectFile("src/components/tools/RailWorkAlertPlanner.tsx"),
+  projectFile("src/lib/railWorkWatch.ts"),
 ]);
 
 function headerValue(rules, source, key) {
@@ -104,14 +106,17 @@ assert.equal((serviceWorker.match(/cache\.add\(/g) ?? []).length, 1, "only the s
 assert.doesNotMatch(serviceWorker, /cache\.(?:put|addAll|matchAll)|caches\.open\([^)]*\)[\s\S]*fetch\([^)]*\)[\s\S]*(?:put|add)/, "network, API and error responses must never be written to Cache Storage");
 assert.doesNotMatch(serviceWorker, /nsw-planning-snapshot|api\.transport\.nsw\.gov\.au|NSW_TRANSPORT_API_KEY|Authorization/, "the service worker must not know about official-data endpoints or credentials");
 assert.ok(serviceWorkerRegistration.includes('process.env.NODE_ENV !== "production"'), "service worker registration must remain Production-only");
-assert.ok(serviceWorkerRegistration.includes('navigator.serviceWorker.register("/sw.js")'), "the app must register only its same-origin service worker");
+assert.equal((serviceWorkerRegistration.match(/navigator\.serviceWorker\.register\(/g) ?? []).length, 1, "the app must register only one service worker");
+assert.match(serviceWorkerRegistration, /navigator\.serviceWorker\.register\(\s*["']\/sw\.js["']\s*[,)]/, "the app must register only its same-origin service worker, with optional registration settings");
 
 assert.ok(nswProvider.startsWith('import "server-only"'), "the TfNSW provider and API key must remain server-only");
 assert.ok(nswProvider.includes("process.env.NSW_TRANSPORT_API_KEY"), "the server provider must read the TfNSW key only from server environment state");
 assert.doesNotMatch(nswProvider, /console\.|[?&](?:key|token)=/i, "the provider must not log credentials or place them in URLs");
 assert.doesNotMatch(nswRoute, /NSW_TRANSPORT_API_KEY|Authorization|process\.env|console\./, "the public route must not serialize, read or log the TfNSW credential");
 assert.doesNotMatch(railPlanner, /\/api\/nsw-planning-snapshot|NSW_TRANSPORT_API_KEY|fetch\(|geolocation/, "the current public rail UI must remain local/link-only and must not consume live or fixture API data");
-assert.ok(railPlanner.includes("https://www.google.com/maps/search/?api=1") && railPlanner.includes('target="_blank"') && railPlanner.includes('rel="noreferrer"'), "Google Maps must remain an explicit external top-level navigation without referrer data");
+assert.ok(railWatch.includes("https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(")
+  && railPlanner.includes("const mapHref = railMapHref(area)")
+  && railPlanner.includes('href={mapHref} target="_blank" rel="noreferrer"'), "Google Maps must remain an encoded, explicit external top-level navigation without referrer data");
 
 for (const evidence of [
   "Next.js 16.3.1",
@@ -151,8 +156,9 @@ for (const unsafeUrl of ["javascript:alert(1)", "data:text/html,<script>alert(1)
 }
 
 assert.ok(dashboard.includes("readCompassRecords") && bookmarkStorage.includes("safeInternalNavigationPath"), "Imported bookmark links must be validated before the dashboard renders them");
-assert.ok(jobTracker.includes("safeApplications(JSON.parse(stored))"), "Imported job records must be validated before rendering");
-assert.ok(jobTracker.includes("safeExternalHttpUrl(item.link)"), "Imported job links must be constrained to HTTP(S)");
+assert.ok(jobTracker.includes("useLocalPlan<Application[]>(jobStorageKey, [], parseApplications, serializeApplications,"), "Imported job records must pass the shared parser before rendering");
+assert.ok(jobApplications.includes('r.link !== "" && !safeExternalHttpUrl(r.link)')
+  && jobTracker.includes("safeExternalHttpUrl(form.link)"), "Imported and newly entered job links must be constrained to HTTP(S)");
 
 const guardedRoutes = [
   "src/app/api/checkout/resume-pro/route.ts",
