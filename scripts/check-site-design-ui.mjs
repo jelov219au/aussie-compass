@@ -96,7 +96,8 @@ try {
         if (route.startsWith('/resources/')) {
           const trust = page.locator('[data-editorial-trust]');
           await trust.locator('summary').click();
-          assert(await trust.getByText('출처 확인일: 확인 정보 없음', { exact: false }).isVisible());
+          assert(await trust.getByText('확인일·적용 기간', { exact: true }).isVisible());
+          assert.equal(await trust.locator('dl > div').count(), 9);
           assert(!await trust.getByText('editorial_trust_next_action', { exact: true }).count());
           await trust.locator('summary').click();
           const first = page.getByRole('navigation', { name: '이 글의 목차', exact: true }).getByRole('link').first();
