@@ -14,7 +14,6 @@ import { JobEndDeadlineNextAction } from "@/components/resources/JobEndDeadlineN
 import { EnergySupportJurisdictionPicker } from "@/components/tools/EnergySupportJurisdictionPicker";
 import { ResumeTemplateDownloadLink } from "@/components/analytics/ResumeTemplateDownloadLink";
 import { Container } from "@/components/ui/Container";
-import { TopicIcon } from "@/components/ui/TopicIcon";
 import { HealthComplaintJurisdictionPicker } from "@/components/tools/HealthComplaintJurisdictionPicker";
 import { RentalRepairJurisdictionPicker } from "@/components/tools/RentalRepairJurisdictionPicker";
 import { RentalBondJurisdictionPicker } from "@/components/tools/RentalBondJurisdictionPicker";
@@ -81,12 +80,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         sources={article.sources}
       />
       <Header />
-      <main className={jobEndArticle ? "py-5 sm:py-8" : "py-12 sm:py-16"}>
+      <main className={jobEndArticle ? "site-screen article-screen py-5 sm:py-8" : "site-screen article-screen py-8 sm:py-10"}>
         <Container>
           <Link href="/resources" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">
             &larr; 실용 자료 목록
           </Link>
-          <article className="mx-auto mt-5 max-w-4xl">
+          <article className="mx-auto mt-5 max-w-3xl">
             {jobEndArticle ? <>
               <header>
                 <h1 className="max-w-3xl text-2xl font-semibold leading-8 tracking-tight text-navy sm:text-4xl sm:leading-tight">{article.title}</h1>
@@ -94,7 +93,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               </header>
               <JobEndDeadlineNextAction />
               <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted"><p>{article.category} · 업데이트 <time dateTime={article.updatedAt}>{article.updatedAt?.replaceAll("-", ".")}</time></p><PageShareButton /></div>
-            </> : <header className="rounded-[2rem] border-2 border-navy/10 bg-white p-6 shadow-[0_16px_38px_rgba(26,39,68,0.07)] sm:p-9">
+            </> : <header className="border-b border-border pb-8">
               <div className="mb-5 flex flex-wrap gap-2">
                 <span className="border border-border bg-white/60 px-3 py-1.5 text-xs font-semibold text-navy">
                   {articleRegionLabels[getArticleRegion(article)]}
@@ -107,7 +106,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 {article.category} · 읽는 시간 {article.readingTime} · <time dateTime={article.updatedAt ?? article.publishedAt}>{article.updatedAt ? "업데이트" : "발행"} {(article.updatedAt ?? article.publishedAt).replaceAll("-", ".")}</time>
               </p>
               <h1 className="mt-4 max-w-4xl text-balance text-3xl font-semibold leading-tight tracking-tight text-navy sm:text-5xl">{article.title}</h1>
-              <p className="mt-6 max-w-3xl text-lg leading-8 text-muted sm:text-xl sm:leading-9">{article.description}</p>
+              <p className="mt-6 max-w-3xl text-base leading-8 text-muted sm:text-lg">{article.description}</p>
               <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2">
                 {article.slug === "australia-resume-template-submission-checklist" && (
                   <ResumeTemplateDownloadLink
@@ -142,12 +141,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               compact
             />
 
-            <section className="mt-8 rounded-[2rem] bg-navy p-6 text-white sm:grid sm:grid-cols-[11rem_1fr] sm:gap-8 sm:p-8" aria-labelledby="quick-summary-heading">
+            <section className="mt-7 rounded-xl bg-navy p-5 text-white sm:p-7" aria-labelledby="quick-summary-heading">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">바쁘다면 여기부터</p>
                 <h2 id="quick-summary-heading" className="mt-2 text-xl font-semibold text-white">먼저 이것만</h2>
               </div>
-              <ol className="mt-5 space-y-4 sm:mt-0">
+              <ol className="mt-4 space-y-3">
                 {article.quickSummary.map((summary, index) => (
                   <li key={summary} className="grid grid-cols-[2rem_1fr] gap-3 text-sm leading-7 text-white/90 sm:text-base">
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gold font-mono text-xs font-bold text-navy">{index + 1}</span>
@@ -172,12 +171,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
               article={{ href: `/resources/${article.slug}`, title: article.title }}
             />
 
-            <div id="article-body" className="mt-12 space-y-5">
+            <div id="article-body" className="mt-10 divide-y divide-border rounded-xl border border-border bg-white px-5 sm:px-8">
               {article.sections.map((section, index) => (
-                <section id={`section-${index + 1}`} key={section.heading} className="scroll-mt-24 rounded-2xl border-2 border-navy/10 bg-white p-6 shadow-[0_8px_24px_rgba(26,39,68,0.04)] sm:grid sm:grid-cols-[4rem_1fr] sm:gap-6 sm:p-8">
-                  <div className="flex items-center gap-2 sm:flex-col sm:items-start" aria-hidden="true"><TopicIcon name="guide" size="sm" /><span className="font-mono text-xs font-semibold text-gold-ink">{String(index + 1).padStart(2, "0")}</span></div>
+                <section id={`section-${index + 1}`} key={section.heading} className="scroll-mt-24 py-8 sm:py-10">
+                  <p className="mb-3 font-mono text-xs font-semibold text-gold-ink" aria-hidden="true">{String(index + 1).padStart(2, "0")}</p>
                   <div className="mt-3 sm:mt-0">
-                    <h2 className="text-2xl font-semibold leading-8 tracking-tight text-navy sm:text-3xl">{section.heading}</h2>
+                    <h2 className="text-xl font-semibold leading-8 tracking-tight text-navy sm:text-2xl">{section.heading}</h2>
                     {section.paragraphs?.map((paragraph) => (
                       <p key={paragraph} className="mt-5 text-[1.02rem] leading-8 text-muted">{paragraph}</p>
                     ))}

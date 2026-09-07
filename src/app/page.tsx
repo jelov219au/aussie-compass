@@ -14,7 +14,7 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <main>
+      <main className="site-screen home-screen">
         <Hero />
         <ToolsSection />
         <PersonalRouteFinder />

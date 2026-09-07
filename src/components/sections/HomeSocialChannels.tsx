@@ -30,7 +30,7 @@ const channels = [
 
 export function HomeSocialChannels() {
   return (
-    <section className="border-b border-border bg-background py-12 sm:py-16" aria-labelledby="home-social-heading">
+    <section className="border-b border-border bg-background py-8 sm:py-10" aria-labelledby="home-social-heading">
       <Container>
         <div className="max-w-2xl">
           <p className="text-xs font-semibold tracking-[0.14em] text-gold-ink">공식 채널</p>
@@ -49,7 +49,7 @@ export function HomeSocialChannels() {
                 href={channel.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex min-h-36 h-full items-center gap-4 rounded-2xl border-2 border-navy/10 bg-white p-5 text-navy shadow-[0_10px_24px_rgba(26,39,68,0.05)] transition hover:-translate-y-0.5 hover:border-gold focus-visible:border-gold sm:p-6"
+                className="site-card group flex h-full items-center gap-4 p-5 text-navy"
               >
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-navy text-white transition group-hover:bg-navy-light">
                   {channel.icon}

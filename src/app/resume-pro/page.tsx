@@ -121,7 +121,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
       )}
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "영문 이력서 빌더", path: "/resume-builder" }, { name: "Resume Pro", path: "/resume-pro" }]} />
       <Header />
-      <main>
+      <main className="site-screen pro-screen">
         <section className="border-b border-navy/15 py-12 sm:py-20">
           <Container>
             <Link href="/resume-builder" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 이력서 빌더로 돌아가기</Link>

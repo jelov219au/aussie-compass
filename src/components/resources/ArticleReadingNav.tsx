@@ -97,10 +97,10 @@ function ArticleReadingNavState({ sections, article }: { sections: ReadingSectio
 
   return (
     <>
-      <div className="fixed left-0 right-0 top-16 z-40 h-0.5 bg-border/70" aria-hidden="true">
+      <div className="fixed left-0 right-0 top-[4.5rem] z-40 h-0.5 bg-border/70" aria-hidden="true">
         <div className="h-full bg-gold transition-[width] duration-150" style={{ width: `${progress}%` }} />
       </div>
-      <nav className="mt-8 border-y border-navy/20 py-5" aria-label="이 글의 목차">
+      <nav className="mt-7 rounded-xl border border-border bg-white p-5" aria-label="이 글의 목차">
         <div className="flex items-center justify-between gap-5">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-ink">이 글에서 다루는 내용</p>
           <div className="flex items-center gap-3">

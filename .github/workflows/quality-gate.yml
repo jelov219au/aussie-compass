@@ -34,13 +34,14 @@ jobs:
       - name: Run quality gate
         run: npm run quality:gate
 
-      - name: Review EOFY UI with fictional records
+      - name: Review public UI with isolated browser records
         id: eofy_ui
-        if: github.event_name == 'pull_request' && github.head_ref == 'codex/eofy-purchase-preview-20260907'
+        if: github.event_name == 'pull_request' && (github.head_ref == 'codex/eofy-purchase-preview-20260907' || github.head_ref == 'codex/site-design-20260907')
         timeout-minutes: 8
         env:
           EOFY_UI_DIR: ${{ runner.temp }}/eofy-ui
           NEXT_TELEMETRY_DISABLED: '1'
+          SITE_DESIGN_REVIEW: ${{ github.head_ref == 'codex/site-design-20260907' }}
         run: |
           mkdir -p "$EOFY_UI_DIR"
           available_kib="$(awk '/MemAvailable/ { print $2 }' /proc/meminfo)"
@@ -53,7 +54,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends fonts-noto-cjk
           fc-match ':lang=ko' | tee "$EOFY_UI_DIR/eofy-font.log"
           npm install --prefix "$EOFY_UI_DIR" --no-save --package-lock=false --ignore-scripts playwright-core@1.63.0 axe-core@4.10.3
-          node scripts/prepare-eofy-ui-fixture.mjs
+          if [ "$SITE_DESIGN_REVIEW" != "true" ]; then node scripts/prepare-eofy-ui-fixture.mjs; fi
 
           # The existing development preview allows fictional workspace input.
           # Production access guards and the production bundle stay unchanged.
@@ -67,12 +68,16 @@ jobs:
           done
           curl --silent --fail --max-time 10 http://127.0.0.1:3108/eofy-pro > /dev/null
           eofy_ui_failed=0
-          node scripts/check-eofy-ui-public.mjs || eofy_ui_failed=1
-          node scripts/check-eofy-ui-workspace.mjs || eofy_ui_failed=1
+          if [ "$SITE_DESIGN_REVIEW" = "true" ]; then
+            node scripts/check-site-design-ui.mjs || eofy_ui_failed=1
+          else
+            node scripts/check-eofy-ui-public.mjs || eofy_ui_failed=1
+            node scripts/check-eofy-ui-workspace.mjs || eofy_ui_failed=1
+          fi
           test "$eofy_ui_failed" -eq 0
 
-      - name: Save EOFY browser review evidence
-        if: always() && github.event_name == 'pull_request' && github.head_ref == 'codex/eofy-purchase-preview-20260907' && steps.eofy_ui.outcome != 'skipped'
+      - name: Save browser review evidence
+        if: always() && github.event_name == 'pull_request' && (github.head_ref == 'codex/eofy-purchase-preview-20260907' || github.head_ref == 'codex/site-design-20260907') && steps.eofy_ui.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: eofy-ui-${{ github.event.pull_request.head.sha }}

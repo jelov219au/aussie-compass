@@ -35,9 +35,9 @@ export function ReturnVisitSection() {
   }, []);
 
   return (
-    <section className="border-b border-border bg-surface py-6" aria-label="저장한 작업 이어가기">
+    <section className="bg-background py-3" aria-label="저장한 작업 이어가기">
       <Container>
-        <div className="grid gap-5 rounded-2xl border border-border bg-white px-5 py-5 sm:grid-cols-[1fr_auto] sm:items-center sm:px-6">
+        <div className="grid gap-3 rounded-xl border border-border bg-white px-5 py-4 sm:grid-cols-[1fr_auto] sm:items-center sm:px-6">
           <div className="flex gap-4">
             <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-sm text-gold-ink" aria-hidden="true">↗</span>
             <div>

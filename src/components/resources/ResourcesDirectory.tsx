@@ -79,10 +79,10 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
   ].filter((filter): filter is string => Boolean(filter));
 
   return (
-    <section className="mt-12" aria-labelledby="resource-directory-heading">
-      <div className="grid gap-6 border-y border-navy/20 py-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-end">
+    <section className="mt-6" aria-labelledby="resource-directory-heading">
+      <div className="grid gap-5 rounded-xl border border-border bg-white p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">
             지금 궁금한 주제부터
           </p>
           <h2 id="resource-directory-heading" className="mt-1 text-xl font-semibold text-navy">
@@ -95,7 +95,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
                 type="button"
                 aria-pressed={active === filter.id}
                 onClick={() => setActive(filter.id)}
-                className={`min-h-10 shrink-0 rounded-full border px-4 text-sm font-semibold transition ${
+                className={`min-h-11 shrink-0 rounded-lg border px-4 text-sm font-semibold transition ${
                   active === filter.id
                     ? "border-navy bg-navy text-white"
                     : "border-navy/15 bg-white text-muted hover:border-gold hover:text-navy"
@@ -111,7 +111,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
               type="button"
               aria-pressed={activeRegion === "all"}
               onClick={() => setActiveRegion("all")}
-              className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-semibold transition ${
+              className={`min-h-11 shrink-0 rounded-lg border px-3 text-xs font-semibold transition ${
                 activeRegion === "all" ? "border-navy bg-navy text-white" : "border-border bg-white/50 text-muted hover:border-navy hover:text-navy"
               }`}
             >
@@ -123,7 +123,7 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
                 type="button"
                 aria-pressed={activeRegion === filter.id}
                 onClick={() => setActiveRegion(filter.id)}
-                className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-semibold transition ${
+                className={`min-h-11 shrink-0 rounded-lg border px-3 text-xs font-semibold transition ${
                   activeRegion === filter.id ? "border-navy bg-navy text-white" : "border-border bg-white/50 text-muted hover:border-navy hover:text-navy"
                 }`}
               >
@@ -165,8 +165,8 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
       </div>
 
       {visible.length > 0 ? (
-        <ol className="grid gap-4 py-6 lg:grid-cols-2" aria-label="실용 자료 목록">
-          {visible.map((result, index) => {
+        <ol className="grid gap-4 py-5 md:grid-cols-2 xl:grid-cols-3" aria-label="실용 자료 목록">
+          {visible.map((result) => {
             const display = result.kind === "article"
               ? {
                   href: `/resources/${result.article.slug}`,
@@ -190,19 +190,17 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
                   summary: result.quickSummary,
                   sources: 0,
                 };
-            const { href, category, readingTime, region, contentType, title, description, summary } = display;
+            const { href, category, readingTime, region, contentType, title, summary } = display;
             const hasRead = readHrefs.has(href);
             return (
               <li key={href}>
                 <Link
                   href={href}
-                  className="group grid h-full min-h-72 grid-rows-[auto_auto_auto_1fr_auto] rounded-2xl border-2 border-navy/10 bg-white p-5 shadow-[0_10px_26px_rgba(26,39,68,0.05)] transition hover:-translate-y-0.5 hover:border-gold hover:shadow-[0_16px_34px_rgba(26,39,68,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy sm:p-7"
+                  className="site-card group flex h-full flex-col p-5"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3"><TopicIcon name={resourceIcon(category)} size="sm" /><p className="text-xs font-semibold uppercase tracking-[0.13em] text-gold-ink">{category} · {readingTime}</p></div>
-                    <span className="font-mono text-xs text-muted/70">
-                      {String(index + 1).padStart(2, "0")} / {String(visible.length).padStart(2, "0")}
-                    </span>
+
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className="border border-border bg-white/60 px-2.5 py-1 text-[0.68rem] font-semibold text-navy">
@@ -212,19 +210,15 @@ export function ResourcesDirectory({ articles }: { articles: Article[] }) {
                       {articleContentTypeLabels[contentType]}
                     </span>
                   </div>
-                  <h3 className="mt-5 max-w-xl text-xl font-semibold leading-8 tracking-tight text-navy sm:text-2xl">
+                  <h3 className="mt-4 max-w-xl text-lg font-semibold leading-7 tracking-tight text-navy">
                     {title}
                   </h3>
-                  <p className="mt-3 max-w-xl text-sm leading-6 text-muted">{description}</p>
-                  <div className="mt-5 border-l-2 border-gold/70 pl-4">
-                    <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-muted">이 글에서 바로 확인</p>
-                    <p className="mt-1 text-sm leading-6 text-navy">{summary}</p>
-                  </div>
-                  <div className="mt-8 flex items-center justify-between gap-4 border-t border-border pt-4">
+                  <p className="mt-3 text-sm leading-6 text-muted">{summary}</p>
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pt-5">
                     <span className="text-xs font-medium text-muted">
                       {hasRead ? "✓ 읽어본 글" : display.sources ? `한국어 설명 + 공식 출처 ${display.sources}개` : result.kind === "guide" ? "무료 행동 체크리스트" : "차근차근 읽는 한국어 안내"}
                     </span>
-                    <span className="inline-flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg bg-navy px-4 text-sm font-semibold text-white">{result.kind === "guide" ? "가이드 열기" : "자료 읽기"} <span className="transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
+                    <span className="inline-flex min-h-11 shrink-0 items-center gap-2 text-sm font-semibold text-navy">{result.kind === "guide" ? "가이드 열기" : "자료 읽기"} <span className="transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
                   </div>
                 </Link>
               </li>

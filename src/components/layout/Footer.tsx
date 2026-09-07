@@ -31,10 +31,10 @@ export function Footer() {
   ];
 
   return (
-    <footer className="border-t border-border bg-surface">
+    <footer className="site-footer border-t border-border bg-white">
       <Container className="py-12">
-        <div className="grid gap-10 md:grid-cols-[1.2fr_1fr_1fr]">
-          <div>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-[1.2fr_1fr_1fr]">
+          <div className="col-span-2 md:col-span-1">
             <p className="text-lg font-semibold text-navy">{content.brand.name}</p>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
               {content.brand.tagline}

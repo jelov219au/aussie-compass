@@ -1,0 +1,40 @@
+/* Public information surfaces only. Print previews keep the established tokens. */
+@media screen {
+  .site-screen, .site-header, .site-footer {
+    --color-background: #f6f7fa;
+    --color-surface: #eef1f6;
+    --color-border: #dce1e9;
+  }
+  .site-screen { background: var(--color-background); }
+  .site-card {
+    min-width: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 0.85rem;
+    background: #fff;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+  .site-card:hover { border-color: #8d9bb4; box-shadow: 0 5px 18px #1a274408; }
+  .directory-screen h1 { font-size: clamp(1.85rem, 3.5vw, 2.75rem); letter-spacing: -0.035em; }
+  .directory-screen > div > div:first-of-type { margin-top: 1.25rem; }
+  .pro-screen > section { padding-block: 2.5rem; }
+  .pro-screen > section:first-child { background: #fff; }
+  .pro-screen h1 { font-size: clamp(1.9rem, 3.7vw, 3rem); letter-spacing: -0.035em; }
+  .pro-screen > section > div > div:has(> div > h1) { margin-top: 1.5rem; gap: 1.5rem; }
+  .pro-screen > section > div > div > aside { border: 1px solid var(--color-border); border-radius: .85rem; background: var(--color-background); padding: 1.25rem; }
+  .pro-screen details { border-radius: .75rem; }
+  .pro-screen section:has(> div > #result-preview-heading),
+  .pro-screen #eofy-output-preview,
+  .pro-screen #rental-output-preview { border-radius: 1rem; }
+  .pro-screen h2 { font-size: clamp(1.35rem, 2.5vw, 2rem); }
+  .pro-screen h3 { font-size: clamp(1rem, 2vw, 1.25rem); }
+  .pro-screen ol:has(> li > article) { gap: 1rem; margin-top: 1.5rem; }
+  .pro-screen ol > li > article { border-width: 1px; border-color: var(--color-border); border-radius: 1rem; box-shadow: none; }
+  .pro-screen ol > li > article > div:first-child { background: #fff; padding-bottom: 0; }
+  .pro-screen ol > li > article > div:last-child { padding-top: 1rem; }
+  .article-screen h1 { font-size: clamp(1.65rem, 3.5vw, 2.6rem); }
+  .article-screen #article-body p, .article-screen #article-body li { color: #414d63; }
+  @media (min-width: 768px) {
+    .pro-screen > section { padding-block: 3rem; }
+    .home-pro-explorer { align-items: stretch; }
+  }
+}

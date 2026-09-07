@@ -57,7 +57,7 @@ export default async function RentalApplicationProPage({ searchParams }: Props) 
     <RentalApplicationProVisitTracker entry={entry} checkoutAvailable={checkoutAvailable} />
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "집 방문 체크리스트", path: "/property-inspection-checklist" }, { name: "Rental Application Pack Pro", path: "/rental-application-pro" }]} />
     <Header />
-    <main>
+    <main className="site-screen pro-screen">
       <section className="border-b border-navy/15 py-12 sm:py-20">
         <Container>
           <Link href="/property-inspection-checklist" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 집 방문 체크리스트로 돌아가기</Link>

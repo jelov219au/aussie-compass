@@ -281,11 +281,11 @@ export default function ToolsPage() {
     <>
       <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "무료 도구", path: "/tools" }]} />
       <Header />
-      <main className="py-12 sm:py-16">
+      <main className="site-screen directory-screen py-8 sm:py-10">
         <Container>
           <Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">&larr; 홈으로 돌아가기</Link>
           <div className="mt-8 grid gap-8 border-b border-navy/20 pb-10 lg:grid-cols-[1fr_15rem] lg:items-end">
-            <div className="max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold">무료 도구·가이드</p><h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-navy sm:text-6xl">호주 생활에서<br/><span className="font-normal text-navy-light">막막한 순간을 위해.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">26개 모두 결제 없이 바로 쓰는 무료 도구와 가이드예요. 지금 상황을 고르거나 검색해서 필요한 다음 행동부터 확인하세요.</p></div>
+            <div className="max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-gold-ink">무료 도구·가이드</p><h1 className="mt-4 text-3xl font-semibold leading-tight tracking-tight text-navy sm:text-4xl">호주 생활에서<br/><span className="font-normal text-navy-light">막막한 순간을 위해.</span></h1><p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">26개 모두 결제 없이 바로 쓰는 무료 도구와 가이드예요. 지금 상황을 고르거나 검색해서 필요한 다음 행동부터 확인하세요.</p></div>
             <div className="border-l-2 border-gold pl-5 text-sm leading-6 text-muted"><strong className="block text-navy">계정을 만들 필요 없어요.</strong>별도 안내가 없는 한 입력한 내용은 지금 사용하는 브라우저에만 저장돼요.</div>
           </div>
 

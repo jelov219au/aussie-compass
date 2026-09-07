@@ -47,14 +47,14 @@ export function ToolsDirectory({ tools }: { tools: DirectoryTool[] }) {
   }
 
   return <>
-    <div className="mt-10 border-y border-navy/15 py-5" aria-labelledby="tool-filter-heading">
+    <div className="mt-6 rounded-xl border border-border bg-white p-4 sm:p-6" aria-labelledby="tool-filter-heading">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Find your next step</p><h2 id="tool-filter-heading" className="mt-1 text-lg font-semibold text-navy">지금 필요한 상황을 선택하세요</h2></div>
+        <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">무료 도구 찾기</p><h2 id="tool-filter-heading" className="mt-1 text-lg font-semibold text-navy">지금 필요한 상황을 선택하세요</h2></div>
         <div className="text-sm leading-6 text-muted sm:text-right"><p id="tool-result-count" role="status" aria-live="polite" aria-atomic={true}>전체 {tools.length}개 중 {visible.length}개 표시</p><p>{tools.length}개 모두 무료 도구·가이드 · <Link href="/pro" className="inline-flex min-h-11 items-center font-semibold text-navy underline decoration-gold underline-offset-4">Pro 도구 별도 비교 →</Link></p></div>
       </div>
       <div className="mt-5" role="search" aria-label="도구 검색">
         <label htmlFor="tool-search" className="block text-sm font-semibold text-navy">도구 검색</label>
-        <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+        <div className="mt-2 flex flex-wrap gap-2">
           <input
             ref={searchInput}
             id="tool-search"
@@ -65,15 +65,15 @@ export function ToolsDirectory({ tools }: { tools: DirectoryTool[] }) {
             autoComplete="off"
             spellCheck={false}
             aria-describedby="tool-search-help tool-search-privacy"
-            className="min-h-11 min-w-0 flex-1 border border-navy/25 bg-white px-3 py-2 text-base text-navy placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
+            className="min-h-12 min-w-0 flex-1 basis-44 rounded-lg border border-navy/25 bg-white px-3 py-2 text-base text-navy placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
           />
-          <button type="button" onClick={clearSearch} disabled={query.length === 0} className="min-h-11 shrink-0 border border-navy/25 px-4 py-2 text-sm font-semibold text-navy transition hover:bg-white disabled:cursor-default disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">검색어 지우기</button>
+          <button type="button" onClick={clearSearch} disabled={query.length === 0} className="min-h-12 shrink-0 rounded-lg border border-navy/25 px-4 py-2 text-sm font-semibold text-navy transition hover:bg-white disabled:cursor-default disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">검색어 지우기</button>
         </div>
         <p id="tool-search-help" className="mt-3 text-sm leading-6 text-muted">선택한 상황 안에서 제목·설명·기능·소개 문구를 검색합니다.</p>
         <p id="tool-search-privacy" className="mt-1 text-xs leading-5 text-muted">이 검색창은 검색어를 저장하거나 전송하지 않아요.</p>
       </div>
       <p id="tool-filter-scroll-help" className="mt-4 text-xs text-muted sm:hidden">상황 필터는 옆으로 밀어 더 볼 수 있어요.</p>
-      <div className="mt-2 flex gap-x-4 gap-y-2 overflow-x-auto pb-2 sm:mt-5" role="group" aria-label="상황별 도구 필터" aria-describedby="tool-filter-scroll-help">{filters.map((filter)=><button key={filter.id} type="button" aria-pressed={active===filter.id} onClick={()=>setActive(filter.id)} className={`min-h-11 shrink-0 border-b-2 px-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-navy ${active===filter.id?"border-gold text-navy":"border-transparent text-muted hover:border-border hover:text-navy"}`}>{filter.label}</button>)}</div>
+      <div className="mt-2 flex gap-2 overflow-x-auto pb-2 sm:mt-5" role="group" aria-label="상황별 도구 필터" aria-describedby="tool-filter-scroll-help">{filters.map((filter)=><button key={filter.id} type="button" aria-pressed={active===filter.id} onClick={()=>setActive(filter.id)} className={`min-h-11 shrink-0 rounded-lg border px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-navy ${active===filter.id?"border-navy bg-navy text-white":"border-border bg-white text-muted hover:border-navy hover:text-navy"}`}>{filter.label}</button>)}</div>
     </div>
 
     {visible.length === 0 && <section className="mt-10 border border-navy/15 bg-white/60 px-6 py-8" aria-labelledby="tool-empty-heading">
@@ -82,14 +82,17 @@ export function ToolsDirectory({ tools }: { tools: DirectoryTool[] }) {
       <button type="button" onClick={resetFilters} className="mt-5 inline-flex min-h-11 items-center justify-center border border-gold bg-gold px-5 py-2 text-sm font-semibold text-navy transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2">전체 조건 초기화</button>
     </section>}
 
-    {featuredTool && <article className="relative mt-10 overflow-hidden bg-navy text-white"><div className="absolute -right-16 -top-20 h-64 w-64 rounded-full border border-white/10"/><div className="absolute -right-4 -top-8 h-40 w-40 rounded-full border border-gold/30"/><div className="relative grid gap-8 px-6 py-9 sm:px-10 sm:py-11 lg:grid-cols-[7rem_1fr_auto] lg:items-end"><div className="font-mono text-5xl font-light text-gold">01<span className="text-lg text-white/30">/{String(visible.length).padStart(2,"0")}</span></div><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">무료 {featuredTool.kind} · {featuredTool.eyebrow} · 대표</p><h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{featuredTool.title}</h2><p className="mt-4 max-w-2xl leading-7 text-white/70">{featuredTool.description}</p><p className="mt-5 text-sm text-white/55">{featuredTool.features.join("  ·  ")}</p></div><Link href={featuredTool.href} className="inline-flex min-h-12 items-center justify-center border border-gold bg-gold px-5 py-3 text-sm font-semibold text-navy transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white lg:min-w-48">{featuredTool.cta} <span className="ml-3" aria-hidden="true">↗</span></Link></div></article>}
+    {featuredTool && <article className="mt-6 grid gap-4 rounded-xl bg-navy p-5 text-white sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
+      <div><p className="text-xs font-semibold text-gold">무료 {featuredTool.kind} · {featuredTool.eyebrow} · 대표</p><h2 className="mt-2 text-xl font-semibold">{featuredTool.title}</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-white/75">{featuredTool.description}</p></div>
+      <Link href={featuredTool.href} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-semibold text-navy">{featuredTool.cta} <span className="ml-3" aria-hidden="true">→</span></Link>
+    </article>}
 
-    {listedTools.length > 0 && <ol className="mt-10 border-t border-navy/20" aria-label="도구 목록">
-      {listedTools.map((tool,index) => <li key={tool.href} className="group border-b border-border"><Link href={tool.href} className="grid min-h-44 gap-5 py-7 transition hover:bg-white/60 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-navy sm:grid-cols-[4rem_minmax(9rem,0.75fr)_minmax(12rem,1.25fr)_2.75rem] sm:items-center sm:px-4 lg:grid-cols-[6rem_minmax(14rem,0.8fr)_1.2fr_2.75rem]">
-        <span className="font-mono text-sm text-gold">{String(index+(featuredTool?2:1)).padStart(2,"0")}</span>
-        <span className="min-w-0"><span className="block text-xs font-semibold uppercase tracking-[0.14em] text-muted">무료 {tool.kind} · {tool.eyebrow}</span><span className="mt-2 block text-xl font-semibold tracking-tight text-navy sm:text-2xl">{tool.title}</span></span>
-        <span className="min-w-0"><span className="block text-sm leading-6 text-muted">{tool.description}</span><span className="mt-3 block text-xs font-medium text-navy/65">{tool.features.join("  ·  ")}</span><span className="mt-4 block text-sm font-semibold text-navy">{tool.cta} →</span></span>
-        <span className="hidden h-11 w-11 items-center justify-center border border-border text-xl text-navy transition group-hover:translate-x-1 group-hover:border-gold group-hover:bg-gold sm:flex" aria-hidden="true">→</span>
+    {listedTools.length > 0 && <ol className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label="도구 목록">
+      {listedTools.map(tool => <li key={tool.href}><Link href={tool.href} className="site-card group flex h-full flex-col p-5 sm:p-6">
+        <span className="text-xs font-semibold text-gold-ink">무료 {tool.kind} · {tool.eyebrow}</span>
+        <strong className="mt-3 text-lg font-semibold tracking-tight text-navy">{tool.title}</strong>
+        <span className="mt-2 text-sm leading-6 text-muted">{tool.description}</span>
+        <span className="mt-auto flex min-h-11 items-center justify-between gap-3 pt-4 text-sm font-semibold text-navy">{tool.cta}<span aria-hidden="true">→</span></span>
       </Link></li>)}
     </ol>}
   </>;

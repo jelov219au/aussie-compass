@@ -29,13 +29,13 @@ export default function ResourcesPage() {
         items={articles.map((article) => ({ name: article.title, path: `/resources/${article.slug}` }))}
       />
       <Header />
-      <main className="py-12 sm:py-16">
+      <main className="site-screen directory-screen py-8 sm:py-10">
         <Container>
           <Link href="/" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">
             &larr; 홈으로 돌아가기
           </Link>
           <div className="mt-5 max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">필요할 때 찾아보는 호주 생활 정보</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold-ink">필요할 때 찾아보는 호주 생활 정보</p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">낯선 호주 생활을 조금 더 쉽게</h1>
             <p className="mt-4 text-base leading-7 text-muted sm:text-lg">
               복잡한 공식 안내는 한국어로 쉽게 풀고, 무엇부터 확인하면 좋을지와 바로 써볼 수 있는 무료 도구까지 한 글에 담았어요.
@@ -46,7 +46,10 @@ export default function ResourcesPage() {
               <span>공식 원문 링크</span>
             </div>
           </div>
-          <Link href="/glossary" className="group mt-10 grid gap-6 rounded-2xl border-2 border-navy/10 bg-white p-6 shadow-[0_10px_26px_rgba(26,39,68,0.05)] transition hover:border-gold sm:grid-cols-[auto_1fr_auto] sm:items-center">
+
+          <ResourcesDirectory articles={sortedArticles} />
+
+          <Link href="/glossary" className="site-card group mt-8 grid gap-4 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center">
             <span className="flex items-center gap-3"><TopicIcon name="search" /><span className="font-mono text-xl text-gold-ink">A—Z</span></span>
             <span>
               <strong className="block text-xl text-navy">호주 생활 용어집</strong>
@@ -56,12 +59,11 @@ export default function ResourcesPage() {
             </span>
             <span className="inline-flex min-h-11 items-center justify-center rounded-xl bg-navy px-4 text-sm font-semibold text-white">용어 찾기 <span className="ml-2 transition group-hover:translate-x-1" aria-hidden="true">→</span></span>
           </Link>
-          <ResourcesDirectory articles={sortedArticles} />
           <LivedExperienceGuides />
-          <section className="mt-12" aria-labelledby="new-life-tips-heading">
+          <details className="mt-8 rounded-xl border border-border bg-white p-5"><summary className="flex min-h-11 cursor-pointer items-center text-base font-semibold text-navy">최근 확인·수정한 자료 펼쳐 보기</summary>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">최근 확인·수정한 자료</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">최근 확인·수정한 자료</p>
                 <h2 id="new-life-tips-heading" className="mt-2 text-2xl font-semibold tracking-tight text-navy">다음 행동을 정하는 데 도움이 되는 정보</h2>
               </div>
               <Link href="/editorial-policy" className={actionClass("tertiary")}>출처를 확인하는 기준 →</Link>
@@ -80,7 +82,7 @@ export default function ResourcesPage() {
                 );
               })}
             </ol>
-          </section>
+          </details>
         </Container>
       </main>
       <Footer />

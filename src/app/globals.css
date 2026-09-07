@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./site-screen.css";
 
 @theme {
   --color-background: #f8f7f4;

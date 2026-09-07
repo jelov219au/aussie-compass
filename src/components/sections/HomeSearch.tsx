@@ -57,7 +57,7 @@ export function HomeSearch() {
   }
 
   return (
-    <section className="mt-5 sm:mt-7" aria-labelledby="home-search-heading">
+    <section className="mt-4" aria-labelledby="home-search-heading">
         <form onSubmit={(event) => {
           event.preventDefault();
           openSearch(query, classifySearch(query));
@@ -84,14 +84,14 @@ export function HomeSearch() {
                 검색
               </button>
             </div>
-            <p id="home-situation-boundary" className="mt-3 text-xs leading-5 text-muted">먼저 무료 안내와 도구로 공식 기준·내 기록을 확인하세요. 여러 건을 반복 정리하고 저장·전달해야 할 때만 Pro를 비교하세요.</p>
+            <p id="home-situation-boundary" className="mt-3 text-xs leading-5 text-muted">공식 기준과 내 기록은 무료로 확인하세요. 여러 건의 저장·전달이 필요할 때 Pro를 비교하세요.</p>
             <div className="mt-2 grid grid-cols-2 gap-2 min-[380px]:grid-cols-3 sm:flex sm:flex-wrap" aria-label="바로 시작하는 여섯 상황" aria-describedby="home-situation-boundary">
               {popularSituations.map(({ label, situation, href }) => (
                 <Link
                   key={label}
                   href={href}
                   onClick={() => trackSituation(situation, href.slice(1))}
-                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-navy/15 bg-white/80 px-2 text-xs font-semibold text-navy transition hover:border-gold hover:bg-white sm:px-3"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-navy/15 bg-white px-2 text-xs font-semibold text-navy transition hover:border-gold hover:bg-white sm:px-3"
                 >
                   {label}
                 </Link>

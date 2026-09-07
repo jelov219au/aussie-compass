@@ -30,7 +30,7 @@ export default async function PayEvidenceProPage({ searchParams }: Props) {
   return <>
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "급여가 적게 들어왔다면", path: "/underpayment-guide" }, { name: "Pay Evidence Pack Pro", path: "/pay-evidence-pro" }]} />
     <Header />
-    <main>
+    <main className="site-screen pro-screen">
       <section className="border-b border-navy/15 py-8 sm:py-12"><Container>
         <Link href="/underpayment-guide" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 미지급 급여 가이드</Link>
       {access === "required" && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">이 기기의 Pay Evidence Pack Pro 접근이 만료됐거나 확인되지 않았습니다. 결제 완료 화면에서 다시 열거나 이용권 복구를 사용해 주세요.</div>}

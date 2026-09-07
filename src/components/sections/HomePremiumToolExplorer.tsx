@@ -38,16 +38,16 @@ export function HomePremiumToolExplorer({
   const resumeProduct = product.id === "resume-pro";
 
   return (
-    <div className="grid overflow-hidden rounded-[2rem] border-2 border-navy/10 bg-white shadow-[0_20px_55px_rgba(26,39,68,0.1)] lg:grid-cols-[0.78fr_1.22fr]">
+    <div className="home-pro-explorer grid overflow-hidden rounded-2xl border border-border bg-white lg:grid-cols-[0.7fr_1.3fr]">
       <div className="min-w-0 bg-navy p-5 text-white sm:p-7 lg:p-8">
         <p className="inline-flex rounded-full bg-gold px-3 py-1 text-xs font-semibold text-navy">
           도움이 필요한 일을 골라보세요
         </p>
         <h2 id="premium-tools-heading" className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-          어떤 준비가 필요한지 살펴보세요.
+          필요한 준비만, Pro.
         </h2>
         <p className="mt-3 max-w-md text-sm leading-6 text-white/65">
-          각 도구가 정리해 주는 내용과 무료로 먼저 할 수 있는 일, 현재 이용 가능 여부를 함께 보여드려요.
+          도구를 선택하면 오른쪽에서 준비 내용과 무료 대안을 볼 수 있어요.
         </p>
 
         <div
@@ -65,7 +65,7 @@ export function HomePremiumToolExplorer({
                 onClick={() => setSelectedId(item.id)}
                 aria-pressed={selected}
                 aria-controls={panelId}
-                className={`min-h-14 snap-start border-l-4 px-4 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
+                className={`min-h-14 snap-start rounded-r-lg border-l-4 px-4 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
                   selected
                     ? "border-gold bg-white text-navy"
                     : "border-white/15 bg-white/[0.04] text-white hover:border-gold/70 hover:bg-white/[0.09]"
@@ -74,11 +74,11 @@ export function HomePremiumToolExplorer({
                 <span className="flex items-center justify-between gap-3">
                   <span className="min-w-0">
                     <strong className="block truncate text-sm">{item.name}</strong>
-                    <span className={`mt-1 block truncate text-xs ${selected ? "text-muted" : "text-white/55"}`}>
+                    <span className={`mt-1 block truncate text-xs ${selected ? "text-muted" : "text-white/70"}`}>
                       {item.status} · {item.price}
                     </span>
                   </span>
-                  <span className={`shrink-0 text-xs font-semibold ${selected ? "text-gold-ink" : "text-white/40"}`} aria-hidden="true">
+                  <span className={`shrink-0 text-xs font-semibold ${selected ? "text-gold-ink" : "text-white/70"}`} aria-hidden="true">
                     {selected ? "선택됨" : "→"}
                   </span>
                 </span>
@@ -97,7 +97,7 @@ export function HomePremiumToolExplorer({
         </TrackedLink>
       </div>
 
-      <div id={panelId} className="flex min-w-0 flex-col bg-background p-6 sm:p-8 lg:p-10" aria-live="polite">
+      <div id={panelId} className="flex min-w-0 flex-col bg-white p-5 sm:p-7 lg:p-8" aria-live="polite">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="flex min-w-0 items-center gap-4">
             <TopicIcon name={product.icon} />
@@ -114,14 +114,14 @@ export function HomePremiumToolExplorer({
           </div>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-navy/10 bg-white p-5">
+        <div className="mt-5 rounded-xl border border-border bg-background p-5">
           <span className="text-xs font-semibold text-gold-ink">이 도구로 준비할 수 있어요</span>
           <strong className="mt-2 block text-base leading-7 text-navy">{product.outcome}</strong>
         </div>
 
-        <div className="mt-5">
-          <p className="text-xs font-semibold text-navy">이용 순서</p>
-          <ol className="mt-3 grid gap-3 sm:grid-cols-3" aria-label="Pro 도구 이용 순서">
+        <details className="mt-4 rounded-xl border border-border px-4">
+          <summary className="flex min-h-11 cursor-pointer items-center justify-between text-sm font-semibold text-navy">이용 순서 자세히 보기 <span aria-hidden="true">＋</span></summary>
+          <ol className="my-3 grid gap-3 sm:grid-cols-3" aria-label="Pro 도구 이용 순서">
             <li className="border-l-2 border-gold bg-white p-4">
               <span className="font-mono text-xs text-gold-ink">01</span>
               <strong className="mt-2 block text-sm text-navy">무료로 먼저 확인</strong>
@@ -138,13 +138,13 @@ export function HomePremiumToolExplorer({
               <p className="mt-1 text-xs leading-5 text-muted">지원·신청·문의·확인 단계에서 정리한 내용을 활용해요.</p>
             </li>
           </ol>
-        </div>
+        </details>
 
-        <p className="mt-5 border-l-2 border-gold pl-4 text-sm leading-6 text-muted">
+        <p className="mt-4 text-sm leading-6 text-muted">
           무료 안내만으로 충분하면 여기서 멈춰도 괜찮아요. 정리 시간이 더 필요할 때만 Pro를 선택하세요.
         </p>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {resumeProduct ? (
             <>
               <ResumeProCtaLink

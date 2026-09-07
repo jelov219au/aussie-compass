@@ -49,7 +49,7 @@ export default async function EofyProPage({ searchParams }: Props) {
   return <>
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "택스 리턴 준비", path: "/tax-return-guide" }, { name: "EOFY Pack Pro", path: "/eofy-pro" }]} />
     <Header />
-    <main>
+    <main className="site-screen pro-screen">
       <section className="border-b border-navy/15 py-12 sm:py-20"><Container>
         <Link href="/tax-return-guide" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 택스 리턴 가이드로 돌아가기</Link>
         {access === "required" && !hasActiveEntitlement && <div className="mt-5 border-l-2 border-gold bg-white p-4 text-sm leading-6 text-navy" role="alert">이 기기의 EOFY Pack Pro 이용권을 다시 확인해야 합니다. 다시 결제하지 말고 1회용 복구 코드 또는 고객지원 확인 순서를 이용해 주세요.</div>}

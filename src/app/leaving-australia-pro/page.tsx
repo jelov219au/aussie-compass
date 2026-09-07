@@ -30,7 +30,7 @@ export default async function LeavingAustraliaProPage({ searchParams }: Props) {
   return <>
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "귀국 준비 가이드", path: "/leaving-australia-guide" }, { name: "Leaving Australia Pack Pro", path: "/leaving-australia-pro" }]} />
     <Header />
-    <main>
+    <main className="site-screen pro-screen">
       <section className="border-b border-navy/15 py-8 sm:py-12">
         <Container>
           <Link href="/leaving-australia-guide" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 무료 귀국 준비 가이드</Link>

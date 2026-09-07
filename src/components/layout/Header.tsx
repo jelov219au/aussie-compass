@@ -18,7 +18,7 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-md" onKeyDown={(event) => {
+    <header className="site-header sticky top-0 z-50 border-b border-border bg-white/95 backdrop-blur-md" onKeyDown={(event) => {
       if (event.key === "Escape" && menuOpen) {
         event.preventDefault();
         setMenuOpen(false);
@@ -40,26 +40,26 @@ export function Header() {
         </Link>
 
         <nav
-          className="hidden items-center gap-7 md:flex"
+          className="hidden items-center gap-2 md:flex"
           aria-label="주요 메뉴"
         >
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-sm text-sm font-medium text-muted transition-colors hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg px-3 text-sm font-medium text-muted transition-colors hover:bg-surface hover:text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2"
             >
               {link.label}
             </Link>
           ))}
-          <Link href="/search" aria-label="통합 검색" className="ml-1 inline-flex min-h-11 items-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-navy transition hover:border-navy/25 hover:bg-surface">검색</Link>
+          <Link href="/search" aria-label="통합 검색" className="ml-1 inline-flex min-h-11 items-center rounded-lg border border-border bg-white px-4 text-sm font-semibold text-navy transition hover:border-navy/25 hover:bg-surface">검색</Link>
         </nav>
 
         <div className="flex shrink-0 items-center gap-2 md:hidden">
           <Link
             href="/search"
             aria-label="통합 검색"
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-border bg-white text-sm font-semibold text-navy transition hover:border-navy/25 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 min-[420px]:px-4"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-white text-sm font-semibold text-navy transition hover:border-navy/25 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 min-[420px]:px-4"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5 min-[420px]:hidden" fill="none" aria-hidden="true">
               <circle cx="11" cy="11" r="6.5" stroke="currentColor" strokeWidth="1.75" />
