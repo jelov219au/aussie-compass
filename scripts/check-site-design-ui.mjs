@@ -94,6 +94,11 @@ try {
           await page.getByRole('button', { name: '필터 초기화', exact: true }).click();
         }
         if (route.startsWith('/resources/')) {
+          const trust = page.locator('[data-editorial-trust]');
+          await trust.locator('summary').click();
+          assert(await trust.getByText('출처 확인일: 확인 정보 없음', { exact: false }).isVisible());
+          assert(!await trust.getByText('editorial_trust_next_action', { exact: true }).count());
+          await trust.locator('summary').click();
           const first = page.getByRole('navigation', { name: '이 글의 목차', exact: true }).getByRole('link').first();
           await first.click(); assert.equal(new URL(page.url()).hash, '#section-1');
           assert(await page.locator('#article-sources').count());
