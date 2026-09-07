@@ -88,4 +88,5 @@ assert.ok(deviceData.includes('record.toolId === "pay-evidence-pro"') && deviceD
 assert.ok(deviceData.includes('"pay-evidence-delete-heading"'), "Pay Evidence recovery must retain a real deletion destination");
 assert.ok(offer.includes("다시 결제하지 말고") && offer.includes("/pay-evidence-pro/restore"), "Offer must retain safe recovery and no-repurchase guidance");
 
+await import("./check-pay-evidence-checkout-analytics.mjs");
 console.log("Pay Evidence Pack Pro checkout, entitlement, recovery, and migration contracts passed.");
