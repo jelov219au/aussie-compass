@@ -7,7 +7,7 @@ const dir = process.env.EOFY_UI_DIR;
 if (!dir || !process.env.CHROME_PATH) throw Error('Remote browser review configuration missing');
 const require = createRequire(pathToFileURL(dir + '/package.json'));
 const { chromium } = require('playwright-core');
-const routes = [
+const routes = process.env.TAX_SUMMARY_REVIEW === 'true' ? ['/tax-prep-tracker'] : [
   '/resources/australia-job-ending-final-pay-dismissal-guide',
   '/resources/unpaid-trial-shift-australia-guide',
   '/used-car-comparison', '/tax-prep-tracker', '/property-inspection-checklist',
@@ -81,6 +81,7 @@ try {
         assert(record.documentWidth <= width, 'no horizontal overflow');
         assert.deepEqual(record.axe, []);
         assert.deepEqual(errors, []);
+        if (process.env.TAX_SUMMARY_REVIEW === 'true') await page.locator('[aria-describedby="tax-record-summary-note"]').screenshot({ path: `${dir}/tax-summary-cards-${width}.png` });
         if (width !== 768) {
           await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
           await page.screenshot({ path: `${dir}/entry-${route.split('/').at(-1)}-${width}.png` });

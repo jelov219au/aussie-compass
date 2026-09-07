@@ -104,11 +104,12 @@ export function TaxPrepTracker() {
     <p className="mt-4 text-sm leading-6 text-muted">선택 기간: {financialYearPeriod(year)}. 기본은 현재 진행 중인 회계연도 장부입니다. 종료된 연도의 신고 자료는 회계연도를 바꿔 확인하세요.</p>
     <TaxStorageNotice storageKey={taxPrepRecordsStorageKey} storage={storage} saveState={saveState} />
 
-    <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-live="polite">
-      <div className="rounded-xl bg-surface p-4"><p className="text-xs text-muted">기록한 소득</p><strong className="mt-1 block text-xl text-navy">{summary ? formatMoney(summary.income) : "합계 확인 필요"}</strong></div>
-      <div className="rounded-xl bg-surface p-4"><p className="text-xs text-muted">지출 후보 합계</p><strong className="mt-1 block text-xl text-navy">{summary ? formatMoney(summary.expenses) : "합계 확인 필요"}</strong></div>
-      <div className="rounded-xl bg-surface p-4"><p className="text-xs text-muted">증빙 없는 기록</p><strong className="mt-1 block text-xl text-navy">{summary?.missing ?? "—"}건</strong></div>
-      <div className="rounded-xl bg-surface p-4"><p className="text-xs text-muted">기록이 있는 달</p><strong className="mt-1 block text-xl text-navy">{summary?.months ?? "—"}/12개월</strong></div>
+    <p id="tax-record-summary-note" className="mt-7 text-sm leading-6 text-muted">아래 숫자는 선택한 회계연도의 화면 기록을 단순 합산·집계한 값입니다. 세금·공제·환급·납부 금액이나 신고 의무·제출 가능 여부를 판단하지 않습니다. 원본과 ATO 정보를 따로 확인하세요.</p>
+    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-live="polite" aria-describedby="tax-record-summary-note">
+      <div className="rounded-xl bg-surface p-4"><p className="text-xs text-muted">기록한 소득</p><strong className="mt-1 block text-xl text-navy">{summary ? formatMoney(summary.income) : "합계 확인 필요"}</strong><p className="mt-2 text-xs leading-5 text-muted">입력한 소득 금액의 합계입니다. 신고 소득·Tax ready·pre-fill 금액으로 확정된 값이 아닙니다.</p></div>
+      <div className="rounded-xl bg-surface p-4"><p className="text-xs text-muted">지출 후보 합계</p><strong className="mt-1 block text-xl text-navy">{summary ? formatMoney(summary.expenses) : "합계 확인 필요"}</strong><p className="mt-2 text-xs leading-5 text-muted">입력한 지출 후보 금액의 합계입니다. 공제액·업무 사용분·예상 환급액이 아닙니다.</p></div>
+      <div className="rounded-xl bg-surface p-4"><p className="text-xs text-muted">증빙 없는 기록</p><strong className="mt-1 block text-xl text-navy">{summary?.missing ?? "—"}건</strong><p className="mt-2 text-xs leading-5 text-muted">‘미확인·아직 없음’으로 선택한 기록 수입니다. 공제 불가·신고 불가 판정이 아닙니다.</p></div>
+      <div className="rounded-xl bg-surface p-4"><p className="text-xs text-muted">기록이 있는 달</p><strong className="mt-1 block text-xl text-navy">{summary?.months ?? "—"}/12개월</strong><p className="mt-2 text-xs leading-5 text-muted">현재 화면 기록에 등장하는 달 수입니다. 빈 달의 소득·지출이 없거나 신고 준비가 끝났다는 뜻이 아닙니다.</p></div>
     </div>
 
     <form onSubmit={addRecord} className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6">
