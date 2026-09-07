@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 const [
   checkout, offer, checkoutForm, commerce, contract, firstSale, webhook,
-  entitlementMigration, gateMigration, workspace, success, accessTools, deviceData,
+  entitlementMigration, gateMigration, workspace, success, accessTools, deviceData, deviceManifest,
   paymentAlerts, paymentAlertOutbox,
 ] = await Promise.all([
   read("../src/app/api/checkout/eofy-pro/route.ts"),
@@ -20,6 +20,7 @@ const [
   read("../src/app/eofy-pro/success/page.tsx"),
   read("../src/components/tools/EofyProAccessTools.tsx"),
   read("../src/components/tools/DeviceDataTransfer.tsx"),
+  read("../src/data/deviceTransferManifest.ts"),
   read("../src/lib/paymentAlerts.ts"),
   read("../src/lib/paymentAlertOutbox.ts"),
 ]);
@@ -51,7 +52,10 @@ for (const migration of [entitlementMigration, gateMigration]) {
 assert.ok(gateMigration.includes("expected_amount_cents = 990") && gateMigration.includes("when 'eofy_pro' then 990"), "First-sale migration must pin AUD 9.90");
 assert.ok(workspace.includes("getActiveEofyProEntitlement") && success.includes("findActiveByCheckoutSession(session.id, \"eofy_pro\")"), "Workspace and success flow must use the product-scoped entitlement");
 assert.ok(accessTools.includes("/eofy-pro?access=released") && accessTools.includes("#eofy-delete-heading"), "Release must preserve a separate local-data deletion path");
-assert.ok(deviceData.includes('const eofyProStorageKey = "hoju-compass-eofy-pro-v1"') && deviceData.includes("deleteEofyDeviceData"), "Shared-device deletion must target only EOFY local data");
+assert.ok(deviceManifest.includes('record("eofy-pro", "hoju-compass-eofy-pro-v1"')
+  && deviceData.includes('const eofyRecord = storedRecords.find((record) => record.toolId === "eofy-pro")!;')
+  && deviceData.includes("action: () => deleteOne(eofyRecord)")
+  && deviceData.includes("clearDeviceRecord(window.localStorage, record)"), "Shared-device deletion must target only the manifest's EOFY local record");
 assert.ok(offer.includes("다시 결제하지 말고") && offer.includes("/eofy-pro/restore"), "Offer must retain safe recovery and no-repurchase guidance");
 
 console.log("EOFY Pack Pro checkout, entitlement, recovery, and migration contracts passed.");
