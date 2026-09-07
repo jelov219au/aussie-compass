@@ -186,7 +186,7 @@ export function RentalApplicationProDecisionBoard({ checkoutAvailable }: { check
             <h3 className="mt-2 text-xl font-semibold text-navy">{proFit ? "Pro 포트폴리오를 비교할 가치가 높아요." : "무료 프로젝트로 먼저 진행해도 충분해요."}</h3>
             <p className="mt-3 text-sm leading-7 text-muted">{proFit ? `${proReasons.join(" · ")}가 필요해요. Pro 보드에서 공통 정보와 집별 후속을 나눠 볼 수 있어요.` : "한 집의 방문 결과와 지원·계약·입주 다음 행동은 무료 프로젝트에 계속 저장할 수 있어요."}</p>
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-              <Link href="#rental-free-pro-comparison" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-center text-sm font-semibold text-white">전체 기능 비교</Link>
+              <a href="#rental-free-pro-comparison" className="inline-flex min-h-12 items-center justify-center bg-navy px-5 text-center text-sm font-semibold text-white">전체 기능 비교</a>
               {checkoutAvailable ? <Link href="#rental-pro-checkout" className="inline-flex min-h-12 items-center justify-center border border-navy px-5 text-center text-sm font-semibold text-navy">구매 단계 확인</Link> : <span className="inline-flex min-h-12 items-center justify-center border border-border px-5 text-center text-sm font-semibold text-muted">판매 준비 중 · 판단은 저장됨</span>}
             </div>
           </div>
