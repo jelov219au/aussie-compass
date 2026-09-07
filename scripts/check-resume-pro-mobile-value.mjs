@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const page = readFileSync(resolve("src/app/resume-pro/page.tsx"), "utf8");
+const outputPreview = readFileSync(resolve("src/components/tools/ResumeProOutputPreview.tsx"), "utf8");
+const exampleInput = readFileSync(resolve("src/lib/resumeProExample.ts"), "utf8");
 const builder = readFileSync(resolve("src/components/tools/ResumeBuilder.tsx"), "utf8");
 const builderStorage = readFileSync(resolve("src/lib/resumeBuilderStorage.ts"), "utf8");
 const workspace = readFileSync(resolve("src/components/tools/ResumeProWorkspace.tsx"), "utf8");
@@ -26,7 +28,8 @@ const quickStartSection = builder.slice(quickStart, quickStartEnd);
 const earlyStar = quickStartSection.indexOf('href="/resources/english-resume-achievement-examples"');
 const firstSavedExperienceInput = quickStartSection.indexOf('id="resume-quick-achievement"');
 const articleMobileCta = articlePage.indexOf("내 사례를 무료로 저장하기");
-const articleShare = articlePage.indexOf("<PageShareButton");
+const articleStandardHeader = articlePage.indexOf("</> : <header");
+const articleShare = articlePage.indexOf("<PageShareButton", articleStandardHeader);
 
 const checks = [
   [valueHeading >= 0 && checkout >= 0 && valueHeading < checkout, "지속 효용 안내가 결제 폼보다 먼저 보여야 합니다."],
@@ -39,7 +42,7 @@ const checks = [
   [workspace.includes("STAR_STORY_LIMIT = 20") && workspace.includes("기존 경험을 삭제한 뒤 새 경험을 추가해 주세요"), "STAR 경험 한도에 도달하면 기존 데이터를 조용히 삭제하지 않아야 합니다."],
   [builder.includes("persistResumeBuilderDraft") && builderStorage.includes("getStorage().setItem") && builder.includes("window.print()"), "무료 Builder의 브라우저 저장과 PDF 안내는 실제 기능과 일치해야 합니다."],
   [workspace.includes("persistResumeProApplicationStore") && applicationStorage.includes("items.slice(0, maximumApplications)") && applicationStorage.includes("maximumApplications = 30") && workspace.includes("downloadApplicationKit") && workspace.includes("resumeProStarStoriesStorageKey"), "회사별 지원서·STAR·지원서 묶음 Pro 설명은 실제 기능과 일치해야 합니다."],
-  [!page.includes("Compass Cafe") && !page.includes("150 coffee") && !page.includes("150잔") && page.includes("[실제 근무처]") && page.includes("[verified result]"), "구매 전 예시에는 확인되지 않은 회사명이나 성과 수치를 넣지 않아야 합니다."],
+  [outputPreview.includes("아래 인물·회사·경력·성과는 모두 가상입니다") && exampleInput.includes("FICTIONAL EXAMPLE — DO NOT SUBMIT") && exampleInput.includes("This is an invented example, not an applicant achievement."), "구매 전 예시에는 확인되지 않은 회사명이나 성과 수치를 넣지 않아야 합니다."],
   [articleMobileCta >= 0 && articleShare >= 0 && articleMobileCta < articleShare && articlePage.includes('className={actionClass("primary")}') && actionStyles.includes("inline-flex min-h-12"), "STAR 글의 무료 CTA는 모바일에서도 공유 버튼보다 먼저 보여야 합니다."],
   [articleNextStep.includes("무료 Builder에 성과 문장을 저장하고 PDF로 내보내세요") && articleNextStep.includes("STAR 면접 메모와 회사별 지원서 묶음"), "글의 무료·Pro 다음 단계가 실제 제품 경계와 일치해야 합니다."],
   [articles.includes('seoTitle: "호주 이력서 STAR 성과 문장 작성법과 실제 경험 예시"') && articlePage.includes("article.seoTitle ?? article.title"), "STAR 글의 검색 제목이 동적 메타데이터에 연결되어야 합니다."],

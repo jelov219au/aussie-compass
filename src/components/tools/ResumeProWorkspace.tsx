@@ -1,5 +1,6 @@
 "use client";
 
+import { createResumeProCoverLetter, extractKeywords, type SavedResume } from "@/lib/resumeProOutput";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
@@ -43,21 +44,6 @@ import {
 type Tone = "clear" | "warm" | "concise";
 type ProLayout = "editorial" | "split" | "minimal";
 type ProAccent = "eucalyptus" | "ocean" | "terracotta";
-type SavedResume = {
-  name?: string;
-  title?: string;
-  phone?: string;
-  email?: string;
-  location?: string;
-  link?: string;
-  summary?: string;
-  skills?: string;
-  licences?: string;
-  languages?: string;
-  showReferences?: boolean;
-  experiences?: Array<{ role?: string; company?: string; period?: string; details?: string }>;
-  education?: Array<{ course?: string; school?: string; period?: string }>;
-};
 type ProDraft = {
   company: string;
   role: string;
@@ -120,10 +106,6 @@ const initialDraft: ProDraft = {
   interviewQuestions: [],
   interviewAnswers: {},
 };
-const stopWords = new Set([
-  "about", "after", "also", "and", "are", "been", "being", "but", "can", "company", "experience", "from", "have", "include", "includes", "into", "job", "more", "must", "our", "position", "preparing", "required", "requirements", "responsibilities", "role", "seeking", "that", "the", "their", "this", "through", "using", "will", "with", "work", "you", "your",
-]);
-
 function normaliseDraft(value: unknown, fallback: ProDraft = initialDraft): ProDraft {
   if (!value || typeof value !== "object") return fallback;
   const stored = value as Partial<Record<keyof ProDraft, unknown>>;
@@ -211,26 +193,6 @@ function readSavedResume(): SavedResume {
   }
 }
 
-function normaliseWords(value: string) {
-  return value.toLowerCase().match(/[a-z][a-z+#.-]{2,}/g) ?? [];
-}
-
-function extractKeywords(value: string) {
-  const counts = new Map<string, number>();
-  normaliseWords(value).forEach((word) => {
-    const cleaned = word.replace(/^[.-]+|[.-]+$/g, "");
-    if (cleaned.length < 4 || stopWords.has(cleaned)) return;
-    counts.set(cleaned, (counts.get(cleaned) ?? 0) + 1);
-  });
-  return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 14).map(([word]) => word);
-}
-
-function sentence(value?: string) {
-  const trimmed = value?.trim();
-  if (!trimmed) return "";
-  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
-}
-
 function safeFileName(value: string) {
   return value.trim().replace(/[^a-z0-9가-힣]+/gi, "-").replace(/^-|-$/g, "").slice(0, 60) || "resume-application";
 }
@@ -262,7 +224,7 @@ function ResumeExperienceList({ experiences, compact = false }: { experiences: R
     ? experiences
     : [{ role: "Role", company: "Company", period: "Dates", details: "Add achievements in the free resume builder." }];
 
-  return <div className={compact ? "mt-3 space-y-4" : "mt-4 space-y-5"}>{items.map((item, index) => <div key={`${item.role}-${item.company}-${index}`}><div className="flex items-start justify-between gap-5"><div><h3 className="text-sm font-bold text-[#202636]">{item.role || "Role"}</h3><p className="text-sm text-[#50586b]">{item.company || "Company"}</p></div><p className="shrink-0 text-xs text-[#687083]">{item.period || "Dates"}</p></div>{item.details && <ul className="mt-2 space-y-1 text-sm leading-5 text-[#3f4655]">{item.details.split("\n").filter(Boolean).map((line, lineIndex) => <li key={lineIndex} className="flex gap-2"><span aria-hidden="true">•</span><span>{line}</span></li>)}</ul>}</div>)}</div>;
+  return <div className={compact ? "mt-3 space-y-4" : "mt-4 space-y-5"}>{items.map((item, index) => <div key={`${item.role}-${item.company}-${index}`} data-resume-entry><div className="flex items-start justify-between gap-5"><div><h3 className="text-sm font-bold text-[#202636]">{item.role || "Role"}</h3><p className="text-sm text-[#50586b]">{item.company || "Company"}</p></div><p className="shrink-0 text-xs text-[#687083]">{item.period || "Dates"}</p></div>{item.details && <ul className="mt-2 space-y-1 text-sm leading-5 text-[#3f4655]">{item.details.split("\n").filter(Boolean).map((line, lineIndex) => <li key={lineIndex} className="flex gap-2"><span aria-hidden="true">•</span><span>{line}</span></li>)}</ul>}</div>)}</div>;
 }
 
 function ResumeEducationList({ education }: { education: ResumeEducation[] }) {
@@ -270,7 +232,7 @@ function ResumeEducationList({ education }: { education: ResumeEducation[] }) {
     ? education
     : [{ course: "Course or qualification", school: "Institution", period: "Dates" }];
 
-  return <div className="mt-3 space-y-3">{items.map((item, index) => <div key={`${item.course}-${item.school}-${index}`} className="flex items-start justify-between gap-5"><div><h3 className="text-sm font-bold text-[#202636]">{item.course || "Course or qualification"}</h3><p className="text-sm text-[#50586b]">{item.school || "Institution"}</p></div><p className="shrink-0 text-xs text-[#687083]">{item.period || "Dates"}</p></div>)}</div>;
+  return <div className="mt-3 space-y-3">{items.map((item, index) => <div key={`${item.course}-${item.school}-${index}`} data-resume-entry className="flex items-start justify-between gap-5"><div><h3 className="text-sm font-bold text-[#202636]">{item.course || "Course or qualification"}</h3><p className="text-sm text-[#50586b]">{item.school || "Institution"}</p></div><p className="shrink-0 text-xs text-[#687083]">{item.period || "Dates"}</p></div>)}</div>;
 }
 
 function ResumeSectionHeading({ color, children }: { color: string; children: ReactNode }) {
@@ -284,7 +246,8 @@ function ResumeProDocument({ resume, layout, accent }: { resume: SavedResume; la
   const languages = listValues(resume.languages);
   const experiences = resume.experiences?.filter((item) => item.role || item.company || item.details) ?? [];
   const education = resume.education?.filter((item) => item.course || item.school) ?? [];
-  const contact = [resume.phone || "Phone", resume.email || "Email", resume.location || "City, State", resume.link].filter(Boolean);
+  const contact = [resume.phone, resume.email, resume.location, resume.link].filter(Boolean);
+  if (!resume.name && contact.length === 0) contact.push("Phone", "Email", "City, State");
 
   if (layout === "split") return <article id="resume-pro-preview" className="min-h-[1120px] overflow-hidden bg-white text-[#202636] shadow-lg ring-1 ring-black/5 sm:grid sm:grid-cols-[14rem_1fr]" aria-label="Professional 프리미엄 이력서 미리보기">
     <aside className="p-7 text-white sm:min-h-[1120px]" style={{ backgroundColor: palette.primary }}>
@@ -293,7 +256,7 @@ function ResumeProDocument({ resume, layout, accent }: { resume: SavedResume; la
       {licences.length > 0 && <div className="mt-9"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/65">Licences</p><ul className="mt-4 space-y-2 text-xs leading-5 text-white/85">{licences.map((item) => <li key={item}>{item}</li>)}</ul></div>}
       {languages.length > 0 && <div className="mt-9"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/65">Languages</p><p className="mt-4 text-xs leading-5 text-white/85">{languages.join(" · ")}</p></div>}
     </aside>
-    <div className="p-8 sm:p-10"><header className="border-b pb-6" style={{ borderColor: palette.secondary }}><p className="text-4xl font-semibold tracking-tight" style={{ color: palette.primary }}>{resume.name || "Your Name"}</p><p className="mt-2 text-lg font-semibold" style={{ color: palette.secondary }}>{resume.title || "Target Role"}</p></header><div className="mt-7 space-y-7">{(resume.summary || !resume.name) && <section><ResumeSectionHeading color={palette.primary}>Professional Summary</ResumeSectionHeading><p className="mt-3 whitespace-pre-line text-sm leading-6 text-[#3f4655]">{resume.summary || "Write a concise summary of your experience, strengths and the value you bring to the role."}</p></section>}<section><ResumeSectionHeading color={palette.primary}>Experience</ResumeSectionHeading><ResumeExperienceList experiences={experiences} /></section><section><ResumeSectionHeading color={palette.primary}>Education & Training</ResumeSectionHeading><ResumeEducationList education={education} /></section>{resume.showReferences && <section><ResumeSectionHeading color={palette.primary}>References</ResumeSectionHeading><p className="mt-3 text-sm text-[#3f4655]">Available upon request</p></section>}</div></div>
+    <div className="p-8 sm:p-10"><header className="border-b pb-6" style={{ borderColor: palette.secondary }}><p className="text-4xl font-semibold tracking-tight" style={{ color: palette.primary }}>{resume.name || "Your Name"}</p><p className="mt-2 text-lg font-semibold" style={{ color: palette.primary }}>{resume.title || "Target Role"}</p></header><div className="mt-7 space-y-7">{(resume.summary || !resume.name) && <section><ResumeSectionHeading color={palette.primary}>Professional Summary</ResumeSectionHeading><p className="mt-3 whitespace-pre-line text-sm leading-6 text-[#3f4655]">{resume.summary || "Write a concise summary of your experience, strengths and the value you bring to the role."}</p></section>}<section><ResumeSectionHeading color={palette.primary}>Experience</ResumeSectionHeading><ResumeExperienceList experiences={experiences} /></section><section><ResumeSectionHeading color={palette.primary}>Education & Training</ResumeSectionHeading><ResumeEducationList education={education} /></section>{resume.showReferences && <section><ResumeSectionHeading color={palette.primary}>References</ResumeSectionHeading><p className="mt-3 text-sm text-[#3f4655]">Available upon request</p></section>}</div></div>
   </article>;
 
   if (layout === "minimal") return <article id="resume-pro-preview" className="min-h-[1120px] bg-white px-8 py-10 text-[#202636] shadow-lg ring-1 ring-black/5 sm:px-14 sm:py-14" aria-label="Technical 프리미엄 이력서 미리보기">
@@ -302,7 +265,7 @@ function ResumeProDocument({ resume, layout, accent }: { resume: SavedResume; la
   </article>;
 
   return <article id="resume-pro-preview" className="min-h-[1120px] bg-white px-8 py-10 text-[#202636] shadow-lg ring-1 ring-black/5 sm:px-14 sm:py-14" aria-label="Editorial 프리미엄 이력서 미리보기">
-    <header className="border-t-[10px] pt-8" style={{ borderColor: palette.primary }}><div className="flex flex-wrap items-end justify-between gap-6"><div><p className="text-4xl font-semibold tracking-[-0.035em]" style={{ color: palette.primary }}>{resume.name || "Your Name"}</p><p className="mt-2 text-lg font-semibold" style={{ color: palette.secondary }}>{resume.title || "Target Role"}</p></div><p className="max-w-sm text-right text-xs leading-5 text-[#687083]">{contact.join(" · ")}</p></div></header>
+    <header className="border-t-[10px] pt-8" style={{ borderColor: palette.primary }}><div className="flex flex-wrap items-end justify-between gap-6"><div><p className="text-4xl font-semibold tracking-[-0.035em]" style={{ color: palette.primary }}>{resume.name || "Your Name"}</p><p className="mt-2 text-lg font-semibold" style={{ color: palette.primary }}>{resume.title || "Target Role"}</p></div><p className="max-w-sm text-right text-xs leading-5 text-[#687083]">{contact.join(" · ")}</p></div></header>
     <div className="mt-9 space-y-8">{(resume.summary || !resume.name) && <section className="border-l-4 p-5" style={{ borderColor: palette.secondary, backgroundColor: palette.soft }}><ResumeSectionHeading color={palette.primary}>Professional Summary</ResumeSectionHeading><p className="mt-3 whitespace-pre-line text-sm leading-6 text-[#3f4655]">{resume.summary || "Write a concise summary of your experience, strengths and the value you bring to the role."}</p></section>}<section><ResumeSectionHeading color={palette.primary}>Experience</ResumeSectionHeading><ResumeExperienceList experiences={experiences} /></section><section><ResumeSectionHeading color={palette.primary}>Education & Training</ResumeSectionHeading><ResumeEducationList education={education} /></section><div className="grid gap-6 border-t border-[#d8dbe2] pt-6 sm:grid-cols-2">{skills.length > 0 && <section><ResumeSectionHeading color={palette.primary}>Skills</ResumeSectionHeading><p className="mt-3 text-sm leading-6 text-[#3f4655]">{skills.join(" · ")}</p></section>}{licences.length > 0 && <section><ResumeSectionHeading color={palette.primary}>Licences & Certifications</ResumeSectionHeading><p className="mt-3 whitespace-pre-line text-sm leading-6 text-[#3f4655]">{licences.join("\n")}</p></section>}{languages.length > 0 && <section><ResumeSectionHeading color={palette.primary}>Languages</ResumeSectionHeading><p className="mt-3 text-sm text-[#3f4655]">{languages.join(" · ")}</p></section>}{resume.showReferences && <section><ResumeSectionHeading color={palette.primary}>References</ResumeSectionHeading><p className="mt-3 text-sm text-[#3f4655]">Available upon request</p></section>}</div></div>
   </article>;
 }
@@ -633,31 +596,7 @@ export function ResumeProWorkspace() {
   };
 
   const createCoverLetter = () => {
-    const role = draft.role.trim() || savedResume.title?.trim() || "the advertised role";
-    const company = draft.company.trim() || "your team";
-    const manager = draft.hiringManager.trim() || "Hiring Manager";
-    const name = savedResume.name?.trim() || "Your Name";
-    const summary = sentence(savedResume.summary) || `I am applying for the ${role} position with a reliable, practical approach and a strong willingness to contribute.`;
-    const firstExperience = savedResume.experiences?.find((item) => item.role || item.details);
-    const achievement = sentence(firstExperience?.details?.split("\n").find(Boolean));
-    const skills = savedResume.skills?.split(",").map((item) => item.trim()).filter(Boolean).slice(0, 3) ?? [];
-    const skillLine = skills.length ? `My relevant strengths include ${skills.join(", ")}.` : "I learn new processes quickly and take ownership of the work assigned to me.";
-    const missingLine = missing.length ? `I was particularly interested in your focus on ${missing.slice(0, 3).join(", ")}, and I would welcome the opportunity to discuss how my experience can support these priorities.` : `I would welcome the opportunity to discuss how my experience can support ${company}.`;
-    const opening = draft.tone === "warm"
-      ? `I was pleased to see the ${role} opportunity with ${company}.`
-      : draft.tone === "concise"
-        ? `I am writing to apply for the ${role} position at ${company}.`
-        : `I am interested in the ${role} position at ${company} and believe my experience would allow me to contribute from the outset.`;
-    const closing = draft.tone === "warm" ? "Thank you for taking the time to consider my application. I would be delighted to speak with you." : "Thank you for considering my application. I look forward to the opportunity to discuss my suitability for the role.";
-    const paragraphs = [
-      `Dear ${manager},`,
-      `${opening} ${summary}`,
-      [achievement, skillLine].filter(Boolean).join(" "),
-      missingLine,
-      closing,
-      `Kind regards,\n${name}`,
-    ];
-    setField("coverLetter", paragraphs.join("\n\n"));
+    setField("coverLetter", createResumeProCoverLetter(savedResume, draft, missing));
     setMessage("커버레터 초안을 만들었습니다. 사실과 표현을 직접 확인해 주세요.");
   };
 
@@ -766,7 +705,7 @@ export function ResumeProWorkspace() {
           "",
         ])
         : ["Interview questions not created", ""]),
-      "This file is a personal preparation copy. Review every statement before submitting and store it securely because it may contain contact and employment details.",
+      "This file is a personal preparation copy. Resume Pro does not verify your claims or guarantee an interview or job. Review every statement before submitting and store it securely because it may contain contact and employment details.",
     ];
     const url = URL.createObjectURL(new Blob([lines.join("\r\n")], { type: "text/plain;charset=utf-8" }));
     const anchor = document.createElement("a");
@@ -781,7 +720,7 @@ export function ResumeProWorkspace() {
     <div className="space-y-12">
     <section className="border border-navy/15 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="resume-pro-quick-start-heading">
       <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-        <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">첫 10분 빠른 시작</p><h2 id="resume-pro-quick-start-heading" className="mt-2 text-2xl font-semibold text-navy">첫 회사별 지원서 하나를 저장하고 다시 열어보세요.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-muted">디자인과 면접 준비는 나중에 해도 괜찮아요. 저장한 이력서와 공고로 커버레터를 만든 뒤 회사별 지원서로 저장하고, 브라우저 저장본을 다시 열어야 첫 작업이 완료돼요.</p></div>
+        <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#806515]">첫 10분 빠른 시작</p><h2 id="resume-pro-quick-start-heading" className="mt-2 text-2xl font-semibold text-navy">첫 회사별 지원서 하나를 저장하고 다시 열어보세요.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-muted">디자인과 면접 준비는 나중에 해도 괜찮아요. 저장한 이력서와 공고로 커버레터를 만든 뒤 회사별 지원서로 저장하고, 브라우저 저장본을 다시 열어야 첫 작업이 완료돼요.</p></div>
         <div className="min-w-48"><p className="font-mono text-sm text-muted">{quickStartCompleted} / {quickStartSteps.length} 완료</p><div className="mt-2 h-2 overflow-hidden bg-surface" aria-hidden="true"><div className="h-full bg-gold transition-[width]" style={{ width: `${(quickStartCompleted / quickStartSteps.length) * 100}%` }} /></div></div>
       </div>
       <ol className="mt-6 grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-5">{quickStartSteps.map((step, index) => <li key={step.id} className="flex min-h-20 items-center gap-3 bg-surface px-4 py-3"><span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${step.done ? "bg-[#315f4e] text-white" : "border border-navy/25 bg-white text-navy"}`}>{step.done ? "✓" : index + 1}</span><span className={`text-sm ${step.done ? "font-medium text-navy" : "text-muted"}`}>{step.label}</span></li>)}</ol>
@@ -790,7 +729,7 @@ export function ResumeProWorkspace() {
     <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,0.92fr)_minmax(34rem,1.08fr)]">
       <section className="border-t border-navy/20 pt-6" aria-labelledby="pro-input-heading">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Application brief</p><h2 id="pro-input-heading" className="mt-2 text-2xl font-semibold text-navy">지원할 회사와 공고</h2></div>
+          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#806515]">Application brief</p><h2 id="pro-input-heading" className="mt-2 text-2xl font-semibold text-navy">지원할 회사와 공고</h2></div>
           <button type="button" onClick={refreshResume} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">이력서 다시 불러오기</button>
         </div>
         <div className={`mt-5 border-l-2 p-4 text-sm leading-6 ${hasResume ? "border-[#3f6d5c] bg-[#3f6d5c]/8 text-navy" : "border-gold bg-gold/8 text-muted"}`}>
@@ -799,12 +738,12 @@ export function ResumeProWorkspace() {
         <section className="mt-5 border border-border bg-white p-4" aria-labelledby="saved-applications-heading">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div><h3 id="saved-applications-heading" className="text-sm font-semibold text-navy">회사별 지원서</h3><p className="mt-1 text-xs leading-5 text-muted">저장할 때 연결된 무료 이력서와 Job Ad 근거를 함께 보관하며, 현재 브라우저에 최대 30개까지 저장됩니다. 저장 뒤 저장본을 다시 열어 확인하고, 내용을 바꾸면 다시 저장해 주세요.</p></div>
-            <div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button id="resume-pro-save-application" type="button" onClick={saveApplication} className="min-h-10 bg-navy px-3 text-xs font-semibold text-white">{currentApplicationSaved ? "현재 지원서 저장됨" : "현재 지원서 저장"}</button>{currentApplicationSaved && activeApplicationId && !currentApplicationReopened && <button id="resume-pro-reopen-application" type="button" onClick={() => reopenApplication(activeApplicationId)} className="min-h-11 border border-navy px-3 text-xs font-semibold text-navy">저장본 다시 열어 확인</button>}</div>
+            <div className="flex flex-wrap gap-2"><button type="button" onClick={startNewApplication} className="min-h-11 border border-border px-3 text-xs font-semibold text-navy">새 지원서</button><button id="resume-pro-save-application" type="button" onClick={saveApplication} className="min-h-11 bg-navy px-3 text-xs font-semibold text-white">{currentApplicationSaved ? "현재 지원서 저장됨" : "현재 지원서 저장"}</button>{currentApplicationSaved && activeApplicationId && !currentApplicationReopened && <button id="resume-pro-reopen-application" type="button" onClick={() => reopenApplication(activeApplicationId)} className="min-h-11 border border-navy px-3 text-xs font-semibold text-navy">저장본 다시 열어 확인</button>}</div>
           </div>
           {applications.length > 0 ? (
             <>
               <section className="mt-4 border-l-2 border-gold bg-surface p-4" aria-labelledby="application-priority-heading">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold">Local application priority</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#806515]">Local application priority</p>
                 <h4 id="application-priority-heading" className="mt-1 text-lg font-semibold text-navy">지금 다시 열 지원서</h4>
                 <p className="mt-2 text-xs leading-5 text-muted">
                   {applicationPrioritySummary.nearestDeadline
@@ -826,7 +765,7 @@ export function ResumeProWorkspace() {
                 </ol>
                 <p className="mt-3 text-xs leading-5 text-muted">이 요약은 현재 브라우저의 저장본만 계산하며, 버튼을 누르면 기존 로컬 재열기 검사를 그대로 실행합니다.</p>
               </section>
-              <ul className="mt-4 divide-y divide-border border-y border-border">{applications.map((application) => <li key={application.id} className="flex flex-wrap items-center gap-3 py-3"><button type="button" onClick={() => reopenApplication(application.id)} className="min-h-10 flex-1 text-left"><strong className="block text-sm text-navy">{application.company}</strong><span className="mt-1 block text-xs text-muted">{application.role} · {resumeProApplicationStatusLabels[application.draft.applicationStatus]}{application.draft.applicationDeadline ? ` · 마감 ${application.draft.applicationDeadline}` : ""} · {application.updatedAt ? new Date(application.updatedAt).toLocaleDateString("en-AU") : "저장 시간 확인 필요"}{activeApplicationId === application.id ? currentApplicationReopened ? " · 다시 열기 확인됨" : currentApplicationSaved ? " · 저장됨" : " · 변경사항 있음" : ""}</span></button><button type="button" onClick={() => deleteApplication(application)} className="min-h-10 px-2 text-xs text-muted hover:text-red-700">삭제</button></li>)}</ul>
+              <ul className="mt-4 divide-y divide-border border-y border-border">{applications.map((application) => <li key={application.id} className="flex flex-wrap items-center gap-3 py-3"><button type="button" onClick={() => reopenApplication(application.id)} className="min-h-11 flex-1 text-left"><strong className="block text-sm text-navy">{application.company}</strong><span className="mt-1 block text-xs text-muted">{application.role} · {resumeProApplicationStatusLabels[application.draft.applicationStatus]}{application.draft.applicationDeadline ? ` · 마감 ${application.draft.applicationDeadline}` : ""} · {application.updatedAt ? new Date(application.updatedAt).toLocaleDateString("en-AU") : "저장 시간 확인 필요"}{activeApplicationId === application.id ? currentApplicationReopened ? " · 다시 열기 확인됨" : currentApplicationSaved ? " · 저장됨" : " · 변경사항 있음" : ""}</span></button><button type="button" onClick={() => deleteApplication(application)} className="min-h-11 min-w-11 px-2 text-xs text-muted hover:text-red-700">삭제</button></li>)}</ul>
             </>
           ) : <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted">저장한 지원서가 아직 없습니다. 회사명을 입력하고 현재 지원서 저장을 눌러 주세요.</p>}
         </section>
@@ -842,7 +781,7 @@ export function ResumeProWorkspace() {
           <section className="mt-5 border border-navy/20 bg-surface p-4 sm:p-5" aria-labelledby="resume-pro-job-ad-evidence-heading">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Free check handoff</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#806515]">Free check handoff</p>
                 <h3 id="resume-pro-job-ad-evidence-heading" tabIndex={-1} className="mt-1 scroll-mt-24 text-lg font-semibold text-navy focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-4">무료 점검에서 정리한 Job Ad 근거</h3>
                 <p className="mt-2 max-w-xl text-xs leading-5 text-muted">이력서·공고 원문이 아니라 표현 후보와 확인 상태만 가져옵니다. 실제로 설명할 수 있는 경험인지 확인한 뒤 회사별 지원서에 저장하세요.</p>
               </div>
@@ -867,21 +806,21 @@ export function ResumeProWorkspace() {
         <section className="mt-6 border border-border bg-white p-4 sm:p-5" aria-labelledby="star-library-heading">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Reusable experience</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#806515]">Reusable experience</p>
               <h3 id="star-library-heading" className="mt-1 text-lg font-semibold text-navy">다음 지원에도 쓰는 STAR 경험</h3>
               <p className="mt-2 max-w-xl text-xs leading-5 text-muted">한 번 정리한 실제 경험을 회사가 달라도 다시 불러와 면접 답변과 Selection Criteria 준비에 활용하세요.</p>
             </div>
-            <button type="button" onClick={startNewStarStory} disabled={starStories.length >= STAR_STORY_LIMIT} className="min-h-10 border border-border px-3 text-xs font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-45">새 경험</button>
+            <button type="button" onClick={startNewStarStory} disabled={starStories.length >= STAR_STORY_LIMIT} className="min-h-11 border border-border px-3 text-xs font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-45">새 경험</button>
           </div>
           {starStories.length > 0 && (
             <ul className="mt-4 grid gap-2 sm:grid-cols-2">
               {starStories.map((story) => (
                 <li key={story.id} className={`border p-3 ${draft.starStoryId === story.id ? "border-navy bg-navy/5" : "border-border"}`}>
-                  <button type="button" onClick={() => applyStarStory(story)} className="min-h-10 w-full text-left">
+                  <button type="button" onClick={() => applyStarStory(story)} className="min-h-11 w-full text-left">
                     <strong className="block text-sm text-navy">{story.title}</strong>
                     <span className="mt-1 block text-xs text-muted">{story.competency || "역량 미지정"}{draft.starStoryId === story.id ? " · 현재 지원서에 사용" : ""}</span>
                   </button>
-                  <button type="button" onClick={() => deleteStarStory(story)} className="mt-1 min-h-9 text-xs text-muted hover:text-red-700">삭제</button>
+                  <button type="button" onClick={() => deleteStarStory(story)} className="mt-1 min-h-11 min-w-11 text-xs text-muted hover:text-red-700">삭제</button>
                 </li>
               ))}
             </ul>
@@ -907,13 +846,13 @@ export function ResumeProWorkspace() {
 
       <div className="space-y-8 xl:sticky xl:top-24">
         <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="keyword-heading">
-          <div className="flex items-end justify-between gap-5"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Job match check</p><h2 id="keyword-heading" className="mt-2 text-xl font-semibold text-navy">공고 핵심 표현 점검</h2></div><p className="font-mono text-3xl text-navy">{keywords.length ? `${matchRate}%` : "—"}</p></div>
+          <div className="flex items-end justify-between gap-5"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#806515]">Job match check</p><h2 id="keyword-heading" className="mt-2 text-xl font-semibold text-navy">공고 핵심 표현 점검</h2></div><p className="font-mono text-3xl text-navy">{keywords.length ? `${matchRate}%` : "—"}</p></div>
           {!draft.jobAd.trim() ? <p className="mt-5 border-t border-border pt-5 text-sm leading-6 text-muted">채용 공고를 붙여 넣으면 반복되는 핵심 표현을 이력서 내용과 비교합니다.</p> : <div className="mt-5 grid gap-5 border-t border-border pt-5 sm:grid-cols-2"><div><h3 className="text-sm font-semibold text-[#315f4e]">이력서에 있는 표현</h3><div className="mt-3 flex flex-wrap gap-2">{matched.length ? matched.map((item) => <span key={item} className="bg-[#315f4e]/10 px-2.5 py-1 text-xs text-[#315f4e]">{item}</span>) : <span className="text-sm text-muted">아직 일치하는 표현이 없습니다.</span>}</div></div><div><h3 className="text-sm font-semibold text-[#8a6825]">직접 확인할 표현</h3><div className="mt-3 flex flex-wrap gap-2">{missing.map((item) => <span key={item} className="bg-gold/12 px-2.5 py-1 text-xs text-[#755b20]">{item}</span>)}</div></div></div>}
           <p className="mt-5 text-xs leading-5 text-muted">이 수치는 ATS 합격 점수가 아닙니다. 실제로 보유한 경험과 자격만 이력서에 추가하세요.</p>
         </section>
 
         <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="cover-letter-heading">
-          <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Cover letter draft</p><h2 id="cover-letter-heading" className="mt-2 text-xl font-semibold text-navy">커버레터 초안</h2></div><button type="button" onClick={copyCoverLetter} disabled={!draft.coverLetter} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-35">텍스트 복사</button></div>
+          <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#806515]">Cover letter draft</p><h2 id="cover-letter-heading" className="mt-2 text-xl font-semibold text-navy">커버레터 초안</h2></div><button type="button" onClick={copyCoverLetter} disabled={!draft.coverLetter} className="min-h-11 border-b-2 border-gold text-sm font-semibold text-navy disabled:cursor-not-allowed disabled:opacity-35">텍스트 복사</button></div>
           <label className="sr-only" htmlFor="pro-cover-letter">커버레터 초안</label>
           <textarea id="pro-cover-letter" className={`${inputClass} mt-5 min-h-[32rem] resize-y font-serif leading-7`} value={draft.coverLetter} onChange={(event) => setField("coverLetter", event.target.value)} placeholder="왼쪽에서 지원 정보와 채용 공고를 입력한 뒤 초안을 만드세요." />
           <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -928,14 +867,14 @@ export function ResumeProWorkspace() {
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)]">
         <div>
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Interview &amp; selection criteria</p><h2 id="interview-prep-heading" className="mt-2 text-2xl font-semibold text-navy">공고에서 면접 질문까지 준비해요.</h2><p className="mt-3 max-w-2xl text-sm leading-7 text-muted">공고에서 자주 보이는 표현을 면접 질문으로 바꾸고, 내 경험을 떠올릴 수 있는 메모 칸을 함께 준비합니다.</p></div>
+            <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#806515]">Interview &amp; selection criteria</p><h2 id="interview-prep-heading" className="mt-2 text-2xl font-semibold text-navy">공고에서 면접 질문까지 준비해요.</h2><p className="mt-3 max-w-2xl text-sm leading-7 text-muted">공고에서 자주 보이는 표현을 면접 질문으로 바꾸고, 내 경험을 떠올릴 수 있는 메모 칸을 함께 준비합니다.</p></div>
             <button type="button" onClick={createInterviewQuestions} className="min-h-12 bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">공고에서 질문 만들기</button>
           </div>
-          {draft.interviewQuestions.length ? <ol className="mt-7 divide-y divide-border border-y border-border bg-white">{draft.interviewQuestions.map((question, index) => <li key={question.id} className="p-5 sm:p-6"><div className="flex items-start gap-4"><span className="font-mono text-sm text-gold">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className="bg-gold/10 px-2.5 py-1 text-xs font-semibold text-[#755b20]">{question.focus}</span></div><h3 className="mt-3 text-base font-semibold leading-7 text-navy">{question.question}</h3><p className="mt-2 text-xs leading-5 text-muted">{question.prompt}</p><label className="mt-4 block text-xs font-semibold text-navy">내 답변 메모<textarea className={`${inputClass} min-h-28 resize-y font-normal leading-6`} value={draft.interviewAnswers[question.id] || ""} onChange={(event) => setInterviewAnswer(question.id, event.target.value)} placeholder="한국어로 먼저 핵심 경험을 적어도 괜찮아요. 최종 답변에 사용할 사실과 결과를 메모하세요." /></label></div></div></li>)}</ol> : <div className="mt-7 border border-dashed border-navy/25 bg-white p-6 text-sm leading-7 text-muted"><strong className="block text-navy">먼저 회사명, 직무와 채용 공고를 입력하세요.</strong>공고가 비어 있어도 기본 질문을 만들 수 있지만, Responsibilities와 Requirements를 붙여 넣으면 실제 공고에 가까운 질문이 나옵니다.</div>}
+          {draft.interviewQuestions.length ? <ol className="mt-7 divide-y divide-border border-y border-border bg-white">{draft.interviewQuestions.map((question, index) => <li key={question.id} className="p-5 sm:p-6"><div className="flex items-start gap-4"><span className="font-mono text-sm text-[#806515]">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><span className="bg-gold/10 px-2.5 py-1 text-xs font-semibold text-[#755b20]">{question.focus}</span></div><h3 className="mt-3 text-base font-semibold leading-7 text-navy">{question.question}</h3><p className="mt-2 text-xs leading-5 text-muted">{question.prompt}</p><label className="mt-4 block text-xs font-semibold text-navy">내 답변 메모<textarea className={`${inputClass} min-h-28 resize-y font-normal leading-6`} value={draft.interviewAnswers[question.id] || ""} onChange={(event) => setInterviewAnswer(question.id, event.target.value)} placeholder="한국어로 먼저 핵심 경험을 적어도 괜찮아요. 최종 답변에 사용할 사실과 결과를 메모하세요." /></label></div></div></li>)}</ol> : <div className="mt-7 border border-dashed border-navy/25 bg-white p-6 text-sm leading-7 text-muted"><strong className="block text-navy">먼저 회사명, 직무와 채용 공고를 입력하세요.</strong>공고가 비어 있어도 기본 질문을 만들 수 있지만, Responsibilities와 Requirements를 붙여 넣으면 실제 공고에 가까운 질문이 나옵니다.</div>}
         </div>
 
         <aside className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="star-heading">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">STAR answer builder</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#806515]">STAR answer builder</p>
           <h2 id="star-heading" className="mt-2 text-xl font-semibold text-navy">경험 하나를 STAR로 정리해요.</h2>
           <p className="mt-3 text-sm leading-6 text-muted">위 보관함에서 경험을 고르면 같은 내용을 여기서 면접 답변으로 다듬을 수 있어요. 수정한 내용은 저장 버튼을 눌러 보관함에 업데이트하세요.</p>
           <label className="mt-5 block text-sm font-medium text-navy">경험 이름<input className={inputClass} value={starStoryDraft.title} onChange={(event) => setStarField("title", event.target.value)} placeholder="바쁜 시간대 고객 불만 해결" /></label>
@@ -958,7 +897,7 @@ export function ResumeProWorkspace() {
         </aside>
       </div>
     </section>
-    <section aria-labelledby="premium-resume-heading"><div className="mb-5 flex flex-wrap items-end justify-between gap-4 border-b border-navy/20 pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Premium resume</p><h2 id="premium-resume-heading" className="mt-2 text-2xl font-semibold text-navy">선택한 디자인 미리보기</h2><p className="mt-2 text-sm leading-6 text-muted">무료 빌더의 최신 내용을 사용합니다. 내용 수정은 무료 빌더에서 한 뒤 ‘이력서 다시 불러오기’를 눌러 주세요.</p></div><button type="button" onClick={() => window.print()} className="min-h-12 bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">이 디자인으로 PDF 저장</button></div><div className="mx-auto max-w-[850px]"><ResumeProDocument resume={savedResume} layout={draft.layout} accent={draft.accent} /></div></section>
+    <section aria-labelledby="premium-resume-heading"><div className="mb-5 flex flex-wrap items-end justify-between gap-4 border-b border-navy/20 pb-5"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#806515]">Premium resume</p><h2 id="premium-resume-heading" className="mt-2 text-2xl font-semibold text-navy">선택한 디자인 미리보기</h2><p className="mt-2 text-sm leading-6 text-muted">무료 빌더의 최신 내용을 사용합니다. 내용 수정은 무료 빌더에서 한 뒤 ‘이력서 다시 불러오기’를 눌러 주세요.</p></div><button type="button" onClick={() => window.print()} className="min-h-12 bg-navy px-5 text-sm font-semibold text-white hover:bg-navy-light">이 디자인으로 PDF 저장</button></div><div className="mx-auto max-w-[850px]"><ResumeProDocument resume={savedResume} layout={draft.layout} accent={draft.accent} /></div></section>
     </div>
   );
 }

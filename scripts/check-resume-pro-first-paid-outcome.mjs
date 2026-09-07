@@ -33,7 +33,8 @@ assert.ok(openStep >= 0 && openStep < connectStep && connectStep < saveStep, "th
 
 assert.ok(successPage.includes("결제가 확인됐습니다. 이제 작업공간을 여세요."), "the offer must lead to the verified success outcome");
 assert.ok(purchaseSteps.includes("이 기기에 이용권 연결") && purchaseSteps.includes("작업공간에서 첫 지원서 저장"), "the preview must match the post-purchase handoff");
-assert.ok(offerPage.includes('href="/downloads/resume-pro-example-application-kit.txt"') && offerPage.includes("가상 예시 지원서 패키지 TXT 보기·저장"), "the pre-purchase preview must expose the fictional application-kit download");
+const outputPreview = await readFile(new URL("../src/components/tools/ResumeProOutputPreview.tsx", import.meta.url), "utf8");
+assert.ok(offerPage.includes("<ResumeProOutputPreview") && outputPreview.includes('href="/downloads/resume-pro-example-application-kit.txt"') && outputPreview.includes("가상 예시 지원서 패키지 TXT 보기·저장"), "the pre-purchase preview must expose the fictional application-kit download");
 for (const section of [
   "SUBMISSION CHECK",
   "RESUME SNAPSHOT",

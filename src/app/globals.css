@@ -115,6 +115,11 @@ body {
     margin: 12mm;
   }
 
+  @page resume-pro {
+    size: A4;
+    margin: 12mm;
+  }
+
   body * {
     visibility: hidden !important;
   }
@@ -200,8 +205,8 @@ body {
   }
 
   #resume-pro-preview {
-    position: absolute;
-    inset: 0;
+    page: resume-pro;
+    position: static;
     width: 100%;
     min-height: 0 !important;
     color: #202636 !important;
@@ -210,10 +215,41 @@ body {
     print-color-adjust: exact;
   }
 
-  #resume-pro-preview section,
+  body:has(#resume-pro-preview) *:not(:has(#resume-pro-preview)):not(#resume-pro-preview):not(#resume-pro-preview *) {
+    display: none !important;
+  }
+
+  body:has(#resume-pro-preview) {
+    min-height: 0 !important;
+    background: white !important;
+  }
+
+  body:has(#resume-pro-preview) :has(#resume-pro-preview) {
+    display: block !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  #resume-pro-preview section {
+    break-inside: auto;
+  }
+
   #resume-pro-preview header,
-  #resume-pro-preview aside {
+  #resume-pro-preview [data-resume-entry] {
     break-inside: avoid;
+  }
+
+  #resume-pro-preview aside {
+    min-height: 0 !important;
+  }
+
+  #resume-pro-preview h2,
+  #resume-pro-preview h3 {
+    break-after: avoid;
   }
 
   #living-budget-results,

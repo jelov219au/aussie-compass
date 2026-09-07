@@ -4,6 +4,7 @@ import { ResumeProVisitTracker } from "@/components/analytics/ResumeProVisitTrac
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumbJsonLd, ProductJsonLd } from "@/components/seo/JsonLd";
+import { ResumeProOutputPreview } from "@/components/tools/ResumeProOutputPreview";
 import { ResumeProCheckoutForm } from "@/components/tools/ResumeProCheckoutForm";
 import { ResumeProCheckoutFailureNotice } from "@/components/tools/ResumeProCheckoutFailureNotice";
 import { ResumeProCheckoutJumpLink } from "@/components/tools/ResumeProCheckoutJumpLink";
@@ -84,34 +85,6 @@ const comparison = [
   ["회사별 지원 마감일·지원 상태 저장", false, true],
   ["재사용하는 STAR 경험 보관함", false, true],
 ] as const;
-
-function TemplatePreview({ variant, label }: { variant: "editorial" | "split" | "minimal"; label: string }) {
-  return (
-    <article>
-      <div className="aspect-[4/5] overflow-hidden border border-navy/15 bg-white p-5 shadow-[0_18px_45px_rgba(26,39,68,0.08)]">
-        {variant === "editorial" && (
-          <>
-            <div className="border-b-2 border-[#325b4e] pb-3"><div className="h-3 w-24 bg-[#325b4e]" /><div className="mt-2 h-1.5 w-16 bg-[#bf9b40]" /></div>
-            <div className="mt-5 h-1.5 w-14 bg-[#325b4e]" /><div className="mt-2 space-y-1.5"><div className="h-1 bg-slate-200" /><div className="h-1 bg-slate-200" /><div className="h-1 w-5/6 bg-slate-200" /></div>
-            <div className="mt-5 h-1.5 w-12 bg-[#325b4e]" /><div className="mt-3 h-1.5 w-28 bg-slate-500" /><div className="mt-2 space-y-1.5"><div className="h-1 bg-slate-200" /><div className="h-1 w-4/5 bg-slate-200" /></div>
-          </>
-        )}
-        {variant === "split" && (
-          <div className="grid h-full grid-cols-[36%_1fr] gap-4">
-            <div className="-m-5 mr-0 bg-[#1f3658] p-5"><div className="mt-2 h-3 w-full bg-white/90" /><div className="mt-3 h-1 w-3/4 bg-[#d6b85f]" /><div className="mt-8 h-1.5 w-10 bg-white/80" /><div className="mt-3 space-y-2"><div className="h-1 bg-white/30" /><div className="h-1 bg-white/30" /><div className="h-1 w-2/3 bg-white/30" /></div></div>
-            <div className="py-2"><div className="h-1.5 w-14 bg-[#1f3658]" /><div className="mt-3 space-y-1.5"><div className="h-1 bg-slate-200" /><div className="h-1 bg-slate-200" /><div className="h-1 w-5/6 bg-slate-200" /></div><div className="mt-6 h-1.5 w-12 bg-[#1f3658]" /><div className="mt-3 h-1.5 w-24 bg-slate-500" /><div className="mt-2 space-y-1.5"><div className="h-1 bg-slate-200" /><div className="h-1 w-4/5 bg-slate-200" /></div></div>
-          </div>
-        )}
-        {variant === "minimal" && (
-          <>
-            <div className="h-4 w-32 bg-[#262a30]" /><div className="mt-2 h-1.5 w-20 bg-slate-400" /><div className="mt-6 grid grid-cols-[1fr_2fr] gap-5 border-t border-slate-300 pt-5"><div><div className="h-1.5 w-10 bg-[#262a30]" /><div className="mt-3 space-y-2"><div className="h-1 bg-slate-200" /><div className="h-1 bg-slate-200" /><div className="h-1 w-3/4 bg-slate-200" /></div></div><div><div className="h-1.5 w-14 bg-[#262a30]" /><div className="mt-3 h-1.5 w-24 bg-slate-500" /><div className="mt-2 space-y-1.5"><div className="h-1 bg-slate-200" /><div className="h-1 bg-slate-200" /><div className="h-1 w-4/5 bg-slate-200" /></div><div className="mt-5 h-1.5 w-20 bg-slate-500" /><div className="mt-2 space-y-1.5"><div className="h-1 bg-slate-200" /><div className="h-1 w-5/6 bg-slate-200" /></div></div></div>
-          </>
-        )}
-      </div>
-      <p className="mt-3 text-sm font-semibold text-navy">{label}</p>
-    </article>
-  );
-}
 
 type Props = { searchParams: Promise<{ access?: string; checkout?: string; deviceData?: string; from?: string | string[] }> };
 
@@ -243,6 +216,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
               )}
               {(requiresBuyerRecovery || canOfferCheckout) && <Link href="/resume-builder" className="inline-flex min-h-12 items-center justify-center border border-navy bg-white px-5 py-3 text-sm font-semibold text-navy hover:bg-surface">경력 초안이 없다면 무료로 시작</Link>}
             </div>
+            {!hasActiveEntitlement && <ResumeProOutputPreview />}
             <section className="mt-8 border-y border-navy/20 bg-white" aria-labelledby="persistent-value-heading">
               <div className="px-4 py-5 sm:px-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#806515]">한 번 답하고 끝나는 도구가 아니에요</p>
@@ -265,7 +239,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 </ol>
                 <p className="mt-4 text-xs leading-5 text-muted">완료 기준은 회사별 지원서 1개가 현재 브라우저에 저장된 상태예요. 이용권 복구 코드는 작업 데이터 백업이 아닙니다.</p>
               </section>
-              <p className="px-4 py-4 text-xs leading-5 text-muted sm:px-6">지원 자료는 현재 브라우저에 저장됩니다. 기기를 바꾸기 전에는 지원서 묶음을 내려받아 보관해 주세요.</p>
+              <p className="px-4 py-4 text-xs leading-5 text-muted sm:px-6">지원 자료는 현재 브라우저에 저장됩니다. TXT·PDF는 읽기용 파일이며, 작업을 복원하려면 <Link href="/data-transfer" className="font-semibold text-navy underline decoration-gold underline-offset-4">데이터 이동에서 JSON 백업</Link>을 보관하세요. 이용권 복구와 데이터 복원은 별도입니다.</p>
             </section>
             <section className="mt-5 border border-navy/20 bg-surface p-5 sm:p-6" aria-labelledby="ai-role-heading">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#806515]">AI와 함께 써도 남는 것</p>
@@ -345,7 +319,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 <ol className="mt-7 grid gap-3 sm:grid-cols-3">
                   <li className="border border-border bg-white p-5"><span className="text-xs font-semibold text-[#806515]">01</span><strong className="mt-3 block text-navy">지원할 공고가 있어요</strong><p className="mt-2 text-sm leading-6 text-muted">회사와 직무가 정해져 있어 공고에 맞춘 점검이 필요해요.</p></li>
                   <li className="border border-border bg-white p-5"><span className="text-xs font-semibold text-[#806515]">02</span><strong className="mt-3 block text-navy">경력 초안이 있어요</strong><p className="mt-2 text-sm leading-6 text-muted">무료 빌더에 실제 경험을 적었거나 기존 이력서가 있어요.</p></li>
-                  <li className="border border-border bg-white p-5"><span className="text-xs font-semibold text-[#806515]">03</span><strong className="mt-3 block text-navy">7일 안에 지원해요</strong><p className="mt-2 text-sm leading-6 text-muted">이력서와 커버레터를 이번 지원에 맞춰 끝내야 해요.</p></li>
+                  <li className="border border-border bg-white p-5"><span className="text-xs font-semibold text-[#806515]">03</span><strong className="mt-3 block text-navy">회사별로 다시 꺼내 써요</strong><p className="mt-2 text-sm leading-6 text-muted">회사별 이력서·커버레터·면접 메모를 저장하고 비교하고 싶어요.</p></li>
                 </ol>
               </div>
               <aside className="border-l-2 border-gold pl-6">
@@ -378,89 +352,6 @@ export default async function ResumeProPage({ searchParams }: Props) {
                   </>
                 )}
               </aside>
-            </div>
-          </Container>
-        </section>
-
-        <section className="border-b border-navy/15 bg-white py-14 sm:py-20" aria-labelledby="result-preview-heading">
-          <Container>
-            <div className="max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#806515]">결제 전에 보는 예시</p>
-              <h2 id="result-preview-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">같은 경력을 세 번 다시 쓰지 않아요.</h2>
-              <p className="mt-4 text-sm leading-7 text-muted sm:text-base">무료 빌더에 적어둔 실제 경험 하나가 공고 점검, 커버레터 초안과 회사별 지원서 정리로 어떻게 이어지는지 예시로 보여드릴게요.</p>
-            </div>
-
-            <div className="mt-10 grid gap-5 lg:grid-cols-[minmax(0,0.78fr)_3rem_minmax(0,1.22fr)] lg:items-center">
-              <article className="border border-navy/20 bg-surface p-5 sm:p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#806515]">무료 빌더에서 확인할 사실</p>
-                <h3 className="mt-3 text-xl font-semibold text-navy">[실제 근무처] · Barista</h3>
-                <ul className="mt-5 space-y-3 text-sm leading-6 text-muted">
-                  <li className="border-l-2 border-navy/20 pl-3">[바쁜 시간대에 직접 맡은 주문·고객 응대]</li>
-                  <li className="border-l-2 border-navy/20 pl-3">[실제로 안내한 절차와 사용한 도구]</li>
-                  <li className="border-l-2 border-navy/20 pl-3">[확인할 수 있는 완료 결과나 받은 피드백]</li>
-                </ul>
-                <div className="mt-6 border-t border-navy/15 pt-4">
-                  <p className="text-xs font-semibold text-navy">지원 공고에서 강조한 내용</p>
-                  <p className="mt-2 text-xs leading-5 text-muted">빠른 서비스 · 고객 응대 · 팀 교육 · 주말 근무</p>
-                </div>
-              </article>
-
-              <div className="hidden text-center text-3xl text-[#806515] lg:block" aria-hidden="true">→</div>
-
-              <div className="grid gap-px bg-border sm:grid-cols-2">
-                <article className="bg-white p-5 sm:p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#806515]">01 · 공고 점검</p>
-                  <h3 className="mt-3 text-lg font-semibold text-navy">이미 있는 경험과 확인할 내용을 나눠요.</h3>
-                  <dl className="mt-4 space-y-3 text-sm leading-6">
-                    <div><dt className="font-semibold text-[#315f4e]">이력서에서 확인</dt><dd className="text-muted">customer service · training · fast-paced</dd></div>
-                    <div><dt className="font-semibold text-[#755b20]">직접 확인</dt><dd className="text-muted">food safety · weekend availability</dd></div>
-                  </dl>
-                </article>
-
-                <article className="bg-white p-5 sm:p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#806515]">02 · 커버레터 초안</p>
-                  <h3 className="mt-3 text-lg font-semibold text-navy">입력한 사실을 회사와 직무에 맞춰 연결해요.</h3>
-                  <blockquote className="mt-4 border-l-2 border-gold pl-4 text-sm italic leading-6 text-muted">“[Action verb] [specific action] during [verified work context], helping [customer or team] achieve [verified result].”</blockquote>
-                </article>
-
-                <article className="bg-white p-5 sm:col-span-2 sm:p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#806515]">03 · 이번 지원서 묶음</p>
-                  <h3 className="mt-3 text-lg font-semibold text-navy">제출 전에 볼 내용을 회사별로 모아요.</h3>
-                  <ul className="mt-4 grid gap-2 text-sm leading-6 text-muted sm:grid-cols-3">
-                    <li className="border-t border-border pt-3">선택한 디자인의 이력서 PDF</li>
-                    <li className="border-t border-border pt-3">직접 수정하는 커버레터 초안</li>
-                    <li className="border-t border-border pt-3">공고 표현 점검과 제출 전 확인</li>
-                  </ul>
-                </article>
-              </div>
-            </div>
-
-            <p className="mt-7 border-l-2 border-gold pl-4 text-sm leading-6 text-muted">이 예시는 기능을 설명하기 위한 샘플이에요. Resume Pro는 없는 경력이나 자격을 만들지 않으며, 공고에 나온 표현도 실제로 해본 일일 때만 추가해야 해요.</p>
-            <a href="/downloads/resume-pro-example-application-kit.txt" download className="mt-5 inline-flex min-h-11 items-center justify-center border border-navy px-4 py-2 text-sm font-semibold text-navy hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2">
-              가상 예시 지원서 패키지 TXT 보기·저장
-            </a>
-            <div className="mt-8 grid gap-5 border-y border-navy/20 bg-surface p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#806515]">결제 전에 직접 확인</p>
-                <h3 className="mt-2 text-xl font-semibold text-navy">내 이력서와 실제 공고로 빠진 근거를 무료로 찾아보세요.</h3>
-                <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">이력서와 공고 문구는 지금 사용하는 브라우저 안에서만 비교합니다. 로그인·결제 없이 일치한 표현, 확인할 근거와 다음 질문 최대 3개를 먼저 볼 수 있어요.</p>
-              </div>
-              <ResumeProProofLink entry={entry} className="inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">
-                내 공고로 무료 점검하기 →
-              </ResumeProProofLink>
-            </div>
-          </Container>
-        </section>
-
-        <section className="py-14 sm:py-20" aria-labelledby="templates-heading">
-          <Container>
-            <div className="grid gap-10 lg:grid-cols-[18rem_1fr]">
-              <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#806515]">이력서 디자인</p><h2 id="templates-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy">내용은 같아도,<br />읽히는 방식은 달라요.</h2><p className="mt-4 text-sm leading-6 text-muted">화려한 장식보다 채용 담당자가 필요한 내용을 빠르게 찾을 수 있도록 구성했어요.</p></div>
-              <div className="grid gap-5 sm:grid-cols-3">
-                <TemplatePreview variant="editorial" label="Hospitality / Service" />
-                <TemplatePreview variant="split" label="Office / Professional" />
-                <TemplatePreview variant="minimal" label="Trade / Technical" />
-              </div>
             </div>
           </Container>
         </section>

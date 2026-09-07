@@ -3,7 +3,7 @@ export function ResumeProWorkspaceEntryGuide({ accessProtected }: { accessProtec
     <section className="mt-9 border border-navy/15 bg-white p-5 sm:p-6" aria-labelledby="resume-pro-workspace-entry-heading">
       <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#806515]">
             {accessProtected ? "이용권 연결 완료" : "개발 프리뷰"}
           </p>
           <h2 id="resume-pro-workspace-entry-heading" className="mt-2 text-2xl font-semibold text-navy">첫 작업은 이 순서로 시작하세요.</h2>
