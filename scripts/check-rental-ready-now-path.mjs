@@ -158,12 +158,11 @@ assert.ok(workspace.includes("무료 방문 결과 원본은 삭제하지 않았
 assert.ok(!freeTool.includes("/api/checkout/rental-application-pro"), "the free result must never skip the product introduction");
 assert.ok(!freeTool.includes("resume_pro") && !workspace.includes("resume_pro"), "the Rental handoff must not touch Resume Pro state");
 for (const contract of [
-  "공용 기기의 Rental 기록 삭제",
-  "구매 이용권·결제 증빙·서버 기록과 다른 기기의 데이터는 변경하지 않습니다",
-  "workspace 안의 집 후보와 내부 가져오기 표식도 함께 옮겨집니다",
-  "일시적인 이어보기 정보와 로컬 완료 표식은 이전 대상이 아닙니다",
-  "설치형 앱과 일반 브라우저에서 기록이 따로 보이면 각 환경에서 각각 백업하거나 삭제하세요",
-  "clearRentalApplicationProDeviceData(window.localStorage)",
+  'id: "rental", title: "Rental 기록"',
+  '"rental-delete-heading"',
+  'action: deleteRental',
+  'clearRentalApplicationProDeviceData(window.localStorage)',
+  '다른 브라우저·PWA·기기·백업 파일·구매 이용권·서버 기록은 바뀌지 않습니다',
 ]) assert.ok(deviceTransfer.includes(contract), `the Rental shared-device privacy control is missing: ${contract}`);
 assert.ok(accessTools.includes('href="/data-transfer#rental-delete-heading"'), "the paid workspace must expose the Rental local-data purge before a shared-device user leaves");
 

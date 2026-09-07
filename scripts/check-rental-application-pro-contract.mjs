@@ -21,6 +21,7 @@ const successPage = await readFile(new URL("../src/app/rental-application-pro/su
 const restoreForm = await readFile(new URL("../src/components/tools/RentalApplicationProRestoreForm.tsx", import.meta.url), "utf8");
 const workspace = await readFile(new URL("../src/app/rental-application-pro/workspace/page.tsx", import.meta.url), "utf8");
 const workspaceTool = await readFile(new URL("../src/components/tools/RentalApplicationWorkspace.tsx", import.meta.url), "utf8");
+const outputSource = await readFile(new URL("../src/lib/rentalApplicationOutput.ts", import.meta.url), "utf8");
 const webhook = await readFile(new URL("../src/app/api/stripe/webhook/route.ts", import.meta.url), "utf8");
 const productEntitlementContract = await readFile(new URL("../src/lib/productEntitlementContract.ts", import.meta.url), "utf8");
 const resumeStripeProduct = await readFile(new URL("../src/lib/resumeProStripeProduct.ts", import.meta.url), "utf8");
@@ -133,7 +134,7 @@ for (const localResultContract of [
   "window.print()",
   "no source document is embedded",
   "Do not include TFN, bank login details, card details or identity document numbers.",
-]) assert.ok(workspaceTool.includes(localResultContract), `Rental local-result and privacy boundary is missing: ${localResultContract}`);
+]) assert.ok((workspaceTool + outputSource).includes(localResultContract), `Rental local-result and privacy boundary is missing: ${localResultContract}`);
 for (const costBoundary of [
   "Live self-purchase followed by refund is not the default acceptance test",
   "In a Stripe sandbox, exercise successful payment, decline, 3DS",

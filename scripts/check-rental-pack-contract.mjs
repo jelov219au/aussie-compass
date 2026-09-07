@@ -4,6 +4,7 @@ import process from "node:process";
 import { stripTypeScriptTypes } from "node:module";
 import { runInNewContext } from "node:vm";
 
+import { rentalOutput, rentalSample, rentalJurisdictionData } from "./lib/rental-test-fixture.mjs";
 import { isRentalWorkspaceBackup } from "../src/lib/rentalWorkspaceBackup.ts";
 import { writeRentalWorkspace } from "../src/lib/rentalApplicationProDeviceStorage.ts";
 
@@ -12,15 +13,18 @@ const publicPage = await readFile(new URL("../src/app/rental-application-pro/pag
 const printStyles = await readFile(new URL("../src/app/globals.css", import.meta.url), "utf8");
 const jurisdictions = await readFile(new URL("../src/data/rentalJurisdictions.ts", import.meta.url), "utf8");
 
+const outputSource = await readFile(new URL("../src/lib/rentalApplicationOutput.ts", import.meta.url), "utf8");
+const implementation = workspace + outputSource;
+
 const contracts = [
   [workspace.includes('version: 3'), "versioned local workspace"],
   [workspace.includes('parsed.version === 2') && workspace.includes('coverNote'), "legacy v1 and v2 migration"],
   [workspace.includes('MAX_APPLICATIONS = 20'), "bounded multi-property tracker"],
   [workspace.includes('Reusable profile') && workspace.includes('privacyChecks'), "reusable profile and privacy checklist"],
   [workspace.includes('Reusable evidence') && workspace.includes('checkedOn') && workspace.includes('applyReusableEvidence'), "dated reusable evidence library"],
-  [workspace.includes('followUps:') && workspace.includes('addFollowUp') && workspace.includes('FOLLOW-UP LOG'), "property-isolated follow-up history"],
+  [implementation.includes('followUps:') && workspace.includes('addFollowUp') && implementation.includes('FOLLOW-UP LOG'), "property-isolated follow-up history"],
   [workspace.includes('const copy = createApplication(id, `집 후보') && workspace.includes('이전 집의 주소·문구·제출 상태·연락 기록은 안전을 위해 복사하지 않았습니다'), "safe property-condition duplication"],
-  [workspace.includes('application:') && workspace.includes('inspection:') && workspace.includes('followUp:'), "three message templates"],
+  [outputSource.includes('application:') && outputSource.includes('inspection:') && outputSource.includes('followUp:'), "three message templates"],
   [workspace.includes('application-pack.txt') && workspace.includes('private-package.json') && workspace.includes('application/json;charset=utf-8'), "per-property package and whole-workspace exports"],
   [workspace.includes('restoreBackup') && workspace.includes('백업 복원') && workspace.includes('isRentalWorkspaceBackup(candidate, MAX_APPLICATIONS)'), "validated whole-workspace restore"],
   [workspace.includes('file.size > 1_000_000'), "bounded local backup restore"],
@@ -194,10 +198,10 @@ assert.equal(failedHandoff.context.storageBlocked, true);
 assert.deepEqual(failedHandoff.context.workspace, validBackup, "failed handoff persistence must retain the loaded draft in memory");
 assert.equal(failedHandoff.values.get(failedHandoff.storageKey), failedHandoff.original);
 
-const parserSource = stripTypeScriptTypes(workspace.slice(workspace.indexOf("type DocumentStatus ="), workspace.indexOf("export function RentalApplicationWorkspace")));
+const parserSource = stripTypeScriptTypes(workspace.slice(workspace.indexOf("const STORAGE_KEY"), workspace.indexOf("export function RentalApplicationWorkspace")));
 function parseStoredDraft(input) {
   return JSON.parse(runInNewContext(`${parserSource}\nJSON.stringify(parseWorkspace(input));`, {
-    input, isRentalWorkspaceBackup,
+    ...rentalOutput, ...rentalJurisdictionData, input, isRentalWorkspaceBackup,
     rentalApplicationProWorkspaceStorageKey: "workspace", rentalApplicationProFirstSuccessStorageKey: "first",
     rentalJurisdictionCodes: ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"],
   }, { timeout: 1000 }));
@@ -331,3 +335,59 @@ runInNewContext(`${originalDownloadSource}\ndownloadStorageOriginal();`, {
 }, { timeout: 1000 });
 assert.deepEqual(downloads, [[originalText, "text/plain;charset=utf-8", "hoju-compass-rental-storage-original.txt"]]);
 console.log("PASS: unchanged original-data download");
+
+// Exercise the real workspace buttons against the two public fictional candidates.
+const outputHandlerStart = workspace.indexOf("  const downloadSummary =");
+const outputHandlerEnd = workspace.indexOf("\n  return <div", outputHandlerStart);
+const outputHandlers = stripTypeScriptTypes(workspace.slice(outputHandlerStart, outputHandlerEnd));
+const messageHandler = stripTypeScriptTypes(workspace.slice(workspace.indexOf("  const createMessages ="), workspace.indexOf("  const applyReusableEvidence =")));
+const sampleBackup = JSON.stringify(rentalSample, null, 2);
+assert.equal(isRentalWorkspaceBackup(rentalSample), true);
+assert.deepEqual(parseStoredDraft(sampleBackup), rentalSample);
+assert.deepEqual((await restoreDraft({ content: sampleBackup })).context.workspace, rentalSample);
+for (const active of rentalSample.applications) {
+  const files = [], patches = [];
+  const context = { ...rentalOutput, workspace: rentalSample, active, saveBlob: (...args) => files.push(args), setMessage: () => {}, updateActive: patch => patches.push(patch) };
+  runInNewContext(`${messageHandler}\ncreateMessages();`, context);
+  assert.deepEqual(patches[0].messages, active.messages);
+  runInNewContext(`${outputHandlers}\ndownloadSummary(); downloadPropertyPackage();`, context);
+  const summary = files[0][0];
+  assert.equal(summary, rentalOutput.createRentalSummary(rentalSample, active));
+  for (const value of [active.propertyLabel, active.notes, active.messages.application, active.messages.inspection, active.messages.followUp]) assert.ok(summary.includes(value));
+  assert.ok(summary.includes(`Application date: ${active.applicationDate || "Not set"}`));
+  assert.ok(summary.includes(`Lease term: ${active.leaseTerm}`));
+  const other = rentalSample.applications.find(item => item.id !== active.id);
+  assert.ok(!summary.includes(other.propertyLabel), "the selected candidate's output must not contain another property");
+  const propertyPackage = JSON.parse(files[1][0]);
+  assert.deepEqual(propertyPackage.application, active);
+  assert.deepEqual(propertyPackage.profile, rentalSample.profile);
+  assert.deepEqual(propertyPackage.reusableEvidence, rentalSample.evidenceLibrary);
+  assert.equal(isRentalWorkspaceBackup(propertyPackage), false, "a one-property package must not replace a full workspace backup");
+}
+for (const weeklyRent of ["", "0", "620.50"]) {
+  const fixture = structuredClone(rentalSample);
+  fixture.applications[0].weeklyRent = weeklyRent;
+  const restored = (await restoreDraft({ content: JSON.stringify(fixture) })).context.workspace;
+  assert.equal(restored.applications[0].weeklyRent, weeklyRent);
+  assert.ok(rentalOutput.createRentalSummary(restored, restored.applications[0]).includes(`Weekly rent: ${weeklyRent === "" ? "Not set" : `A$${weeklyRent}`}`));
+}
+assert.ok(workspace.includes("<h2>Inspection message</h2>") && workspace.includes("<h2>Follow-up message</h2>"), "print output must include all three drafted messages");
+assert.ok(publicPage.indexOf("<RentalApplicationOutputPreview />") < publicPage.indexOf("<RentalApplicationProCheckoutForm"), "the actual sample must precede Checkout");
+console.log("PASS: real two-candidate message/TXT/JSON exports, restoration, notes and empty/zero fidelity");
+
+if (process.env.RENTAL_BEFORE_SOURCE) {
+  const before = (await readFile(process.env.RENTAL_BEFORE_SOURCE, "utf8")).replace(/\r\n/g, "\n");
+  const oldMessages = stripTypeScriptTypes(before.slice(before.indexOf("  const createMessages ="), before.indexOf("  const applyReusableEvidence =")));
+  const oldSummary = stripTypeScriptTypes(before.slice(before.indexOf("  const downloadSummary ="), before.indexOf("  const downloadPropertyPackage =")));
+  for (const active of rentalSample.applications) {
+    const files = [], patches = [];
+    const context = { ...rentalOutput, workspace: rentalSample, active, activeJurisdiction: rentalJurisdictionData.getRentalJurisdiction(active.jurisdiction), reviewItems: rentalOutput.documents.filter(item => active.statuses[item.id] === "review"), saveBlob: (...args) => files.push(args), setMessage: () => {}, updateActive: patch => patches.push(patch) };
+    runInNewContext(`${oldMessages}\ncreateMessages();\n${oldSummary}\ndownloadSummary();`, context);
+    assert.deepEqual(JSON.parse(JSON.stringify(patches[0].messages)), active.messages);
+    const corrected = rentalOutput.createRentalSummary(rentalSample, active)
+      .replace(`Lease term: ${active.leaseTerm}\r\nApplication date: ${active.applicationDate || "Not set"}\r\n`, "")
+      .replace(`PREPARATION NOTES\r\n${active.notes}\r\n\r\n`, "");
+    assert.equal(corrected, files[0][0], "existing summary bytes must remain identical apart from the explicitly restored missing fields");
+  }
+  console.log("PASS: original message and TXT behavior preserved apart from documented missing-field fixes");
+}

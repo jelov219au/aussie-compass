@@ -132,7 +132,7 @@ export function RentalApplicationProDecisionBoard({ checkoutAvailable }: { check
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">내 상황으로 비교</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#806315]">내 상황으로 비교</p>
             <h2 id="rental-decision-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-4xl">무료로 이어갈지,<br />Pro로 묶을지 판단하세요.</h2>
             <p className="mt-4 text-sm leading-7 text-muted">정확한 주소나 서류 없이 필요한 관리 방식만 선택합니다. 판단은 이 브라우저에 저장되어 다음 방문에도 이어져요.</p>
 
@@ -195,7 +195,7 @@ export function RentalApplicationProDecisionBoard({ checkoutAvailable }: { check
             <div className="flex items-center justify-between gap-4"><h3 className="text-lg font-semibold text-navy">Pro에서는 이렇게 나눠 봐요</h3><span className="font-mono text-xs text-muted">{decision.propertyCount}/6 candidates</span></div>
             <ol className="mt-4 grid gap-2 sm:grid-cols-3">
               {Array.from({ length: previewCount }, (_, index) => (
-                <li key={index} className="border border-border bg-white p-4"><span className="font-mono text-xs text-gold">0{index + 1}</span><strong className="mt-2 block text-sm text-navy">집 후보 {index + 1}</strong><span className="mt-2 block text-xs leading-5 text-muted">공통 준비 재사용<br />후속 상태는 따로 저장</span></li>
+                <li key={index} className="border border-border bg-white p-4"><span className="font-mono text-xs text-[#806315]">0{index + 1}</span><strong className="mt-2 block text-sm text-navy">집 후보 {index + 1}</strong><span className="mt-2 block text-xs leading-5 text-muted">공통 준비 재사용<br />후속 상태는 따로 저장</span></li>
               ))}
             </ol>
             {decision.propertyCount > previewCount && <p className="mt-3 text-xs font-semibold text-muted">+ {decision.propertyCount - previewCount}개 후보도 같은 보드에서 비교</p>}

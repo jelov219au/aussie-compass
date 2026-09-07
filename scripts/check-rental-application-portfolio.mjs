@@ -26,7 +26,7 @@ for (const contract of [
   "const MAX_APPLICATIONS = 20",
   "version: 3",
   "parsed.packs.slice(0, MAX_APPLICATIONS)",
-  "applications: [createApplication",
+
   "evidenceLibrary",
   "privacyChecks",
   "followUps",
@@ -70,7 +70,7 @@ assert.ok(legacyMigration.includes("contactStatus ===") && legacyMigration.inclu
 const firstSaveStart = workspace.indexOf("const saveFirstCandidate");
 const firstSaveEnd = workspace.indexOf("const addApplication", firstSaveStart);
 const firstSave = workspace.slice(firstSaveStart, firstSaveEnd);
-assert.ok(firstSave.indexOf("window.localStorage.setItem(STORAGE_KEY") < firstSave.indexOf('window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved")'), "the workspace must persist before marking first-candidate success");
+assert.ok(firstSave.indexOf("writeRentalWorkspace(() => window.localStorage, nextWorkspace, true)") < firstSave.indexOf('window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved")'), "the workspace must persist before marking first-candidate success");
 assert.ok(firstSave.indexOf('window.localStorage.setItem(FIRST_SUCCESS_KEY, "saved")') < firstSave.indexOf("setFirstCandidateSaved(true)"), "the success UI must follow both local writes");
 
 assert.doesNotMatch(workspace, /\b(?:agentEmail|agentPhone|exactAddress|tfn|bankAccount|identityNumber)\s*:/i, "the workspace must not add sensitive identity, finance or agent-contact fields");
