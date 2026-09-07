@@ -1,5 +1,8 @@
 import { carInspectionFollowupArticle } from "./carInspectionFollowupArticle";
 import { rentalInspectionApplicationArticle } from "./rentalInspectionApplicationArticle";
+import { paidWorkTimeArticle } from "./paidWorkTimeArticle";
+import { earlyShiftPayArticle } from "./earlyShiftPayArticle";
+import { saleReturnsArticle } from "./saleReturnsArticle";
 import type { EditorialTrustInput } from "@/lib/editorialTrust";
 
 export type Article = {
@@ -66,6 +69,9 @@ export function getArticleContentType(article: Article): ArticleContentTypeId {
 }
 
 export const articles: Article[] = [
+  paidWorkTimeArticle,
+  saleReturnsArticle,
+  earlyShiftPayArticle,
   carInspectionFollowupArticle,
   {
     slug: "australia-financial-hardship-bills-debt-guide",
@@ -458,7 +464,7 @@ export const articles: Article[] = [
     quickSummary: ["입금액을 보기 전에 급여 계산 기간과 시급부터 확인하기", "같은 기간의 로스터·출퇴근 기록을 옆에 두고 근무시간과 수당 맞춰보기", "금액이 다르면 날짜와 예상액을 정리해 글로 문의하기"],
     toolHref: "/payslip-guide",
     toolLabel: "Payslip 항목 확인하기",
-    relatedSlugs: ["abn-employee-or-contractor-australia", "unpaid-trial-shift-australia-guide", "australia-public-holiday-work-pay-guide"],
+    relatedSlugs: ["australia-paid-training-opening-closing-work-time", "abn-employee-or-contractor-australia", "unpaid-trial-shift-australia-guide", "australia-public-holiday-work-pay-guide"],
     sections: [
       { heading: "입금액이 맞아 보여도 Payslip은 꼭 열어보세요", paragraphs: ["통장에 들어온 돈은 세금과 공제를 뺀 실수령액(Net Pay)이에요. 이 숫자만으로는 시급이나 근무시간이 제대로 계산됐는지 알기 어려워요. Payslip을 열고 급여 계산 기간, 시급, 근무시간, 수당과 공제 내역을 차례로 살펴보세요."] },
       { heading: "첫 Shift 전에 비교 기준부터 저장하세요", paragraphs: ["첫 Payslip을 받은 뒤 기억에 의존해 조건을 맞추면 약속한 Rate와 실제 적용 기준을 구분하기 어려워요. 일을 시작하기 전에 서면 Offer, 고용형태, 적용 Award 또는 Enterprise agreement, Classification, 기본 Rate, Pay cycle과 예상 Roster를 개인 기기에 저장하세요.", "Award Classification은 직함만으로 정하지 않아요. Fair Work는 실제 주된 업무, 필요한 기술·자격·경험, 받거나 하는 감독과 업무 비중을 관련 Award의 정의와 비교하라고 안내해요. 업무나 책임이 바뀌면 Classification도 다시 확인해야 해요."], bullets: ["모든 새 Employee가 받아야 하는 Fair Work Information Statement 확인", "Casual이면 Casual Employment Information Statement도 확인", "Offer의 법적 고용주 이름·ABN과 Payslip에 나올 정보 확인", "Award·Agreement 이름과 Classification level을 글로 받기", "기본 Rate, Casual loading, Penalty·Overtime·Allowance 계산 기준 확인", "첫 Pay period의 시작·종료일과 Payslip을 받는 방식 확인"] },

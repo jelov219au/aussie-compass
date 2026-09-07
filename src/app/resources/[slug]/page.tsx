@@ -202,7 +202,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
             {article.sources && (
               <section className="mt-14 rounded-2xl border-2 border-navy/10 bg-white px-5 py-7 shadow-[0_8px_24px_rgba(26,39,68,0.04)] sm:px-8 sm:py-9" aria-labelledby="article-sources">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">출처 확인일 미기록 · 발행·업데이트일과 별도</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">{article.editorialTrust?.checkedOn && article.editorialTrust.checkedOn !== "unknown" ? `${article.editorialTrust.checkedOn} 출처 확인 · 발행·업데이트일과 별도` : "출처 확인일 미기록 · 발행·업데이트일과 별도"}</p>
                 <h2 id="article-sources" className="mt-2 text-2xl font-semibold text-navy">원문을 열기 전에 알아둘 내용</h2>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-muted">각 공식 자료에서 무엇을 확인할 수 있는지 먼저 한국어로 풀어봤어요. 제도가 바뀌었거나 내 조건에 따라 달라질 수 있는 내용은 마지막으로 원문에서 확인해 주세요.</p>
                 <ul className="mt-7 divide-y divide-border border-y border-border">
