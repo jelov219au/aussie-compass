@@ -9,6 +9,7 @@ const homePage = readFileSync(new URL("../src/app/page.tsx", import.meta.url), "
 const homeTools = readFileSync(new URL("../src/components/sections/ToolsSection.tsx", import.meta.url), "utf8");
 const returnVisit = readFileSync(new URL("../src/components/sections/ReturnVisitSection.tsx", import.meta.url), "utf8");
 const deviceTransfer = readFileSync(new URL("../src/components/tools/DeviceDataTransfer.tsx", import.meta.url), "utf8");
+const deviceManifest = readFileSync(new URL("../src/data/deviceTransferManifest.ts", import.meta.url), "utf8");
 const transportPage = readFileSync(new URL("../src/app/public-transport-guide/page.tsx", import.meta.url), "utf8");
 const rentalPage = readFileSync(new URL("../src/app/rental-application-pro/page.tsx", import.meta.url), "utf8");
 const toolsPage = readFileSync(new URL("../src/app/tools/page.tsx", import.meta.url), "utf8");
@@ -62,7 +63,10 @@ assert.match(registry, /RAIL_WORK_ALERT_ROUTE = "\/rail-work-alerts"/, "all surf
 assert.match(manifest, /start_url: "\/"[\s\S]*scope: "\/"[\s\S]*display: "standalone"/, "the installed PWA must start on the same homepage and route scope as the website");
 assert.match(serviceWorker, /fetch\(event\.request\)\.catch\(\(\) => caches\.match\(OFFLINE_URL\)\)/, "offline navigation must retain the existing safe fallback");
 assert.doesNotMatch(serviceWorker, /rail-work-alerts|nsw-planning-snapshot/, "the service worker must not duplicate or cache transport data paths");
-assert.match(deviceTransfer, /key: RAIL_WORK_ALERT_STORAGE_KEY[\s\S]*철도 작업 확인 지역[\s\S]*sensitive: true/, "rail watch areas must be available in the explicit sensitive device backup flow");
+assert.match(deviceManifest, /record\("rail-work-areas", "aussie-compass-rail-work-watch-areas-v1", "철도 작업 확인 지역", "주거·이동", "\/rail-work-alerts", true, "rail-watch-v1", exact\(parseWatchAreas, "array"\)\)/, "the shared manifest must preserve the original rail key, route, validator and sensitive flag");
+assert.ok(deviceTransfer.includes("const storedRecords = deviceTransferManifest;")
+  && deviceTransfer.includes("selectedRecords.some((record) => record.sensitive)")
+  && deviceTransfer.includes("createDeviceBackup(window.localStorage, records, window.location.origin)"), "the explicit backup flow must use the shared sensitive records");
 assert.match(returnVisit, /readCompassRecords/, "home must use shared validated work summaries");
 assert.match(readFileSync(new URL("../src/lib/compassRecords.ts", import.meta.url), "utf8"), /item\(RAIL_WORK_ALERT_STORAGE_KEY[\s\S]*parseWatchAreas/, "rail summary must use its original storage key and validator");
 assert.match(toolsPage, /href: "\/rail-work-alerts"[\s\S]*최대 5곳 로컬 저장[\s\S]*NSW·VIC·QLD 공식 링크[\s\S]*날짜·대체교통 체크/, "the tools directory must describe only implemented planner capabilities");

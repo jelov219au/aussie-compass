@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { verifyHomeSearchAcquisition } from "./lib/home-search-acquisition-fixture.mjs";
 
 const [homeSearch, siteSearch, planner, performance, campaignBuilder, articleStep, attribution, report] = await Promise.all([
   readFile(new URL("../src/components/sections/HomeSearch.tsx", import.meta.url), "utf8"),
@@ -15,7 +16,7 @@ const [homeSearch, siteSearch, planner, performance, campaignBuilder, articleSte
 const path = "/resources/australia-cover-letter-job-ad-checklist";
 const campaign = "cover-letter-job-ad-checklist";
 
-assert.ok(homeSearch.includes('{ label: "커버레터", topic: "jobs" }'), "home discovery must expose the cover-letter topic");
+verifyHomeSearchAcquisition(["커버레터", "cover letter", { query: "selection criteria", articlePath: "/resources/english-resume-achievement-examples", freeHref: "/resume-builder" }], path);
 for (const term of ["커버레터", "cover letter", "selection criteria"]) {
   assert.ok(homeSearch.includes(`"${term}"`), `home topic classification is missing ${term}`);
 }

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { verifyHomeSearchAcquisition } from "./lib/home-search-acquisition-fixture.mjs";
 
 const [articles, homeSearch, siteSearch, searchPage, planner, performance, campaignBuilder, articleStep, attribution, contract, report] = await Promise.all([
   readFile(new URL("../src/data/articles.ts", import.meta.url), "utf8"),
@@ -26,7 +27,8 @@ for (const source of [planner, performance, campaignBuilder]) {
   assert.ok(source.includes(campaign), "a marketing workflow surface is missing the fixed resume-template campaign");
 }
 
-assert.ok(homeSearch.includes('{ label: "이력서 양식", topic: "jobs" }'), "home discovery must expose the resume-template query");
+verifyHomeSearchAcquisition(["이력서 양식", "resume template"], path);
+assert.ok(homeSearch.includes('"이력서 양식"') && homeSearch.includes('"resume template"'), "home query classification must retain the template aliases");
 assert.ok(siteSearch.includes('"이력서 양식"'), "site-search suggestions must expose the resume-template query");
 for (const term of ["이력서 양식", "호주 이력서 양식", "영문 이력서 양식", "resume template", "무료 이력서", "PDF 이력서"]) {
   assert.ok(searchPage.includes(`"${term}"`), `the live search index is missing ${term}`);
