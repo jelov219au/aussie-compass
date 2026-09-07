@@ -12,6 +12,16 @@ const ts = createRequire(import.meta.url)("typescript");
 const source = await readFile(new URL("../src/components/tools/LeavingAustraliaProWorkspace.tsx", import.meta.url), "utf8");
 const helperSource = await readFile(new URL("../src/lib/leavingAustraliaProStorage.ts", import.meta.url), "utf8");
 const compile = source => ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
+const summarySource = await readFile(new URL("../src/lib/leavingAustraliaSummary.ts", import.meta.url), "utf8");
+const summaryExports = {};
+runInNewContext(compile(summarySource), { exports: summaryExports, require(name) {
+  if (name === "./leavingAustraliaDependencies") return dependencies;
+  if (name === "./leavingAustraliaProAmounts") return amounts;
+  if (name === "./leavingAustraliaOutcome") return outcomes;
+  throw new Error(name);
+} });
+const sampleExports = {};
+runInNewContext(compile(await readFile(new URL("../src/lib/leavingAustraliaSample.ts", import.meta.url), "utf8")), { exports: sampleExports, require: () => outcomes });
 const taskIds = ["final-pay", "income", "bond", "utilities", "bank", "access", "super", "departed", "visa", "dasp", "tax"];
 const legacyDraft = { departureDate: "2026-09-01", destination: "Synthetic destination", statuses: { bond: "waiting" }, settlements: [{ id: "s1", kind: "Bond", label: "Synthetic bond", dueDate: "", amount: "", status: "expected", note: "" }], questions: ["Synthetic question"] };
 const draft = {
@@ -115,6 +125,7 @@ function mount(original = raw, initialFault = "none", componentSource = source) 
       if (name === "@/lib/leavingAustraliaDependencies") return dependencies;
       if (name === "@/lib/leavingAustraliaProAmounts") return amounts;
       if (name === "@/lib/leavingAustraliaOutcome") return outcomes;
+      if (name === "@/lib/leavingAustraliaSummary") return summaryExports;
       throw new Error(`Unexpected dependency ${name}`);
     },
   });
@@ -379,3 +390,43 @@ assert.deepEqual(parseLeavingArchive(createLeavingArchive(legacyV2)), legacyV2, 
 assert.equal(JSON.parse(createLeavingArchive(legacyV2)).version, 2);
 assert.equal(outcomes.assessLeavingOutcome(legacyV2, true).firstOutcomeReady, false, "Legacy v2 needs applicability review before summary");
 console.log("Leaving draft protection, task-note UI/TXT/JSON/legacy/failure flows, conflicts and amount persistence checks passed (synthetic hooks/files/storage; no browser acceptance).");
+
+// The public sample must pass the same first-outcome gate and actual workspace download.
+{
+  const example = JSON.parse(JSON.stringify(sampleExports.leavingSampleDraft));
+  assert.equal(outcomes.assessLeavingOutcome(example, true).firstOutcomeReady, true);
+  assert.equal(outcomes.assessLeavingOutcome(example, false).firstOutcomeReady, false);
+  assert.equal(outcomes.assessLeavingOutcome(example, true).completedTaskIds.length, 0);
+  assert.equal(example.settlements.length, 3);
+  const app = mount(JSON.stringify(example));
+  app.button("귀국 준비 요약 저장").props.onClick();
+  assert.equal(app.state.requests, 0);
+  app.click("현재 순서 검토 확인");
+  app.button("귀국 준비 요약 저장").props.onClick();
+  const output = await app.state.downloads.at(-1).blob.text();
+  const beforeSource = await readFile(new URL("../src/components/tools/LeavingAustraliaProWorkspace.tsx", import.meta.url), "utf8");
+  assert(beforeSource.includes("requestLeavingDownload(createLeavingSummary(draft),"));
+  assert.equal(output, summaryExports.createLeavingSummary(example));
+  for (const text of ["가상", "A$1200.00", "미입력 2건", "Task completion with evidence: 0/11", "신청 전 준비", "입금 확인 전", "no automatic reminder"]) assert(output.includes(text), text);
+  assert.equal(summaryExports.createLeavingSummary(parseLeavingArchive(createLeavingArchive(example))), output);
+}
+
+{
+ const route = {};
+ runInNewContext(compile(await readFile(new URL("../src/app/leaving-australia-pro/sample.txt/route.ts", import.meta.url), "utf8")), { exports: route, Response, require(name) {
+   if (name === "@/lib/leavingAustraliaSample") return sampleExports;
+   if (name === "@/lib/leavingAustraliaSummary") return summaryExports;
+   throw new Error(name);
+ } });
+ const response = route.GET();
+ assert.equal(response.status, 200);
+ assert.equal(response.headers.get("content-type"), "text/plain; charset=utf-8");
+ assert.match(response.headers.get("content-disposition"), /fictional-sample.txt/);
+ assert.equal(await response.text(), summaryExports.createLeavingSummary(sampleExports.leavingSampleDraft));
+ if (process.env.LEAVING_BEFORE_SOURCE) {
+   const oldApp = mount(JSON.stringify(sampleExports.leavingSampleDraft), "none", await readFile(process.env.LEAVING_BEFORE_SOURCE, "utf8"));
+   oldApp.click("현재 순서 검토 확인"); oldApp.click("귀국 준비 요약 저장");
+   assert.equal(await oldApp.state.downloads.at(-1).blob.text(), summaryExports.createLeavingSummary(sampleExports.leavingSampleDraft));
+ }
+ console.log("Public fictional sample: first-outcome gate, real workspace export, JSON round-trip and GET download bytes passed.");
+}

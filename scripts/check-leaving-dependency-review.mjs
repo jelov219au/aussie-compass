@@ -105,6 +105,7 @@ assert.equal(assessLeavingOutcome(fullyClosed, false).progress, 99, "current rev
 assert.equal(assessLeavingOutcome({ ...validFirstOutcome, applicability: undefined }, true).missingApplicabilityIds.length, leavingTaskIds.length, "legacy restores remain review-needed without data loss");
 
 const component = await readFile(new URL("../src/components/tools/LeavingAustraliaProWorkspace.tsx", import.meta.url), "utf8");
+const summary = await readFile(new URL("../src/lib/leavingAustraliaSummary.ts", import.meta.url), "utf8");
 const productPage = await readFile(new URL("../src/app/leaving-australia-pro/page.tsx", import.meta.url), "utf8");
 
 for (const contract of [
@@ -122,11 +123,11 @@ for (const contract of [
   "CLOSURE ORDER REVIEW",
   "not a bank-closure, visa, tax, Super or DASP eligibility decision",
 ]) {
-  assert.ok(component.includes(contract), `Leaving Australia workspace must preserve: ${contract}`);
+  assert.ok((component + summary).includes(contract), `Leaving Australia workspace must preserve: ${contract}`);
 }
 
-assert.ok(productPage.includes("Ordered departure"), "the product promise must keep ordered departure in scope");
-assert.ok(productPage.includes("Settlement tracker"), "the product promise must keep settlement tracking in scope");
+assert.ok(productPage.includes("퇴사·퇴거·계정 정리 순서"), "the product promise must keep ordered departure in scope");
+assert.ok(productPage.includes("정산 기록"), "the product promise must keep settlement tracking in scope");
 const currentAtoUrl = "https://www.ato.gov.au/individuals-and-families/your-tax-return/how-to-lodge-your-tax-return/lodge-your-tax-return-from-outside-australia";
 const retiredAtoUrl = "https://www.ato.gov.au/individuals-and-families/coming-to-australia-or-going-overseas/returning-to-your-home-country";
 assert.ok(productPage.includes(currentAtoUrl), "the current ATO outside-Australia lodgement link must be present");

@@ -62,7 +62,10 @@ for (const migration of [entitlementMigration, gateMigration]) {
 assert.ok(gateMigration.includes("expected_amount_cents = 1290") && gateMigration.includes("when 'leaving_australia_pro' then 1290"), "First-sale migration must pin AUD 12.90");
 assert.ok(workspace.includes("getActiveLeavingAustraliaProEntitlement") && success.includes("findActiveByCheckoutSession(session.id, \"leaving_australia_pro\")"), "Workspace and success flow must use the product-scoped entitlement");
 assert.ok(accessTools.includes("/leaving-australia-pro?access=released") && accessTools.includes("#leaving-australia-delete-heading"), "Release must preserve a separate local-data deletion path");
-assert.ok(deviceData.includes('const leavingAustraliaProStorageKey = "hoju-compass-leaving-pro-v1"') && deviceData.includes("deleteLeavingAustraliaDeviceData"), "Shared-device deletion must target only Leaving Australia local data");
+const deviceManifest = await read("../src/data/deviceTransferManifest.ts");
+assert.ok(deviceManifest.includes('record("leaving-australia-pro", "hoju-compass-leaving-pro-v1"'), "Leaving deletion must retain the actual storage key in its shared manifest");
+assert.ok(deviceData.includes('record.toolId === "leaving-australia-pro"') && deviceData.includes('action: () => deleteOne(leavingRecord)') && deviceData.includes('clearDeviceRecord(window.localStorage, record)'), "Shared-device deletion must target only the selected Leaving record");
+assert.ok(deviceData.includes('"leaving-australia-delete-heading"'), "The offer and access release deletion link must have a real destination");
 assert.ok(offer.includes("다시 결제하지 말고") && offer.includes("/leaving-australia-pro/restore"), "Offer must retain safe recovery and no-repurchase guidance");
 
 console.log("Leaving Australia Pack Pro checkout, entitlement, recovery, and migration contracts passed.");

@@ -3,27 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { assessLeavingDependencies } from "@/lib/leavingAustraliaDependencies";
 import { describeLeavingAmount, formatLeavingCents, parseLeavingAmount, summarizeLeavingAmounts } from "@/lib/leavingAustraliaProAmounts";
+import { createLeavingSummary, tasks, taskLabels, settlementLabels, taskTitles } from "@/lib/leavingAustraliaSummary";
 import { assessLeavingOutcome } from "@/lib/leavingAustraliaOutcome";
 import { createLeavingArchive, leavingArchiveMaxBytes, parseLeavingArchive, readLeavingDraft, requestLeavingDownload, writeLeavingDraft, getLeavingTaskNoteIssues, leavingTaskNoteLimits, type LeavingTaskNote, type DepartureDraft, type Settlement, type SettlementStatus, type TaskApplicability, type TaskStatus } from "@/lib/leavingAustraliaProStorage";
-const tasks = [
-  { id: "final-pay", phase: "출국 전", title: "최종 급여·Payslip", detail: "마지막 급여일, 미사용 휴가와 고용주 Super 납입 시점을 서면 자료로 확인합니다." },
-  { id: "income", phase: "출국 전", title: "Income statement·세금 자료", detail: "해외에서도 myGov와 ATO에 안전하게 접근할 수 있는지 확인하고 기록을 보관합니다." },
-  { id: "bond", phase: "출국 전", title: "퇴거·Bond 반환", detail: "Condition report, 사진, 열쇠 반납과 관할 공식 Bond 청구 상태를 확인합니다." },
-  { id: "utilities", phase: "출국 전", title: "전기·가스·인터넷 종료", detail: "최종 검침, 종료일, 장비 반납과 마지막 청구서 수령 방법을 기록합니다." },
-  { id: "bank", phase: "출국 전", title: "호주 계좌 유지·해지 순서", detail: "Bond, 급여, 세금 또는 DASP 지급 방법을 확인하기 전에 계좌를 닫지 않습니다." },
-  { id: "access", phase: "출국 전", title: "전화번호·2단계 인증", detail: "호주 번호 해지 전에 은행·myGov·이메일의 복구 수단을 해외에서 사용할 방법으로 바꿉니다." },
-  { id: "super", phase: "출국 전", title: "모든 Super 계정 확인", detail: "펀드명과 연락처, 마지막 납입 여부를 본인의 안전한 기록에서 확인합니다." },
-  { id: "departed", phase: "출국 후", title: "실제 출국 확인", detail: "DASP는 호주를 떠난 뒤에만 제출할 수 있습니다." },
-  { id: "visa", phase: "출국 후", title: "모든 임시비자 종료 확인", detail: "DASP 제출에는 보유한 모든 임시비자가 더 이상 유효하지 않아야 합니다. 비자 취소 결정은 별도로 신중히 확인하세요." },
-  { id: "dasp", phase: "출국 후", title: "DASP 신청·확인 메일", detail: "ATO 공식 시스템에서 신청하고 제출 확인과 지급 명세를 보관합니다." },
-  { id: "tax", phase: "출국 후", title: "마지막 Tax return 일정", detail: "대부분 6월 30일 뒤 해외에서도 신고할 수 있습니다. 조기 신고 대상은 ATO 조건을 확인합니다." },
-] as const;
-const taskTitles = new Map<string, string>(tasks.map((task) => [task.id, task.title]));
-
 const initialDraft: DepartureDraft = { departureDate: "", destination: "", statuses: {}, settlements: [], questions: [] };
 const inputClass = "mt-1.5 min-h-11 w-full border border-border bg-white px-3 py-2 text-sm text-navy outline-none focus:border-navy focus:ring-2 focus:ring-navy/15";
-const taskLabels: Record<TaskStatus, string> = { todo: "준비 전", waiting: "요청·신청함 / 결과 대기", done: "결과·근거 대조 완료" };
-const settlementLabels: Record<SettlementStatus, string> = { expected: "받을 예정", followup: "요청·신청함 / 확인 필요", received: "실제 수령·최종 청구 대조 완료" };
 const emptyTaskNote: LeavingTaskNote = { nextAction: "", contact: "", followUpOn: "", completionNote: "" };
 const taskNoteFields = [
   { key: "nextAction", label: "다음 행동·확인할 질문", placeholder: "예: 가상 직장 A에 최종 Payslip 요청" },
@@ -202,61 +186,7 @@ export function LeavingAustraliaProWorkspace() {
       setMessage(`요약을 저장하려면 ${outcome.firstOutcomeIssues.join(" ")}`);
       return;
     }
-    const settlementLabel = (id: string) => {
-      const item = draft.settlements.find((settlement) => settlement.id === id);
-      return item ? `${item.kind}: ${item.label || "Untitled"}` : id;
-    };
-    const lines = [
-      "HOJU COMPASS — LEAVING AUSTRALIA PREPARATION SUMMARY",
-      `Departure date: ${draft.departureDate || "Not set"}`,
-      `Destination label: ${draft.destination || "Not set"}`,
-      `Task completion with evidence: ${completed}/${tasks.length}`,
-      "",
-      "CLOSURE ORDER REVIEW",
-      `Review flags: ${dependencyReview.totalFlags}`,
-      "BANK CLOSURE DEPENDENCIES",
-      ...(dependencyReview.bankDependencies.length
-        ? dependencyReview.bankDependencies.map((id) => `- ${taskTitles.get(id) ?? id}`)
-        : ["- Task dependencies complete"]),
-      ...(dependencyReview.pendingSettlementIds.length
-        ? dependencyReview.pendingSettlementIds.map((id) => `- Pending payment: ${settlementLabel(id)}`)
-        : ["- No pending payment records"]),
-      "",
-      "DASP SEQUENCE RECORDS",
-      ...(dependencyReview.daspPrerequisites.length
-        ? dependencyReview.daspPrerequisites.map((id) => `- ${taskTitles.get(id) ?? id}`)
-        : ["- Recorded prerequisites complete"]),
-      "",
-      `OVERSEAS ACCESS CONTINUITY: ${dependencyReview.accessContinuityReady ? "Recorded complete" : "Needs review"}`,
-      `STATUS CONFLICTS: ${dependencyReview.bankMarkedDoneTooEarly || dependencyReview.daspMarkedDoneTooEarly ? "Review task statuses" : "None flagged"}`,
-      "These are sequencing flags based on your entries, not a bank-closure, visa, tax, Super or DASP eligibility decision.",
-      "",
-      "TASKS",
-      ...tasks.flatMap((task) => {
-        const note = draft.taskNotes?.[task.id];
-        return [
-          `- [${draft.applicability?.[task.id] === "not_applicable" ? "해당 없음" : taskLabels[draft.statuses[task.id] ?? "todo"]}] ${task.phase} / ${task.title}`,
-          ...(note ? [
-            `  Next action / question: ${note.nextAction || "Not recorded"}`,
-            `  Contact organisation / role: ${note.contact || "Not recorded"}`,
-            `  Follow-up date / schedule note (no automatic reminder): ${note.followUpOn || "Not recorded"}`,
-            `  User-recorded result / completion evidence: ${note.completionNote || "Not recorded"}`,
-          ] : []),
-        ];
-      }),
-      "",
-      "EXPECTED PAYMENTS — user-entered tracking amounts only",
-      `미수령 유효 입력 소계 · 검증 안 됨: ${outstandingDisplay}`,
-      amountCoverage,
-      "합계는 유효한 입력만 포함한 소계이며 실제 지급액이나 확정액이 아닙니다. 수령 완료로 표시해도 입력 금액이 검증되지는 않습니다.",
-      ...(draft.settlements.length ? draft.settlements.flatMap((item) => [`- ${item.kind}: ${item.label || "Untitled"} | ${settlementLabels[item.status]} | Due ${item.dueDate || "not set"} | ${describeLeavingAmount(item.amount)}${item.status === "received" ? " | 미수령 소계 제외 (수령 완료)" : ""}`, `  Note: ${item.note || "None"}`]) : ["- None recorded"]),
-      "",
-      "QUESTIONS TO CONFIRM",
-      ...(draft.questions.length ? draft.questions.map((item, index) => `${index + 1}. ${item}`) : ["- None recorded"]),
-      "",
-      "This is a personal preparation summary, not migration, tax, superannuation or legal advice. Amounts are not verified. Do not add TFN, passport, bank, visa or super membership numbers.",
-    ];
-    const requested = requestLeavingDownload(lines.join("\r\n"), `${safeFileName(draft.destination)}-departure-pack.txt`, "text/plain;charset=utf-8");
+    const requested = requestLeavingDownload(createLeavingSummary(draft), `${safeFileName(draft.destination)}-departure-pack.txt`, "text/plain;charset=utf-8");
     setMessage(requested ? "귀국 준비 요약 다운로드를 요청했습니다. 실제 파일 저장 여부를 확인하세요." : "요약 다운로드를 시작하지 못했습니다. 기록과 검토 확인은 유지됩니다. 다시 시도해 주세요.");
   };
 
@@ -276,11 +206,11 @@ export function LeavingAustraliaProWorkspace() {
         {readingArchive || archiveDraft ? <button type="button" onClick={() => { readSequence.current++; setReadingArchive(false); setArchiveDraft(null); setStorageMessage("복원 검토를 취소했습니다. 현재 기록은 유지됩니다."); }} className="mt-3 min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">복원 검토 취소</button> : null}
         <p aria-live="polite" className="mt-3 min-h-5 text-sm leading-6 text-muted">{storageMessage}</p>
       </section>
-      <section className="border-t border-navy/20 pt-6" aria-labelledby="departure-brief-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Departure brief</p><h2 id="departure-brief-heading" className="mt-2 text-2xl font-semibold text-navy">출국 기준일</h2><p className="mt-3 text-sm leading-6 text-muted">정확한 한국 주소, 항공편과 여권 정보는 입력하지 마세요. 날짜와 내가 알아볼 수 있는 목적지 별칭만 저장합니다.</p><div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium text-navy">출국 예정일<input type="date" className={inputClass} value={draft.departureDate} onChange={(event) => setDraft((current) => ({ ...current, departureDate: event.target.value }))} /></label><label className="text-sm font-medium text-navy">목적지 별칭<input className={inputClass} value={draft.destination} onChange={(event) => setDraft((current) => ({ ...current, destination: event.target.value }))} placeholder="예: 한국 귀국" /></label></div>{daysUntilDeparture !== null ? <p className="mt-4 border-l-2 border-gold pl-3 text-sm text-muted">{daysUntilDeparture >= 0 ? `출국일까지 약 ${daysUntilDeparture}일 남았습니다.` : `입력한 출국일로부터 ${Math.abs(daysUntilDeparture)}일 지났습니다.`}</p> : null}</section>
+      <section className="border-t border-navy/20 pt-6" aria-labelledby="departure-brief-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#80621a]">Departure brief</p><h2 id="departure-brief-heading" className="mt-2 text-2xl font-semibold text-navy">출국 기준일</h2><p className="mt-3 text-sm leading-6 text-muted">정확한 한국 주소, 항공편과 여권 정보는 입력하지 마세요. 날짜와 내가 알아볼 수 있는 목적지 별칭만 저장합니다.</p><div className="mt-5 grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium text-navy">출국 예정일<input type="date" className={inputClass} value={draft.departureDate} onChange={(event) => setDraft((current) => ({ ...current, departureDate: event.target.value }))} /></label><label className="text-sm font-medium text-navy">목적지 별칭<input className={inputClass} value={draft.destination} onChange={(event) => setDraft((current) => ({ ...current, destination: event.target.value }))} placeholder="예: 한국 귀국" /></label></div>{daysUntilDeparture !== null ? <p className="mt-4 border-l-2 border-gold pl-3 text-sm text-muted">{daysUntilDeparture >= 0 ? `출국일까지 약 ${daysUntilDeparture}일 남았습니다.` : `입력한 출국일로부터 ${Math.abs(daysUntilDeparture)}일 지났습니다.`}</p> : null}</section>
 
       <section className="border border-border bg-white p-5 sm:p-7" aria-labelledby="departure-task-heading">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Ordered handoff</p><h2 id="departure-task-heading" className="mt-2 text-xl font-semibold text-navy">출국 전후 준비 순서</h2></div>
+          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#80621a]">Ordered handoff</p><h2 id="departure-task-heading" className="mt-2 text-xl font-semibold text-navy">출국 전후 준비 순서</h2></div>
           <div className="text-right"><p className="font-mono text-3xl text-navy">{progress}%</p><p className="text-xs text-muted">근거 확인 {completed} · 정리 {outcome.closedTaskIds.length}/{tasks.length}</p></div>
         </div>
         <p id="departure-task-note-help" className="mt-4 text-xs leading-5 text-muted">각 작업을 펼쳐 다음 행동, 연락할 기관·역할, 다시 확인할 날과 완료 근거를 적으세요. 원본 서류·개인 연락처·TFN·계좌·여권·비자·Super 번호·로그인 정보는 입력하지 마세요. 메모는 TXT·JSON에 포함되며 상태를 자동 변경하거나 알림을 보내지 않습니다. 웹·설치 앱의 저장 공간은 다를 수 있어 기기 이동에는 JSON 백업·복원이 필요합니다.</p>
@@ -295,7 +225,7 @@ export function LeavingAustraliaProWorkspace() {
           const doneNeedsSettlement = outcome.moneyTasksWithoutReceivedSettlement.includes(task.id);
           return <li key={task.id} className="py-5">
             <div className="grid gap-3 sm:grid-cols-[2rem_1fr_10rem] sm:items-start">
-              <span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span>
+              <span className="font-mono text-xs text-[#80621a]">{String(index + 1).padStart(2, "0")}</span>
               <div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{task.phase}</p><h3 className="mt-1 font-semibold text-navy">{task.title}</h3><p className="mt-2 text-sm leading-6 text-muted">{task.detail}</p></div>
               <div className="space-y-3">
                 <label className="block text-xs font-medium text-muted">적용 여부<select aria-label={`${task.title} 적용 여부`} className="mt-1 min-h-11 w-full border border-border bg-white px-2 text-sm text-navy" value={applicability} onChange={(event) => updateApplicability(task.id, event.target.value as TaskApplicability | "")}><option value="">선택 필요</option><option value="applicable">내게 해당</option><option value="not_applicable">해당 없음</option></select></label>
@@ -325,7 +255,7 @@ export function LeavingAustraliaProWorkspace() {
     <div className="space-y-8">
       <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="settlement-heading">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Settlement tracker</p><h2 id="settlement-heading" className="mt-2 text-xl font-semibold text-navy">받을 돈·마지막 정산</h2></div>
+          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#80621a]">Settlement tracker</p><h2 id="settlement-heading" className="mt-2 text-xl font-semibold text-navy">받을 돈·마지막 정산</h2></div>
           <div className="min-w-0 max-w-full text-right"><p className="break-words font-mono text-2xl text-navy">{outstandingDisplay}</p><p className="text-xs text-muted">미수령 유효 입력 소계 · 검증 안 됨</p></div>
         </div>
         <p className="mt-3 text-xs leading-5 text-muted">{amountCoverage}</p>
@@ -335,7 +265,7 @@ export function LeavingAustraliaProWorkspace() {
           const amount = parseLeavingAmount(item.amount);
           const amountStatusId = `settlement-amount-status-${index}`;
           return <article key={item.id} className="border border-border p-4">
-            <div className="flex items-start justify-between gap-3"><p className="font-mono text-xs text-gold">PAYMENT {String(index + 1).padStart(2, "0")}</p><button type="button" onClick={() => setDraft((current) => ({ ...current, settlements: current.settlements.filter((entry) => entry.id !== item.id) }))} className="min-h-9 text-xs font-medium text-muted hover:text-red-700">삭제</button></div>
+            <div className="flex items-start justify-between gap-3"><p className="font-mono text-xs text-[#80621a]">PAYMENT {String(index + 1).padStart(2, "0")}</p><button type="button" onClick={() => setDraft((current) => ({ ...current, settlements: current.settlements.filter((entry) => entry.id !== item.id) }))} className="min-h-11 min-w-11 text-xs font-medium text-muted hover:text-red-700">삭제</button></div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <label className="text-xs font-medium text-navy">종류<select className={inputClass} value={item.kind} onChange={(event) => updateSettlement(item.id, "kind", event.target.value)}><option>Bond</option><option>Final pay</option><option>Tax refund</option><option>DASP</option><option>Utility credit</option><option>Other</option></select></label>
               <label className="text-xs font-medium text-navy">별칭<input className={inputClass} value={item.label} onChange={(event) => updateSettlement(item.id, "label", event.target.value)} placeholder="예: 마지막 직장 급여" /></label>
@@ -352,10 +282,10 @@ export function LeavingAustraliaProWorkspace() {
         <button type="button" onClick={() => setDraft((current) => ({ ...current, settlements: [...current.settlements, newSettlement()] }))} className="mt-5 min-h-11 border-b-2 border-gold text-sm font-semibold text-navy">+ 정산 항목 추가</button>
       </section>
 
-      <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="departure-question-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Questions to confirm</p><h2 id="departure-question-heading" className="mt-2 text-xl font-semibold text-navy">확인할 질문</h2><label className="mt-5 block text-sm font-medium text-navy">질문<textarea className={`${inputClass} min-h-20 resize-y`} value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="예: 해외에서 마지막 Tax return을 언제 신고해야 하나요?" /></label><button type="button" onClick={addQuestion} className="mt-3 min-h-11 bg-navy px-4 text-sm font-semibold text-white">질문 추가</button>{draft.questions.length ? <ol className="mt-5 space-y-3">{draft.questions.map((item, index) => <li key={`${item}-${index}`} className="flex gap-3 border-t border-border pt-3"><span className="font-mono text-xs text-gold">{String(index + 1).padStart(2, "0")}</span><p className="flex-1 text-sm leading-6 text-navy">{item}</p><button type="button" onClick={() => setDraft((current) => ({ ...current, questions: current.questions.filter((_, itemIndex) => itemIndex !== index) }))} className="min-h-9 text-xs text-muted">삭제</button></li>)}</ol> : <p className="mt-5 text-sm text-muted">아직 추가한 질문이 없습니다.</p>}</section>
+      <section className="border border-border bg-white p-5 shadow-sm sm:p-7" aria-labelledby="departure-question-heading"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#80621a]">Questions to confirm</p><h2 id="departure-question-heading" className="mt-2 text-xl font-semibold text-navy">확인할 질문</h2><label className="mt-5 block text-sm font-medium text-navy">질문<textarea className={`${inputClass} min-h-20 resize-y`} value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="예: 해외에서 마지막 Tax return을 언제 신고해야 하나요?" /></label><button type="button" onClick={addQuestion} className="mt-3 min-h-11 bg-navy px-4 text-sm font-semibold text-white">질문 추가</button>{draft.questions.length ? <ol className="mt-5 space-y-3">{draft.questions.map((item, index) => <li key={`${item}-${index}`} className="flex gap-3 border-t border-border pt-3"><span className="font-mono text-xs text-[#80621a]">{String(index + 1).padStart(2, "0")}</span><p className="flex-1 text-sm leading-6 text-navy">{item}</p><button type="button" onClick={() => setDraft((current) => ({ ...current, questions: current.questions.filter((_, itemIndex) => itemIndex !== index) }))} className="min-h-11 min-w-11 text-xs text-muted">삭제</button></li>)}</ol> : <p className="mt-5 text-sm text-muted">아직 추가한 질문이 없습니다.</p>}</section>
 
       <section className="border border-border bg-surface p-5 sm:p-7" aria-labelledby="departure-dependency-heading">
-        <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">Closure order review</p><h2 id="departure-dependency-heading" className="mt-2 text-xl font-semibold text-navy">너무 일찍 닫지 않기</h2></div><p className="font-mono text-2xl text-navy">{dependencyReview.totalFlags}</p></div>
+        <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#80621a]">Closure order review</p><h2 id="departure-dependency-heading" className="mt-2 text-xl font-semibold text-navy">너무 일찍 닫지 않기</h2></div><p className="font-mono text-2xl text-navy">{dependencyReview.totalFlags}</p></div>
         <p className="mt-3 text-sm leading-6 text-muted">현재 입력을 바탕으로 계좌 해지, DASP 순서와 해외 접근 수단을 서로 대조합니다. 실제 지급 방식이나 자격을 판정하지 않습니다.</p>
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
           <article className="border border-border bg-white p-4"><h3 className="text-sm font-semibold text-navy">호주 계좌 해지 전</h3><p className="mt-2 text-xs leading-5 text-muted">미완료 작업 {dependencyReview.bankDependencies.length}개 · 미수령 정산 {dependencyReview.pendingSettlementIds.length}개</p><ul className="mt-3 space-y-1 border-t border-border pt-3">{dependencyReview.bankDependencies.map((id) => <li key={id} className="text-xs leading-5 text-navy">{taskTitles.get(id) ?? id}</li>)}{dependencyReview.pendingSettlementIds.map((id) => { const item = draft.settlements.find((settlement) => settlement.id === id); return <li key={id} className="text-xs leading-5 text-navy">미수령 · {item?.label || item?.kind || id}</li>; })}{!dependencyReview.bankDependencies.length && !dependencyReview.pendingSettlementIds.length ? <li className="text-xs leading-5 text-muted">기록상 남은 항목 없음</li> : null}</ul></article>
