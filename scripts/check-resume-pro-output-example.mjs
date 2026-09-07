@@ -46,7 +46,9 @@ runInNewContext(`${namedCode(source, "safeFileName")}\n${namedCode(source, "down
 const kit = await exportedBlob.text();
 const path = new URL("../public/downloads/resume-pro-example-application-kit.txt", import.meta.url);
 if (process.argv.includes("--write")) writeFileSync(path, kit);
-assert.equal(readFileSync(path, "utf8"), kit, "the existing public sample must equal the actual workspace export");
+// Git checkouts may normalise CRLF; compare the full text on either platform.
+const normaliseNewlines = (value) => value.replace(/\r\n/g, "\n");
+assert.equal(normaliseNewlines(readFileSync(path, "utf8")), normaliseNewlines(kit), "the existing public sample must equal the actual workspace export");
 for (const value of [resume.name, resume.summary, resume.experiences[0].details.split("\n")[1], draft.coverLetter, example.resumeProExampleStarStory.action, "FICTIONAL EXAMPLE — DO NOT SUBMIT", "does not verify your claims or guarantee an interview or job"]) assert.ok(kit.includes(value), value);
 assert.doesNotMatch(kit, /@|https?:\/\//);
 
