@@ -70,7 +70,7 @@ export function Header() {
           <button
             ref={menuButtonRef}
             type="button"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-white px-3 text-sm font-semibold text-navy transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 md:hidden"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-lg border border-border bg-white px-2 text-sm font-semibold text-navy transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy focus-visible:ring-offset-2 min-[360px]:px-3 md:hidden"
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"
             aria-label={menuOpen ? "메뉴 닫기" : "메뉴 열기"}
@@ -98,7 +98,7 @@ export function Header() {
                 />
               )}
             </svg>
-            <span>{menuOpen ? "닫기" : "메뉴"}</span>
+            <span className="hidden min-[360px]:inline">{menuOpen ? "닫기" : "메뉴"}</span>
           </button>
         </div>
       </Container>
