@@ -28,10 +28,10 @@ export default function ProPage() {
   const products = getProCatalogProducts(resumeProLive, rentalProLive);
   const liveProducts = products.filter((product) => product.live);
   const availabilityTitle = liveProducts.length > 0
-    ? `지금 ${liveProducts.length}개의 Pro 도구를 이용할 수 있어요`
+    ? "필요한 도구만 선택하세요"
     : "Pro 결제 설정을 확인하고 있어요";
   const availabilityDetail = liveProducts.length > 0
-    ? `${liveProducts.map((product) => product.name).join(" · ")} — 구독 없이 1회 결제로 이용해요.`
+    ? "이력서 작성부터 생활 서류 정리까지. 각 도구를 구독 없이 1회 결제로 이용하세요."
     : "각 도구의 기능과 무료 대안은 지금 살펴볼 수 있어요.";
   const priceSummary = "각 카드에서 현재 이용 상태와 가격 표시를 확인하세요. ‘가격 미정’ 또는 ‘결제 미오픈’인 도구는 아직 구매할 수 없습니다.";
   const packAvailability = {
