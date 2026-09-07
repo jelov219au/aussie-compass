@@ -20,6 +20,11 @@ export function verifyHomeSearchAcquisition(queries, articlePath) {
         if (!(index in owner.values)) owner.values[index] = typeof initial === "function" ? initial() : initial;
         return [owner.values[index], (next) => { owner.values[index] = typeof next === "function" ? next(owner.values[index]) : next; }];
       },
+      useRef(initial) {
+        const owner = hooks, index = owner.cursor++;
+        if (!(index in owner.values)) owner.values[index] = { current: initial };
+        return owner.values[index];
+      },
       useEffect(effect) { if (hooks.first) hooks.effects.push(effect); },
       useMemo: (factory) => factory(),
     },
@@ -55,7 +60,10 @@ export function verifyHomeSearchAcquisition(queries, articlePath) {
   function mount(component, props) {
     const state = { values: [], cursor: 0, effects: [], first: true };
     const render = () => { hooks = state; state.cursor = 0; return component(props); };
-    render(); state.first = false; for (const effect of state.effects) effect();
+    render(); state.first = false;
+    // Replay mount effects as Strict Mode does; consuming a private hand-off twice
+    // must not replace the destination query with the now-empty memory slot.
+    for (let replay = 0; replay < 2; replay++) for (const effect of state.effects) effect();
     return { render };
   }
   const HomeSearch = load("./src/components/sections/HomeSearch.tsx").HomeSearch;
