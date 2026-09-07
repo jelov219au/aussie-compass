@@ -90,7 +90,7 @@ export function TaxPrepTracker() {
   return <section className="rounded-3xl border border-border bg-white p-5 shadow-sm sm:p-8" aria-labelledby="tax-prep-tracker-heading">
     <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
       <div>
-        <p className="text-sm font-semibold text-gold">현재 브라우저에만 쌓이는 준비 장부</p>
+        <p className="text-sm font-semibold text-gold-ink">현재 브라우저에만 쌓이는 준비 장부</p>
         <h2 id="tax-prep-tracker-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">택스 리턴 준비 기록</h2>
         <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">소득과 업무 관련 지출 후보, 증빙 보유 여부를 그때그때 적어두세요. 이 합계는 예상 환급액이나 공제 가능 금액이 아니며, 실제 신고 전 ATO 기준과 원본 자료를 확인해야 합니다.</p>
       </div>

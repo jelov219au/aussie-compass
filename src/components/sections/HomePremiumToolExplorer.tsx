@@ -47,7 +47,7 @@ export function HomePremiumToolExplorer({
           필요한 준비만, Pro.
         </h2>
         <p className="mt-3 max-w-md text-sm leading-6 text-white/65">
-          도구를 선택하면 오른쪽에서 준비 내용과 무료 대안을 볼 수 있어요.
+          선택한 도구의 준비 내용과 무료 대안을 확인하세요.
         </p>
 
         <div

@@ -106,8 +106,7 @@ try {
         record.axe = axe.violations.map(item => ({ id: item.id, targets: item.nodes.map(node => node.target) }));
         record.layout = await page.evaluate(() => ({ width: innerWidth, documentWidth: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight }));
         record.runtime = [...errors]; record.checkoutForms = await forms.count();
-        // Full accessibility gate applies to changed public templates. Unchanged tool internals are reported for comparison.
-        if (!['/property-inspection-checklist', '/used-car-comparison', '/tax-prep-tracker', '/my-compass', '/search'].includes(route)) assert.deepEqual(record.axe, [], 'public-template accessibility');
+        assert.deepEqual(record.axe, [], 'public-template accessibility');
         assert(record.layout.documentWidth <= width, 'horizontal overflow');
         assert.deepEqual(errors, [], 'runtime errors');
         await page.evaluate(() => scrollTo(0, 0));
@@ -127,7 +126,9 @@ try {
   await page.getByRole('searchbox', { name: '호주 생활 정보 검색', exact: true }).fill('중고차');
   await page.locator('form').getByRole('button', { name: '검색', exact: true }).click();
   await page.waitForURL(base + '/search');
+  await page.waitForFunction(() => document.querySelector('#site-search')?.value === '중고차');
   assert.equal(await page.locator('#site-search').inputValue(), '중고차');
   assert.equal(new URL(page.url()).search, '');
+  results.push({ interaction: 'queryless search hand-off', passed: true });
   write(); assert.deepEqual(failures, []);
 } finally { await browser.close(); }

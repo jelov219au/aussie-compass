@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   getSearchSafetyState,
@@ -119,8 +119,12 @@ function ResultList({ items }: { items: SearchItem[] }) {
 export function SiteSearch({ items }: { items: SearchItem[] }) {
   const [query, setQuery] = useState("");
   const [malformed, setMalformed] = useState(false);
+  const transferRead = useRef(false);
 
   useEffect(() => {
+    // The in-memory hand-off is consumed once, including Strict Mode effect replay.
+    if (transferRead.current) return;
+    transferRead.current = true;
     const parsed = parseSafeSearchUrl(window.location.href, window.location.origin);
     try {
       window.history.replaceState(window.history.state, "", "/search");

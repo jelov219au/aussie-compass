@@ -14,8 +14,9 @@
     transition: border-color 160ms ease, box-shadow 160ms ease;
   }
   .site-card:hover { border-color: #8d9bb4; box-shadow: 0 5px 18px #1a274408; }
-  .directory-screen h1 { font-size: clamp(1.85rem, 3.5vw, 2.75rem); letter-spacing: -0.035em; }
+  .tool-screen h1, .directory-screen h1 { font-size: clamp(1.85rem, 3.5vw, 2.75rem); letter-spacing: -0.035em; }
   .directory-screen > div > div:first-of-type { margin-top: 1.25rem; }
+  .tool-screen > section:first-child { padding-block: 2.5rem; background: #fff; }
   .pro-screen > section { padding-block: 2.5rem; }
   .pro-screen > section:first-child { background: #fff; }
   .pro-screen h1 { font-size: clamp(1.9rem, 3.7vw, 3rem); letter-spacing: -0.035em; }

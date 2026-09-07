@@ -71,17 +71,17 @@ export default function UsedCarComparisonPage() {
   return <>
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "중고차 구매", path: "/used-car-comparison" }]} />
     <Header />
-    <main className="py-12 sm:py-16">
+    <main className="site-screen tool-screen py-8 sm:py-10">
       <Container>
         <Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 도구 목록으로 돌아가기</Link>
         <div className="mt-5 max-w-4xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold">호주 첫 차 프로젝트</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold-ink">호주 첫 차 프로젝트</p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-5xl">어디서 찾고, 무엇을 확인한 뒤 사야 할까요?</h1>
           <p className="mt-4 text-base leading-7 text-muted sm:text-lg">차량 가격을 기록하기 전에 먼저 매물을 찾을 곳과 안전한 구매 순서를 알아야 합니다. 대표 구매처에서 후보를 찾고, 연락·검사·PPSR 확인을 마친 차량만 비교표에 넣어보세요.</p>
         </div>
 
         <section className="mt-10" aria-labelledby="used-car-marketplaces-heading">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">01 · 매물 찾기</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">01 · 매물 찾기</p>
           <h2 id="used-car-marketplaces-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">호주 중고차는 보통 여기서 찾습니다</h2>
           <div className="mt-6 grid gap-4 lg:grid-cols-3">
             {marketplaces.map((marketplace) => <article key={marketplace.name} className="flex h-full flex-col rounded-2xl border border-border bg-white p-6">
@@ -114,7 +114,7 @@ export default function UsedCarComparisonPage() {
         </section>
 
         <section className="mt-10" aria-labelledby="used-car-buying-order-heading">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">03 · 구매 전 순서</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">03 · 구매 전 순서</p>
           <h2 id="used-car-buying-order-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">싼 차를 찾는 것보다, 이 순서를 지키는 것이 먼저입니다</h2>
           <ol className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-2">
             {buyingSteps.map(([title, description], index) => <li key={title} className="bg-white p-5 sm:p-6"><span className="font-mono text-xs text-gold-ink">{String(index + 1).padStart(2, "0")}</span><h3 className="mt-2 font-semibold text-navy">{title}</h3><p className="mt-2 text-sm leading-6 text-muted">{description}</p></li>)}
@@ -129,7 +129,7 @@ export default function UsedCarComparisonPage() {
         <RelatedVideos context={{ kind: "page", path: "/used-car-comparison", slot: "buying-order" }} heading="영상으로 보는 중고차 구매 사례" id="used-car-buying-video" />
 
         <section className="mt-14 border-t border-navy/20 pt-10" aria-labelledby="inspection-choice-heading">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">04 · 검사 방법 선택</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">04 · 검사 방법 선택</p>
           <h2 id="inspection-choice-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">지인 동행과 독립 사전검사는 역할이 다릅니다</h2>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">둘 중 하나만 무조건 고르는 순위가 아닙니다. 차량을 잘 아는 지인은 약속 장소의 안전과 기본 상태 확인을 돕고, 독립 검사자는 서면 범위에 따라 상태를 기록합니다. 가능하면 지인과 함께 1차로 보고, 구매 후보가 남으면 계약·보증금 전에 전문 검사를 예약하세요.</p>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -149,14 +149,14 @@ export default function UsedCarComparisonPage() {
         </section>
 
         <section id="inspection-providers" className="mt-14 scroll-mt-24" aria-labelledby="inspection-providers-heading">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">05 · 주·준주별 예약 출발점</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">05 · 주·준주별 예약 출발점</p>
           <h2 id="inspection-providers-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">자동차협회·공식 성격의 안내에서 시작하세요</h2>
           <p className="mt-3 max-w-4xl text-sm leading-7 text-muted">아래는 2026년 8월 30일 각 제공자의 공식 페이지에서 다시 확인한 출발점입니다. 검사할 주·준주를 고르면 해당 지역 안내만 표시됩니다. Hoju Compass의 유료 추천이나 품질 순위가 아니고, 예약 수수료를 받는 링크도 아닙니다. 서비스 지역·출장/워크숍 가능 여부·검사 범위·가격은 차량과 위치에 따라 달라질 수 있으니 결제 전에 제공자에게 다시 확인하세요.</p>
           <VehicleInspectionProviderPicker />
         </section>
 
         <section className="mt-14" aria-labelledby="before-booking-heading">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">06 · 예약 전 체크</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">06 · 예약 전 체크</p>
           <h2 id="before-booking-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">“검사 예약”이라는 이름보다 서면 범위를 비교하세요</h2>
           <ul className="mt-6 grid gap-3 md:grid-cols-2">
             {beforeBookingChecks.map((item) => <li key={item} className="flex gap-3 rounded-xl border border-border bg-white p-4 text-sm leading-6 text-muted"><span aria-hidden="true" className="font-semibold text-gold-ink">□</span><span>{item}</span></li>)}
@@ -169,7 +169,7 @@ export default function UsedCarComparisonPage() {
         </section>
 
         <section className="mt-14" aria-labelledby="after-report-heading">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">07 · 보고서 받은 뒤 판단</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">07 · 보고서 받은 뒤 판단</p>
           <h2 id="after-report-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">결함을 비용과 결정으로 연결하세요</h2>
           <ol className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-2">
             {afterReportChecks.map((item, index) => <li key={item} className="bg-white p-5 sm:p-6"><span className="font-mono text-xs text-gold-ink">{String(index + 1).padStart(2, "0")}</span><p className="mt-2 text-sm leading-6 text-muted">{item}</p></li>)}
@@ -190,7 +190,7 @@ export default function UsedCarComparisonPage() {
         </section>
 
         <section className="mt-14 border-t border-navy/20 pt-10" aria-labelledby="vehicle-comparison-heading">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">08 · 후보 비교</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-ink">08 · 후보 비교</p>
           <h2 id="vehicle-comparison-heading" className="mt-2 text-2xl font-semibold text-navy sm:text-3xl">확인한 차량만 비교표에 기록하세요</h2>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">매물을 찾고 판매자에게 기본 질문을 한 다음, 최대 3대의 구매가·Rego·보험·정비·연료비를 같은 기준으로 비교합니다.</p>
           <div className="mt-8"><VehicleComparison /></div>

@@ -23,7 +23,7 @@ export function TaxTimeReminder({ purpose = "recent-return" }: { purpose?: TaxTi
     } catch { setFallback(body); setMessage("파일을 내려받지 못했습니다. 아래 내용을 .ics 텍스트 파일로 보관하거나 미리보기 날짜를 달력에 직접 입력하세요."); }
   }
   return <section className="rounded-2xl border border-gold/40 bg-gold/5 p-6 sm:p-8" aria-labelledby="tax-reminder-heading">
-    <p className="text-sm font-semibold text-gold">{purpose === "recent-return" ? "최근 종료된 회계연도의 신고 준비" : "현재 진행 중인 장부의 EOFY 준비"}</p>
+    <p className="text-sm font-semibold text-gold-ink">{purpose === "recent-return" ? "최근 종료된 회계연도의 신고 준비" : "현재 진행 중인 장부의 EOFY 준비"}</p>
     <h2 id="tax-reminder-heading" className="mt-2 text-2xl font-semibold text-navy">EOFY 캘린더 리마인더</h2>
     <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">선택한 회계연도가 끝난 해의 7월 25일과 10월 15일에 자료·진행 상황을 점검하는 파일입니다. 임의의 점검일이며 ATO 기한, Tax ready 상태나 준비 완료를 보장하지 않습니다. 실제 개인 신고 기한은 ATO 또는 등록 세무사에게 확인하세요.</p>
     <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end"><label className="text-sm font-medium text-navy">대상 회계연도의 시작 연도<input type="number" min="2020" max="2100" step="1" value={year} aria-invalid={validYear === null} aria-describedby="tax-reminder-year-help" onChange={event => { setYear(event.target.value); setMessage(""); setFallback(null); }} className="mt-2 block min-h-11 w-32 rounded-lg border border-border bg-white px-3" /></label><button type="button" disabled={validYear === null} onClick={download} className="min-h-11 rounded-lg bg-navy px-5 text-sm font-semibold text-white disabled:opacity-40">캘린더 파일 받기</button></div>

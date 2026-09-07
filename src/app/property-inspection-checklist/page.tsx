@@ -64,7 +64,7 @@ export default function PropertyInspectionChecklistPage() {
   return <>
     <BreadcrumbJsonLd items={[{ name: "홈", path: "/" }, { name: "집 방문 체크리스트", path: "/property-inspection-checklist" }]} />
     <Header />
-    <main>
+    <main className="site-screen tool-screen">
       <section className="border-b border-navy/15 py-12 sm:py-20"><Container>
         <Link href="/tools" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">&larr; 도구 목록으로 돌아가기</Link>
         <div className="mt-7 grid gap-8 lg:grid-cols-[1fr_21rem] lg:items-end">
