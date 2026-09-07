@@ -33,6 +33,9 @@ try {
       record.title = await page.title();
       record.h1 = await page.locator('main h1').innerText();
       assert.equal(record.h1, '호주 구직 제안이 진짜인지 확인하는 방법');
+      // Capture the fresh entry before testing animated contents navigation.
+      await page.waitForFunction(() => scrollY === 0);
+      await page.screenshot({ path: `${dir}/job-offer-heading-${width}.png` });
       assert(record.title.includes('송금·신분증 전 점검'));
       assert.equal(await page.locator('link[rel="canonical"]').getAttribute('href'), 'https://hojucompass.com' + route);
       const articleSchema = await page.locator('script[type="application/ld+json"]').evaluateAll(nodes => nodes.map(node => JSON.parse(node.textContent)).find(data => data['@type'] === 'Article'));
@@ -59,8 +62,6 @@ try {
       assert.deepEqual(record.axe, []);
       assert((await page.evaluate(() => document.documentElement.scrollWidth)) <= width);
       assert.deepEqual(errors, []);
-      await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
-      await page.screenshot({ path: `${dir}/job-offer-heading-${width}.png` });
       await page.getByRole('heading', { name: '이미 보냈다면 추가 피해를 막는 조치부터 하세요', exact: true }).scrollIntoViewIfNeeded();
       await page.screenshot({ path: `${dir}/job-offer-recovery-${width}.png` });
       await help.click(); await page.waitForURL('**/help-directory');
