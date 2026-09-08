@@ -3,6 +3,7 @@ import { rentalInspectionApplicationArticle } from "./rentalInspectionApplicatio
 import { paidWorkTimeArticle } from "./paidWorkTimeArticle";
 import { earlyShiftPayArticle } from "./earlyShiftPayArticle";
 import { saleReturnsArticle } from "./saleReturnsArticle";
+import { shareRoomComparisonArticle } from "./shareRoomComparisonArticle";
 import type { EditorialTrustInput } from "@/lib/editorialTrust";
 
 export type Article = {
@@ -69,6 +70,7 @@ export function getArticleContentType(article: Article): ArticleContentTypeId {
 }
 
 export const articles: Article[] = [
+  shareRoomComparisonArticle,
   paidWorkTimeArticle,
   saleReturnsArticle,
   earlyShiftPayArticle,
