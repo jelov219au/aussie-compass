@@ -7,7 +7,7 @@ const dir = process.env.EOFY_UI_DIR;
 if (!dir || !process.env.CHROME_PATH) throw Error('Remote browser review configuration missing');
 const require = createRequire(pathToFileURL(dir + '/package.json'));
 const { chromium } = require('playwright-core');
-const routes = process.env.TAX_SUMMARY_REVIEW === 'true' ? ['/tax-prep-tracker'] : [
+const routes = process.env.RESUME_ENTRY_COPY_REVIEW === 'true' ? ['/resume-pro'] : process.env.TAX_SUMMARY_REVIEW === 'true' ? ['/tax-prep-tracker'] : [
   '/resources/australia-job-ending-final-pay-dismissal-guide',
   '/resources/unpaid-trial-shift-australia-guide',
   '/used-car-comparison', '/tax-prep-tracker', '/property-inspection-checklist',
@@ -82,6 +82,19 @@ try {
         assert.deepEqual(record.axe, []);
         assert.deepEqual(errors, []);
         if (process.env.TAX_SUMMARY_REVIEW === 'true') await page.locator('[aria-describedby="tax-record-summary-note"]').screenshot({ path: `${dir}/tax-summary-cards-${width}.png` });
+        if (process.env.RESUME_ENTRY_COPY_REVIEW === 'true') {
+          const boundary = page.locator('#resume-pro-entry-boundary');
+          assert(await boundary.isVisible());
+          record.entryBoundary = await boundary.innerText();
+          const placement = await boundary.evaluate(element => {
+            const price = element.closest('aside');
+            const actions = price.parentElement.nextElementSibling;
+            return { price: price.innerText, beforeActions: element.getBoundingClientRect().bottom <= actions.getBoundingClientRect().top };
+          });
+          assert(placement.price.includes('A$19.90'));
+          assert(placement.beforeActions, 'privacy and payment boundary precedes the first CTA row');
+          await page.locator('main aside').first().screenshot({ path: `${dir}/resume-entry-price-${width}.png` });
+        }
         if (width !== 768) {
           await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
           await page.screenshot({ path: `${dir}/entry-${route.split('/').at(-1)}-${width}.png` });

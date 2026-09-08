@@ -187,6 +187,11 @@ export default async function ResumeProPage({ searchParams }: Props) {
                     <p className="text-sm font-semibold text-muted">Resume Pro 1회 이용권</p>
                     <p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$19.90</p>
                     <p className="mt-2 text-sm leading-6 text-muted">매달 빠져나가는 구독료 없이 한 번만 결제해요.</p>
+                    {!requiresBuyerRecovery && (
+                      <p id="resume-pro-entry-boundary" className="mt-3 text-xs leading-5 text-muted">
+                        작성 내용은 현재 브라우저에 저장되며, 결제 전 이름·연락처는 서버로 보내지 않습니다. 결제 시에는 확인란을 선택한 뒤 Stripe 보안 결제 페이지로 이동합니다.
+                      </p>
+                    )}
                   </>
                 )}
               </aside>
