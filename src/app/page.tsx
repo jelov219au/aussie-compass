@@ -13,7 +13,7 @@ import { HomeSocialChannels } from "@/components/sections/HomeSocialChannels";
 
 export default function HomePage() {
   return (
-    <>
+    <div className="home-coastal" data-home-design="coastal-20260909">
       <Header />
       <main className="site-screen home-screen">
         <HomeConversionAnalytics />
@@ -28,6 +28,6 @@ export default function HomePage() {
         <HomeTrustBar />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

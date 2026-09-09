@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./site-screen.css";
+@import "./home-coastal.css";
 
 @theme {
   --color-background: #f8f7f4;

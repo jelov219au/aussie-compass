@@ -49,20 +49,23 @@ export function HomePremiumToolExplorer({
   const resumeProduct = product.id === "resume-pro";
 
   return (
-    <div className="home-pro-explorer grid overflow-hidden rounded-2xl border border-border bg-white lg:grid-cols-[0.7fr_1.3fr]">
-      <div className="min-w-0 bg-navy p-5 text-white sm:p-7 lg:p-8">
-        <p className="inline-flex rounded-full bg-gold px-3 py-1 text-xs font-semibold text-navy">
-          도움이 필요한 일을 골라보세요
+    <>
+      <div className="home-pro-heading">
+        <p className="home-pro-label inline-flex rounded-full px-3 py-1 text-xs font-semibold text-navy">
+          Pro · 도움이 필요한 일을 골라보세요
         </p>
-        <h2 id="premium-tools-heading" data-home-observe="pro" className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-          필요한 준비만, Pro.
+        <h2 id="premium-tools-heading" data-home-observe="pro" className="mt-3 text-2xl font-semibold tracking-tight text-navy sm:text-3xl">
+          준비한 만큼, 한 걸음 더.
         </h2>
-        <p className="mt-3 max-w-md text-sm leading-6 text-white/65">
+        <p className="mt-2 max-w-md text-sm leading-6 text-muted">
           준비할 일을 고르고, 어떤 자료를 만들 수 있는지 확인하세요.
         </p>
 
+      </div>
+      <div className="home-pro-explorer grid gap-5 lg:grid-cols-[0.55fr_1.45fr] lg:gap-8">
+      <div className="home-pro-sidebar min-w-0">
         <div
-          className="mt-5 grid grid-cols-2 gap-2 lg:grid-cols-1"
+          className="grid grid-cols-2 gap-2 lg:grid-cols-1"
           role="group"
           aria-label="Pro 도구 선택"
         >
@@ -78,20 +81,20 @@ export function HomePremiumToolExplorer({
                 onClick={() => setSelectedId(item.id)}
                 aria-pressed={selected}
                 aria-controls={panelId}
-                className={`min-h-14 rounded-r-lg border-l-4 px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
+                className={`home-pro-selector min-h-14 rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
                   selected
-                    ? "border-gold bg-white text-navy"
-                    : "border-white/15 bg-white/[0.04] text-white hover:border-gold/70 hover:bg-white/[0.09]"
+                    ? "border-gold bg-surface text-navy"
+                    : "border-border bg-white text-muted hover:border-gold/70 hover:bg-surface"
                 }`}
               >
                 <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                   <span className="min-w-0">
                     <strong className="block text-sm leading-5">{taskNames[item.id] ?? item.name}</strong>
-                    <span className={`mt-1 block text-xs ${selected ? "text-muted" : "text-white/70"}`}>
+                    <span className="mt-1 block text-xs text-muted">
                       {item.live ? item.price : "준비 중"}
                     </span>
                   </span>
-                  <span className={`shrink-0 text-xs font-semibold ${selected ? "text-gold-ink" : "text-white/70"}`} aria-hidden="true">
+                  <span className={`shrink-0 text-xs font-semibold ${selected ? "text-gold-ink" : "text-muted"}`} aria-hidden="true">
                     {selected ? "선택됨" : "→"}
                   </span>
                 </span>
@@ -104,16 +107,16 @@ export function HomePremiumToolExplorer({
           href="/pro"
           eventName="Pro Interest"
           properties={{ product: "catalog", entry: "home" }}
-          className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-white underline decoration-gold decoration-2 underline-offset-4 hover:text-gold"
+          className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-gold-ink underline decoration-gold decoration-2 underline-offset-4 hover:text-gold"
         >
           모든 Pro 도구 비교하기 →
         </TrackedLink>
       </div>
 
-      <div id={panelId} className="flex min-w-0 flex-col bg-white p-5 sm:p-7 lg:p-8" aria-live="polite">
+      <div id={panelId} className="home-pro-detail flex min-w-0 flex-col rounded-2xl border border-border bg-white p-5 sm:p-7" aria-live="polite">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="flex min-w-0 items-center gap-4">
-            <TopicIcon name={product.icon} />
+            <TopicIcon name={product.icon} className="home-topic-icon" />
             <div className="min-w-0">
               <p className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${product.live ? "bg-[#e3f3e8] text-[#24623b]" : "bg-white text-muted"}`}>
                 {product.status}
@@ -127,7 +130,7 @@ export function HomePremiumToolExplorer({
           </div>
         </div>
 
-        <div className="mt-5 rounded-xl border border-border bg-background p-5">
+        <div className="home-pro-outcome mt-5">
           <span className="text-xs font-semibold text-gold-ink">이 도구로 준비할 수 있어요</span>
           <strong className="mt-2 block text-base leading-7 text-navy">{product.outcome}</strong>
         </div>
@@ -146,7 +149,7 @@ export function HomePremiumToolExplorer({
                 href="/resume-pro?from=home-premium"
                 surface={resumeFunnelSurfaces.homePremium}
                 context={resumeFunnelContexts.home}
-                className={actionClass(product.live ? "primary" : "secondary", "w-full")}
+                className={actionClass(product.live ? "primary" : "secondary", "home-pro-action w-full")}
               >
                 {product.live ? `${product.name} 보기 · ${product.price}` : "준비 방식 보기"} <span aria-hidden="true">→</span>
               </ResumeProCtaLink>
@@ -213,5 +216,6 @@ export function HomePremiumToolExplorer({
         </p>
       </div>
     </div>
+    </>
   );
 }

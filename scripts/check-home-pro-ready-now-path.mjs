@@ -22,7 +22,7 @@ for (const contract of [
   "initialProductId={featuredProduct?.id}",
   'aria-label="Pro 도구 선택"',
   "aria-pressed={selected}",
-  "border-gold bg-white text-navy",
+  "border-gold bg-surface text-navy",
   "모든 Pro 도구 비교하기",
   "도움이 필요한 일을 골라보세요",
   "text-navy",

@@ -1,0 +1,78 @@
+/* The approved Coastal Fresh palette belongs to the homepage only.
+   Scoped tokens cannot follow client navigation into tools or PDF previews. */
+@media screen {
+  .home-coastal,
+  .home-coastal .home-screen,
+  .home-coastal .site-header,
+  .home-coastal .site-footer {
+    --color-background: #fafcfa;
+    --color-surface: #e1f4f1;
+    --color-navy: #163c40;
+    --color-navy-light: #126574;
+    --color-gold: #087e8b;
+    --color-gold-ink: #087580;
+    --color-muted: #506d70;
+    --color-border: #cbdede;
+    --coastal-apricot: #ffd4ba;
+    --coastal-sky: #dceff7;
+    color: var(--color-navy);
+    background-color: var(--color-background);
+  }
+  .home-coastal .site-header { background-color: #fff; }
+  .home-coastal .site-header a > span.bg-navy { background: var(--color-gold); box-shadow: none; }
+  .home-coastal .site-header a > span.bg-navy circle { fill: var(--coastal-apricot); }
+  .home-coastal .site-footer { background: var(--color-surface); }
+
+  .home-coastal .home-hero {
+    background: linear-gradient(120deg, var(--color-surface), var(--color-background) 78%);
+    border: 0;
+  }
+  .home-coastal .home-hero-eyebrow,
+  .home-coastal .home-hero-accent { color: var(--color-gold); }
+  .home-coastal .home-task-panel { background: #fff; box-shadow: 0 10px 35px #163c4008; }
+  .home-coastal .home-task-link { background: var(--color-background); border-color: var(--color-border); }
+  .home-coastal .home-task-link:hover { background: var(--color-surface); border-color: var(--color-gold); }
+  .home-coastal .home-task-icon { background: transparent; color: var(--color-gold); box-shadow: none; width: 1.25rem; height: 1.25rem; border-radius: 0; }
+  .home-coastal .home-task-panel button.bg-navy,
+  .home-coastal .home-pro-action.bg-navy { background: var(--color-gold); border-color: var(--color-gold); color: #fff; }
+  .home-coastal .home-task-panel button.bg-navy:hover,
+  .home-coastal .home-pro-action.bg-navy:hover { background: var(--color-navy-light); }
+
+  .home-coastal #tools { background: #fff; padding-block: 2rem; }
+  .home-coastal .home-essential { border-radius: 1rem; transition: background-color 160ms ease; }
+  .home-coastal .home-essential:hover { background: var(--color-background); }
+  .home-coastal .home-essential > span { border-top: 0; padding-top: 0; }
+  .home-coastal .home-topic-icon { background: var(--color-surface); color: var(--color-gold); box-shadow: none; }
+  .home-coastal #tools li:nth-child(2) .home-topic-icon { background: var(--coastal-sky); }
+  .home-coastal #tools li:nth-child(4) .home-topic-icon { background: var(--coastal-apricot); color: var(--color-navy); }
+  .home-coastal .home-phrase { background: var(--color-surface); color: var(--color-navy); }
+  .home-coastal .home-phrase:hover { background: #d5eeea; }
+  .home-coastal .home-phrase .text-white { color: var(--color-navy); }
+  .home-coastal .home-phrase .text-white\/70 { color: var(--color-muted); }
+  .home-coastal .home-phrase .text-gold { color: var(--color-gold-ink); }
+  .home-coastal .home-job-proof { background: #f4f9fc; border-color: transparent; }
+  .home-coastal #route-finder { background: var(--color-background); padding-block: 1.5rem; }
+  .home-coastal #pro { background: var(--color-background); padding-block: 2rem; }
+  .home-coastal .home-pro-heading { margin-bottom: 1.5rem; }
+  .home-coastal .home-pro-label { background: var(--coastal-apricot); }
+  .home-coastal .home-pro-explorer { align-items: start; }
+  .home-coastal .home-pro-selector[aria-pressed="true"] { border-color: var(--color-gold); background: var(--color-surface); }
+  .home-coastal .home-pro-selector[aria-pressed="true"] strong { color: var(--color-gold-ink); }
+  .home-coastal .home-pro-outcome strong { font-weight: 500; }
+  .home-coastal .home-pro-action { border-radius: .75rem; }
+  .home-coastal .home-pro-detail details { border-color: var(--color-border); }
+  .home-coastal .site-card:hover { border-color: var(--color-gold); box-shadow: 0 5px 18px #163c4008; }
+
+  @media (min-width: 1024px) {
+    .home-coastal .home-pro-sidebar { padding-top: .25rem; }
+    .home-coastal .home-pro-selector:not([aria-pressed="true"]) { border-color: transparent; background: transparent; }
+    .home-coastal .home-pro-selector:hover { background: var(--color-surface); }
+  }
+  @media (max-width: 359px) {
+    .home-coastal .home-task-link { padding-inline: .5rem; gap: .375rem; font-size: .8125rem; }
+    .home-coastal .home-task-link > span:last-child { display: none; }
+  }
+  @media (forced-colors: active) {
+    .home-coastal .home-pro-selector[aria-pressed="true"] { border: 2px solid Highlight; }
+  }
+}

@@ -1,5 +1,14 @@
 # Homepage conversion measurement
 
+## Coastal Fresh release
+
+The subsequent owner-approved visual release uses `version=home-coastal-20260909`.
+It changes the homepage palette, introductory copy and Pro layout while keeping
+the counting contract below. Read September 10–11 traffic using this new version;
+do not pool it with `home-conversion-20260909`. Record the production activation
+time in the operations release record. The earlier baseline and the short-lived
+first version do not isolate the effect of color from copy or layout.
+
 The `home-conversion-20260909` version accompanies task-oriented homepage links,
 an optional route finder, and Korean task names in the Pro selector. It is a
 single release hypothesis, not evidence of improved conversion. Homepage/search

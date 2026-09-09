@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { track } from "@vercel/analytics";
 
-const version = "home-conversion-20260909";
+const version = "home-coastal-20260909";
 const products = new Set(["resume-pro", "rental-application-pro", "pay-evidence-pro", "eofy-pro", "leaving-australia-pro", "car-purchase-pro"]);
 const destinations = new Set([
   "/tools", "/pro", "/search", "/resources", "/my-compass", "/install",

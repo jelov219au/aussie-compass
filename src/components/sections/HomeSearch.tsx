@@ -2,18 +2,19 @@
 
 import { track } from "@vercel/analytics";
 import Link from "next/link";
+import { TopicIcon } from "@/components/ui/TopicIcon";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { actionClass } from "@/components/ui/actionStyles";
 import { sanitizeTransferredSearch, setPendingSearch } from "@/lib/searchTransfer";
 
 const popularSituations = [
-  { label: "퇴사·마지막 급여 확인", situation: "job_ending", href: "/resources/australia-job-ending-final-pay-dismissal-guide" },
-  { label: "택스리턴 준비물 확인", situation: "tax", href: "/tax-return-guide" },
-  { label: "집 방문·계약 체크", situation: "rent", href: "/property-inspection-checklist" },
-  { label: "급여가 이상할 때", situation: "pay", href: "/underpayment-guide" },
-  { label: "중고차 구매 전 확인", situation: "used_car", href: "/used-car-comparison" },
-  { label: "귀국 준비 순서", situation: "leaving", href: "/leaving-australia-guide" },
+  { icon: "work", label: "퇴사·마지막 급여 확인", situation: "job_ending", href: "/resources/australia-job-ending-final-pay-dismissal-guide" },
+  { icon: "document", label: "택스리턴 준비물 확인", situation: "tax", href: "/tax-return-guide" },
+  { icon: "home", label: "집 방문·계약 체크", situation: "rent", href: "/property-inspection-checklist" },
+  { icon: "money", label: "급여가 이상할 때", situation: "pay", href: "/underpayment-guide" },
+  { icon: "guide", label: "중고차 구매 전 확인", situation: "used_car", href: "/used-car-comparison" },
+  { icon: "visa", label: "귀국 준비 순서", situation: "leaving", href: "/leaving-australia-guide" },
 ] as const;
 
 const searchTopics = [
@@ -59,14 +60,14 @@ export function HomeSearch() {
   return (
     <section className="mt-4" aria-label="지금 할 일과 검색">
             <div className="grid grid-cols-2 gap-2" aria-label="바로 시작하는 여섯 상황">
-              {popularSituations.map(({ label, situation, href }) => (
+              {popularSituations.map(({ icon, label, situation, href }) => (
                 <Link
                   key={label}
                   href={href}
                   onClick={() => trackSituation(situation, href.slice(1))}
-                  className="inline-flex min-h-14 items-center justify-between gap-2 rounded-xl border border-navy/20 bg-white px-3 py-3 text-left text-sm font-semibold leading-6 text-navy transition hover:border-gold hover:bg-gold/5"
+                  className="home-task-link inline-flex min-h-14 items-center justify-between gap-2 rounded-xl border border-navy/20 bg-white px-3 py-3 text-left text-sm font-semibold leading-6 text-navy transition hover:border-gold hover:bg-gold/5"
                 >
-                  {label}<span aria-hidden="true">→</span>
+                  <TopicIcon name={icon} size="sm" className="home-task-icon" /><span className="min-w-0 flex-1 break-keep">{label}</span><span aria-hidden="true">→</span>
                 </Link>
               ))}
             </div>

@@ -31,7 +31,7 @@ const go = async (path) => {
 };
 const audit = async () => {
   await page.addScriptTag({ path: require.resolve('axe-core/axe.min.js') });
-  const violations = await page.evaluate(async () => (await axe.run(document.querySelector('main'), { runOnly: { type: 'tag', values: ['wcag2a','wcag2aa','wcag21aa'] } })).violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })));
+  const violations = await page.evaluate(async () => (await axe.run(document.querySelector('.home-coastal') ?? document.querySelector('main'), { runOnly: { type: 'tag', values: ['wcag2a','wcag2aa','wcag21aa'] } })).violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })));
   assert.deepEqual(violations, []);
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   assert.deepEqual(errors, []);
@@ -44,12 +44,21 @@ try {
       await page.setViewportSize({ width, height: 900 });
       await go('/');
       await page.waitForFunction(() => window.reviewEvents.some(e => e.name === 'Home Visit'));
+      assert.equal(await page.locator('[data-home-design]').getAttribute('data-home-design'), 'coastal-20260909');
+      assert.match(await page.locator('h1').innerText(), /조금 더 가볍게/);
+      record.palette = await page.evaluate(() => ({
+        heading: getComputedStyle(document.querySelector('.home-hero-accent')).color,
+        surface: getComputedStyle(document.querySelector('#pro')).backgroundColor,
+        selected: getComputedStyle(document.querySelector('[data-home-product][aria-pressed="true"]')).backgroundColor,
+      }));
+      assert.deepEqual(record.palette, { heading: 'rgb(8, 126, 139)', surface: 'rgb(250, 252, 250)', selected: 'rgb(225, 244, 241)' });
       assert.equal(await page.locator('#route-finder > div > details').getAttribute('open'), null);
       assert.equal(await page.locator('#home-tasks a').filter({ hasText: '중고차 구매 전 확인' }).getAttribute('href'), '/used-car-comparison');
       record.proTop = await page.locator('#pro').evaluate(e => Math.round(e.getBoundingClientRect().top + scrollY));
       assert(record.proTop < 2800, 'default recommendation must no longer push Pro far down the page');
       await audit();
       await page.screenshot({ path: `${dir}/home-conversion-entry-${width}.png` });
+      await page.locator('#tools').screenshot({ path: `${dir}/home-coastal-tools-${width}.png` });
       const buttons = page.locator('[data-home-product]');
       assert.equal(await buttons.count(), 6);
       for (let i = 0; i < 6; i++) {
@@ -67,7 +76,7 @@ try {
       await page.waitForFunction(() => window.reviewEvents.some(e => e.name === 'Home Section Viewed' && e.data.section === 'pro'));
       await page.locator('#pro').screenshot({ path: `${dir}/home-conversion-pro-${width}.png` });
       await audit();
-      const events = await page.evaluate(() => window.reviewEvents.filter(e => e.data?.version === 'home-conversion-20260909'));
+      const events = await page.evaluate(() => window.reviewEvents.filter(e => e.data?.version === 'home-coastal-20260909'));
       assert.equal(events.filter(e => e.name === 'Home Visit').length, 1, 'Strict Mode must not duplicate visits');
       assert.equal(events.filter(e => e.name === 'Home Product Selected').length, 6, 'repeat selection is deduplicated');
       assert(events.every(e => Object.keys(e.data).every(k => ['version','section','product','destination','action'].includes(k))));
@@ -84,6 +93,8 @@ try {
       await page.getByRole('button', { name: '검색', exact: true }).click();
       await page.waitForURL('**/search');
       await page.getByRole('searchbox').waitFor();
+      assert.equal(await page.locator('.home-coastal').count(), 0, 'homepage theme must not leak across client navigation');
+      assert.equal(await page.locator('main').evaluate(e => getComputedStyle(e).getPropertyValue('--color-navy').trim()), '#1a2744');
       assert.equal(await page.getByRole('searchbox').inputValue(), '중고차');
       assert.equal(new URL(page.url()).search, '', 'search text must stay out of URLs');
       assert.equal(await page.locator('#search-next-action-heading').innerText(), '호주 중고차 구매처·체크리스트');
@@ -138,7 +149,7 @@ try {
 
   await page.evaluate(() => sessionStorage.setItem('hoju-compass-internal-review', '1'));
   await go('/');
-  assert.equal((await page.evaluate(() => window.reviewEvents.filter(e => e.data?.version === 'home-conversion-20260909'))).length, 0);
+  assert.equal((await page.evaluate(() => window.reviewEvents.filter(e => e.data?.version === 'home-coastal-20260909'))).length, 0);
   await page.waitForFunction(() => typeof window.reviewBeforeSend === 'function');
   assert.equal(await page.evaluate(() => window.reviewBeforeSend({ type: 'pageview', url: location.href })), null);
   await page.evaluate(() => sessionStorage.removeItem('hoju-compass-internal-review'));

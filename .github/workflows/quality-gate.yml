@@ -36,15 +36,15 @@ jobs:
 
       - name: Review public UI with isolated browser records
         id: eofy_ui
-        if: github.event_name == 'pull_request' && (github.head_ref == 'codex/eofy-purchase-preview-20260907' || github.head_ref == 'codex/site-design-20260907' || github.head_ref == 'codex/search-entry-20260908' || github.head_ref == 'codex/job-offer-guide-20260908' || github.head_ref == 'codex/tax-summary-copy-20260908' || github.head_ref == 'codex/resume-entry-copy-20260908' || github.head_ref == 'codex/nsw-share-comparison-20260909' || github.head_ref == 'codex/home-conversion-20260909')
+        if: github.event_name == 'pull_request' && (github.head_ref == 'codex/eofy-purchase-preview-20260907' || github.head_ref == 'codex/site-design-20260907' || github.head_ref == 'codex/search-entry-20260908' || github.head_ref == 'codex/job-offer-guide-20260908' || github.head_ref == 'codex/tax-summary-copy-20260908' || github.head_ref == 'codex/resume-entry-copy-20260908' || github.head_ref == 'codex/nsw-share-comparison-20260909' || (github.head_ref == 'codex/home-conversion-20260909' || github.head_ref == 'codex/home-coastal-20260909'))
         timeout-minutes: 8
         env:
           EOFY_UI_DIR: ${{ runner.temp }}/eofy-ui
           NEXT_TELEMETRY_DISABLED: '1'
           SITE_DESIGN_REVIEW: ${{ github.head_ref == 'codex/site-design-20260907' }}
-          SEARCH_ENTRY_REVIEW: ${{ github.head_ref == 'codex/search-entry-20260908' || github.head_ref == 'codex/tax-summary-copy-20260908' || github.head_ref == 'codex/resume-entry-copy-20260908' || github.head_ref == 'codex/nsw-share-comparison-20260909' || github.head_ref == 'codex/home-conversion-20260909' }}
+          SEARCH_ENTRY_REVIEW: ${{ github.head_ref == 'codex/search-entry-20260908' || github.head_ref == 'codex/tax-summary-copy-20260908' || github.head_ref == 'codex/resume-entry-copy-20260908' || github.head_ref == 'codex/nsw-share-comparison-20260909' || (github.head_ref == 'codex/home-conversion-20260909' || github.head_ref == 'codex/home-coastal-20260909') }}
           SHARE_ROOM_REVIEW: ${{ github.head_ref == 'codex/nsw-share-comparison-20260909' }}
-          HOME_CONVERSION_REVIEW: ${{ github.head_ref == 'codex/home-conversion-20260909' }}
+          HOME_CONVERSION_REVIEW: ${{ (github.head_ref == 'codex/home-conversion-20260909' || github.head_ref == 'codex/home-coastal-20260909') }}
           RESUME_ENTRY_COPY_REVIEW: ${{ github.head_ref == 'codex/resume-entry-copy-20260908' }}
           TAX_SUMMARY_REVIEW: ${{ github.head_ref == 'codex/tax-summary-copy-20260908' }}
           JOB_OFFER_REVIEW: ${{ github.head_ref == 'codex/job-offer-guide-20260908' }}
@@ -101,7 +101,7 @@ jobs:
           test "$eofy_ui_failed" -eq 0
 
       - name: Save browser review evidence
-        if: always() && github.event_name == 'pull_request' && (github.head_ref == 'codex/eofy-purchase-preview-20260907' || github.head_ref == 'codex/site-design-20260907' || github.head_ref == 'codex/search-entry-20260908' || github.head_ref == 'codex/job-offer-guide-20260908' || github.head_ref == 'codex/tax-summary-copy-20260908' || github.head_ref == 'codex/resume-entry-copy-20260908' || github.head_ref == 'codex/nsw-share-comparison-20260909' || github.head_ref == 'codex/home-conversion-20260909') && steps.eofy_ui.outcome != 'skipped'
+        if: always() && github.event_name == 'pull_request' && (github.head_ref == 'codex/eofy-purchase-preview-20260907' || github.head_ref == 'codex/site-design-20260907' || github.head_ref == 'codex/search-entry-20260908' || github.head_ref == 'codex/job-offer-guide-20260908' || github.head_ref == 'codex/tax-summary-copy-20260908' || github.head_ref == 'codex/resume-entry-copy-20260908' || github.head_ref == 'codex/nsw-share-comparison-20260909' || (github.head_ref == 'codex/home-conversion-20260909' || github.head_ref == 'codex/home-coastal-20260909')) && steps.eofy_ui.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: eofy-ui-${{ github.event.pull_request.head.sha }}
