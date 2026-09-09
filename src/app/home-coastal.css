@@ -27,7 +27,7 @@
     background: linear-gradient(120deg, var(--color-surface), var(--color-background) 78%);
     border: 0;
   }
-  .home-coastal .home-hero-eyebrow,
+  .home-coastal .home-hero-eyebrow { color: var(--color-gold-ink); }
   .home-coastal .home-hero-accent { color: var(--color-gold); }
   .home-coastal .home-task-panel { background: #fff; box-shadow: 0 10px 35px #163c4008; }
   .home-coastal .home-task-link { background: var(--color-background); border-color: var(--color-border); }

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const [
+  coastalStyles,
   globalStyles,
   hero,
   australianSky,
@@ -20,6 +21,7 @@ const [
   searchPage,
   siteSearch,
 ] = await Promise.all([
+  readFile(new URL("../src/app/home-coastal.css", import.meta.url), "utf8"),
   readFile(new URL("../src/app/globals.css", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/Hero.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/brand/AustralianSky.tsx", import.meta.url), "utf8"),
@@ -70,6 +72,19 @@ for (const background of ["#ffffff", "#f8f7f4", "#f1efe9", "#edf3f2"]) {
   assert.ok(contrast("#806515", background) >= 4.5, `gold ink misses AA contrast on ${background}`);
 }
 assert.ok(contrast("#874b32", "#edf3f2") >= 4.5, "the hero rust label misses AA contrast");
+const coastalToken = (name) => {
+  const match = coastalStyles.match(new RegExp(`--${name}: (#[0-9a-f]{6});`));
+  assert.ok(match, `missing Coastal Fresh token: ${name}`);
+  return match[1];
+};
+for (const background of ["#ffffff", coastalToken("color-background"), coastalToken("color-surface")]) {
+  for (const foreground of [coastalToken("color-navy"), coastalToken("color-muted"), coastalToken("color-gold-ink")]) {
+    assert.ok(contrast(foreground, background) >= 4.5, `Coastal Fresh text ${foreground} misses AA on ${background}`);
+  }
+}
+assert.ok(contrast("#ffffff", coastalToken("color-gold")) >= 4.5, "teal CTA text misses AA");
+assert.ok(contrast(coastalToken("coastal-apricot"), coastalToken("color-navy")) >= 4.5, "expanded recommendation accents miss AA");
+assert.ok(coastalStyles.includes(".home-coastal .home-hero-eyebrow { color: var(--color-gold-ink); }"), "small hero text needs the darker coastal ink on the gradient");
 assert.ok(contrast("#1a2744", "#ffffff") >= 3, "the outer focus ring misses non-text contrast on white");
 assert.ok(contrast("#f8f7f4", "#1a2744") >= 3, "the inner focus ring misses non-text contrast on navy");
 for (const focusContract of [
@@ -83,7 +98,7 @@ for (const focusContract of [
 }
 
 for (const [source, marker] of [
-  [hero, 'text-[#874b32]'],
+  [hero, 'home-hero-eyebrow'],
   [australianSky, 'text-[#874b32]">START HERE, STAY READY'],
   [homeSearch, 'text-gold-ink">바로 찾아보기'],
   [tools, 'text-gold-ink">바로 써볼 수 있어요'],
