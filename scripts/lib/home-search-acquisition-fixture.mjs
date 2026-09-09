@@ -96,13 +96,13 @@ export function verifyHomeSearchAcquisition(queries, articlePath) {
     discoveredArticles.set(expectedArticle, typeof queryCase === "string" ? "/resume-job-ad-checker" : queryCase.freeHref ?? "/resume-job-ad-checker");
     // The article's actual free-comparison link is checked below; it need not be
     // a direct result for every query that discovers that article.
-    const field = name => {
-      const row = results.find(node => node.type === "div" && Array.isArray(node.props.children) && node.props.children.some(child => child?.type === "dt" && text(child) === name));
-      return text(row?.props.children.find(child => child?.type === "dd"));
-    };
-    assert.equal(field("boundary"), "free_first");
-    assert.equal(field("next_action"), "open_free_route");
-    assert.ok(links.includes(field("primary_route")) && !field("primary_route").includes("-pro"));
+    const recommendation = results.find(node => node.props['aria-labelledby'] === 'search-next-action-heading');
+    assert.ok(recommendation, 'the visitor must have a concrete recommended next step');
+    const primaryLink = nodes(recommendation, true).find(node => node.type === 'a');
+    assert.ok(primaryLink?.props.href && links.includes(primaryLink.props.href));
+    assert.ok(!primaryLink.props.href.includes('-pro') && primaryLink.props.href !== '/pro', 'ordinary acquisition queries must lead to a free route');
+    assert.match(text(primaryLink), /무료/, 'the recommended link must communicate its free action');
+    assert.doesNotMatch(text(recommendation), /9개 판정|search_next_action|open_free_route|free_first/, 'internal diagnostics must stay out of the public recommendation');
   }
   const articles = load("@/data/articles").articles;
   const { ArticleNextStep } = load("./src/components/resources/ArticleNextStep.tsx");
