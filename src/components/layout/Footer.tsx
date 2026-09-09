@@ -27,6 +27,7 @@ export function Footer() {
   ];
   const socialLinks = [
     { label: "Instagram", href: "https://www.instagram.com/hojucompass/" },
+    { label: "Threads", href: "https://www.threads.com/@hojucompass" },
     { label: "YouTube", href: "https://www.youtube.com/channel/UChn-PJcHHVz2XPVhHUkbFkQ" },
   ];
 

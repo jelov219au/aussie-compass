@@ -15,6 +15,13 @@ const channels = [
     ),
   },
   {
+    name: "Threads",
+    handle: "@hojucompass",
+    description: "집·일·돈 문제에서 놓치기 쉬운 조건을 짧은 글로 짚어드려요.",
+    href: "https://www.threads.com/@hojucompass",
+    icon: <span className="text-2xl font-semibold" aria-hidden="true">@</span>,
+  },
+  {
     name: "YouTube",
     handle: "Hoju Compass | 호주 컴패스",
     description: "실제 상황을 따라 확인 순서와 판단 기준을 살펴보세요.",
@@ -38,18 +45,18 @@ export function HomeSocialChannels() {
             Hoju Compass 소식 이어보기
           </h2>
           <p className="mt-3 text-sm leading-6 text-muted sm:text-base">
-            PPSR·보험처럼 글로만 보기 어려운 내용은 카드와 영상으로 이어서 확인할 수 있어요.
+            호주 생활에 필요한 확인 기준을 카드, 짧은 글, 영상으로 이어서 만나보세요.
           </p>
         </div>
 
-        <ul className="mt-7 grid gap-4 sm:grid-cols-2">
+        <ul className="mt-7 grid gap-4 md:grid-cols-3">
           {channels.map(channel => (
             <li key={channel.name}>
               <a
                 href={channel.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="site-card group flex h-full items-center gap-4 p-5 text-navy"
+                className="site-card group flex h-full items-start gap-4 p-5 text-navy md:flex-col xl:flex-row"
               >
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-navy text-white transition group-hover:bg-navy-light">
                   {channel.icon}
