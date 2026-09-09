@@ -58,6 +58,7 @@ assert.match(component, /window\.history\.replaceState\(window\.history\.state, 
 assert.match(config, /\{ key: "Referrer-Policy", value: "strict-origin" \}/);
 assert.doesNotMatch(searchPage, /searchParams|initialQuery/);
 for (const value of ["data-search-result-contract", "free_tool", "free_guide", "official_directory", "explicit_paid_intent", "무료로 확인하기", "모든 단어와 맞는 결과가 없어 일부 핵심 단어 결과"]) assert.ok(component.includes(value), value);
-assert.ok(component.match(/min-h-11/g)?.length >= 8, "recommendation and recovery targets must be at least 44px");
+// Target geometry is checked in check-home-conversion-ui.mjs; the removed debug disclosure is not a user action.
+assert.doesNotMatch(component, /9개 판정 필드 보기|>search_next_action<|규칙: 안전 표현|>\{meta\.kind\}</, "internal decision fields must not be rendered to visitors");
 
 console.log("Search safe-first action, privacy and recovery contract passed.");

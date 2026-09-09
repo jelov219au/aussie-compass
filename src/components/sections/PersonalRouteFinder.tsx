@@ -90,6 +90,7 @@ const stagePriority: Record<StageId, string[]> = {
 };
 
 export function PersonalRouteFinder() {
+  const [routeOpen, setRouteOpen] = useState(false);
   const [stage, setStage] = useState<StageId>("prepare");
   const [concern, setConcern] = useState<ConcernId>("admin");
   const [plan, setPlan] = useState<SavedPlan | null>(null);
@@ -117,7 +118,19 @@ export function PersonalRouteFinder() {
     else if (preferences.status === "valid") { setStage(preferences.value.stage); setConcern(preferences.value.concern); }
     const sydneyMonth = Number(new Intl.DateTimeFormat("en-AU", { month: "numeric", timeZone: "Australia/Sydney" }).format(new Date()));
     setTaxSeason(sydneyMonth >= 7 && sydneyMonth <= 10);
+    if (shared || params.get("plan") === "saved" || preferences.status === "invalid" || preferences.status === "unavailable" || (saved.status !== "missing" && saved.status !== "valid")) setRouteOpen(true);
     setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    const openFromHash = () => { if (window.location.hash === "#route-finder") setRouteOpen(true); };
+    const openFromLink = (event: MouseEvent) => {
+      if (event.target instanceof Element && event.target.closest('a[href="#route-finder"]')) setRouteOpen(true);
+    };
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+    document.addEventListener("click", openFromLink);
+    return () => { window.removeEventListener("hashchange", openFromHash); document.removeEventListener("click", openFromLink); };
   }, []);
 
   const savePreference = (nextStage: StageId, nextConcern: ConcernId, replaceInvalid = false) => {
@@ -213,7 +226,13 @@ export function PersonalRouteFinder() {
     finally { if (url) URL.revokeObjectURL(url); }
   };
 
-  return <section id="route-finder" className="scroll-mt-20 border-b border-border bg-white py-10 sm:py-14" aria-labelledby="route-finder-heading"><Container>
+  return <section id="route-finder" className="scroll-mt-20 border-b border-border bg-white py-5 sm:py-6" aria-labelledby="route-finder-summary"><Container>
+    <details open={routeOpen} onToggle={(event) => setRouteOpen(event.currentTarget.open)}>
+      <summary className="flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-xl border border-border p-4 text-navy">
+        <span><span id="route-finder-summary" className="block text-base font-semibold">무엇부터 할지 모르겠어요</span><span className="mt-1 block text-sm text-muted">두 가지를 고르면 내 상황에 맞는 도구 3개를 추천해요.</span></span>
+        <span className="shrink-0 text-sm font-semibold">{routeOpen ? "접기 −" : "추천받기 +"}</span>
+      </summary>
+      <div className="pt-6">
     <div className="grid gap-7 lg:grid-cols-[1fr_1fr] lg:gap-10">
       <div>
         <p className="text-sm font-semibold text-gold-ink">내 상황에 맞춰보기</p>
@@ -240,5 +259,7 @@ export function PersonalRouteFinder() {
         {showPlan && plan && completedCount === plan.steps.length && <p className="mt-5 border-l-2 border-gold pl-3 text-sm leading-6 text-white/75">세 단계를 모두 마쳤어요. 다른 고민을 골라 새 계획을 만들 수도 있어요.</p>}
       </div>
     </div>
+      </div>
+    </details>
   </Container></section>;
 }

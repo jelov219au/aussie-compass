@@ -8,12 +8,12 @@ import { actionClass } from "@/components/ui/actionStyles";
 import { sanitizeTransferredSearch, setPendingSearch } from "@/lib/searchTransfer";
 
 const popularSituations = [
-  { label: "일자리 종료", situation: "job_ending", href: "/resources/australia-job-ending-final-pay-dismissal-guide" },
-  { label: "세금", situation: "tax", href: "/tax-return-guide" },
-  { label: "렌트", situation: "rent", href: "/property-inspection-checklist" },
-  { label: "급여", situation: "pay", href: "/underpayment-guide" },
-  { label: "중고차", situation: "used_car", href: "/used-car-comparison" },
-  { label: "출국", situation: "leaving", href: "/leaving-australia-guide" },
+  { label: "퇴사·마지막 급여 확인", situation: "job_ending", href: "/resources/australia-job-ending-final-pay-dismissal-guide" },
+  { label: "택스리턴 준비물 확인", situation: "tax", href: "/tax-return-guide" },
+  { label: "집 방문·계약 체크", situation: "rent", href: "/property-inspection-checklist" },
+  { label: "급여가 이상할 때", situation: "pay", href: "/underpayment-guide" },
+  { label: "중고차 구매 전 확인", situation: "used_car", href: "/used-car-comparison" },
+  { label: "귀국 준비 순서", situation: "leaving", href: "/leaving-australia-guide" },
 ] as const;
 
 const searchTopics = [
@@ -57,7 +57,21 @@ export function HomeSearch() {
   }
 
   return (
-    <section className="mt-4" aria-labelledby="home-search-heading">
+    <section className="mt-4" aria-label="지금 할 일과 검색">
+            <div className="grid grid-cols-2 gap-2" aria-label="바로 시작하는 여섯 상황">
+              {popularSituations.map(({ label, situation, href }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  onClick={() => trackSituation(situation, href.slice(1))}
+                  className="inline-flex min-h-14 items-center justify-between gap-2 rounded-xl border border-navy/20 bg-white px-3 py-3 text-left text-sm font-semibold leading-6 text-navy transition hover:border-gold hover:bg-gold/5"
+                >
+                  {label}<span aria-hidden="true">→</span>
+                </Link>
+              ))}
+            </div>
+        <details className="mt-4 border-t border-border pt-2">
+          <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-navy">찾는 일이 없나요? 직접 검색하기</summary>
         <form onSubmit={(event) => {
           event.preventDefault();
           openSearch(query, classifySearch(query));
@@ -84,21 +98,11 @@ export function HomeSearch() {
                 검색
               </button>
             </div>
-            <p id="home-situation-boundary" className="mt-3 text-xs leading-5 text-muted">공식 기준과 내 기록은 무료로 확인하세요. 여러 건의 저장·전달이 필요할 때 Pro를 비교하세요.</p>
-            <div className="mt-2 grid grid-cols-2 gap-2 min-[380px]:grid-cols-3 sm:flex sm:flex-wrap" aria-label="바로 시작하는 여섯 상황" aria-describedby="home-situation-boundary">
-              {popularSituations.map(({ label, situation, href }) => (
-                <Link
-                  key={label}
-                  href={href}
-                  onClick={() => trackSituation(situation, href.slice(1))}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-navy/15 bg-white px-2 text-xs font-semibold text-navy transition hover:border-gold hover:bg-white sm:px-3"
-                >
-                  {label}
-                </Link>
-              ))}
-            </div>
+
+
           </div>
         </form>
+        </details>
     </section>
   );
 }

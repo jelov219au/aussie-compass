@@ -108,7 +108,7 @@ assert.match(homeSearch, /setPendingSearch\(transferredQuery\)/);
 assert.match(homeSearch, /router\.push\("\/search"\)/);
 assert.match(homeSearch, /track\("Home Search", \{ topic, entry: "free_text" \}\)/, "search analytics may contain only the allowlisted topic and fixed entry fields");
 assert.equal(homeSearch.match(/\btrack\(/g)?.length, 2, "home search may expose only its fixed search and situation analytics calls");
-assert.ok(homeSearch.indexOf('label: "일자리 종료"') < homeSearch.indexOf('label: "급여"'), "the broader job-ending route must precede the downstream pay shortcut");
+assert.ok(homeSearch.indexOf('situation: "job_ending"') < homeSearch.indexOf('situation: "pay"'), "the broader job-ending route must precede the downstream pay shortcut");
 const essentialTools = homeTools.slice(homeTools.indexOf("const essentials = ["), homeTools.indexOf("];", homeTools.indexOf("const essentials = [")));
 for (const href of ["/arrival-checklist", "/visa-preparation-guide", "/property-inspection-checklist", "/resume-builder"]) {
   assert.ok(essentialTools.includes(`href: "${href}"`), `the newcomer-first home tools are missing ${href}`);
@@ -129,7 +129,7 @@ assert.ok(site.includes('["호주 컴퍼스", "호주컴퍼스"]'), "the brand n
 assert.ok(layout.includes("호주 워홀 준비·정착·집·취업 가이드 | Hoju Compass") && layout.includes("description = siteDescription"), "the homepage metadata must lead with the newcomer journey and reuse the shared summary");
 assert.equal((jsonLd.match(/alternateName: siteAlternateNames/g) ?? []).length, 2, "the WebSite and Organization entities must share the same Korean brand aliases");
 assert.equal((jsonLd.match(/description: siteDescription/g) ?? []).length, 1, "the WebSite entity must reuse the customer-facing discovery summary");
-assert.ok(sitemap.includes('"": "2026-09-05"'), "the significantly updated homepage needs an evidence-based sitemap lastmod");
+assert.ok(sitemap.includes('"": "2026-09-09"'), "the significantly updated homepage needs an evidence-based sitemap lastmod");
 for (const verificationName of ["BING_SITE_VERIFICATION", "NAVER_SITE_VERIFICATION"]) {
   assert.ok(growthRoadmap.includes(verificationName), `the current search-discovery HOLD is missing: ${verificationName}`);
 }

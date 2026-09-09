@@ -1,3 +1,4 @@
+import { HomeConversionAnalytics } from "@/components/analytics/HomeConversionAnalytics";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
@@ -15,12 +16,13 @@ export default function HomePage() {
     <>
       <Header />
       <main className="site-screen home-screen">
+        <HomeConversionAnalytics />
         <Hero />
         <ToolsSection />
         <PersonalRouteFinder />
+        <PremiumToolsSection />
         <ReturnVisitSection />
         <HomeInstallBanner />
-        <PremiumToolsSection />
         <ArticlesSection />
         <HomeSocialChannels />
         <HomeTrustBar />

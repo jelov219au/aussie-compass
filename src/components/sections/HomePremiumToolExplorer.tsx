@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { TrackedLink } from "@/components/analytics/TrackedLink";
 import { ResumeProProofLink } from "@/components/analytics/ResumeProProofLink";
@@ -20,6 +22,15 @@ type HomeProProduct = {
   freeHref: string;
   status: string;
   priceNote: string;
+};
+
+const taskNames: Record<string, string> = {
+  "resume-pro": "이력서·지원서 준비",
+  "rental-application-pro": "렌트 신청 서류",
+  "pay-evidence-pro": "급여 차이·문의 자료",
+  "eofy-pro": "세금 자료 정리",
+  "leaving-australia-pro": "귀국 후속 정리",
+  "car-purchase-pro": "중고차 거래 기록",
 };
 
 export function HomePremiumToolExplorer({
@@ -43,15 +54,15 @@ export function HomePremiumToolExplorer({
         <p className="inline-flex rounded-full bg-gold px-3 py-1 text-xs font-semibold text-navy">
           도움이 필요한 일을 골라보세요
         </p>
-        <h2 id="premium-tools-heading" className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+        <h2 id="premium-tools-heading" data-home-observe="pro" className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
           필요한 준비만, Pro.
         </h2>
         <p className="mt-3 max-w-md text-sm leading-6 text-white/65">
-          선택한 도구의 준비 내용과 무료 대안을 확인하세요.
+          준비할 일을 고르고, 어떤 자료를 만들 수 있는지 확인하세요.
         </p>
 
         <div
-          className="mt-6 grid snap-x snap-mandatory auto-cols-[minmax(11.5rem,76%)] grid-flow-col gap-2 overflow-x-auto pb-2 sm:auto-cols-[minmax(12.5rem,44%)] lg:grid-flow-row lg:grid-cols-1 lg:overflow-visible lg:pb-0"
+          className="mt-5 grid grid-cols-2 gap-2 lg:grid-cols-1"
           role="group"
           aria-label="Pro 도구 선택"
         >
@@ -62,20 +73,22 @@ export function HomePremiumToolExplorer({
               <button
                 key={item.id}
                 type="button"
+                data-home-product={item.id}
+                aria-label={`${taskNames[item.id] ?? item.name} · ${item.name} · ${item.status} · ${item.price}`}
                 onClick={() => setSelectedId(item.id)}
                 aria-pressed={selected}
                 aria-controls={panelId}
-                className={`min-h-14 snap-start rounded-r-lg border-l-4 px-4 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
+                className={`min-h-14 rounded-r-lg border-l-4 px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
                   selected
                     ? "border-gold bg-white text-navy"
                     : "border-white/15 bg-white/[0.04] text-white hover:border-gold/70 hover:bg-white/[0.09]"
                 }`}
               >
-                <span className="flex items-center justify-between gap-3">
+                <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
                   <span className="min-w-0">
-                    <strong className="block truncate text-sm">{item.name}</strong>
-                    <span className={`mt-1 block truncate text-xs ${selected ? "text-muted" : "text-white/70"}`}>
-                      {item.status} · {item.price}
+                    <strong className="block text-sm leading-5">{taskNames[item.id] ?? item.name}</strong>
+                    <span className={`mt-1 block text-xs ${selected ? "text-muted" : "text-white/70"}`}>
+                      {item.live ? item.price : "준비 중"}
                     </span>
                   </span>
                   <span className={`shrink-0 text-xs font-semibold ${selected ? "text-gold-ink" : "text-white/70"}`} aria-hidden="true">
@@ -105,7 +118,7 @@ export function HomePremiumToolExplorer({
               <p className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${product.live ? "bg-[#e3f3e8] text-[#24623b]" : "bg-white text-muted"}`}>
                 {product.status}
               </p>
-              <h3 className="mt-2 break-words text-2xl font-semibold text-navy sm:text-3xl">{product.name}</h3>
+              <h3 data-home-observe="pro_details" className="mt-2 break-words text-2xl font-semibold text-navy sm:text-3xl">{product.name}</h3>
             </div>
           </div>
           <div className="text-left sm:text-right">
@@ -119,30 +132,12 @@ export function HomePremiumToolExplorer({
           <strong className="mt-2 block text-base leading-7 text-navy">{product.outcome}</strong>
         </div>
 
-        <details className="mt-4 rounded-xl border border-border px-4">
-          <summary className="flex min-h-11 cursor-pointer items-center justify-between text-sm font-semibold text-navy">이용 순서 자세히 보기 <span aria-hidden="true">＋</span></summary>
-          <ol className="my-3 grid gap-3 sm:grid-cols-3" aria-label="Pro 도구 이용 순서">
-            <li className="border-l-2 border-gold bg-white p-4">
-              <span className="font-mono text-xs text-gold-ink">01</span>
-              <strong className="mt-2 block text-sm text-navy">무료로 먼저 확인</strong>
-              <p className="mt-1 text-xs leading-5 text-muted">{product.free}</p>
-            </li>
-            <li className="border-l-2 border-navy/20 bg-white p-4">
-              <span className="font-mono text-xs text-muted">02</span>
-              <strong className="mt-2 block text-sm text-navy">필요한 부분만 정리</strong>
-              <p className="mt-1 text-xs leading-5 text-muted">내 상황에 맞게 항목을 채우고 빠진 내용을 확인해요.</p>
-            </li>
-            <li className="border-l-2 border-navy/20 bg-white p-4">
-              <span className="font-mono text-xs text-muted">03</span>
-              <strong className="mt-2 block text-sm text-navy">다음 행동에 활용</strong>
-              <p className="mt-1 text-xs leading-5 text-muted">지원·신청·문의·확인 단계에서 정리한 내용을 활용해요.</p>
-            </li>
-          </ol>
-        </details>
-
-        <p className="mt-4 text-sm leading-6 text-muted">
-          무료 안내만으로 충분하면 여기서 멈춰도 괜찮아요. 정리 시간이 더 필요할 때만 Pro를 선택하세요.
-        </p>
+        {resumeProduct ? (
+          <Link href="/resume-pro?from=home-premium#result-preview-heading" className="mt-4 flex items-center gap-4 rounded-xl border border-border bg-background p-3 text-navy hover:border-gold">
+            <Image src="/downloads/resume-pro-example-editorial.png" width={708} height={1000} sizes="72px" alt="가상 지원자의 실제 이력서 PDF 첫 페이지" className="h-auto w-16 shrink-0 border border-border sm:w-18" />
+            <span><strong className="block text-sm">완성된 지원서 예시 보기 →</strong><span className="mt-1 block text-xs leading-5 text-muted">가상 인물·경력으로 만든 이력서 PDF와 지원서 묶음입니다.</span></span>
+          </Link>
+        ) : null}
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {resumeProduct ? (
@@ -180,6 +175,33 @@ export function HomePremiumToolExplorer({
             </>
           )}
         </div>
+
+        <details className="mt-4 rounded-xl border border-border px-4">
+          <summary className="flex min-h-11 cursor-pointer items-center justify-between text-sm font-semibold text-navy">이용 순서 자세히 보기 <span aria-hidden="true">＋</span></summary>
+          <ol className="my-3 grid gap-3 sm:grid-cols-3" aria-label="Pro 도구 이용 순서">
+            <li className="border-l-2 border-gold bg-white p-4">
+              <span className="font-mono text-xs text-gold-ink">01</span>
+              <strong className="mt-2 block text-sm text-navy">무료로 먼저 확인</strong>
+              <p className="mt-1 text-xs leading-5 text-muted">{product.free}</p>
+            </li>
+            <li className="border-l-2 border-navy/20 bg-white p-4">
+              <span className="font-mono text-xs text-muted">02</span>
+              <strong className="mt-2 block text-sm text-navy">필요한 부분만 정리</strong>
+              <p className="mt-1 text-xs leading-5 text-muted">내 상황에 맞게 항목을 채우고 빠진 내용을 확인해요.</p>
+            </li>
+            <li className="border-l-2 border-navy/20 bg-white p-4">
+              <span className="font-mono text-xs text-muted">03</span>
+              <strong className="mt-2 block text-sm text-navy">다음 행동에 활용</strong>
+              <p className="mt-1 text-xs leading-5 text-muted">지원·신청·문의·확인 단계에서 정리한 내용을 활용해요.</p>
+            </li>
+          </ol>
+        </details>
+
+        <p className="mt-4 text-sm leading-6 text-muted">
+          {resumeProduct ? "기본 이력서·PDF는 무료예요. 회사별 커버레터와 STAR 메모를 저장하고 다시 쓸 때 Pro를 이용하세요." : "무료 안내만으로 충분하면 여기서 멈춰도 괜찮아요. 여러 건의 자료를 정리하고 다시 활용할 때 Pro를 선택하세요."}
+        </p>
+
+
 
         {resumeProduct ? (
           <p className="mt-4 text-xs leading-5 text-muted">
