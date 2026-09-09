@@ -85,6 +85,7 @@ try {
       const disclosure = page.locator('#route-finder summary').first();
       await disclosure.focus(); await page.keyboard.press('Enter');
       assert(await page.getByRole('radio', { name: '호주에서 생활 중 일·돈·생활 관리' }).isVisible());
+      await audit();
       await disclosure.click();
       assert.equal(await page.locator('#route-finder details').first().getAttribute('open'), null);
 

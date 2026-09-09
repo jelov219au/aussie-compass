@@ -52,6 +52,10 @@
   .home-coastal .home-phrase .text-gold { color: var(--color-gold-ink); }
   .home-coastal .home-job-proof { background: #f4f9fc; border-color: transparent; }
   .home-coastal #route-finder { background: var(--color-background); padding-block: 1.5rem; }
+  /* The optional recommendation panel stays dark; its accents need a light
+     pairing rather than inheriting teal text intended for pale surfaces. */
+  .home-coastal #route-finder div.bg-navy { --color-gold: var(--coastal-apricot); }
+  .home-coastal .site-card span[aria-hidden="true"].bg-navy { background: var(--color-surface); color: var(--color-gold); box-shadow: none; }
   .home-coastal #pro { background: var(--color-background); padding-block: 2rem; }
   .home-coastal .home-pro-heading { margin-bottom: 1.5rem; }
   .home-coastal .home-pro-label { background: var(--coastal-apricot); }
