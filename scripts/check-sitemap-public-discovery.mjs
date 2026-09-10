@@ -60,15 +60,24 @@ const excludedRoutes = [
 for (const route of excludedRoutes) assert.ok(!routes.includes(route), `${route} must stay outside the public sitemap`);
 assert.ok(routes.every((route) => !route.startsWith("/api/")), "API routes must stay outside the public sitemap");
 
-const expectedSeptemberUpdates = ["", "/tools", "/pro", "/privacy", "/terms", "/disclaimer", "/resources", "/car-purchase-pro"];
-for (const route of expectedSeptemberUpdates) assert.equal(manualUpdates[route], "2026-09-05", `${route || "/"} needs its verified 2026-09-05 lastmod`);
-assert.deepEqual(Object.entries(manualUpdates).filter(([, date]) => date === "2026-09-05").map(([route]) => route), expectedSeptemberUpdates, "only the eight verified routes may receive the 2026-09-05 lastmod");
-assert.equal(manualUpdates["/used-car-comparison"], "2026-08-30", "the unchanged used-car page must retain its earlier lastmod");
+const expectedSeptemberUpdates = {
+  "": "2026-09-09",
+  "/tools": "2026-09-05",
+  "/pro": "2026-09-07",
+  "/privacy": "2026-09-05",
+  "/terms": "2026-09-05",
+  "/disclaimer": "2026-09-05",
+  "/resources": "2026-09-07",
+  "/car-purchase-pro": "2026-09-05",
+};
+for (const [route, date] of Object.entries(expectedSeptemberUpdates)) assert.equal(manualUpdates[route], date, `${route || "/"} needs its verified ${date} lastmod`);
+assert.equal(manualUpdates["/used-car-comparison"], "2026-09-08", "the used-car page must carry its verified visitor-flow update date");
+assert.equal(manualUpdates["/tax-return-guide"], "2026-09-07", "the tax-return guide must carry its verified due-date and TPB guidance update date");
 for (const route of Object.keys(manualUpdates)) assert.ok(routes.includes(route), `manual lastmod key must name a public route: ${route || "/"}`);
 for (const lastModified of Object.values(manualUpdates)) assert.match(lastModified, /^\d{4}-\d{2}-\d{2}$/, "manual lastmod values must be ISO dates");
 
 const articles = loadArticleCatalog();
-assert.equal(articles.length, 37, "the existing article inventory must remain at 37 entries");
+assert.equal(articles.length, 41, "the current article inventory must contain 41 entries");
 const articleUrls = articles.map(({ slug }) => `https://hojucompass.com/resources/${slug}`);
 assert.equal(new Set(articleUrls).size, articleUrls.length, "article sitemap URLs must be unique");
 for (const article of articles) {
@@ -77,8 +86,8 @@ for (const article of articles) {
   assert.ok(Number.isFinite(new Date(effectiveDate).valueOf()), `article date must remain valid: ${article.slug}`);
 }
 const allUrls = routes.map((route) => `https://hojucompass.com${route}`).concat(articleUrls);
-assert.equal(allUrls.length, 88, "the generated sitemap inventory must contain the actual 88 URLs");
-assert.equal(new Set(allUrls).size, 88, "all generated sitemap URLs must be unique");
+assert.equal(allUrls.length, 92, "the generated sitemap inventory must contain the actual 92 URLs");
+assert.equal(new Set(allUrls).size, 92, "all generated sitemap URLs must be unique");
 
 assert.match(sitemapSource, /articles\.map\(\(article\) => \(\{[\s\S]*lastModified: new Date\(article\.updatedAt \?\? article\.publishedAt\)/, "article lastmod must keep using updatedAt with publishedAt fallback in catalog order");
 assert.match(carPage, /createPageMetadata\(\{[\s\S]*path: "\/car-purchase-pro"/, "Car Pro must expose canonical page metadata for its public URL");
@@ -88,4 +97,4 @@ for (const [name, source] of [["workspace", workspacePage], ["restore", restoreP
 assert.match(searchPage, /robots:\s*\{\s*index:\s*false,\s*follow:\s*true\s*\}/, "site search must remain noindex");
 assert.match(robotsSource, /disallow:\s*\[[\s\S]*"\/api\/"[\s\S]*"\/search"/, "robots.txt must continue excluding APIs and site search");
 
-console.log(`SITEMAP_PUBLIC_DISCOVERY=PASS static=${routes.length} articles=${articles.length} total=${allUrls.length} unique=${new Set(allUrls).size} car=1 excluded=${excludedRoutes.length} september_lastmod=${expectedSeptemberUpdates.length}`);
+console.log(`SITEMAP_PUBLIC_DISCOVERY=PASS static=${routes.length} articles=${articles.length} total=${allUrls.length} unique=${new Set(allUrls).size} car=1 excluded=${excludedRoutes.length} september_lastmod=${Object.keys(expectedSeptemberUpdates).length}`);

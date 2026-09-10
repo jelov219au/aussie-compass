@@ -21,7 +21,7 @@ for (const question of [
 ]) assert.ok(page.includes(question), `tax return copy-ready question is missing: ${question}`);
 
 assert.ok((page.match(/source: "(Australian Taxation Office|Tax Practitioners Board)"/g) ?? []).length >= 7, "tax return guide needs verified official entry points");
-assert.ok(checklist.includes("Income statement가 Tax ready") && checklist.includes("투자·가상자산·임대·해외 소득"), "tax checklist must cover pre-fill readiness and complex income");
+assert.ok(page.includes("Income statement와 Tax ready") && page.includes("사업·투자·임대·가상자산·해외 소득"), "tax guide must cover pre-fill readiness and complex income");
 assert.doesNotMatch(`${page}\n${checklist}`, /createCheckout|stripe\.checkout|PAYMENTS_ENABLED|paymentReadiness/i, "tax content changes must remain outside payment flows");
 
 console.log("TAX_RETURN_DEPTH=PASS official-sources>=7 copy-questions=5 post-lodgment=true");
