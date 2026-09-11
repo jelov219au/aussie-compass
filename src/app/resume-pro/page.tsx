@@ -80,8 +80,8 @@ const comparison = [
   ["기본 색상·레이아웃", true, true],
   ["프리미엄 직무별 레이아웃", false, true],
   ["커버레터 작성 도구", false, true],
-  ["채용 공고 키워드 점검", false, true],
-  ["회사별 지원서 묶음", false, true],
+  ["공고 표현·근거 점검", true, true],
+  ["회사별 공고·지원서 저장·재열기", false, true],
   ["회사별 지원 마감일·지원 상태 저장", false, true],
   ["재사용하는 STAR 경험 보관함", false, true],
 ] as const;
@@ -382,7 +382,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
         <section className="py-14 sm:py-20" aria-labelledby="comparison-heading">
           <Container>
             <div className="grid gap-10 lg:grid-cols-[18rem_1fr]">
-              <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#806515]">무료 기능은 그대로</p><h2 id="comparison-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy">무료 이력서만으로도<br />충분히 시작할 수 있어요.</h2><p className="mt-4 text-sm leading-6 text-muted">기본 이력서 작성과 PDF 저장은 계속 무료예요. 반복되는 추가 준비를 덜어주는 기능만 Pro로 나눴어요.</p></div>
+              <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#806515]">무료 기능은 그대로</p><h2 id="comparison-heading" className="mt-3 text-3xl font-semibold tracking-tight text-navy">무료 이력서만으로도<br />충분히 시작할 수 있어요.</h2><p className="mt-4 text-sm leading-6 text-muted">기본 이력서 작성·PDF 저장과 <Link href="/resume-job-ad-checker" className="font-semibold text-navy underline decoration-gold underline-offset-4">이번 공고의 표현·근거 점검</Link>은 무료예요. 공고와 지원서를 회사별로 저장해 다시 열고 비교할 때 Pro를 이용하세요.</p></div>
               <div className="min-w-0 overflow-x-auto border-t border-navy/20">
                 <table className="w-full border-collapse text-left text-sm">
                   <thead><tr className="border-b border-navy/20"><th className="px-3 py-4 font-semibold text-navy sm:px-4">기능</th><th className="w-16 px-2 py-4 text-center font-semibold text-navy sm:w-28 sm:px-4">무료</th><th className="w-16 bg-gold/10 px-2 py-4 text-center font-semibold text-navy sm:w-28 sm:px-4">Pro</th></tr></thead>
