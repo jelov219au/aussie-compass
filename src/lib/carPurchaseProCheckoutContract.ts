@@ -74,7 +74,8 @@ function verifyCheckout(
   const totals = session.total_details;
   if (session.currency !== approvedOffer.currency || session.amount_total !== approvedOffer.priceCents ||
     session.amount_subtotal !== approvedOffer.priceCents || !record(totals) ||
-    totals.amount_discount !== 0 || totals.amount_tax !== 0 || totals.amount_shipping !== 0) {
+    totals.amount_discount !== 0 || !Number.isSafeInteger(totals.amount_tax) ||
+    (totals.amount_tax as number) < 0 || (totals.amount_tax as number) > approvedOffer.priceCents || totals.amount_shipping !== 0) {
     return { ok: false, reason: "amount_mismatch" };
   }
   const items = session.line_items;
@@ -84,6 +85,13 @@ function verifyCheckout(
   const item: unknown = items.data[0];
   if (!record(item)) return { ok: false, reason: "line_item_mismatch" };
   const price = item.price;
+  // Managed Payments can report tax already included in the approved gross
+  // price. Accept it only when the exact line confirms the same inclusive tax;
+  // the session and line totals must still equal the approved price below.
+  if (totals.amount_tax !== 0 && (!record(price) || price.tax_behavior !== "inclusive"
+    || item.amount_tax !== totals.amount_tax || item.amount_discount !== 0)) {
+    return { ok: false, reason: "amount_mismatch" };
+  }
   if (!record(price) || price.id !== approvedOffer.stripePriceId ||
     price.product !== approvedOffer.stripeProductId || price.type !== "one_time" ||
     price.currency !== approvedOffer.currency || price.unit_amount !== approvedOffer.priceCents ||

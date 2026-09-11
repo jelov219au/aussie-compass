@@ -57,6 +57,26 @@ for (const wrong of [null, {}, { ...offer, priceCents: 0 }, { ...offer, priceCen
   assert.equal(isCarPurchaseApprovedOffer(wrong), false);
 }
 const live = { ...session, id: "cs_live_synthetic", livemode: true };
+const inclusive = structuredClone(session);
+inclusive.total_details.amount_tax = 112;
+Object.assign(inclusive.line_items.data[0], { amount_tax: 112, amount_discount: 0 });
+inclusive.line_items.data[0].price.tax_behavior = "inclusive";
+assert.equal(verifyCarPurchaseCheckout(inclusive, offer, "test").ok, true);
+for (const change of [
+  value => { value.line_items.data[0].price.tax_behavior = "exclusive"; },
+  value => { delete value.line_items.data[0].price.tax_behavior; },
+  value => { value.line_items.data[0].amount_tax = 111; },
+  value => { value.line_items.data[0].amount_discount = 1; },
+  value => { value.total_details.amount_tax = -1; },
+  value => { value.total_details.amount_tax = 1.5; },
+  value => { value.total_details.amount_tax = "112"; },
+  value => { value.total_details.amount_tax = 1235; value.line_items.data[0].amount_tax = 1235; },
+  value => { value.amount_total += 112; },
+  value => { value.line_items.data[0].amount_total += 112; },
+]) {
+  const invalid = structuredClone(inclusive); change(invalid);
+  assert.equal(verifyCarPurchaseCheckout(invalid, offer, "test").ok, false); negativeCases++;
+}
 assert.equal(verifyCarPurchaseCheckout(live, offer, "live").ok, true);
 assert.equal(verifyCarPurchaseCheckout(live, offer, "test").ok, false);
 console.log("PASS car checkout contract: test/live fixtures, unconfigured offer, " + negativeCases + " negative sessions, invalid offers. No Stripe calls or product activation.");
