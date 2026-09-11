@@ -71,7 +71,7 @@ const acquisitionRouteUpdates: Record<string, string> = {
   "/minimum-wage-guide": "2026-08-30",
   "/casual-loading-guide": "2026-08-30",
   "/moving-checklist": "2026-08-30",
-  "/tax-prep-tracker": "2026-08-29",
+  "/tax-prep-tracker": "2026-09-11",
   "/tax-return-guide": "2026-09-07",
   "/resume-builder": "2026-08-24",
   "/resume-job-ad-checker": "2026-08-24",
