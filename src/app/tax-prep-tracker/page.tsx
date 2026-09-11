@@ -6,6 +6,7 @@ import { TaxPrepTracker } from "@/components/tools/TaxPrepTracker";
 import { TaxTimeReminder } from "@/components/tools/TaxTimeReminder";
 import { BreadcrumbJsonLd, WebApplicationJsonLd } from "@/components/seo/JsonLd";
 import { createPageMetadata } from "@/lib/site";
+import { actionClass } from "@/components/ui/actionStyles";
 
 export const metadata = createPageMetadata({
   title: "호주 택스 리턴 준비 장부 | 무료 기록·CSV 백업",
@@ -21,6 +22,8 @@ export default function TaxPrepTrackerPage() {
     <main className="site-screen tool-screen py-8 sm:py-10"><Container>
       <Link href="/tax-return-guide" className="inline-flex min-h-11 items-center text-sm font-medium text-muted hover:text-navy">택스 리턴 신고 순서·기한·준비물 확인 &rarr;</Link>
       <div className="mt-5 max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold-ink">소득·지출 기록부터 CSV 백업까지</p><h1 className="mt-3 text-3xl font-semibold tracking-tight text-navy sm:text-5xl">호주 택스 리턴 준비 장부: 소득·지출을 기록하세요</h1><p className="mt-4 text-base leading-7 text-muted sm:text-lg">호주 택스 리턴에 필요한 소득·업무 관련 지출 후보·증빙 위치를 무료로 기록하고 CSV로 백업하세요. 입력은 이 브라우저에만 저장됩니다. 회계연도별로 자료를 모아 ATO 자료와 대조하거나 등록 세무사에게 전달할 기록을 준비할 수 있어요.</p></div>
+
+      <a href="#tax-record-entry" className={actionClass("primary", "mt-5")}>소득·지출 한 건 기록하기 ↓</a>
 
       <section className="my-8 grid gap-4 md:grid-cols-3" aria-label="연중 택스 준비 습관"><article className="rounded-2xl border border-gold/40 bg-gold/5 p-5"><p className="text-xs font-semibold text-gold-ink">매달</p><h2 className="mt-2 font-semibold text-navy">금액과 증빙 위치 기록</h2><p className="mt-2 text-sm leading-6 text-muted">파일을 올리지 않고 어디에 보관했는지만 적어도 누락을 찾기 쉬워요.</p></article><article className="rounded-2xl border border-border bg-white p-5"><p className="text-xs font-semibold text-gold-ink">회계연도 중</p><h2 className="mt-2 font-semibold text-navy">복잡성 조기 확인</h2><p className="mt-2 text-sm leading-6 text-muted">부업·투자·해외 소득처럼 전문가 확인이 필요한 항목을 7월 전에 발견해요.</p></article><article className="rounded-2xl border border-border bg-white p-5"><p className="text-xs font-semibold text-gold-ink">EOFY</p><h2 className="mt-2 font-semibold text-navy">Pre-fill과 내 기록 대조</h2><p className="mt-2 text-sm leading-6 text-muted">ATO 자료와 CSV·원본 증빙을 비교한 뒤 직접 신고 또는 등록 세무사를 결정해요.</p></article></section>
 

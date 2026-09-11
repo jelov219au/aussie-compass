@@ -9,13 +9,14 @@ const require = createRequire(import.meta.url);
 const root = process.cwd();
 
 // Exercise actual component handlers without a server, browser or analytics network.
-function harness({ qa = false, blocked = false, loaded = true, taxStorage = "ready" } = {}) {
+function harness({ qa = false, blocked = false, loaded = true, taxStorage = "ready", plan = [] } = {}) {
   const events = [], states = [], refs = [], cache = new Map();
-  let stateIndex = 0, refIndex = 0, checked = [];
+  let stateIndex = 0, refIndex = 0, checked = plan, nextId = 0;
   const storage = { getItem: () => { if (blocked) throw Error("storage blocked"); return qa ? "1" : null; } };
   const react = {
     ...require("react"),
     useEffect: () => {},
+    useMemo: compute => compute(),
     useState: initial => {
       const index = stateIndex++;
       if (!(index in states)) states[index] = typeof initial === "function" ? initial() : initial;
@@ -36,7 +37,7 @@ function harness({ qa = false, blocked = false, loaded = true, taxStorage = "rea
       if (name === "react") return react;
       if (name === "@vercel/analytics") return { track: (name, data) => events.push({ name, data }) };
       if (name === "@vercel/analytics/next") return { Analytics: () => null };
-      if (name === "@/lib/useLocalPlan") return { useLocalPlan: () => ({ data: checked, storage: taxStorage, update: next => { checked = next(checked); } }) };
+      if (name === "@/lib/useLocalPlan") return { useLocalPlan: () => ({ data: checked, storage: taxStorage, update: next => { checked = typeof next === "function" ? next(checked) : next; } }) };
       if (name === "./TaxStorageNotice") return { TaxStorageNotice: () => null };
       if (name.startsWith("@/") || name.startsWith(".")) {
         const target = name.startsWith("@/") ? path.join(root, "src", name.slice(2)) : path.resolve(path.dirname(file), name);
@@ -44,7 +45,7 @@ function harness({ qa = false, blocked = false, loaded = true, taxStorage = "rea
       }
       return require(name);
     };
-    vm.runInNewContext(source, { module: loadedModule, exports: loadedModule.exports, require: scopedRequire, sessionStorage: storage, window: { location: { origin: "https://hojucompass.com" } }, console, URL, Intl, Date, setTimeout, clearTimeout }, { filename: file });
+    vm.runInNewContext(source, { module: loadedModule, exports: loadedModule.exports, require: scopedRequire, sessionStorage: storage, crypto: { randomUUID: () => `test-record-${++nextId}` }, window: { location: { origin: "https://hojucompass.com" } }, console, URL, Intl, Date, setTimeout, clearTimeout }, { filename: file });
     return loadedModule.exports;
   }
   const render = component => { stateIndex = 0; refIndex = 0; return component(); };
@@ -146,4 +147,37 @@ const storageBlocked = harness({ blocked: true });
 input(storageBlocked.render(storageBlocked.load("src/components/tools/TaxReturnChecklist.tsx").TaxReturnChecklist), "checkbox").props.onChange();
 assert.equal(storageBlocked.events.length, 1, "optional storage failure must not break a user action");
 
-console.log(`TRAFFIC_FIRST_ACTION=PASS tax_presentations=${cases} search=17 qa_pageview_and_event=true handlers=true private_values_sent=false`);
+// A ledger start is an accepted record, never a draft, restoration or rejection.
+const submit = tree => elements(tree, n => n.type === "form")[0].props.onSubmit({ preventDefault() {} });
+function ledgerDraft(h, Component, { date = "2026-09-11", amount = "45.90", description = "PRIVATE RECEIPT LOCATION" } = {}) {
+  let tree = h.render(Component);
+  for (const [type, value] of [["date", date], ["number", amount], ["text", description]]) {
+    input(tree, type).props.onChange({ target: { value } });
+    tree = h.render(Component);
+  }
+  return tree;
+}
+for (const qa of [false, true]) {
+  const h = harness({ qa }), Component = h.load("src/components/tools/TaxPrepTracker.tsx").TaxPrepTracker;
+  submit(h.render(Component));
+  submit(ledgerDraft(h, Component, { amount: "0" }));
+  submit(ledgerDraft(h, Component, { date: "2026-02-30" }));
+  submit(ledgerDraft(h, Component, { description: " " }));
+  // Valid-looking fields that fail complete record validation must not count.
+  submit(ledgerDraft(h, Component, { description: "x".repeat(121) }));
+  assert.equal(h.events.length, 0, "drafts and rejected submissions must not start a ledger");
+  submit(ledgerDraft(h, Component));
+  submit(ledgerDraft(h, Component));
+  assert.equal(h.events.length, qa ? 0 : 1);
+  if (!qa) assert.deepEqual(plain(h.events[0]), { name: "Tool Started", data: { schema_version: "1", tool: "tax_prep_tracker", entry: "unknown" } });
+}
+for (const taxStorage of ["loading", "blocked"]) {
+  const h = harness({ taxStorage, blocked: true }), Component = h.load("src/components/tools/TaxPrepTracker.tsx").TaxPrepTracker;
+  submit(ledgerDraft(h, Component));
+  assert.equal(h.events.length, taxStorage === "loading" ? 0 : 1, "only loading prevents accepted local edits");
+}
+const restoredLedger = harness({ plan: [{ id: "restored", date: "2026-09-11", kind: "expense", category: "tools", description: "PRIVATE", amount: 20, evidence: "saved", createdAt: "2026-09-11T00:00:00.000Z" }] });
+restoredLedger.render(restoredLedger.load("src/components/tools/TaxPrepTracker.tsx").TaxPrepTracker);
+assert.equal(restoredLedger.events.length, 0, "restoring ledger records must not emit");
+
+console.log(`TRAFFIC_FIRST_ACTION=PASS tax_presentations=${cases} search=17 qa_pageview_and_event=true handlers=true ledger=true private_values_sent=false`);

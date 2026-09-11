@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { track } from "@vercel/analytics";
 
-type MeasuredTool = "tax_return_guide" | "used_car_comparison";
+type MeasuredTool = "tax_return_guide" | "tax_prep_tracker" | "used_car_comparison";
 
 /** Call only from a meaningful user action, never from restoration or rendering. */
 export function useToolStarted(tool: MeasuredTool) {

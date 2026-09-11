@@ -5,6 +5,7 @@ import { evidenceLabels, financialYearLabel, financialYearPeriod, financialYearS
 import { todayDate } from "@/lib/lifeReminders";
 import { useLocalPlan } from "@/lib/useLocalPlan";
 import { TaxStorageNotice } from "./TaxStorageNotice";
+import { useToolStarted } from "@/components/analytics/useToolStarted";
 const categories: Record<RecordKind, string[]> = {
   income: ["급여·Income statement", "은행 이자", "정부 지급금", "부업·플랫폼", "기타 소득"],
   expense: ["업무 장비·도구", "유니폼·세탁", "차량·출장", "재택근무", "교육·자격", "기부", "세무 비용", "기타 지출 후보"],
@@ -15,6 +16,7 @@ function formatMoney(value: number) {
 }
 
 export function TaxPrepTracker() {
+  const recordStarted = useToolStarted("tax_prep_tracker");
   const { data: records, update: setRecords, storage, saveState } = useLocalPlan<TaxRecord[]>(taxPrepRecordsStorageKey, [], parseTaxRecords, serializeTaxRecords, { initial: "아직 저장한 기록 없음", reset: "기록 초기화" });
   const [year, setYear] = useState(() => financialYearStart());
   const [kind, setKind] = useState<RecordKind>("expense");
@@ -63,6 +65,7 @@ export function TaxPrepTracker() {
     const nextRecords = [nextRecord, ...records];
     if (!parseTaxRecords(JSON.stringify(nextRecords))) { setMessage("기록 형식이나 합계 범위를 확인하세요. 최대 5,000건이며 금액은 센트 단위로 정확히 계산 가능한 범위여야 합니다."); return; }
     setRecords(nextRecords);
+    recordStarted();
     const recordYear = financialYearStart(date);
     setYear(recordYear);
     setDescription("");
@@ -112,7 +115,7 @@ export function TaxPrepTracker() {
       <div className="rounded-xl bg-surface p-4"><p className="text-xs text-muted">기록이 있는 달</p><strong className="mt-1 block text-xl text-navy">{summary?.months ?? "—"}/12개월</strong><p className="mt-2 text-xs leading-5 text-muted">현재 화면 기록에 등장하는 달 수입니다. 빈 달의 소득·지출이 없거나 신고 준비가 끝났다는 뜻이 아닙니다.</p></div>
     </div>
 
-    <form onSubmit={addRecord} className="mt-8 rounded-2xl border border-border bg-surface p-5 sm:p-6">
+    <form id="tax-record-entry" tabIndex={-1} onSubmit={addRecord} className="mt-8 scroll-mt-24 rounded-2xl border border-border bg-surface p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy sm:p-6">
       <fieldset disabled={storage === "loading"}><legend className="sr-only">소득·지출 기록 입력</legend>
       <div className="flex flex-wrap gap-2" aria-label="기록 종류">
         {(["expense", "income"] as RecordKind[]).map((item) => <button key={item} type="button" aria-pressed={kind === item} onClick={() => changeKind(item)} className={`min-h-11 rounded-full border px-4 text-sm font-semibold ${kind === item ? "border-navy bg-navy text-white" : "border-border bg-white text-navy"}`}>{item === "expense" ? "지출 후보" : "소득"}</button>)}

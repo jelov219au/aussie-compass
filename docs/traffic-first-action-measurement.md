@@ -13,11 +13,16 @@ query. Career, house-inspection and tax-deduction controls retain their topics.
 | Property | Allowed value in this release |
 | --- | --- |
 | schema_version | `1` |
-| tool | `tax_return_guide`, `used_car_comparison` |
+| tool | `tax_return_guide`, `tax_prep_tracker`, `used_car_comparison` |
 | entry | `unknown` — no acquisition context has been established |
 
 The first accepted checklist toggle, nonblank vehicle name, valid nonnegative
 cost edit, check change or candidate addition emits once per mounted tool.
+For `tax_prep_tracker`, the first record accepted by both field and full-record
+validation emits after adding it to the screen. Opening the entry shortcut,
+editing a draft, rejected submissions, year changes, restoration and CSV export
+do not emit a start. This is not proof that browser storage succeeded; the storage
+notice remains authoritative. The ledger is measured separately from its guide.
 Rendering, restoration, focus, blank input, invalid cost, reset and subsequent
 edits do not emit another start. The event is not task completion, tax lodgment,
 vehicle approval, a paid entitlement or a purchase. Never attach field values,
