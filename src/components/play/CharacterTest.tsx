@@ -81,6 +81,6 @@ export function CharacterTest() {
         <button type="button" className={styles.primaryButton} disabled={answers[step] === undefined} onClick={next}>{step === characterQuestions.length - 1 ? "내 캐릭터 만나기 ✨" : "다음 질문 →"}</button>
       </div>
     </>}
-    <p className={styles.finePrint}>다섯 가지 선택으로 만드는 재미용 캐릭터예요. 성격 진단은 아니며, 답변은 서버로 보내거나 브라우저에 저장하지 않아요.</p>
+    <p className={styles.finePrint}><span>다섯 가지 선택으로 만드는</span><span>재미용 캐릭터예요.</span></p>
   </section>;
 }

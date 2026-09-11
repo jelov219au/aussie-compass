@@ -1,9 +1,11 @@
+import { validPlayWordExplanation, type PlayWordExplanation } from "./playWordExplanation";
+
 export type PlaySource = { title: string; url: string; checkedAt: string };
 type ReviewedItem = { id: string; topicKey: string; review: "reviewed" | "draft"; checkedAt: string };
 export type DailyPlaySet = {
   id: string; date: string;
   quiz: ReviewedItem & { question: string; choices: string[]; answer: number; explanation: string; source: PlaySource };
-  puzzle: ReviewedItem & { word: string; meaning: string; explanation: string; source: PlaySource };
+  puzzle: ReviewedItem & PlayWordExplanation & { word: string; meaning: string; source: PlaySource };
   choice: ReviewedItem & { question: string; choices: [string, string]; reactions: [string, string]; creative: true };
 };
 export type DailyPlayResponse = { today: string; date: string; dates: string[]; set: DailyPlaySet | null };
@@ -52,6 +54,7 @@ export function validateDailyPlayCatalog(sets: readonly DailyPlaySet[], existing
     if (!set.quiz.question || set.quiz.choices.length < 2 || new Set(set.quiz.choices).size !== set.quiz.choices.length
       || !Number.isInteger(set.quiz.answer) || !set.quiz.choices[set.quiz.answer]) throw Error("Invalid quiz");
     if (!/^[A-Z]{3,12}$/.test(set.puzzle.word) || set.puzzle.topicKey !== `slang:${set.puzzle.word.toLowerCase()}` || !set.puzzle.meaning) throw Error("Invalid puzzle");
+    if (!validPlayWordExplanation(set.puzzle, set.puzzle.word)) throw Error("Missing Korean word explanation or usage example");
     if (set.choice.creative !== true || !set.choice.question || set.choice.choices.length !== 2
       || set.choice.reactions.length !== 2 || set.choice.choices.some(value => !value)
       || set.choice.reactions.some(value => !value) || set.choice.choices[0] === set.choice.choices[1]) throw Error("Invalid creative choice");

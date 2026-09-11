@@ -5,6 +5,7 @@ import { wordPuzzles } from "@/data/playMore";
 import { puzzleAnswer, puzzleTiles } from "@/lib/playMore";
 import styles from "./Playground.module.css";
 import { BalancedLetters } from "./BalancedLetters";
+import { WordExplanation } from "./WordExplanation";
 
 type Finish = "solo" | "hint" | "reveal";
 export function WordPuzzle() {
@@ -68,10 +69,12 @@ export function WordPuzzle() {
       {notice && <p className={styles.storageNote} role="status">{notice}</p>}
       {result && <div ref={resultRef} tabIndex={-1} className={styles.quizResult}>
         <strong>{result === "reveal" ? "오늘은 이렇게 기억해요 👀" : "맞았어요! 글자들이 제자리를 찾았네요 🥳"}</strong>
-        <p><b lang="en">{puzzle.word}</b> · {puzzle.explanation}</p><a href={puzzle.source} target="_blank" rel="noreferrer">뜻 확인: ABC Education ↗</a>
+        <p><b lang="en">{puzzle.word}</b></p><WordExplanation {...puzzle} />
+        <a href={puzzle.source} target="_blank" rel="noreferrer">출처 원문 보기 · 영어(새 창) ↗</a>
+        <small className={styles.sourceName}>ABC Education</small>
         <div className={styles.actions}><button type="button" className={styles.smallButton} onClick={next}>{step === wordPuzzles.length - 1 ? "나의 단어 모음집 보기 →" : "다음 단어 →"}</button></div>
       </div>}
     </>}
-    <p className={styles.finePrint}>시간 제한 없이 즐겨요. 힌트나 정답을 봐도 괜찮아요. 진행 기록은 저장되지 않아 새로고침하면 처음부터 시작해요.</p>
+    <p className={styles.finePrint}><span>시간 제한 없이 즐겨요.</span><span>힌트나 정답을 봐도 괜찮아요.</span><span>진행은 저장되지 않아요.</span><span>새로고침하면 처음부터 시작해요.</span></p>
   </section>;
 }

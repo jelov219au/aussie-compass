@@ -6,6 +6,7 @@ import { dailyPlayStorageKey, emptyDailyPlayAnswers, millisecondsToSydneyMidnigh
 import { puzzleTiles } from "@/lib/playMore";
 import styles from "./Playground.module.css";
 import { BalancedLetters } from "./BalancedLetters";
+import { WordExplanation } from "./WordExplanation";
 
 function DailySession({ set }: { set: DailyPlaySet }) {
   const [answers, setAnswers] = useState(() => emptyDailyPlayAnswers(set));
@@ -62,7 +63,8 @@ function DailySession({ set }: { set: DailyPlaySet }) {
         {answers.quiz !== null && <div className={styles.quizResult} ref={quizResult} tabIndex={-1}>
           <strong>{answers.quiz === set.quiz.answer ? "정답이에요! 🥳" : "새로운 발견이에요 👀"}</strong>
           <p>정답: {set.quiz.choices[set.quiz.answer]}</p><p>{set.quiz.explanation}</p>
-          <a href={set.quiz.source.url} target="_blank" rel="noreferrer">근거: {set.quiz.source.title} ↗</a>
+          <a href={set.quiz.source.url} target="_blank" rel="noreferrer">출처 원문 보기 · 영어(새 창) ↗</a>
+          <small>{set.quiz.source.title}</small>
           <small>확인 {set.quiz.source.checkedAt}</small>
         </div>}
       </section>
@@ -82,8 +84,9 @@ function DailySession({ set }: { set: DailyPlaySet }) {
         </>}
         {puzzleNote && <p role="status" className={styles.storageNote}>{puzzleNote}</p>}
         {answers.finish && <div className={styles.quizResult} ref={puzzleResult} tabIndex={-1}><strong lang="en">{set.puzzle.word}</strong>
-          <p>{answers.finish === "solo" ? "스스로 완성 ✓" : answers.finish === "hint" ? "힌트와 함께 완성 ✓" : "정답 살펴봄 👀"}</p><p>{set.puzzle.explanation}</p>
-          <a href={set.puzzle.source.url} target="_blank" rel="noreferrer">뜻 확인: {set.puzzle.source.title} ↗</a><small>확인 {set.puzzle.source.checkedAt}</small></div>}
+          <p>{answers.finish === "solo" ? "스스로 완성 ✓" : answers.finish === "hint" ? "힌트와 함께 완성 ✓" : "정답 살펴봄 👀"}</p>
+          <WordExplanation {...set.puzzle} />
+          <a href={set.puzzle.source.url} target="_blank" rel="noreferrer">출처 원문 보기 · 영어(새 창) ↗</a><small>{set.puzzle.source.title} · 확인 {set.puzzle.source.checkedAt}</small></div>}
       </section>
       <section className={`${styles.dailyCard} ${styles.balancePanel}`} aria-labelledby="new-choice-heading">
         <span className={styles.eyebrow}>03 / 상상 한 스푼</span><h3 id="new-choice-heading">{set.choice.question}</h3>
