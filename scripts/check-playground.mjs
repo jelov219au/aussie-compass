@@ -85,7 +85,7 @@ test("fresh and restored mount never writes; first answer survives reload", () =
 });
 test("bonus answers never overwrite today's saved answer", () => {
   const app = mount(raw); app.click("한 문제 더"); app.answer(); assert.equal(app.records.get(lib.dailyQuizKey), raw); assert.equal(app.writes.length, 0);
-  app.click("오늘의 문제로"); assert(app.text().includes(question.word));
+  app.click("첫 연습 문제로"); assert(app.text().includes(question.word));
 });
 test("the complete bonus round visits all fourteen questions once and then stops", () => {
   const app = mount(); app.answer();

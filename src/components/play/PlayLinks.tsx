@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import styles from "./Playground.module.css";
 
 const games = [
-  ["daily-quiz", "오늘의 한 문제"], ["character-test", "나의 생활 캐릭터"],
+  ["daily-quiz", "오늘의 새 세트"], ["character-test", "나의 생활 캐릭터"],
   ["word-puzzle", "호주 단어 퍼즐"], ["balance-game", "생활 밸런스 게임"],
 ] as const;
 
@@ -16,7 +16,7 @@ export function PlayLinks() {
     if (!quiz) return;
     let cancelled = false, scheduled = false, frame = 0;
     const cancel = () => { cancelled = true; window.cancelAnimationFrame(frame); };
-    // The stored daily answer changes the height above later games. Align once
+    // The daily API changes the height above later games. Align once
     // after that restore, without pulling users back after they start playing.
     const alignWhenReady = () => {
       if (quiz.dataset.quizReady !== "true" || scheduled) return;
