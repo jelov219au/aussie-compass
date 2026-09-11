@@ -9,7 +9,7 @@ const require = createRequire(import.meta.url);
 const root = process.cwd();
 
 // Exercise actual component handlers without a server, browser or analytics network.
-function harness({ qa = false, blocked = false, loaded = true, taxStorage = "ready", plan = [] } = {}) {
+function harness({ qa = false, blocked = false, loaded = true, taxStorage = "ready", plan } = {}) {
   const events = [], states = [], refs = [], cache = new Map();
   let stateIndex = 0, refIndex = 0, checked = plan, nextId = 0;
   const storage = { getItem: () => { if (blocked) throw Error("storage blocked"); return qa ? "1" : null; } };
@@ -20,8 +20,7 @@ function harness({ qa = false, blocked = false, loaded = true, taxStorage = "rea
     useState: initial => {
       const index = stateIndex++;
       if (!(index in states)) states[index] = typeof initial === "function" ? initial() : initial;
-      // The second state in VehicleComparison is restored/loading status.
-      if (typeof initial === "boolean" && index === 1) states[index] = loaded;
+
       return [states[index], value => { states[index] = typeof value === "function" ? value(states[index]) : value; }];
     },
     useRef: initial => refs[refIndex++] ?? (refs[refIndex - 1] = { current: initial }),
@@ -37,7 +36,7 @@ function harness({ qa = false, blocked = false, loaded = true, taxStorage = "rea
       if (name === "react") return react;
       if (name === "@vercel/analytics") return { track: (name, data) => events.push({ name, data }) };
       if (name === "@vercel/analytics/next") return { Analytics: () => null };
-      if (name === "@/lib/useLocalPlan") return { useLocalPlan: () => ({ data: checked, storage: taxStorage, update: next => { checked = typeof next === "function" ? next(checked) : next; } }) };
+      if (name === "@/lib/useLocalPlan") return { useLocalPlan: (_key, initial) => ({ data: checked ??= initial, storage: loaded ? taxStorage : "loading", reset: () => { checked = initial; }, update: next => { checked = typeof next === "function" ? next(checked) : next; } }) };
       if (name === "./TaxStorageNotice") return { TaxStorageNotice: () => null };
       if (name.startsWith("@/") || name.startsWith(".")) {
         const target = name.startsWith("@/") ? path.join(root, "src", name.slice(2)) : path.resolve(path.dirname(file), name);
@@ -45,7 +44,7 @@ function harness({ qa = false, blocked = false, loaded = true, taxStorage = "rea
       }
       return require(name);
     };
-    vm.runInNewContext(source, { module: loadedModule, exports: loadedModule.exports, require: scopedRequire, sessionStorage: storage, crypto: { randomUUID: () => `test-record-${++nextId}` }, window: { location: { origin: "https://hojucompass.com" } }, console, URL, Intl, Date, setTimeout, clearTimeout }, { filename: file });
+    vm.runInNewContext(source, { module: loadedModule, exports: loadedModule.exports, require: scopedRequire, sessionStorage: storage, crypto: { randomUUID: () => `test-record-${++nextId}` }, window: { confirm: () => true, location: { origin: "https://hojucompass.com" } }, console, URL, Intl, Date, setTimeout, clearTimeout }, { filename: file });
     return loadedModule.exports;
   }
   const render = component => { stateIndex = 0; refIndex = 0; return component(); };

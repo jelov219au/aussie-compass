@@ -18,6 +18,7 @@ import { parsePrices, parseQuotes } from "@/lib/serviceRecords";
 import { parseTaxRecords } from "@/lib/taxPrepStorage";
 import { parseTaxChecklist } from "@/lib/taxReturnChecklist";
 import { parseVisaCostStorage } from "@/lib/visaCostPlan";
+import { parseVehicles } from "@/lib/vehicleComparisonStorage";
 import { parseSavedPhrases } from "@/data/englishPhrases";
 import type { DeviceTransferRecord } from "@/lib/deviceDataTransfer";
 
@@ -157,6 +158,6 @@ export const deviceTransferManifest: DeviceTransferRecord[] = [
   record("rental-application-pro", "hoju-compass-rental-application-pro-v1", "렌트 신청 패키지", "주거·이동", "/rental-application-pro/workspace", true, "rental-workspace-v1", genericObject),
   record("service-quotes", "aussie-compass-service-quotes-v1", "서비스 견적 비교", "생활 서비스", "/service-quote-comparator", true, "service-quotes-v1", exact(parseQuotes, "array")),
   record("service-price-log", "aussie-compass-service-price-log-v1", "서비스 가격 기록", "생활 서비스", "/service-price-log", true, "service-prices-v1", exact(parsePrices, "array")),
-  record("vehicle-comparison", "aussie-compass-vehicle-comparison-v1", "중고차 비교", "주거·이동", "/used-car-comparison", true, "vehicle-comparison-v1", genericArray),
+  record("vehicle-comparison", "aussie-compass-vehicle-comparison-v1", "중고차 비교", "주거·이동", "/used-car-comparison", true, "vehicle-comparison-v1", exact(parseVehicles, "array")),
   record("car-purchase-pro", "hoju-compass-car-purchase-pro-v1", "중고차 구매 점검 패키지", "주거·이동", "/car-purchase-pro/workspace", true, "car-purchase-archive-v1", exact(car, "object")),
 ];
