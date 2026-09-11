@@ -99,7 +99,7 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
         <span>
           {testMode
             ? "실제 청구가 없는 Stripe 테스트임을 확인했습니다."
-            : "A$19.90 1회 결제와 디지털 제공·이용·환불 조건을 확인했습니다."}
+            : "A$9.90 1회 결제와 디지털 제공·이용·환불 조건을 확인했습니다."}
         </span>
       </label>
       <p className="ml-8 mt-2 text-xs leading-5 text-muted">
@@ -128,7 +128,7 @@ export function ResumeProCheckoutForm({ testMode, entry }: { testMode: boolean; 
           ? "Stripe 결제 페이지 여는 중…"
           : testMode
             ? "테스트 결제 시작"
-            : "A$19.90에 이번 지원 준비하기"}
+            : "A$9.90에 이번 지원 준비하기"}
       </button>
     </form>
   );

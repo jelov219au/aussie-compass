@@ -101,7 +101,7 @@ assert.ok(proHub.includes('getProCatalogProducts') && /name: "Resume Pro"[^\n]+f
 assert.ok(proHub.includes('<ResumeProProofLink entry="pro-catalog-card"'), "the Resume Pro catalog free proof must retain its fixed acquisition entry");
 assert.ok(homeSection.includes('<ResumeProProofLink entry="home-premium"'), "the home Resume Pro card must expose the free proof step with its fixed entry");
 assert.ok(homeSection.includes("결제 전에 내 공고로 무료 확인") && homeSection.includes("이력서·공고 원문을 서버로 전송하지 않아요"), "the home proof step must state its free, local-only privacy boundary");
-assert.ok(finder.includes("Resume Pro 가격은 A$19.90 1회 결제이며") && finder.includes("결제·이용 복구 안전 확인 중이라 판매하지 않아요"), "closed Resume Pro copy must distinguish its fixed price from its temporary sales hold");
+assert.ok(finder.includes("Resume Pro 가격은 A$9.90 1회 결제이며") && finder.includes("결제·이용 복구 안전 확인 중이라 판매하지 않아요"), "closed Resume Pro copy must distinguish its fixed price from its temporary sales hold");
 
 assert.ok(reportPage.includes("report.builderStarts") && reportPage.includes("report.jobAdViews") && reportPage.includes("report.jobAdChecks") && reportPage.includes("report.proCtaClicks"), "operator report must show all anonymous pre-offer aggregate steps");
 assert.ok(report.includes('web-analytics/visits/count') && report.includes("data?.visitors") && report.includes("data?.pageviews"), "operator report must query aggregate Vercel visitors and pageviews");

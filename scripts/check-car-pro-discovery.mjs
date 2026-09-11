@@ -81,7 +81,7 @@ for (const value of [
 ]) assert.ok(finder.includes(value), `Car finder contract is missing: ${value}`);
 
 for (const existing of [
-  'job: { href: "/resume-pro", name: "Resume Pro", price: "A$19.90"',
+  'job: { href: "/resume-pro", name: "Resume Pro", price: "A$9.90"',
   'home: { href: "/rental-application-pro?from=pro-hub", name: "Rental Pack Pro", price: "A$14.90"',
   'pay: { href: "/pay-evidence-pro", name: "Pay Evidence Pro", price: "A$9.90"',
   'tax: { href: "/eofy-pro", name: "EOFY Pack Pro", price: "A$9.90"',
