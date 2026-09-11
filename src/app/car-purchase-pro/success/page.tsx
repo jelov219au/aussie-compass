@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { CarPurchaseProActivationForm } from "@/components/tools/CarPurchaseProActivationForm";
 import { validCarPurchaseSessionId } from "@/lib/carPurchaseProActivationClient";
+import { isCarPurchaseAccessAvailable } from "@/lib/carPurchaseProRuntime";
 
 export const metadata: Metadata = {
   title: "중고차 거래노트 이용권 확인 | Hoju Compass",
@@ -20,14 +21,17 @@ export default async function CarPurchaseProSuccessPage({ searchParams }: {
   const { session_id: candidate } = await searchParams;
   const sessionId = validCarPurchaseSessionId(candidate) ? candidate : undefined;
   const invalidReference = candidate !== undefined && sessionId === undefined;
+  const accessAvailable = await isCarPurchaseAccessAvailable();
   // Returning to this URL never grants access or proves payment. Explicit POST
   // activation must verify the server receipt and current DB entitlement later.
   return <><Header /><main className="py-12 sm:py-16"><Container className="max-w-3xl">
     <p className="text-sm font-semibold text-gold-ink">중고차 거래노트 Pro · 이용권 확인</p>
     <h1 className="mt-4 text-3xl font-semibold leading-tight text-navy sm:text-4xl">구매 확인 정보를 받는 화면입니다.</h1>
     <p className="mt-5 leading-8 text-muted">이 화면에 도착했다는 사실만으로 결제나 이용권 처리가 완료된 것은 아닙니다. 확인이 끝나기 전에는 다시 결제하지 마세요.</p>
-    <p className="mt-4 rounded-xl border border-gold/50 bg-[#f6f3e9] p-4 text-sm leading-7 text-navy">중고차 거래노트는 현재 준비 중이며 새 구매와 이용권 연결은 열려 있지 않습니다.</p>
-    <CarPurchaseProActivationForm initialSessionId={sessionId} invalidReference={invalidReference} enabled={false} />
+    <p className="mt-4 rounded-xl border border-gold/50 bg-[#f6f3e9] p-4 text-sm leading-7 text-navy">{accessAvailable
+      ? "아래에서 구매를 확인하고 이 브라우저에 이용권을 연결하세요. 확인에는 인터넷 연결이 필요합니다."
+      : "중고차 거래노트의 이용권 연결을 현재 사용할 수 없습니다. 이미 결제했다면 다시 구매하지 말고 고객지원으로 문의해 주세요."}</p>
+    <CarPurchaseProActivationForm initialSessionId={sessionId} invalidReference={invalidReference} enabled={accessAvailable} />
     <div className="mt-8 flex flex-wrap gap-3">
       <Link href="/car-purchase-pro" className="inline-flex min-h-12 items-center rounded-lg border border-navy px-5 py-3 text-sm font-semibold text-navy">제품 소개로 돌아가기</Link>
       <Link href="/car-purchase-pro/restore" className="inline-flex min-h-12 items-center rounded-lg border border-navy px-5 py-3 text-sm font-semibold text-navy">복구·연결 관리</Link>

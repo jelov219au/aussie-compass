@@ -126,7 +126,9 @@ export async function POST(request: NextRequest) {
   const carTagged = isCarPurchaseTaggedEvent(event);
   const carHandler = getConfiguredCarPurchaseWebhookHandler();
   if (carHandler && (carTagged || carPurchaseReversalTypes.has(event.type))) {
-    const result = await carHandler(payload, signature);
+    let result: Awaited<ReturnType<typeof carHandler>>;
+    try { result = await carHandler(payload, signature); }
+    catch { return webhookResponse({ error: "Car purchase webhook retry required." }, 503); }
     if (result.ok === true && result.handled === true) {
       return webhookResponse({ received: true, persisted: true, outcome: result.outcome });
     }

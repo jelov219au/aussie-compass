@@ -91,10 +91,10 @@ assert.ok(webhook.includes("matchesCheckoutProductEntitlementContract(entitlemen
 assert.ok(webhook.indexOf("matchesCheckoutProductEntitlementContract(entitlementCommand)") < webhook.lastIndexOf("getConfiguredEntitlementStore()"), "Webhook product isolation must run before entitlement persistence is selected");
 assert.ok(webhook.includes("RENTAL_FIRST_SALE_PRODUCT_CODE") && webhook.includes("getFirstSaleProductContract"), "Rental grants must use the same atomic gate+entitlement webhook path as Resume Pro");
 for (const paidContract of [
-  'resume_pro: { currency: "aud", amountTotal: 1990 }',
+  'resume_pro: { currency: "aud", amountTotal: resumeProStripeProductDefinition.priceCents }',
   'rental_application_pro: { currency: "aud", amountTotal: 1490 }',
 ]) assert.ok(productEntitlementContract.includes(paidContract), `Paid product entitlement contract is missing: ${paidContract}`);
-assert.match(resumeStripeProduct, /resumeProStripeProductDefinition = \{[\s\S]*?currency: "aud",[\s\S]*?priceCents: 1990,/, "Resume entitlement contract must stay aligned with its Stripe product definition");
+assert.match(resumeStripeProduct, /resumeProStripeProductDefinition = \{[\s\S]*?currency: "aud",[\s\S]*?priceCents: 990,/, "Resume entitlement contract must stay aligned with its approved A$9.90 Stripe product definition");
 assert.match(commerce, /rentalApplicationProProduct = \{[\s\S]*?currency: "aud",[\s\S]*?priceCents: 1490,/, "Rental entitlement contract must stay aligned with its commerce product definition");
 assert.ok(purchase.includes('metadata?.product_code === "rental_application_pro"'), "Paid-session verification must require the Rental product code");
 assert.ok(purchase.includes("rentalApplicationProProduct.priceCents"), "Paid-session verification must require the exact Rental price");

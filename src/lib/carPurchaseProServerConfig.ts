@@ -55,6 +55,9 @@ export function isCarPurchaseDatabaseBinding(databaseUrl: string | null | undefi
       && parsed.hostname === databaseHosts[mode] && parsed.pathname === "/neondb"
       && decodeURIComponent(parsed.username) === "hoju_app_runtime"
       && (!parsed.port || parsed.port === "5432")
-      && !parsed.searchParams.has("options") && !parsed.hash;
+      && [...parsed.searchParams].every(([key, value]) =>
+        key === "sslmode" && ["require", "verify-full"].includes(value)
+        || key === "channel_binding" && value === "require")
+      && !parsed.hash;
   } catch { return false; }
 }

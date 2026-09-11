@@ -111,6 +111,13 @@ for (const name of ["carPurchaseProRequestBody", "carPurchaseProTokens", "carPur
     if (dependency === "server-only") return {};
     if (dependency === "node:crypto") return crypto;
     if (dependency === "./site") return { siteUrl: origin };
+    if (dependency === "./carPurchaseProServerRuntime") return {
+      handleConfiguredCarPurchaseAccess: modules.get("./carPurchaseProAccessHttp").createCarPurchaseAccessHttp({
+        service: null, enabled: false, expectedOrigin: origin, environment: "production",
+      }),
+      hasConfiguredCarPurchaseWorkspaceAccess: async () => false,
+      isConfiguredCarPurchaseAccessAvailable: async () => false,
+    };
     if (modules.has(dependency)) return modules.get(dependency);
     throw new Error("Unexpected runtime dependency: " + dependency);
   }));

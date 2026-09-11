@@ -2,6 +2,7 @@ import "server-only";
 
 import { neon } from "@neondatabase/serverless";
 import { cookies } from "next/headers";
+import { carPurchaseServerReadinessSql } from "./carPurchaseProServerReadiness";
 
 import { getEntitlementDatabaseUrl } from "./entitlementConfig";
 import { paymentAlertsConfigured, sendPaymentOperatorMessage } from "./paymentAlerts";
@@ -22,131 +23,6 @@ type ReadinessRow = {
   webhook_ready: boolean;
   checkout_ready: boolean;
 };
-
-const runtimeFunctionSignatures = [
-  "public.claim_first_sale_reservation(text,text,timestamptz,text,text,integer)",
-  "public.attach_first_sale_checkout(text,bigint,text,text,timestamptz)",
-  "public.release_failed_first_sale_reservation(text,bigint,text,text)",
-  "public.consume_checkout_activation(text,text,text,text,text,text,timestamptz)",
-  "public.consume_entitlement_restore_token(text,text,text,text,text,timestamptz)",
-  "public.release_purchase_access_session(bigint,text,text)",
-  "public.find_active_purchase_entitlement_by_access_session(bigint,text,text)",
-  "public.create_entitlement_restore_token(bigint,text,text,timestamptz)",
-] as const;
-
-const webhookFunctionSignatures = [
-  "public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)",
-  "public.apply_car_purchase_reversal_event_v1(text,text,boolean,timestamptz,text,text,text,text,text,text,text)",
-  "public.apply_car_purchase_exception_event_v1(text,text,boolean,timestamptz,text,text,text,text,text,text,text,text,text)",
-  "public.claim_car_purchase_operator_alert_v1(text,text,text,boolean,text)",
-  "public.mark_car_purchase_operator_alert_sent_v1(text,text,text,boolean,text)",
-  "public.release_car_purchase_operator_alert_claim_v1(text,text,text,boolean,text)",
-] as const;
-
-const sqlValues = (values: readonly string[]) => values
-  .map(value => `('${value.replaceAll("'", "''")}')`)
-  .join(",\n");
-
-// One fixed, metadata-only probe. It runs through the app role connection and
-// accepts no identifiers from a request. Direct table writes remain forbidden.
-const readinessSql = `
-with runtime_functions(signature) as (values
-${sqlValues(runtimeFunctionSignatures)}
-), webhook_functions(signature) as (values
-${sqlValues(webhookFunctionSignatures)}
-), runtime_ok as (
-  select count(*) = ${runtimeFunctionSignatures.length}
-    and coalesce(bool_and(
-      to_regprocedure(signature) is not null
-      and exists (select 1 from pg_proc where oid = to_regprocedure(signature)
-        and prosecdef and pg_get_userbyid(proowner) = 'hoju_migration_owner'
-        and proconfig @> array['search_path=public, pg_temp'])
-      and has_function_privilege(current_user, to_regprocedure(signature), 'EXECUTE')
-      and not exists (
-        select 1
-        from aclexplode(coalesce(
-          (select proacl from pg_proc where oid = to_regprocedure(signature)),
-          acldefault('f', (select proowner from pg_proc where oid = to_regprocedure(signature)))
-        ))
-        where grantee = 0 and privilege_type = 'EXECUTE'
-      )
-    ), false) as ready
-  from runtime_functions
-), webhook_ok as (
-  select count(*) = ${webhookFunctionSignatures.length}
-    and coalesce(bool_and(
-      to_regprocedure(signature) is not null
-      and exists (select 1 from pg_proc where oid = to_regprocedure(signature)
-        and prosecdef and pg_get_userbyid(proowner) = 'hoju_migration_owner'
-        and proconfig @> array['search_path=public, pg_temp'])
-      and has_function_privilege(current_user, to_regprocedure(signature), 'EXECUTE')
-      and not exists (
-        select 1
-        from aclexplode(coalesce(
-          (select proacl from pg_proc where oid = to_regprocedure(signature)),
-          acldefault('f', (select proowner from pg_proc where oid = to_regprocedure(signature)))
-        ))
-        where grantee = 0 and privilege_type = 'EXECUTE'
-      )
-    ), false) as ready
-  from webhook_functions
-), schema_ok as (
-  select
-    current_database() = 'neondb'
-    and current_user = 'hoju_app_runtime'
-    and exists (
-      select 1 from public.schema_migrations
-      where version = '20260906_car_purchase_schema_v1'
-    )
-    and exists (
-      select 1 from public.schema_migrations
-      where version = '20260906_car_purchase_runtime_v1'
-    )
-    and to_regclass('public.car_purchase_exception_receipts') is not null
-    and to_regclass('public.car_purchase_payment_holds') is not null
-    and exists (
-      select 1 from pg_constraint
-      where conrelid = 'public.first_sale_gates'::regclass
-        and convalidated
-        and position('car_purchase_pro' in pg_get_constraintdef(oid)) > 0
-        and position('1490' in pg_get_constraintdef(oid)) > 0
-    )
-    and exists (
-      select 1 from pg_constraint
-      where conrelid = 'public.first_sale_gate_events'::regclass
-        and convalidated
-        and position('car_purchase_pro' in pg_get_constraintdef(oid)) > 0
-        and position('1490' in pg_get_constraintdef(oid)) > 0
-    )
-    and position(
-      'when ''car_purchase_pro'' then 1490'
-      in pg_get_functiondef(to_regprocedure(
-        'public.claim_first_sale_reservation(text,text,timestamptz,text,text,integer)'
-      ))
-    ) > 0
-    and position(
-      'when ''car_purchase_pro'' then 1490'
-      in pg_get_functiondef(to_regprocedure(
-        'public.apply_first_sale_paid_event(text,text,boolean,timestamptz,text,text,integer,text,text,text,text,text)'
-      ))
-    ) > 0
-    and not has_table_privilege(
-      current_user,
-      'public.car_purchase_exception_receipts',
-      'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'
-    )
-    and not has_table_privilege(
-      current_user,
-      'public.car_purchase_payment_holds',
-      'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'
-    ) as ready
-)
-select
-  schema_ok.ready and runtime_ok.ready as access_ready,
-  schema_ok.ready and runtime_ok.ready and webhook_ok.ready as webhook_ready,
-  schema_ok.ready and runtime_ok.ready and webhook_ok.ready as checkout_ready
-from schema_ok cross join runtime_ok cross join webhook_ok
-`;
 
 function configuredQuery(mode: Mode | null): CarPurchaseExceptionQuery | null {
   const databaseUrl = getEntitlementDatabaseUrl();
@@ -180,7 +56,7 @@ function configuredProviders(mode: Mode | null) {
 async function probe(query: CarPurchaseAccessQuery | null): Promise<ReadinessRow | null> {
   if (!query) return null;
   try {
-    const rows = await query(readinessSql, []);
+    const rows = await query(carPurchaseServerReadinessSql, []);
     if (!Array.isArray(rows) || rows.length !== 1 || !rows[0] || typeof rows[0] !== "object") return null;
     const row = rows[0] as Record<string, unknown>;
     if (typeof row.access_ready !== "boolean" || typeof row.webhook_ready !== "boolean"
@@ -257,6 +133,7 @@ const webhook = offer && mode && query && providers.webhook
 export const handleConfiguredCarPurchaseAccess = runtime.handleAccess;
 export const handleConfiguredCarPurchaseCheckout = runtime.handleCheckout;
 export const hasConfiguredCarPurchaseWorkspaceAccess = runtime.hasWorkspaceAccess;
+export const isConfiguredCarPurchaseAccessAvailable = runtime.isAccessAvailable;
 export function getConfiguredCarPurchaseWebhookHandler() {
   return webhook;
 }

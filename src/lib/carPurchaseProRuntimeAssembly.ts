@@ -44,6 +44,7 @@ export function createCarPurchaseRuntimeAssembly(deps: {
     handleAccess: createCarPurchaseAccessHttp({ service: null, enabled: false, expectedOrigin: origin, environment }),
     handleCheckout: createCarPurchaseCheckoutHttp({ service: null, enabled: false, expectedOrigin: origin, environment }),
     hasWorkspaceAccess: async () => false,
+    isAccessAvailable: async () => false,
   });
   const mode = deps.expectedMode;
   const secret = deps.secret?.trim();
@@ -118,6 +119,7 @@ export function createCarPurchaseRuntimeAssembly(deps: {
     gate: createCarPurchaseCheckoutGate({ query, approvedOffer: offer, expectedMode: mode, now }),
     checkPrerequisites: () => ready("checkout"), hasActiveAccess, now });
   return {
+    isAccessAvailable: () => ready("access"),
     handleAccess: createCarPurchaseAccessHttp({ service: access, enabled: true, expectedOrigin: origin, environment }),
     handleCheckout: createCarPurchaseCheckoutHttp({ service: checkout, enabled: salesEnabled, expectedOrigin: origin, environment }),
     hasWorkspaceAccess: createCarPurchaseWorkspaceAccess({ service: access, enabled: true, environment, readCookies }),
