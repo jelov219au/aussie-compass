@@ -36,7 +36,7 @@ test("TG26 ATO unavailable fails closed", () => assert.deepEqual([make({ scenari
 test("TG27 legacy TPB route is absent", () => { assert.doesNotMatch(page + component, /registrations_search/); assert.match(page + component, /https:\/\/www\.tpb\.gov\.au\/public-register/); });
 test("TG28 TPB unavailable fails closed", () => { const v = make({ lodgingPath: "registeredAgent", scenario: "tpbUnavailable" }); assert.equal(v.due_state, "official_source_unavailable"); assert.equal(v.official_route, lib.TPB_REGISTER_ROUTE); });
 test("TG29 first outcome has one primary action", () => { assert.match(component, /data-tax-guide-next-action/); assert.equal((component.match(/<a href=\{result\.official_route\}/g) || []).length, 1); });
-test("TG30 visible fixed date and weekend reason", () => { assert.match(page, /2026년 11월 2일/); assert.match(component, /2026-10-31 Saturday → next business day/); });
+test("TG30 visible fixed date and weekend reason", () => { assert.match(page, /2026년 11월 2일/); assert.match(component, /2026년 10월 31일이 토요일이어서 다음 영업일/); });
 test("TG31 keyboard, 44px and AA hooks", () => { assert.equal((component.match(/min-h-11/g) || []).length >= 4, true); assert.match(component, /focus-visible:ring-2/); assert.match(component, /aria-live="polite"/); });
 test("TG32 checklist and memory-only negative", () => { assert.doesNotMatch(component, /localStorage|sessionStorage|fetch\(|trackEvent|analytics|completed|lodged|on_time|registered:|eligible/); assert.match(component, /체크리스트 완료나 링크 열기는 신고·등록·기한 확인 완료가 아닙니다/); });
 assert.equal(count, 32); console.log(`PASS tax guide due date and TPB: ${count} fixtures`);

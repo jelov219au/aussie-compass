@@ -1,13 +1,16 @@
 "use client";
 import { groups, parseTaxChecklist, serializeTaxChecklist, taxChecklistIds, taxChecklistStorageKey } from "@/lib/taxReturnChecklist";
 import { useLocalPlan } from "@/lib/useLocalPlan";
+import { useToolStarted } from "@/components/analytics/useToolStarted";
 import { TaxStorageNotice } from "./TaxStorageNotice";
 
 export function TaxReturnChecklist() {
   const { data: checked, update: setChecked, storage, saveState } = useLocalPlan<string[]>(taxChecklistStorageKey, [], parseTaxChecklist, serializeTaxChecklist, { initial: "아직 저장한 체크 없음", reset: "체크 초기화" });
+  const recordStarted = useToolStarted("tax_return_guide");
   const progress = Math.round((checked.length / taxChecklistIds.length) * 100);
   function toggle(id: string) {
     if (storage === "loading" || !taxChecklistIds.includes(id)) return;
+    recordStarted();
     setChecked(current => current.includes(id) ? current.filter(item => item !== id) : [...current, id]);
   }
   return (

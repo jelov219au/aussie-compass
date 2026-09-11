@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useToolStarted } from "@/components/analytics/useToolStarted";
 
 type Vehicle = { id: string; name: string; price: string; transfer: string; inspection: string; insurance: string; rego: string; servicing: string; fuel: string; ppsr: boolean; vin: boolean; regoCheck: boolean; mechanic: boolean; history: boolean; testDrive: boolean };
 const key = "aussie-compass-vehicle-comparison-v1";
@@ -11,12 +12,24 @@ const checks: Array<[keyof Vehicle,string,string]> = [
 ];
 
 export function VehicleComparison() {
+  const recordStarted = useToolStarted("used_car_comparison");
   const [vehicles,setVehicles] = useState<Vehicle[]>([makeVehicle(0),makeVehicle(1)]);
   const [loaded,setLoaded] = useState(false);
   useEffect(()=>{ try { const saved=localStorage.getItem(key); if(saved) setVehicles(JSON.parse(saved)); } catch {} setLoaded(true); },[]);
   useEffect(()=>{ if(!loaded)return; try{localStorage.setItem(key,JSON.stringify(vehicles));}catch{} },[vehicles,loaded]);
-  const update=(id:string,field:keyof Vehicle,value:string|boolean)=>setVehicles((current)=>current.map((vehicle)=>vehicle.id===id?{...vehicle,[field]:value}:vehicle));
-  return <section className="rounded-3xl border border-border bg-white p-5 shadow-sm sm:p-8" aria-labelledby="vehicle-compare-heading"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold text-gold-ink">구매가보다 실제 1년 비용</p><h2 id="vehicle-compare-heading" className="mt-2 text-2xl font-semibold text-navy">중고차 후보 비교표</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted">VIN이나 판매자 개인정보는 저장하지 마세요. 비교명과 예상 비용, 확인 완료 여부만 이 기기에 저장됩니다.</p></div>{vehicles.length<3&&<button type="button" onClick={()=>setVehicles((current)=>[...current,makeVehicle(current.length)])} className="min-h-11 rounded-lg bg-navy px-4 text-sm font-semibold text-white">차량 추가</button>}</div>
+  const update = (id: string, field: keyof Vehicle, value: string | boolean) => {
+    const vehicle = vehicles.find(candidate => candidate.id === id);
+    if (!loaded || !vehicle || vehicle[field] === value) return;
+    const meaningful = typeof value === "boolean" || (field === "name" ? value.trim().length > 0 : value.trim().length > 0 && Number.isFinite(Number(value)) && Number(value) >= 0);
+    if (meaningful) recordStarted();
+    setVehicles(current => current.map(candidate => candidate.id === id ? { ...candidate, [field]: value } : candidate));
+  };
+  const addVehicle = () => {
+    if (!loaded || vehicles.length >= 3) return;
+    recordStarted();
+    setVehicles(current => [...current, makeVehicle(current.length)]);
+  };
+  return <section className="rounded-3xl border border-border bg-white p-5 shadow-sm sm:p-8" aria-labelledby="vehicle-compare-heading"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold text-gold-ink">구매가보다 실제 1년 비용</p><h2 id="vehicle-compare-heading" className="mt-2 text-2xl font-semibold text-navy">중고차 후보 비교표</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-muted">VIN이나 판매자 개인정보는 저장하지 마세요. 비교명과 예상 비용, 확인 완료 여부만 이 기기에 저장됩니다.</p></div>{vehicles.length<3&&<button type="button" disabled={!loaded} onClick={addVehicle} className="min-h-11 rounded-lg bg-navy px-4 text-sm font-semibold text-white">차량 추가</button>}</div>
   <div className="mt-8 grid gap-5 xl:grid-cols-3">{vehicles.map((vehicle,index)=>{const upfront=money(vehicle.price)+money(vehicle.transfer)+money(vehicle.inspection);const annual=money(vehicle.insurance)+money(vehicle.rego)+money(vehicle.servicing)+money(vehicle.fuel)*12;const complete=checks.filter(([field])=>Boolean(vehicle[field])).length;return <article key={vehicle.id} className="rounded-2xl border border-border p-5"><div className="flex justify-between"><span className="text-xs font-semibold text-gold-ink">후보 {index+1}</span>{vehicles.length>2&&<button type="button" onClick={()=>setVehicles((current)=>current.filter((item)=>item.id!==vehicle.id))} className="text-xs font-semibold text-muted">삭제</button>}</div><label className="mt-3 block text-sm font-medium text-navy">차량 구분명<input value={vehicle.name} maxLength={60} onChange={(e)=>update(vehicle.id,"name",e.target.value)} placeholder="예: 흰색 Corolla" className="mt-2 min-h-11 w-full rounded-lg border border-border px-3" /></label>
   <div className="mt-4 grid grid-cols-2 gap-3">{([['price','구매가'],['transfer','이전·인지 비용'],['inspection','사전 검사비'],['insurance','연 보험료'],['rego','연 Rego·CTP'],['servicing','연 정비 예산'],['fuel','월 연료비']] as const).map(([field,label])=><label key={field} className="text-xs font-medium text-navy">{label} ($)<input type="number" min="0" step="1" inputMode="decimal" value={vehicle[field]} onChange={(e)=>update(vehicle.id,field,e.target.value)} className="mt-1 min-h-11 w-full rounded-lg border border-border px-3 text-sm" /></label>)}</div>
   <div className="mt-5 rounded-xl bg-navy p-4 text-white"><div className="flex justify-between text-sm"><span className="text-white/70">초기 지출</span><strong>${upfront.toLocaleString()}</strong></div><div className="mt-2 flex justify-between"><span className="text-sm text-white/70">첫 1년 예상 합계</span><strong className="text-xl">${(upfront+annual).toLocaleString()}</strong></div><p className="mt-2 text-xs text-white/60">확인 {complete}/{checks.length} · 감가상각·금융비용·예상 밖 수리 제외</p></div>

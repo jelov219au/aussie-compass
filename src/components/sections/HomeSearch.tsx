@@ -5,6 +5,7 @@ import Link from "next/link";
 import { TopicIcon } from "@/components/ui/TopicIcon";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { classifyHomeSearch } from "@/lib/homeSearchTopic";
 import { actionClass } from "@/components/ui/actionStyles";
 import { sanitizeTransferredSearch, setPendingSearch } from "@/lib/searchTransfer";
 
@@ -16,23 +17,6 @@ const popularSituations = [
   { icon: "guide", label: "중고차 구매 전 확인", situation: "used_car", href: "/used-car-comparison" },
   { icon: "visa", label: "귀국 준비 순서", situation: "leaving", href: "/leaving-australia-guide" },
 ] as const;
-
-const searchTopics = [
-  { topic: "tax", terms: ["세금", "택스", "tax", "tfn", "ato", "bas", "gst", "공제", "환급"] },
-  { topic: "pay", terms: ["급여", "월급", "시급", "연봉", "임금", "salary", "wage", "payslip", "최저임금"] },
-  { topic: "super", terms: ["super", "연금", "dasp"] },
-  { topic: "housing", terms: ["집", "주거", "렌트", "쉐어", "보증금", "rent", "bond", "inspection"] },
-  { topic: "jobs", terms: ["취업", "구직", "이력서", "이력서 양식", "공고 맞춤", "커버레터", "면접", "일자리", "resume", "resume template", "ATS", "job ad", "cover letter", "selection criteria", "job", "career", "award"] },
-  { topic: "arrival", terms: ["도착", "정착", "은행", "유심", "교통", "운전", "bank", "sim", "licence"] },
-  { topic: "visa", terms: ["비자", "워홀", "학생", "visa", "working holiday"] },
-  { topic: "safety", terms: ["사기", "안전", "응급", "도움", "체불", "scam", "emergency", "underpayment"] },
-  { topic: "leaving", terms: ["귀국", "출국", "퇴거", "leaving", "departure"] },
-] as const;
-
-function classifySearch(value: string) {
-  const normalized = value.trim().toLocaleLowerCase("ko-KR");
-  return searchTopics.find(({ terms }) => terms.some((term) => normalized.includes(term)))?.topic ?? "other";
-}
 
 export function HomeSearch() {
   const router = useRouter();
@@ -75,7 +59,7 @@ export function HomeSearch() {
           <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-navy">찾는 일이 없나요? 직접 검색하기</summary>
         <form onSubmit={(event) => {
           event.preventDefault();
-          openSearch(query, classifySearch(query));
+          openSearch(query, classifyHomeSearch(query));
         }} className="min-w-0">
           <div className="sr-only">
             <p className="text-xs font-semibold tracking-[0.14em] text-gold-ink">바로 찾아보기</p>
