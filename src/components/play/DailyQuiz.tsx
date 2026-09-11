@@ -68,7 +68,7 @@ export function DailyQuiz() {
     window.requestAnimationFrame(() => questionRef.current?.focus());
   }
 
-  return <section id="daily-quiz" className={`${styles.panel} ${styles.quizPanel}`} aria-labelledby="daily-heading">
+  return <section id="daily-quiz" data-quiz-ready={!!day} className={`${styles.panel} ${styles.quizPanel}`} aria-labelledby="daily-heading">
     <div className={styles.panelTop}><span className={styles.eyebrow}>01 / DAILY QUIZ</span><span className={styles.chip}>{offset ? "보너스 연습" : "하루 한 문제"}</span></div>
     <h2 id="daily-heading" className={styles.panelHeading}>이 말, 들어봤나요?</h2>
     <p className={styles.subtitle}>{day ? `${day.slice(5).replace("-", "월 ")}일 · 시드니 날짜 기준` : "오늘의 문제를 고르고 있어요…"}</p>
