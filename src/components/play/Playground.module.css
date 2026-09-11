@@ -122,7 +122,12 @@
 .characterOption input { width: 18px; height: 18px; flex-shrink: 0; accent-color: #1a2744; }
 .selected { border: 2px solid #1a2744; background: #f9edc8; padding: 13px 11px; }
 .stepActions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; }
-.finePrint { margin-top: 24px; font-size: 11px; line-height: 1.8; color: #5c6478; }
+.finePrint { display: grid; gap: 6px; margin-top: 28px; font-size: 12px; line-height: 1.8; color: #5c6478; }
+.wordExplanation { margin-top: 16px; }
+.wordExample { margin-top: 16px; padding-top: 14px; border-top: 1px solid #c9bb96; }
+.exampleLabel { font-size: 12px; font-weight: 700; }
+.quizResult .englishExample { color: #515a6a; font-size: 13px; word-break: normal; }
+.sourceName { display: block; font-size: 11px; color: #5c6478; }
 .characterResult { margin-top: 24px; }
 .resultCard { text-align: center; padding: 24px 16px; background: #fffdf7; border: 1px solid #1a2744; border-radius: 14px; }
 .resultStamp { display: block; font-size: 10px; letter-spacing: .14em; font-weight: 700; }
@@ -152,3 +157,4 @@
 @media (min-width: 1024px) { .gameGrid { grid-template-columns: 1fr 1fr; gap: 28px; } .panel { padding: 32px; } }
 @media (max-width: 360px) { .panel { padding: 18px; border-radius: 18px; } .panelHeading { font-size: 25px; } .teaser { padding: 20px; } .stickerTray { display: none; } }
 @media (forced-colors: active) { .selected, .correct { outline: 2px solid Highlight; } .progress { border: 1px solid CanvasText; } }
+.panel:has(> .finePrint) { padding-bottom: 28px; }

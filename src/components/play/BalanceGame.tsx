@@ -64,6 +64,6 @@ export function BalanceGame() {
       <div className={styles.balanceReaction} aria-live="polite">{selected ? selected.reaction : "둘 다 끌려도, 오늘은 딱 하나만 골라요."}</div>
       <div className={styles.stepActions}><button type="button" className={styles.textButton} disabled={step === 0} onClick={() => setStep(value => value - 1)}>← 이전</button><button type="button" className={styles.primaryButton} disabled={!selected} onClick={next}>{step === balanceRounds.length - 1 ? "내 선택 모아보기 ✨" : "다음 고민 →"}</button></div>
     </>}
-    <p className={styles.finePrint}>실제 조건이나 추천이 아닌 상상 게임이에요. 선택은 이 화면에만 남고, 새로고침하면 처음부터 시작해요.</p>
+    <p className={styles.finePrint}><span>상상으로 즐기는 게임이에요.</span><span>실제 조건·추천과는 달라요.</span><span>선택은 이 화면에만 남아요.</span><span>새로고침하면 처음부터 시작해요.</span></p>
   </section>;
 }

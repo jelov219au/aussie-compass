@@ -21,6 +21,16 @@ const copy = value => JSON.parse(JSON.stringify(value));
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log("PASS " + name); }
 const existing = old.dailyQuizzes.map(item => `slang:${item.id}`);
+test("word explanations require Korean meaning, usage and a translated original example", () => {
+  for (const mutation of [p => p.usage = "", p => p.explanation = "biscuit", p => p.example = undefined,
+    p => p.example.ko = "English only", p => p.example.en = "An unrelated example."]) {
+    const changed = copy(sets); mutation(changed[0].puzzle);
+    assert.throws(() => lib.validateDailyPlayCatalog(changed, existing));
+  }
+  const saved = JSON.stringify({ ...lib.emptyDailyPlayAnswers(sets[0]), tiles: [0,1,2,3,4,5], finish: "reveal" });
+  const edited = copy(sets[0]); edited.puzzle.usage += " 새 설명을 보강해도 답은 유지해요.";
+  assert(lib.parseDailyPlayAnswers(saved, edited), "editorial explanations must preserve saved answers");
+});
 test("seven distinct reviewed days, 21 IDs/topics, no reused legacy words", () => {
   assert.equal(sets.length, 7); lib.validateDailyPlayCatalog(catalog, existing);
   assert.equal(new Set(sets.flatMap(set => [set.quiz.id, set.puzzle.id, set.choice.id])).size, 21);
@@ -85,7 +95,7 @@ function mount(name, { raw = null, failure = "", set = sets[0], deferred = false
     useEffect(fn, deps) { const i = cursor++, old = slots[i]; if (!old || !deps || deps.some((value, j) => !Object.is(value, old.deps?.[j]))) { slots[i] = { deps, cleanup: old?.cleanup }; queue.push(() => { slots[i].cleanup?.(); slots[i].cleanup = fn(); }); } },
   };
   const listener = { addEventListener(key, fn) { events.set(key, fn); }, removeEventListener(key) { events.delete(key); } };
-  const mod = compile("src/components/play/DailyPlay.tsx", { react: hooks, "react/jsx-runtime": require("react/jsx-runtime"), "@/lib/dailyPlay": lib, "@/lib/playMore": more, "./Playground.module.css": { default: {} }, "./BalancedLetters": { BalancedLetters: "div" } }, {
+  const mod = compile("src/components/play/DailyPlay.tsx", { react: hooks, "react/jsx-runtime": require("react/jsx-runtime"), "@/lib/dailyPlay": lib, "@/lib/playMore": more, "./Playground.module.css": { default: {} }, "./BalancedLetters": { BalancedLetters: "div" }, "./WordExplanation": { WordExplanation: "div" } }, {
     localStorage: { getItem: key => { if (failure === "read") throw Error("denied"); return records.get(key) ?? null; }, setItem: (key, value) => { if (failure === "write") throw Error("quota"); writes.push(key); records.set(key, value); }, removeItem: key => { if (failure === "remove") throw Error("denied"); records.delete(key); } },
     window: { ...listener, setTimeout(fn, ms) { const id = ++timerId; timers.set(id, { fn, ms }); return id; }, clearTimeout(id) { timers.delete(id); }, requestAnimationFrame: fn => fn() },
     document: { ...listener, visibilityState: "visible" },

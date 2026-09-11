@@ -1,9 +1,20 @@
 import { dailyQuizzes } from "@/data/playground";
+import type { PlayWordExplanation } from "@/lib/playWordExplanation";
+
+// Meanings verified against ABC Education; examples are written for this game.
+const wordNotes: Record<string, PlayWordExplanation> = {
+  arvo: { explanation: "오후를 짧게 부르는 말이에요.", usage: "친구와 오후 약속을 잡거나 오늘 일정을 이야기할 때 쓸 수 있어요.", example: { en: "Are you free this arvo?", ko: "오늘 오후에 시간 있어?" } },
+  servo: { explanation: "차에 연료를 넣는 주유소를 뜻해요.", usage: "운전 중 어디에 들를지 이야기할 때 쓸 수 있어요.", example: { en: "Let's stop at the next servo.", ko: "다음 주유소에서 잠깐 멈추자." } },
+  mozzie: { explanation: "사람을 물고 간지럽게 하는 모기를 뜻해요.", usage: "집 안이나 야외에서 모기를 발견했을 때 쓸 수 있어요.", example: { en: "There's a mozzie near the lamp.", ko: "램프 근처에 모기가 한 마리 있어." } },
+  brekkie: { explanation: "아침에 먹는 식사를 뜻해요.", usage: "친구에게 아침을 먹었는지 묻거나 함께 먹자고 할 때 쓸 수 있어요.", example: { en: "What did you have for brekkie?", ko: "아침으로 뭐 먹었어?" } },
+  sunnies: { explanation: "눈부신 햇빛을 가려 주는 선글라스를 뜻해요.", usage: "밖에 나가기 전 준비물을 챙기거나 선글라스를 찾을 때 쓸 수 있어요.", example: { en: "My sunnies are in my bag.", ko: "내 선글라스는 가방 안에 있어." } },
+  tassie: { explanation: "호주의 태즈메이니아를 짧게 부르는 이름이에요.", usage: "여행 목적지나 사는 곳을 편하게 이야기할 때 쓸 수 있어요.", example: { en: "We're going to Tassie in June.", ko: "우리는 6월에 태즈메이니아에 갈 거야." } },
+};
 
 // Meanings and sources come from the already reviewed quiz catalogue.
 export const wordPuzzles = ["arvo", "servo", "mozzie", "brekkie", "sunnies", "tassie"].map(id => {
   const quiz = dailyQuizzes.find(question => question.id === id)!;
-  return { id, word: quiz.word.toUpperCase(), meaning: quiz.choices[quiz.answer], explanation: quiz.explanation, source: quiz.source };
+  return { id, word: quiz.word.toUpperCase(), meaning: quiz.choices[quiz.answer], ...wordNotes[id], source: quiz.source };
 });
 
 export type BalanceChoice = { emoji: string; title: string; detail: string; reaction: string };

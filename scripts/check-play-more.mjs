@@ -5,6 +5,7 @@ import { runInNewContext } from "node:vm";
 import { localTypeScriptLoader } from "./lib/load-local-typescript.mjs";
 const require = createRequire(import.meta.url), ts = require("typescript"), load = localTypeScriptLoader();
 const data = load("src/data/playMore.ts"), lib = load("src/lib/playMore.ts");
+const { validPlayWordExplanation } = load("src/lib/playWordExplanation.ts");
 let count = 0;
 function test(label, fn) { fn(); count++; console.log(`PASS ${label}`); }
 test("all six puzzles preserve unique tile IDs, repeated letters and reviewed meanings", () => {
@@ -16,6 +17,7 @@ test("all six puzzles preserve unique tile IDs, repeated letters and reviewed me
     assert.notEqual(tiles.map(tile => tile.letter).join(""), puzzle.word);
     assert.equal(JSON.stringify(tiles), JSON.stringify(lib.puzzleTiles(puzzle.word)));
     assert(puzzle.meaning); assert(puzzle.source.startsWith("https://www.abc.net.au/education/"));
+    assert(validPlayWordExplanation(puzzle, puzzle.word), puzzle.id + " needs Korean explanation and example");
     assert.equal(lib.puzzleAnswer(puzzle.word, [...puzzle.word].map((_, i) => i)), "correct");
     assert.equal(lib.puzzleAnswer(puzzle.word, tiles.map(tile => tile.id)), "incorrect");
     assert.equal(lib.puzzleAnswer(puzzle.word, []), "incomplete");
@@ -53,6 +55,7 @@ function mount(name) {
       if (id === "@/data/playMore") return data;
       if (id === "@/lib/playMore") return lib;
       if (id === "./BalancedLetters") return { BalancedLetters: "div" };
+      if (id === "./WordExplanation") return { WordExplanation: "div" };
       if (id.endsWith(".module.css")) return { default: {} };
       assert.fail(id);
     },
