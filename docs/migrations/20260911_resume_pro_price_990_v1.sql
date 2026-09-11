@@ -65,6 +65,7 @@ alter table public.first_sale_gates
       or (product_code = 'pay_evidence_pro' and expected_amount_cents = 990)
       or (product_code = 'eofy_pro' and expected_amount_cents = 990)
       or (product_code = 'leaving_australia_pro' and expected_amount_cents = 1290)
+      or (product_code = 'car_purchase_pro' and expected_amount_cents = 1490)
     );
 
 alter table public.first_sale_gate_events
@@ -79,6 +80,7 @@ alter table public.first_sale_gate_events
       or (product_code = 'pay_evidence_pro' and expected_amount_cents = 990)
       or (product_code = 'eofy_pro' and expected_amount_cents = 990)
       or (product_code = 'leaving_australia_pro' and expected_amount_cents = 1290)
+      or (product_code = 'car_purchase_pro' and expected_amount_cents = 1490)
     );
 
 -- Preserve the reviewed, security-definer implementations and change only the
