@@ -5,6 +5,7 @@ import { dailyPlayStorageKey, emptyDailyPlayAnswers, millisecondsToSydneyMidnigh
   validPlayDate, type DailyPlayAnswers, type DailyPlayResponse, type DailyPlaySet } from "@/lib/dailyPlay";
 import { puzzleTiles } from "@/lib/playMore";
 import styles from "./Playground.module.css";
+import { BalancedLetters } from "./BalancedLetters";
 
 function DailySession({ set }: { set: DailyPlaySet }) {
   const [answers, setAnswers] = useState(() => emptyDailyPlayAnswers(set));
@@ -68,12 +69,12 @@ function DailySession({ set }: { set: DailyPlaySet }) {
       <section className={`${styles.dailyCard} ${styles.puzzlePanel}`} aria-labelledby="new-puzzle-heading">
         <span className={styles.eyebrow}>02 / 글자 톡톡</span><h3 id="new-puzzle-heading">{set.puzzle.meaning}</h3>
         <p className={styles.subtitle}>영어 {set.puzzle.word.length}글자 · 넣은 글자를 누르면 빠져요.</p>
-        <div className={styles.letterSlots} role="group" aria-label="내가 만든 단어">{Array.from(set.puzzle.word, (_, i) => answers.tiles[i] === undefined ? <span key={i} className={styles.emptyTile} aria-hidden="true">·</span>
+        <BalancedLetters className={styles.letterSlots} label="내가 만든 단어">{Array.from(set.puzzle.word, (_, i) => answers.tiles[i] === undefined ? <span key={i} className={styles.emptyTile} aria-hidden="true">·</span>
           : <button key={i} type="button" className={styles.answerTile} disabled={!ready || !!answers.finish} aria-label={`${i + 1}번째 글자 ${set.puzzle.word[answers.tiles[i]]} 빼기`}
-            onClick={() => { update({ tiles: state.current.tiles.filter((_, index) => index !== i) }); setPuzzleNote(""); }}>{set.puzzle.word[answers.tiles[i]]}</button>)}</div>
+            onClick={() => { update({ tiles: state.current.tiles.filter((_, index) => index !== i) }); setPuzzleNote(""); }}>{set.puzzle.word[answers.tiles[i]]}</button>)}</BalancedLetters>
         {!answers.finish && <>
-          <div className={styles.letterBank} role="group" aria-label="오늘 퍼즐의 고를 글자">{puzzleTiles(set.puzzle.word).map(tile => <button key={tile.id} type="button" className={styles.letterTile} disabled={!ready || answers.tiles.includes(tile.id)}
-            aria-label={`글자 ${tile.letter}, 타일 ${tile.id + 1}`} onClick={() => { if (!state.current.tiles.includes(tile.id)) update({ tiles: [...state.current.tiles, tile.id] }); setPuzzleNote(""); }}>{tile.letter}</button>)}</div>
+          <BalancedLetters className={styles.letterBank} label="오늘 퍼즐의 고를 글자">{puzzleTiles(set.puzzle.word).map(tile => <button key={tile.id} type="button" className={styles.letterTile} disabled={!ready || answers.tiles.includes(tile.id)}
+            aria-label={`글자 ${tile.letter}, 타일 ${tile.id + 1}`} onClick={() => { if (!state.current.tiles.includes(tile.id)) update({ tiles: [...state.current.tiles, tile.id] }); setPuzzleNote(""); }}>{tile.letter}</button>)}</BalancedLetters>
           <div className={styles.actions}><button type="button" className={styles.primaryButton} disabled={!ready || answers.tiles.length !== set.puzzle.word.length} onClick={() => finish()}>맞춰보기 ✓</button>
             <button type="button" className={styles.textButton} disabled={!ready || answers.hint} onClick={() => update({ hint: true })}>첫 글자 힌트</button>
             <button type="button" className={styles.textButton} disabled={!ready} onClick={() => finish(true)}>정답 보고 배우기</button></div>

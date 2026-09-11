@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { wordPuzzles } from "@/data/playMore";
 import { puzzleAnswer, puzzleTiles } from "@/lib/playMore";
 import styles from "./Playground.module.css";
+import { BalancedLetters } from "./BalancedLetters";
 
 type Finish = "solo" | "hint" | "reveal";
 export function WordPuzzle() {
@@ -57,10 +58,10 @@ export function WordPuzzle() {
     </> : <>
       <div className={styles.progressRow}><span>단어 {step + 1} / {wordPuzzles.length}</span><span aria-hidden="true">🔤</span></div>
       <div className={styles.puzzleClue}><span>이 뜻의 호주식 표현은?</span><h3 ref={heading} tabIndex={-1}>{puzzle.meaning}</h3><p>영어 {puzzle.word.length}글자{hint && !result ? ` · 첫 글자는 ${puzzle.word[0]}` : ""}</p></div>
-      <div className={styles.letterSlots} role="group" aria-label={`만든 단어: ${text || "아직 없음"}`}>{Array.from(puzzle.word, (_, index) => chosen[index] === undefined ? <span key={index} className={styles.emptyTile} aria-hidden="true">·</span> : <button key={index} type="button" className={styles.answerTile} disabled={!!result} aria-label={`${index + 1}번째 글자 ${puzzle.word[chosen[index]]} 빼기`} onClick={() => { setChosen(current => current.filter((_, i) => i !== index)); setNotice(""); }}>{puzzle.word[chosen[index]]}</button>)}</div>
+      <BalancedLetters className={styles.letterSlots} label={`만든 단어: ${text || "아직 없음"}`}>{Array.from(puzzle.word, (_, index) => chosen[index] === undefined ? <span key={index} className={styles.emptyTile} aria-hidden="true">·</span> : <button key={index} type="button" className={styles.answerTile} disabled={!!result} aria-label={`${index + 1}번째 글자 ${puzzle.word[chosen[index]]} 빼기`} onClick={() => { setChosen(current => current.filter((_, i) => i !== index)); setNotice(""); }}>{puzzle.word[chosen[index]]}</button>)}</BalancedLetters>
       {!result && <>
         <p className={styles.tileInstruction}>아래 글자를 골라요. 위에 넣은 글자는 다시 누르면 빠져요.</p>
-        <div className={styles.letterBank} role="group" aria-label="고를 글자">{tiles.map(tile => <button type="button" key={tile.id} className={styles.letterTile} disabled={chosen.includes(tile.id)} aria-label={`글자 ${tile.letter}, 타일 ${tile.id + 1}`} onClick={() => { setChosen(current => current.includes(tile.id) ? current : [...current, tile.id]); setNotice(""); }}>{tile.letter}</button>)}</div>
+        <BalancedLetters className={styles.letterBank} label="고를 글자">{tiles.map(tile => <button type="button" key={tile.id} className={styles.letterTile} disabled={chosen.includes(tile.id)} aria-label={`글자 ${tile.letter}, 타일 ${tile.id + 1}`} onClick={() => { setChosen(current => current.includes(tile.id) ? current : [...current, tile.id]); setNotice(""); }}>{tile.letter}</button>)}</BalancedLetters>
         <div className={styles.actions}><button type="button" className={styles.primaryButton} disabled={chosen.length !== puzzle.word.length} onClick={check}>맞춰보기 ✓</button><button type="button" className={styles.textButton} disabled={!chosen.length} onClick={() => { setChosen([]); setNotice(""); }}>글자 비우기</button></div>
         <div className={styles.actions}><button type="button" className={styles.textButton} disabled={hint} onClick={() => { setHint(true); setNotice(`첫 글자는 ${puzzle.word[0]}예요. 나머지 글자도 모아봐요.`); }}>{hint ? "첫 글자 힌트 사용함" : "첫 글자 힌트"}</button><button type="button" className={styles.textButton} onClick={() => { setChosen(Array.from(puzzle.word, (_, index) => index)); finish("reveal"); }}>정답 보고 배우기</button></div>
       </>}
