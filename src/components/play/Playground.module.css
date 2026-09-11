@@ -7,6 +7,22 @@
 .jumpLinks a { display: inline-flex; min-height: 44px; align-items: center; padding: 10px 18px; border: 1px solid #1a2744; border-radius: 999px; background: white; font-size: 14px; font-weight: 700; }
 .jumpLinks a:first-child { background: #f6d773; }
 .gameGrid { display: grid; align-items: start; gap: 24px; }
+.dailyPanel { background: #fffdf7; }
+.dailyCards { display: grid; gap: 18px; margin-top: 24px; align-items: start; }
+.dailyCard { min-width: 0; padding: 20px; border: 1px solid #c7bea9; border-radius: 18px; }
+.dailyCard h3 { margin: 16px 0 20px; font-size: 20px; font-weight: 750; line-height: 1.6; }
+.dailyCard .quizOptions { margin-top: 16px; }
+.dailyCard .quizResult small { display: block; color: #5c6478; font-size: 11px; }
+.dailyCard .letterSlots { margin-top: 16px; }
+.dailyCard .picked { white-space: nowrap; }
+.dayNotice { display: grid; justify-items: start; gap: 12px; margin-top: 20px; padding: 18px; border: 1px dashed #a29c8d; border-radius: 12px; font-size: 14px; line-height: 1.8; background: #f9edc8; }
+.dailyComplete { margin-top: 24px; padding: 18px; background: #e3efd8; border-radius: 12px; font-weight: 700; line-height: 1.8; }
+.archiveDates { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.archiveDates [aria-pressed="true"] { background: #f6d773; border-width: 2px; }
+.practiceHeading { margin-top: 48px; scroll-margin-top: 96px; font-size: 24px; font-weight: 800; }
+.practiceHeading + p { margin-bottom: 24px; }
+@media (min-width: 1024px) { .dailyCards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 360px) { .dailyCard { padding: 14px; } .dailyCard .option { gap: 7px; padding: 10px; } .dailyCard .picked { font-size: 9px; } }
 .panel, .teaser { word-break: keep-all; overflow-wrap: break-word; }
 .panel h3, .quizResult { scroll-margin-top: 96px; }
 .panel { min-width: 0; scroll-margin-top: 96px; border: 1px solid #1a2744; border-radius: 24px; padding: 24px; box-shadow: 5px 5px 0 #1a2744; }

@@ -68,10 +68,10 @@ export function DailyQuiz() {
     window.requestAnimationFrame(() => questionRef.current?.focus());
   }
 
-  return <section id="daily-quiz" data-quiz-ready={!!day} className={`${styles.panel} ${styles.quizPanel}`} aria-labelledby="daily-heading">
-    <div className={styles.panelTop}><span className={styles.eyebrow}>01 / DAILY QUIZ</span><span className={styles.chip}>{offset ? "보너스 연습" : "하루 한 문제"}</span></div>
-    <h2 id="daily-heading" className={styles.panelHeading}>이 말, 들어봤나요?</h2>
-    <p className={styles.subtitle}>{day ? `${day.slice(5).replace("-", "월 ")}일 · 시드니 날짜 기준` : "오늘의 문제를 고르고 있어요…"}</p>
+  return <section id="practice-quiz" className={`${styles.panel} ${styles.quizPanel}`} aria-labelledby="practice-quiz-heading">
+    <div className={styles.panelTop}><span className={styles.eyebrow}>PRACTICE / 기존 표현 퀴즈</span><span className={styles.chip}>기존 14문제 연습</span></div>
+    <h2 id="practice-quiz-heading" className={styles.panelHeading}>이 말, 들어봤나요?</h2>
+    <p className={styles.subtitle}>{day ? `${day.slice(5).replace("-", "월 ")}일의 추천 연습 · 새 일일 문제와 별개예요` : "연습 문제를 고르고 있어요…"}</p>
     {question && <>
       <div className={styles.wordCard}>
         <p>{question.scene}</p><span className={styles.word} lang="en">{question.word}</span>
@@ -89,12 +89,12 @@ export function DailyQuiz() {
         <a href={question.source} target="_blank" rel="noreferrer">뜻 확인: ABC Education ↗</a>
         <div className={styles.actions}>
           {offset < dailyQuizzes.length - 1 ? <button type="button" className={styles.smallButton} onClick={another}>한 문제 더 →</button> : <span>준비한 {dailyQuizzes.length}문제를 모두 봤어요. 멋져요!</span>}
-          {offset > 0 && <button type="button" className={styles.textButton} onClick={() => { setOffset(0); setChoice(saved?.choice ?? null); }}>오늘의 문제로</button>}
+          {offset > 0 && <button type="button" className={styles.textButton} onClick={() => { setOffset(0); setChoice(saved?.choice ?? null); }}>첫 연습 문제로</button>}
         </div>
       </div>}
       <p className={styles.storageNote} role="status">{offset ? "보너스 연습은 기록하지 않아요." : note}</p>
     </>}
-    <details className={styles.details}><summary>퀴즈와 기록에 대해</summary><p>{dailyQuizzes.length}문제가 하루 하나씩 순환해요. 친근한 대화에서 쓰는 표현이며 상황에 따라 쓰임이 달라질 수 있어요. 다른 브라우저·설치형 앱과 기록이 자동으로 공유되지는 않아요.</p>
+    <details className={styles.details}><summary>퀴즈와 기록에 대해</summary><p>처음 공개한 {dailyQuizzes.length}문제 중 시작 문제만 날짜별로 순환해요. 새로운 문제 추가가 아닌 복습이에요. 기존 퀴즈 기록은 그대로 이어서 사용해요. 친근한 대화에서 쓰는 표현이며 상황에 따라 쓰임이 달라질 수 있어요. 다른 브라우저·설치형 앱과 기록이 자동으로 공유되지는 않아요.</p>
       <button type="button" className={styles.textButton} onClick={() => { try { localStorage.removeItem(dailyQuizKey); restore(sydneyDay()); } catch { setNote("기록을 지우지 못했어요. 기존 기록은 유지됩니다."); } }}>이 브라우저의 퀴즈 기록 지우기</button>
     </details>
   </section>;
