@@ -10,6 +10,7 @@ import { PremiumToolsSection } from "@/components/sections/PremiumToolsSection";
 import { HomeInstallBanner } from "@/components/sections/HomeInstallBanner";
 import { HomeTrustBar } from "@/components/sections/HomeTrustBar";
 import { HomeSocialChannels } from "@/components/sections/HomeSocialChannels";
+import { HomePlaySection } from "@/components/sections/HomePlaySection";
 
 export default function HomePage() {
   return (
@@ -19,6 +20,7 @@ export default function HomePage() {
         <HomeConversionAnalytics />
         <Hero />
         <ToolsSection />
+        <HomePlaySection />
         <PersonalRouteFinder />
         <PremiumToolsSection />
         <ReturnVisitSection />

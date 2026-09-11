@@ -15,6 +15,7 @@ const routes = [
   "/editorial-policy",
   "/help-directory",
   "/english-phrase-cards",
+  "/play",
   "/glossary",
   "/install",
   "/data-transfer",
@@ -59,7 +60,8 @@ const routes = [
 // Keep these dates manual and evidence-based. Google only uses lastmod when it
 // reflects a significant page update, so do not replace them with new Date().
 const acquisitionRouteUpdates: Record<string, string> = {
-  "": "2026-09-09",
+  "": "2026-09-11",
+  "/play": "2026-09-11",
   "/tools": "2026-09-05",
   "/pro": "2026-09-07",
   "/privacy": "2026-09-05",

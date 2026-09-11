@@ -42,7 +42,8 @@ const manualUpdates = Object.fromEntries(updatesInitializer.properties.map((prop
   return [property.name.text, property.initializer.text];
 }));
 
-assert.equal(routes.length, 51, "the current public static inventory must contain 51 routes after adding Car Pro");
+assert.equal(routes.length, 52, "the public static inventory includes the new play page");
+assert.equal(routes.filter((route) => route === "/play").length, 1, "the play page must occur exactly once");
 assert.equal(new Set(routes).size, routes.length, "static sitemap routes must be unique");
 assert.equal(routes.filter((route) => route === "/car-purchase-pro").length, 1, "Car Pro must occur exactly once");
 
@@ -61,7 +62,8 @@ for (const route of excludedRoutes) assert.ok(!routes.includes(route), `${route}
 assert.ok(routes.every((route) => !route.startsWith("/api/")), "API routes must stay outside the public sitemap");
 
 const expectedSeptemberUpdates = {
-  "": "2026-09-09",
+  "": "2026-09-11",
+  "/play": "2026-09-11",
   "/tools": "2026-09-05",
   "/pro": "2026-09-07",
   "/privacy": "2026-09-05",
@@ -86,8 +88,8 @@ for (const article of articles) {
   assert.ok(Number.isFinite(new Date(effectiveDate).valueOf()), `article date must remain valid: ${article.slug}`);
 }
 const allUrls = routes.map((route) => `https://hojucompass.com${route}`).concat(articleUrls);
-assert.equal(allUrls.length, 92, "the generated sitemap inventory must contain the actual 92 URLs");
-assert.equal(new Set(allUrls).size, 92, "all generated sitemap URLs must be unique");
+assert.equal(allUrls.length, 93, "the generated sitemap inventory must contain the actual 93 URLs");
+assert.equal(new Set(allUrls).size, 93, "all generated sitemap URLs must be unique");
 
 assert.match(sitemapSource, /articles\.map\(\(article\) => \(\{[\s\S]*lastModified: new Date\(article\.updatedAt \?\? article\.publishedAt\)/, "article lastmod must keep using updatedAt with publishedAt fallback in catalog order");
 assert.match(carPage, /createPageMetadata\(\{[\s\S]*path: "\/car-purchase-pro"/, "Car Pro must expose canonical page metadata for its public URL");
