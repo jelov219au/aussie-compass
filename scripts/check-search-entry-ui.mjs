@@ -91,7 +91,7 @@ try {
             const actions = price.parentElement.nextElementSibling;
             return { price: price.innerText, beforeActions: element.getBoundingClientRect().bottom <= actions.getBoundingClientRect().top };
           });
-          assert(placement.price.includes('A$19.90'));
+          assert(placement.price.includes('A$9.90'));
           assert(placement.beforeActions, 'privacy and payment boundary precedes the first CTA row');
           await page.locator('main aside').first().screenshot({ path: `${dir}/resume-entry-price-${width}.png` });
         }

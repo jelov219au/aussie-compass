@@ -185,7 +185,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 ) : (
                   <>
                     <p className="text-sm font-semibold text-muted">Resume Pro 1회 이용권</p>
-                    <p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$19.90</p>
+                    <p className="mt-2 text-4xl font-semibold tracking-tight text-navy">A$9.90</p>
                     <p className="mt-2 text-sm leading-6 text-muted">매달 빠져나가는 구독료 없이 한 번만 결제해요.</p>
                     {!requiresBuyerRecovery && (
                       <p id="resume-pro-entry-boundary" className="mt-3 text-xs leading-5 text-muted">
@@ -332,7 +332,7 @@ export default async function ResumeProPage({ searchParams }: Props) {
                 <p className="mt-2 text-sm leading-6 text-muted">
                   {hasActiveEntitlement
                     ? "결제는 이미 완료됐습니다. 작업공간에서 저장한 회사별 지원서를 다시 열거나 새 지원서를 시작하세요."
-                    : "A$19.90 1회 결제로 이번 지원서 묶음을 준비할 수 있어요."}
+                    : "A$9.90 1회 결제로 이번 지원서 묶음을 준비할 수 있어요."}
                 </p>
                 {hasActiveEntitlement ? (
                   <Link href="/resume-pro/workspace#resume-pro-workspace" className="mt-5 inline-flex min-h-12 items-center justify-center bg-navy px-5 py-3 text-sm font-semibold text-white hover:bg-navy-light">작업공간에서 계속하기</Link>

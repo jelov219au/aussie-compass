@@ -21,7 +21,11 @@ import {
   type ResumeProCheckoutFailureCode,
   type ResumeProCheckoutFailure,
 } from "@/lib/resumeProCheckoutFailure";
-import { assertResumeProStripeProduct, getResumeProStripeProductConfig } from "@/lib/resumeProStripeProduct";
+import {
+  assertResumeProStripeProduct,
+  getResumeProStripeProductConfig,
+  resumeProStripeProductDefinition,
+} from "@/lib/resumeProStripeProduct";
 import { siteUrl } from "@/lib/site";
 import { assertSafeStripeEnvironment, getStripe } from "@/lib/stripe";
 import type Stripe from "stripe";
@@ -66,7 +70,7 @@ async function claimFirstSale(
       ...reservation,
       environment,
       currency: "aud",
-      amountCents: 1990,
+      amountCents: resumeProStripeProductDefinition.priceCents,
     });
   };
 

@@ -1,7 +1,8 @@
 import type { EntitlementCommand, ProductCode } from "@/lib/entitlements";
+import { resumeProStripeProductDefinition } from "@/lib/resumeProStripeProduct";
 
 const checkoutProductContracts: Record<ProductCode, { currency: string; amountTotal: number }> = {
-  resume_pro: { currency: "aud", amountTotal: 1990 },
+  resume_pro: { currency: "aud", amountTotal: resumeProStripeProductDefinition.priceCents },
   rental_application_pro: { currency: "aud", amountTotal: 1490 },
   pay_evidence_pro: { currency: "aud", amountTotal: 990 },
   eofy_pro: { currency: "aud", amountTotal: 990 },

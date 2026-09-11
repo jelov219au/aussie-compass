@@ -53,7 +53,7 @@ const finderFreeBuilder = unavailableFinderActions.indexOf('<Link href="/resume-
 const finderProPreview = unavailableFinderActions.indexOf('<ResumeProCtaLink href="/resume-pro?from=pro-finder"');
 assert.ok(finderFreeProof >= 0 && finderFreeProof < finderFreeBuilder && finderFreeBuilder < finderProPreview, "when Resume Pro checkout is off, the public Pro finder must lead with working free proof and Builder before the product preview");
 assert.match(unavailableFinderActions, /ResumeProProofLink[\s\S]*bg-gold[\s\S]*Link href="\/resume-builder"[\s\S]*min-h-12/, "the Pro finder must make its first checkout-off action a working 48px free CTA");
-assert.ok(finder.includes("Resume Pro 가격은 A$19.90 1회 결제이며, 현재는 결제·이용 복구 안전 확인 중이라 판매하지 않아요."), "the Pro finder must preserve the fixed price and unavailable sales state");
+assert.ok(finder.includes("Resume Pro 가격은 A$9.90 1회 결제이며, 현재는 결제·이용 복구 안전 확인 중이라 판매하지 않아요."), "the Pro finder must preserve the fixed price and unavailable sales state");
 
 const productCtaStart = proPage.indexOf('<div className="mt-10 flex flex-wrap items-start gap-3">');
 const productCtaEnd = proPage.indexOf("</div>", productCtaStart);
@@ -65,6 +65,6 @@ const productLaunchInterest = productCtas.indexOf("판매 시작 시 1회 안내
 assert.ok(productFreeProof >= 0 && productFreeProof < productFreeBuilder && productFreeBuilder < productLaunchInterest, "when checkout is closed, the product landing must offer working free proof and a saved PDF before launch interest");
 assert.match(productCtas, /ResumeProProofLink[\s\S]*min-h-12[\s\S]*Link href="\/resume-builder"[\s\S]*min-h-12/, "the Resume Pro ready-now actions need 48px mobile targets");
 assert.doesNotMatch(productCtas, /Pro 작업 공간 출시 준비 중|aria-label="결제 기능 준비 중"/, "the Resume Pro primary action group must not lead with a disabled launch state");
-assert.ok(proPage.includes("A$19.90") && proPage.includes("매달 빠져나가는 구독료 없이 한 번만 결제해요."), "the ready-now path must preserve the one-time Resume Pro value beside the free actions");
+assert.ok(proPage.includes("A$9.90") && proPage.includes("매달 빠져나가는 구독료 없이 한 번만 결제해요."), "the ready-now path must preserve the one-time Resume Pro value beside the free actions");
 
 console.log("Home and Resume Pro ready-now free path contract passed.");

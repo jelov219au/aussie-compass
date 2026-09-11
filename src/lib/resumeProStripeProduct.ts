@@ -1,6 +1,6 @@
 export const resumeProStripeProductDefinition = {
   currency: "aud",
-  priceCents: 1990,
+  priceCents: 990,
   taxBehavior: "inclusive",
 } as const;
 

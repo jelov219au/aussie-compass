@@ -25,12 +25,13 @@ import {
 } from "@/lib/paymentAlertOutbox";
 import { paymentAlertsConfigured, sendStripeOperatorAlert } from "@/lib/paymentAlerts";
 import { getStripe } from "@/lib/stripe";
+import { resumeProStripeProductDefinition } from "@/lib/resumeProStripeProduct";
 
 export const runtime = "nodejs";
 
 const maxWebhookPayloadBytes = 1024 * 1024;
 const firstSaleProductContracts: Record<FirstSaleProductCode, { currency: "aud"; amountCents: 1990 | 1490 | 1290 | 990 }> = {
-  [FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: 1990 },
+  [FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: resumeProStripeProductDefinition.priceCents },
   [RENTAL_FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: 1490 },
   [PAY_EVIDENCE_FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: 990 },
   [EOFY_FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: 990 },

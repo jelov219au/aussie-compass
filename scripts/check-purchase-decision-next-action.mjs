@@ -29,7 +29,7 @@ assert.deepEqual(declaredFields, exactFields, "purchase outcome must keep the ex
 assert.match(component, /type PurchaseNextAction = "buy" \| "hold" \| "use_free" \| "contact_support";/);
 
 const products = [
-  ["resume-pro", "A$19.90", "/resume-job-ad-checker"],
+  ["resume-pro", "A$9.90", "/resume-job-ad-checker"],
   ["rental-application-pro", "A$14.90", "/property-inspection-checklist"],
   ["pay-evidence-pro", "A$9.90", "/underpayment-guide"],
   ["eofy-pro", "A$9.90", "/tax-return-guide"],
