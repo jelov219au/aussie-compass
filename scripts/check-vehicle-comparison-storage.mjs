@@ -9,6 +9,7 @@ function load(file, resolve = name => assert.fail(name), globals = {}) {
   return mod.exports;
 }
 const lib = load("src/lib/vehicleComparisonStorage.ts");
+const costs = load("src/lib/vehicleComparisonCosts.ts", () => lib);
 const fixture = [{ ...lib.makeVehicle(0), name: "Fixture", price: "12000", fuel: "125.50", ppsr: true }, lib.makeVehicle(1)];
 const raw = JSON.stringify(fixture);
 let checks = 0;
@@ -42,6 +43,7 @@ function mount(saved = null, failures = {}) {
     if (name === "react") return hooks;
     if (name === "react/jsx-runtime") return require(name);
     if (name === "@/lib/vehicleComparisonStorage") return lib;
+    if (name === "@/lib/vehicleComparisonCosts") return costs;
     if (name === "@/lib/useLocalPlan") return hook;
     if (name === "@/components/analytics/useToolStarted") return { useToolStarted: () => () => {} };
     if (name === "./TaxStorageNotice") return { TaxStorageNotice: props => require("react").createElement("p", {}, props.saveState) };
@@ -68,4 +70,29 @@ test("reset cancellation preserves pending edits; confirmed reset cancels them",
 test("failed reset preserves both on-screen draft and previous save", () => { const app = mount(raw, { remove: true }); app.click("비교표 초기화"); assert.equal(app.records.get(app.key), raw); assert.equal(app.value("구매가"), "12000"); assert(app.text().includes("초기화 실패")); });
 test("explicit reset unblocks damaged storage and next edit persists", () => { const app = mount("null"); app.click("비교표 초기화"); app.field("차량 구분명", "Recovered"); app.flush(); assert.equal(JSON.parse(app.records.get(app.key))[0].name, "Recovered"); });
 test("candidate deletion requires confirmation and retains at least two", () => { const app = mount(raw, { cancel: true }); app.click("차량 추가"); app.flush(); app.click("삭제"); app.flush(); assert.equal(JSON.parse(app.records.get(app.key)).length, 3); app.failures.cancel = false; app.click("삭제"); app.flush(); assert.equal(JSON.parse(app.records.get(app.key)).length, 2); });
-console.log(`Vehicle comparison storage: ${checks} PASS`);
+test("blank costs are incomplete, not a zero-dollar estimate", () => {
+  const result = costs.vehicleCostSummary(lib.makeVehicle(0));
+  assert.equal(result.provided, 0); assert.equal(result.complete, false);
+  assert.equal(result.firstYear, null); assert.equal(result.upfront, null);
+  const app = mount(); assert(app.text().includes("비용 0/7 입력")); assert(!app.text().includes("첫 1년 예상 합계")); assert(!app.text().includes("$0.00"));
+});
+test("one entered price is a subtotal and missing costs stay explicit", () => {
+  const result = costs.vehicleCostSummary({ ...lib.makeVehicle(0), price: "12000" });
+  assert.equal(result.firstYear, 12000); assert.equal(result.provided, 1); assert.equal(result.complete, false);
+  const app = mount(); app.field("구매가", "12000"); assert(app.text().includes("입력한 1년 비용 소계$12,000.00")); assert(app.text().includes("비용 1/7 입력"));
+});
+test("seven explicit zeroes count as a complete zero-dollar input", () => {
+  const vehicle = { ...lib.makeVehicle(0), ...Object.fromEntries(lib.vehicleCosts.map(field => [field, "0"])) };
+  const result = costs.vehicleCostSummary(vehicle); assert.equal(result.complete, true); assert.equal(result.firstYear, 0);
+  const app = mount(JSON.stringify([vehicle, lib.makeVehicle(1)])); assert(app.text().includes("첫 1년 예상 합계$0.00"));
+});
+test("first year includes upfront and annual amounts plus twelve monthly fuel costs", () => {
+  const vehicle = { ...lib.makeVehicle(0), price: "12000", transfer: "400", inspection: "250", insurance: "1200", rego: "800", servicing: "600", fuel: "125.50" };
+  const result = costs.vehicleCostSummary(vehicle); assert.equal(result.upfront, 12650); assert.equal(result.firstYear, 16756); assert.equal(result.complete, true);
+});
+test("invalid numeric drafts suppress totals until corrected", () => {
+  for (const value of ["-1", "NaN", "Infinity", "1000000000001"]) { const result = costs.vehicleCostSummary({ ...fixture[0], price: value }); assert.equal(result.firstYear, null); assert.equal(result.invalid[0], "price"); }
+  const app = mount(raw); app.field("구매가", "-1"); assert(app.text().includes("잘못된 금액")); assert(!app.text().includes("$1,506.00")); app.field("구매가", "12000"); assert(app.text().includes("$13,506.00"));
+});
+test("currency display is fixed to cents without floating-point tails", () => { assert.equal(costs.formatVehicleCost(0.1 + 0.2), "$0.30"); assert.equal(costs.formatVehicleCost(null), "—"); });
+console.log(`Vehicle comparison storage and costs: ${checks} PASS`);
