@@ -26,10 +26,22 @@ import {
 import { paymentAlertsConfigured, sendStripeOperatorAlert } from "@/lib/paymentAlerts";
 import { getStripe } from "@/lib/stripe";
 import { resumeProStripeProductDefinition } from "@/lib/resumeProStripeProduct";
+import { getConfiguredCarPurchaseWebhookHandler } from "@/lib/carPurchaseProServerRuntime";
 
 export const runtime = "nodejs";
 
 const maxWebhookPayloadBytes = 1024 * 1024;
+const carPurchaseReversalTypes = new Set([
+  "charge.refunded",
+  "refund.created",
+  "refund.updated",
+  "refund.failed",
+  "charge.dispute.created",
+  "charge.dispute.updated",
+  "charge.dispute.closed",
+  "charge.dispute.funds_reinstated",
+  "charge.dispute.funds_withdrawn",
+]);
 const firstSaleProductContracts: Record<FirstSaleProductCode, { currency: "aud"; amountCents: 1990 | 1490 | 1290 | 990 }> = {
   [FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: resumeProStripeProductDefinition.priceCents },
   [RENTAL_FIRST_SALE_PRODUCT_CODE]: { currency: "aud", amountCents: 1490 },
@@ -52,6 +64,14 @@ function webhookResponse(body: Record<string, unknown>, status = 200) {
 
 function stripeReferenceSuffix(value: string) {
   return value.slice(-8);
+}
+
+function isCarPurchaseTaggedEvent(event: Stripe.Event) {
+  const object: unknown = event.data.object;
+  return !!object && typeof object === "object" && !Array.isArray(object)
+    && "metadata" in object && !!object.metadata && typeof object.metadata === "object"
+    && !Array.isArray(object.metadata)
+    && (object.metadata as Record<string, unknown>).product_code === "car_purchase_pro";
 }
 
 function logFirstSaleManualMonitoring(
@@ -88,9 +108,10 @@ export async function POST(request: NextRequest) {
   }
 
   let event: Stripe.Event;
+  let payload: string;
 
   try {
-    const payload = await request.text();
+    payload = await request.text();
 
     if (Buffer.byteLength(payload, "utf8") > maxWebhookPayloadBytes) {
       return webhookResponse({ error: "Webhook payload is too large." }, 413);
@@ -100,6 +121,24 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.warn("Rejected Stripe webhook", error instanceof Error ? error.message : "Invalid signature");
     return webhookResponse({ error: "Invalid webhook signature." }, 400);
+  }
+
+  const carTagged = isCarPurchaseTaggedEvent(event);
+  const carHandler = getConfiguredCarPurchaseWebhookHandler();
+  if (carHandler && (carTagged || carPurchaseReversalTypes.has(event.type))) {
+    const result = await carHandler(payload, signature);
+    if (result.ok === true && result.handled === true) {
+      return webhookResponse({ received: true, persisted: true, outcome: result.outcome });
+    }
+    if (result.ok === false) {
+      const rejected = ["invalid_signature", "invalid_event", "wrong_environment", "contract_mismatch"]
+        .includes(result.reason);
+      return webhookResponse({ error: rejected ? "Car purchase webhook rejected." : "Car purchase webhook retry required." },
+        rejected ? 400 : 503);
+    }
+    if (carTagged) return webhookResponse({ error: "Car purchase webhook retry required." }, 503);
+  } else if (carTagged) {
+    return webhookResponse({ error: "Car purchase fulfillment is not configured." }, 503);
   }
 
   const entitlementCommand = getEntitlementCommand(event);

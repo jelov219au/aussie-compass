@@ -1,12 +1,6 @@
 import "server-only";
-import { createCarPurchaseCheckoutHttp } from "./carPurchaseProCheckoutHttp";
-import { siteUrl } from "./site";
+import { handleConfiguredCarPurchaseCheckout } from "./carPurchaseProServerRuntime";
 
-// Offer, car DB/webhook readiness and the complete customer journey are still
-// pending. Environment flags cannot connect the preparation adapters by themselves.
-export const handleCarPurchaseCheckout = createCarPurchaseCheckoutHttp({
-  service: null,
-  enabled: false,
-  expectedOrigin: new URL(siteUrl).origin,
-  environment: process.env.NODE_ENV === "development" ? "development" : "production",
-});
+// The configured assembly still hard-codes salesEnabled:false. Environment
+// values can prepare dependencies, but cannot open Checkout.
+export const handleCarPurchaseCheckout = handleConfiguredCarPurchaseCheckout;

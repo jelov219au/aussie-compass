@@ -19,7 +19,6 @@ const http = await load("../src/lib/carPurchaseProAccessHttp.ts", name => {
   if (name === "./carPurchaseProRequestBody") return requestBody;
   throw new Error("Unexpected import: " + name);
 });
-const workspaceAccess = await load("../src/lib/carPurchaseProWorkspaceAccess.ts", name => { throw new Error(name); });
 const origin = "https://hojucompass.com";
 const cookieName = "__Host-hoju_car_purchase_pro_access";
 const accessToken = tokens.encodeCarPurchaseProAccessToken({ id: "101", productCode: "car_purchase_pro", status: "active" }, "s".repeat(43), "synthetic-http-key-".repeat(3));
@@ -83,12 +82,15 @@ throwActivation = true;
 const failure = await expectStatus("activate", request(form), 503);
 assert.equal((await failure.text()).includes("internal detail"), false);
 
+const configuredClosedAccess = http.createCarPurchaseAccessHttp({
+  service: null, enabled: false, expectedOrigin: origin, environment: "production",
+});
 const runtime = await load("../src/lib/carPurchaseProRuntime.ts", name => {
   if (name === "server-only") return {};
-  if (name === "next/headers") return { cookies: async () => { throw new Error("Closed runtime must not read cookies."); } };
-  if (name === "./site") return { siteUrl: origin };
-  if (name === "./carPurchaseProAccessHttp") return http;
-  if (name === "./carPurchaseProWorkspaceAccess") return workspaceAccess;
+  if (name === "./carPurchaseProServerRuntime") return {
+    handleConfiguredCarPurchaseAccess: configuredClosedAccess,
+    hasConfiguredCarPurchaseWorkspaceAccess: async () => false,
+  };
   throw new Error("Unexpected import: " + name);
 }, { process: { env: { NODE_ENV: "production", PAYMENTS_ENABLED: "true", CAR_PURCHASE_PRO_ENABLED: "true" } } });
 assert.equal(await runtime.hasCarPurchaseWorkspaceAccess(), false, "mounted workspace runtime remains closed even with environment flags");
@@ -101,4 +103,4 @@ for (const [path, operation] of [["access/activate", "activate"], ["access/relea
   assert.equal(response.status, 503, "mounted runtime remains closed even with environment flags");
   assert.equal(response.headers.has("set-cookie"), false);
 }
-console.log("PASS car access HTTP: origin/body/field/cookie guards, bounded stream cancellation, secure delivery, restore/release failures, four closed route exports. No network/DB/Stripe/browser.");
+console.log("PASS car access HTTP: origin/body/field/cookie guards, bounded stream cancellation, secure delivery, restore/release failures, four sales-off route exports. No network/DB/Stripe/browser.");

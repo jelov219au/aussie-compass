@@ -263,6 +263,12 @@ export function paymentAlertsConfigured() {
   return getMailConfig() !== null;
 }
 
+export type PaymentOperatorMessage = Readonly<{
+  subject: string;
+  text: string;
+  messageId: string;
+}>;
+
 function createPaymentAlertTransport(config: MailConfig) {
   return nodemailer.createTransport({
     host: config.host,
@@ -273,6 +279,32 @@ function createPaymentAlertTransport(config: MailConfig) {
     greetingTimeout: 10_000,
     socketTimeout: 15_000,
   });
+}
+
+export async function sendPaymentOperatorMessage(message: PaymentOperatorMessage) {
+  if (!message || typeof message.subject !== "string" || message.subject.length < 1 || message.subject.length > 200
+    || /[\r\n]/.test(message.subject) || typeof message.text !== "string"
+    || Buffer.byteLength(message.text, "utf8") < 1 || Buffer.byteLength(message.text, "utf8") > 16_384
+    || typeof message.messageId !== "string"
+    || !/^<car-alert-[a-z_]+-[A-Za-z0-9]{1,8}@hojucompass\.com>$/.test(message.messageId)) {
+    throw new Error("Invalid payment operator message.");
+  }
+  const config = getMailConfig();
+  if (!config) throw new Error("Payment operator alerts are not configured.");
+  const transporter = createPaymentAlertTransport(config);
+  try {
+    await transporter.sendMail({
+      from: `Hoju Compass 결제 알림 <${config.from}>`,
+      to: config.to,
+      replyTo: defaultAlertEmail,
+      subject: message.subject,
+      text: message.text,
+      messageId: message.messageId,
+    });
+  } finally {
+    transporter.close();
+  }
+  return { outcome: "sent" as const };
 }
 
 export async function runPaymentAlertTransportCheck({ sendTest = false } = {}) {

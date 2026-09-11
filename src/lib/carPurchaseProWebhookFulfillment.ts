@@ -131,9 +131,10 @@ export function createCarPurchaseWebhookFulfillment(deps: {
     const isPaid = paidTypes.includes(event.type), isRefund = refundTypes.includes(event.type);
     if (!isPaid && !isRefund && !isCheckoutException && !isDispute) return { ok: true, handled: false };
     if ((isPaid || isCheckoutException) && (!record(object.metadata) || object.metadata.product_code !== "car_purchase_pro")) return { ok: true, handled: false };
-    try {
-      if (await checkPrerequisites!(offer!, mode!) !== true) return failed("unavailable");
-    } catch { return failed("unavailable"); }
+    const prerequisitesReady = async () => {
+      try { return await checkPrerequisites!(offer!, mode!) === true; }
+      catch { return false; }
+    };
     const receipt: Receipt = { eventId: event.id, eventType: event.type, livemode: event.livemode as boolean,
       createdAt: new Date(event.created * 1000) };
     if (isCheckoutException || isDispute) {
@@ -143,6 +144,7 @@ export function createCarPurchaseWebhookFulfillment(deps: {
       let exception: CarPurchaseExceptionEvent;
       try {
         if (isCheckoutException) {
+          if (!await prerequisitesReady()) return failed("unavailable");
           if (object.object !== "checkout.session" || !id(object.id, "cs_" + mode)
             || object.status !== "complete" || object.payment_status !== "unpaid" || object.mode !== "payment"
             || object.livemode !== receipt.livemode || !record(object.metadata)
@@ -188,6 +190,7 @@ export function createCarPurchaseWebhookFulfillment(deps: {
             || reference(raw.customer, "cus") !== currentCharge.customerId) return failed("contract_mismatch");
           if (record(raw.metadata) && typeof raw.metadata.product_code === "string"
             && raw.metadata.product_code !== "car_purchase_pro") return { ok: true, handled: false };
+          if (!await prerequisitesReady()) return failed("unavailable");
           const purchase = checkout(raw);
           if (!purchase || currentCharge.currency !== offer!.currency || currentCharge.amount !== offer!.priceCents) return failed("contract_mismatch");
           // Even an old event or a currently won dispute can only restrict/review.
@@ -215,6 +218,7 @@ export function createCarPurchaseWebhookFulfillment(deps: {
           || object.payment_status !== "paid" || object.status !== "complete" || object.mode !== "payment"
           || object.livemode !== receipt.livemode || !record(object.metadata)
           || object.metadata.billing_model !== offer!.billing || object.metadata.purchase_terms_version !== offer!.termsVersion) return failed("contract_mismatch");
+        if (!await prerequisitesReady()) return failed("unavailable");
         const raw = await provider!.retrieveCheckout(object.id, { expand: ["line_items"] });
         const purchase = checkout(raw);
         if (!purchase || purchase.checkoutSessionId !== object.id
@@ -251,6 +255,7 @@ export function createCarPurchaseWebhookFulfillment(deps: {
           || reference(raw.customer, "cus") !== currentCharge.customerId) return failed("contract_mismatch");
         if (record(raw) && record(raw.metadata) && typeof raw.metadata.product_code === "string"
           && raw.metadata.product_code !== "car_purchase_pro") return { ok: true, handled: false };
+        if (!await prerequisitesReady()) return failed("unavailable");
         const purchase = checkout(raw);
         if (!purchase || purchase.checkoutSessionId !== list.data[0].id || purchase.paymentIntentId !== currentCharge.paymentIntentId
           || purchase.customerId !== currentCharge.customerId || currentCharge.currency !== offer!.currency

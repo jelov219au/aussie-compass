@@ -106,12 +106,17 @@ for (const patch of [{ enabled: false }, { service: null }, { expectedOrigin: "h
 }
 assert.equal(calls.length, callsBeforeClosed);
 
-// The mounted route uses the actual closed runtime despite permissive environment flags.
+// The mounted route delegates to the configured server assembly. This fixture
+// supplies its sales-off result without importing a DB or Stripe client.
+const configuredClosedCheckout = http.createCarPurchaseCheckoutHttp({
+  service: null, enabled: false, expectedOrigin: origin, environment: "production",
+});
 const runtime = load("../src/lib/carPurchaseProCheckoutRuntime.ts", name => {
   if (name === "server-only") return {};
-  if (name === "./site") return { siteUrl: origin };
-  if (name === "./carPurchaseProCheckoutHttp") return http;
-  throw new Error("Runtime must not import provider/DB modules: " + name);
+  if (name === "./carPurchaseProServerRuntime") {
+    return { handleConfiguredCarPurchaseCheckout: configuredClosedCheckout };
+  }
+  throw new Error("Runtime must delegate only to the configured server assembly: " + name);
 }, { process: { env: { NODE_ENV: "production", PAYMENTS_ENABLED: "true", CAR_PURCHASE_PRO_ENABLED: "true" } } });
 const route = load("../src/app/api/checkout/car-purchase-pro/route.ts", name => {
   assert.equal(name, "@/lib/carPurchaseProCheckoutRuntime"); return runtime;
@@ -119,4 +124,4 @@ const route = load("../src/app/api/checkout/car-purchase-pro/route.ts", name => 
 assert.equal(route.runtime, "nodejs");
 await responseCheck(await route.POST(request()), 503, "checkout_unavailable");
 assert.equal(calls.length, callsBeforeClosed);
-console.log(`PASS car checkout HTTP: ${checks} response checks; strict origin/terms/body, bounded stream cancellation, safe JSON and URL, business failures, default-503 route. No provider/DB/network/browser/build.`);
+console.log(`PASS car checkout HTTP: ${checks} response checks; strict origin/terms/body, bounded stream cancellation, safe JSON and URL, business failures, sales-off configured route. No provider/DB/network/browser/build.`);

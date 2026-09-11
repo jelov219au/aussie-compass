@@ -17,7 +17,7 @@ const record = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object" && !Array.isArray(value);
 const offerFields = ["productCode", "currency", "billing", "priceCents", "stripePriceId", "stripeProductId", "termsVersion"] as const;
 
-// Preparation factory only. Production runtime files deliberately do not import it.
+// Shared assembly for the configured server runtime and isolated contract tests.
 // readReadiness must be an approved SERVER probe of the exact DB/functions/ACLs,
 // webhook and offer contract. Browser input and environment flags are not evidence.
 // It returns { offer, mode, accessFunctions, runtimePrivileges, webhook,
