@@ -52,6 +52,7 @@ function mount(name) {
       if (id === "react/jsx-runtime") return require(id);
       if (id === "@/data/playMore") return data;
       if (id === "@/lib/playMore") return lib;
+      if (id === "./BalancedLetters") return { BalancedLetters: "div" };
       if (id.endsWith(".module.css")) return { default: {} };
       assert.fail(id);
     },

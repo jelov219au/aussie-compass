@@ -85,7 +85,7 @@ function mount(name, { raw = null, failure = "", set = sets[0], deferred = false
     useEffect(fn, deps) { const i = cursor++, old = slots[i]; if (!old || !deps || deps.some((value, j) => !Object.is(value, old.deps?.[j]))) { slots[i] = { deps, cleanup: old?.cleanup }; queue.push(() => { slots[i].cleanup?.(); slots[i].cleanup = fn(); }); } },
   };
   const listener = { addEventListener(key, fn) { events.set(key, fn); }, removeEventListener(key) { events.delete(key); } };
-  const mod = compile("src/components/play/DailyPlay.tsx", { react: hooks, "react/jsx-runtime": require("react/jsx-runtime"), "@/lib/dailyPlay": lib, "@/lib/playMore": more, "./Playground.module.css": { default: {} } }, {
+  const mod = compile("src/components/play/DailyPlay.tsx", { react: hooks, "react/jsx-runtime": require("react/jsx-runtime"), "@/lib/dailyPlay": lib, "@/lib/playMore": more, "./Playground.module.css": { default: {} }, "./BalancedLetters": { BalancedLetters: "div" } }, {
     localStorage: { getItem: key => { if (failure === "read") throw Error("denied"); return records.get(key) ?? null; }, setItem: (key, value) => { if (failure === "write") throw Error("quota"); writes.push(key); records.set(key, value); }, removeItem: key => { if (failure === "remove") throw Error("denied"); records.delete(key); } },
     window: { ...listener, setTimeout(fn, ms) { const id = ++timerId; timers.set(id, { fn, ms }); return id; }, clearTimeout(id) { timers.delete(id); }, requestAnimationFrame: fn => fn() },
     document: { ...listener, visibilityState: "visible" },

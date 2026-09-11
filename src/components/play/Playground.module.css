@@ -33,7 +33,8 @@
 .puzzleClue { margin: 24px 0 20px; text-align: center; padding: 24px 12px; border-block: 1px dashed #a1b7ca; }
 .puzzleClue > span, .puzzleClue p { font-size: 12px; line-height: 1.8; color: #5c6478; }
 .puzzleClue h3 { margin: 10px 0; font-size: 28px; font-weight: 800; }
-.letterSlots, .letterBank { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.letterSlots, .letterBank { display: grid; justify-content: center; gap: 8px; }
+.letterCell { display: flex; justify-content: center; }
 .letterSlots { padding: 8px 0; }
 .letterBank { margin: 16px 0 22px; }
 .emptyTile, .answerTile, .letterTile { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 46px; height: 50px; border: 1px solid #1a2744; border-radius: 8px; font-family: monospace; font-size: 25px; font-weight: 700; }
